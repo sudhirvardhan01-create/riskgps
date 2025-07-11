@@ -1,5 +1,3 @@
-version: '3.9'
-env_file: .env
 services:
   frontend:
     build:
