@@ -11,6 +11,7 @@ exports.getUsers = async (req, res) => {
 };
 
 exports.addUser = async (req, res) => {
+  console.log("Adding user with request body:", req.body);
   try {
     const { name } = req.body;
     const newUser = await userService.createUser(name);
