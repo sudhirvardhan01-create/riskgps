@@ -1,16 +1,16 @@
 services:
-  # frontend:
-  #   build:
-  #     context: ./riskgps_frontend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./riskgps_frontend:/app
-  #     - /app/node_modules
-  #   ports:
-  #     - "5173:5173"
-  #   working_dir: /app
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    working_dir: /app
+    depends_on:
+      - backend
 
   backend:
     build: 
@@ -20,7 +20,7 @@ services:
       - ./backend:/app
       - /app/node_modules
     ports:
-      - "3000:3001"
+      - "8000:8000"
     working_dir: /app
     depends_on:
       - db
