@@ -1,8 +1,8 @@
 services:
   frontend:
     build: 
-      context: ./riskgps_frontend
-      dockerfile: Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile.prod
     ports:
       - "80:80"
     depends_on:
@@ -11,9 +11,9 @@ services:
   backend:
     build: 
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     ports:
-      - "3000:3001"
+      - "8000:8000"
 
     depends_on:
       - db
