@@ -7,9 +7,9 @@ const cors = require('cors');
 app.use(express.json());
 
 app.use(cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002']
+  origin: ['http://localhost:3000', 'http://localhost:3002']
 }));
-const port = 3001;
+const port = 8000;
 
 app.get("/health", (req, res) => {
     res.send("Site is healthy");
