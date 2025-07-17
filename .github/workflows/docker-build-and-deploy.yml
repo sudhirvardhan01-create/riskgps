@@ -13,9 +13,6 @@ env:
   # TODO: Replace with secrets.AWS_ACCOUNT_ID once GitHub Secrets are available
   AWS_ACCOUNT_ID: 739962689681
   ECR_REGISTRY: 739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps
-  MAJOR_VERSION: 1
-  MINOR_VERSION: 0
-  IMAGE_TAG: v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
 
 permissions:
   id-token: write
