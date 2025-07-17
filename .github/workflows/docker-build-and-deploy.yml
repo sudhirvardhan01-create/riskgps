@@ -84,21 +84,22 @@ jobs:
         run: npm run build
         env:
           # TODO: Replace with secrets.BACKEND_DATABASE_URL once GitHub Secrets are available
-          DATABASE_URL: DATABASE_URL=postgres://postgres:postgres@db:5432/riskgps
+          DATABASE_URL: postgres://postgres:postgres@db:5432/riskgps
           # TODO: Replace with secrets.BACKEND_API_KEY once GitHub Secrets are available
           # API_KEY: your-api-key
-          # # TODO: Replace with secrets.FRONTEND_API_URL once GitHub Secrets are available
+          # TODO: Replace with secrets.FRONTEND_API_URL once GitHub Secrets are available
           # NEXT_PUBLIC_API_URL: http://localhost:3000/api
 
   cleanup:
     runs-on: ubuntu-latest
     needs: compile
-    if: always()  # Run regardless of previous job status
+    if: always()
     steps:
       - name: Clean up temporary files
         run: |
-          rm -f changed-files.txt
+          rm -f changed-files.txt || true
           echo "Removed temporary files"
+        continue-on-error: true
 
       - name: Clean npm cache
         run: npm cache clean --force
