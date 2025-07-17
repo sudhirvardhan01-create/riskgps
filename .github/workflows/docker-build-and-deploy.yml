@@ -30,18 +30,41 @@ jobs:
         with:
           fetch-depth: 0  # Fetch full git history for diff
 
+      - name: Debug git context
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Base ref: ${{ github.base_ref }}"
+          echo "Head ref: ${{ github.head_ref }}"
+          echo "Ref: ${{ github.ref }}"
+
       - name: Detect changed components
         id: detect
         if: github.event_name == 'pull_request'
         run: |
           git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }} > changed-files.txt
-          echo "frontend=$(grep -q "^frontend/" changed-files.txt && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "backend=$(grep -q "^backend/" changed-files.txt && echo true || echo false)" >> $GITHUB_OUTPUT
+          cat changed-files.txt
+          echo "Checking for frontend changes..."
+          if grep -q "frontend/" changed-files.txt; then
+            echo "Frontend changes detected"
+            echo "frontend=true" >> $GITHUB_OUTPUT
+          else
+            echo "No frontend changes detected"
+            echo "frontend=false" >> $GITHUB_OUTPUT
+          fi
+          echo "Checking for backend changes..."
+          if grep -q "backend/" changed-files.txt; then
+            echo "Backend changes detected"
+            echo "backend=true" >> $GITHUB_OUTPUT
+          else
+            echo "No backend changes detected"
+            echo "backend=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set outputs for push event
         id: set-outputs
         if: github.event_name == 'push'
         run: |
+          echo "Setting frontend=true and backend=true for push event"
           echo "frontend=true" >> $GITHUB_OUTPUT
           echo "backend=true" >> $GITHUB_OUTPUT
 
@@ -61,6 +84,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug change detection
+        run: |
+          echo "Component: ${{ matrix.component }}"
+          echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
 
       - name: Setup Node.js
         if: needs.detect-changes.outputs[matrix.component] == 'true'
