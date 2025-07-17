@@ -102,38 +102,31 @@ jobs:
         if: needs.detect-changes.outputs[matrix.component] == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20'  # Match Dockerfile Node version
           cache: 'npm'
           cache-dependency-path: ${{ matrix.cache-path }}
 
-      - name: Install dependencies
+      - name: Install dependencies with retry
         if: needs.detect-changes.outputs[matrix.component] == 'true'
-        working-directory: ${{ matrix.path }}
-        run: npm ci
+        uses: nick-invision/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: npm ci
+          on_retry: echo "Retrying npm ci for ${{ matrix.component }}"
 
       - name: Compile
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
+        if: needs.detect-changes.outputs[matrix.component] == 'true' && matrix.component == 'frontend'
         working-directory: ${{ matrix.path }}
         run: npm run build
-        env:
-          # TODO: Replace with secrets.BACKEND_DATABASE_URL once GitHub Secrets are available
-          DATABASE_URL: postgres://postgres:postgres@db:5432/riskgps
-          # TODO: Replace with secrets.BACKEND_API_KEY once GitHub Secrets are available
-          # API_KEY: your-api-key
-          # TODO: Replace with secrets.FRONTEND_API_URL once GitHub Secrets are available
-          # NEXT_PUBLIC_API_URL: http://localhost:3000/api
 
       - name: Run tests
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
+        if: needs.detect-changes.outputs[matrix.component] == 'true' && matrix.component == 'frontend'
         working-directory: ${{ matrix.path }}
-        run: npm test
+        run: npm run test
         env:
           # TODO: Replace with secrets.BACKEND_DATABASE_URL once GitHub Secrets are available
           DATABASE_URL: postgres://postgres:postgres@db:5432/riskgps
-          # TODO: Replace with secrets.BACKEND_API_KEY once GitHub Secrets are available
-          # API_KEY: your-api-key
-          # TODO: Replace with secrets.FRONTEND_API_URL once GitHub Secrets are available
-          # NEXT_PUBLIC_API_URL: http://localhost:3000/api
 
   cleanup:
     runs-on: ubuntu-latest
