@@ -6,7 +6,7 @@ RUN npm ci
 
 # Build the app
 FROM node:21-alpine AS builder
-WORKDIR /app
+WORKDIR /app  
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 RUN npm run build
