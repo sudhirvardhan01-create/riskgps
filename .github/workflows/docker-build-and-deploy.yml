@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
 
 permissions:
-    id-token: write
-    contents: read
-    
+  id-token: write
+  contents: read
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: 739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps
@@ -81,10 +81,11 @@ jobs:
 
       - name: Build Docker image
         run: |
+          cd ${{ matrix.service }}
           docker build \
             -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} \
-            -f ${{ matrix.service }}/Dockerfile .
-        working-directory: .
+            -f Dockerfile.prod .
+        working-directory: ${{ matrix.service }}
 
   scan-images:
     name: Scan Docker Images
@@ -149,8 +150,9 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          cd ${{ matrix.service }}
           docker build \
             -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} \
-            -f ${{ matrix.service }}/Dockerfile.prod .
+            -f Dockerfile.prod .
           docker push ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }}
-        working-directory: .
+        working-directory: ${{ matrix.service }}
