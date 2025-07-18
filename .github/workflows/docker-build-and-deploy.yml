@@ -16,10 +16,10 @@ permissions:
 env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: 739962689681.dkr.ecr.us-east-1.amazonaws.com
-  REPO_NAME: riskgps
+  REPO_NAME: riskgps-frontend
   MAJOR_VERSION: 1
   MINOR_VERSION: 0
-  SERVICE: frontend  # Change to backend if needed
+  SERVICE: frontend
 
 jobs:
   scan-files:
@@ -38,7 +38,7 @@ jobs:
         run: |
           cd ${{ env.SERVICE }}
           npm ci
-
+          
       - name: Trivy Filesystem Scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -61,11 +61,11 @@ jobs:
       - name: Set image name and tag
         run: |
           TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
-          IMAGE_NAME=${{ env.REPO_NAME }}/${{ env.SERVICE }}:$TAG
-          ECR_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}/${{ env.SERVICE }}:$TAG
+          IMAGE_NAME=${{ env.REPO_NAME }}:${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
+          ECR_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}:${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "ECR_IMAGE=$ECR_IMAGE" >> $GITHUB_ENV
-
+          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -83,7 +83,7 @@ jobs:
         run: |
           cd ${{ env.SERVICE }}
           docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile .
-
+          
       - name: Scan local Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
