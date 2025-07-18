@@ -65,9 +65,10 @@ jobs:
         run: |
           REPO_NAME=riskgps-${{ matrix.service }}
           TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
-          IMAGE_NAME=${{ env.REPO_NAME }}:${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
-          ECR_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}:${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
+          IMAGE_NAME=${{ env.REPO_NAME }}:${{ env.TAG }}
+          ECR_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}:${{ env.TAG }}
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "ECR_IMAGE=$ECR_IMAGE" >> $GITHUB_ENV
       - name: Configure AWS Credentials
