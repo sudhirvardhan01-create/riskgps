@@ -15,9 +15,11 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: 739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps
+  ECR_REGISTRY: 739962689681.dkr.ecr.us-east-1.amazonaws.com
+  REPO_NAME: riskgps
   MAJOR_VERSION: 1
   MINOR_VERSION: 0
+  SERVICE: frontend  # Change this to backend as needed
 
 jobs:
   scan-files:
@@ -32,13 +34,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies for frontend
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Install dependencies for backend
-        working-directory: ./backend
-        run: npm ci
+      - name: Install dependencies for ${{ env.SERVICE }}
+        run: |
+          cd ${{ env.SERVICE }}
+          npm ci
 
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
@@ -52,19 +51,16 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
   build-docker:
-    name: Build Docker Images
+    name: Build Docker Image
     runs-on: ubuntu-latest
     needs: scan-files
-    strategy:
-      matrix:
-        service: [frontend, backend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set version tag
+      - name: Set image tag
         run: |
-          echo "VERSION_TAG=${{ matrix.service }}/v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}/${{ env.SERVICE }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -79,27 +75,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image      
+      - name: Build Docker image
         run: |
+          cd ${{ env.SERVICE }}
           docker build \
-            -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} \
-            -f ${{ matrix.service }}/Dockerfile.prod .
-        working-directory: ${{ matrix.service }}
+            -t ${{ env.IMAGE_NAME }} \
+            -f Dockerfile.prod .
 
   scan-images:
-    name: Scan Docker Images
+    name: Scan Docker Image
     runs-on: ubuntu-latest
     needs: build-docker
-    strategy:
-      matrix:
-        service: [frontend, backend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set version tag
+      - name: Set image tag
         run: |
-          echo "VERSION_TAG=${{ matrix.service }}/v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}/${{ env.SERVICE }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -114,7 +107,7 @@ jobs:
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }}
+          image-ref: ${{ env.IMAGE_NAME }}
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -122,20 +115,17 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
   push-docker:
-    name: Push Docker Images to ECR
+    name: Push Docker Image to ECR
     runs-on: ubuntu-latest
     needs: scan-images
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    strategy:
-      matrix:
-        service: [frontend, backend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set version tag
+      - name: Set image tag
         run: |
-          echo "VERSION_TAG=${{ matrix.service }}/v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}/${{ env.SERVICE }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -149,8 +139,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          cd ${{ env.SERVICE }}
           docker build \
-            -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} \
-            -f ${{ matrix.service }}/Dockerfile.prod .
-          docker push ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }}
-        working-directory: ${{ matrix.service }}
+            -t ${{ env.IMAGE_NAME }} \
+            -f Dockerfile .
+          docker push ${{ env.IMAGE_NAME }}
