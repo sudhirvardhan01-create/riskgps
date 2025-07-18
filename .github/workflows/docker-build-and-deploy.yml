@@ -32,26 +32,37 @@ jobs:
         with:
           fetch-depth: 0  # Fetch full git history for diff
 
-      - name: Fetch base and head branches
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch origin ${{ github.base_ref }} --depth=1
-          git fetch origin ${{ github.head_ref }} --depth=1
-          echo "Fetched branches: origin/${{ github.base_ref }}, origin/${{ github.head_ref }}"
-
-      - name: Debug git context
+      - name: Debug Git context
         run: |
           echo "Event: ${{ github.event_name }}"
           echo "Base ref: ${{ github.base_ref }}"
           echo "Head ref: ${{ github.head_ref }}"
           echo "Ref: ${{ github.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          git branch -a
+          git log --oneline -n 5
+
+      - name: Fetch base and head branches
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Fetching base and head branches for PR..."
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git fetch origin ${{ github.head_ref }} --depth=1
+          echo "Fetched branches:"
+          git branch -a
 
       - name: Detect changed components
         id: filter
-        if: github.event_name == 'pull_request'
         run: |
           echo "Checking for changed folders..."
-          git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }} > changed-files.txt
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "Running diff for pull request: origin/${{ github.base_ref }}..origin/${{ github.head_ref }}"
+            git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }} > changed-files.txt
+          else
+            echo "Running diff for push event: HEAD^ HEAD"
+            git diff --name-only HEAD^ HEAD > changed-files.txt
+          fi
+          echo "Changed files:"
           cat changed-files.txt
           echo "frontend=false" >> $GITHUB_OUTPUT
           echo "backend=false" >> $GITHUB_OUTPUT
@@ -60,23 +71,15 @@ jobs:
             echo "frontend=true" >> $GITHUB_OUTPUT
           else
             echo "No frontend changes detected"
-            echo "frontend=false" >> $GITHUB_OUTPUT
           fi
           if grep -q "^backend/" changed-files.txt; then
             echo "Backend changes detected"
             echo "backend=true" >> $GITHUB_OUTPUT
           else
             echo "No backend changes detected"
-            echo "backend=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Set outputs for push event
-        id: set-outputs
-        if: github.event_name == 'push'
-        run: |
-          echo "Setting frontend=true and backend=true for push event"
-          echo "frontend=true" >> $GITHUB_OUTPUT
-          echo "backend=true" >> $GITHUB_OUTPUT
+          echo "Output values:"
+          cat $GITHUB_OUTPUT
 
   scan-files:
     runs-on: ubuntu-latest
@@ -97,6 +100,7 @@ jobs:
         run: |
           echo "Component: ${{ matrix.component }}"
           echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
+          echo "Proceeding with scan: ${{ needs.detect-changes.outputs[matrix.component] == 'true' }}"
 
       - name: Setup Node.js
         if: needs.detect-changes.outputs[matrix.component] == 'true'
@@ -107,6 +111,7 @@ jobs:
       - name: Install Trivy
         if: needs.detect-changes.outputs[matrix.component] == 'true'
         run: |
+          echo "Installing Trivy..."
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy --version
 
@@ -146,13 +151,18 @@ jobs:
 
       - name: Set version tag
         run: |
+          echo "Setting VERSION_TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}"
           echo "VERSION_TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
-      - name: Debug change detection
+      - name: Debug build job
         run: |
           echo "Component: ${{ matrix.component }}"
           echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
-          echo "Building image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ env.VERSION_TAG }}"
+          echo "Proceeding with build: ${{ needs.detect-changes.outputs[matrix.component] == 'true' }}"
+          echo "ECR Repository: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}"
+          echo "Image tag: ${{ env.VERSION_TAG }}"
+          echo "Dockerfile: ${{ matrix.dockerfile }}"
+          echo "Working directory: ${{ matrix.path }}"
 
       - name: Configure AWS credentials
         if: needs.detect-changes.outputs[matrix.component] == 'true'
