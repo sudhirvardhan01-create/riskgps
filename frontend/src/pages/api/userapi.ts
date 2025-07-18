@@ -1,5 +1,5 @@
 export const fetchUserData = async (userName: string) => {
-  const response = await fetch('http://localhost:8000/users', {
+  const response = await fetch('http://backend:8000/users', {
     method: 'POST',
     body: JSON.stringify({ name: userName }),
     headers: {
