@@ -136,21 +136,23 @@ jobs:
             path: ./frontend
             dockerfile: frontend/Dockerfile
             ecr_repository: riskgps-frontend
-            image_tag: v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
           - component: backend
             path: ./backend
             dockerfile: backend/Dockerfile
             ecr_repository: riskgps-backend
-            image_tag: v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set version tag
+        run: |
+          echo "VERSION_TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Debug change detection
         run: |
           echo "Component: ${{ matrix.component }}"
           echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
-          echo "Building image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ matrix.image_tag }}"
+          echo "Building image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ env.VERSION_TAG }}"
 
       - name: Configure AWS credentials
         if: needs.detect-changes.outputs[matrix.component] == 'true'
@@ -168,6 +170,6 @@ jobs:
         if: needs.detect-changes.outputs[matrix.component] == 'true'
         run: |
           echo "Building Docker image for ${{ matrix.component }}..."
-          docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ matrix.image_tag }} .
-          echo "Built image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ matrix.image_tag }}"
+          docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ env.VERSION_TAG }} .
+          echo "Built image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ env.VERSION_TAG }}"
         working-directory: ${{ matrix.path }}
