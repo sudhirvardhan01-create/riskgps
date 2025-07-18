@@ -16,7 +16,6 @@ permissions:
 env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: 739962689681.dkr.ecr.us-east-1.amazonaws.com
-  REPO_NAME: riskgps-${{ matrix.service }}
   MAJOR_VERSION: 1
   MINOR_VERSION: 0
 
@@ -64,9 +63,11 @@ jobs:
 
       - name: Set image name and tag
         run: |
+          REPO_NAME=riskgps-${{ matrix.service }}
           TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
           IMAGE_NAME=${{ env.REPO_NAME }}:${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
           ECR_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}:${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "ECR_IMAGE=$ECR_IMAGE" >> $GITHUB_ENV
       - name: Configure AWS Credentials
