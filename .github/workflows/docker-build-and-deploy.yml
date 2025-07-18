@@ -21,88 +21,8 @@ permissions:
   contents: read
 
 jobs:
-  detect-changes:
-    name: Detect Changed Folders
-    runs-on: ubuntu-latest
-    outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      backend: ${{ steps.filter.outputs.backend }}
-    steps:
-      - name: Checkout full repo history
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history for git diff
-
-      - name: Debug Git context
-        run: |
-          echo "Event: ${{ github.event_name }}"
-          echo "Base ref: ${{ github.base_ref }}"
-          echo "Head ref: ${{ github.head_ref }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "PR number: ${{ github.event.number }}"
-          echo "PR head SHA: ${{ github.event.pull_request.head.sha }}"
-          echo "PR base SHA: ${{ github.event.pull_request.base.sha }}"
-          echo "Current branches:"
-          git branch -a
-          echo "Recent commits:"
-          git log --oneline -n 10
-          echo "Checking for commit c09d0a3db5765a23d1e3ae07aa45096622de2dbd:"
-          git log --oneline | grep c09d0a3db5765a23d1e3ae07aa45096622de2dbd || echo "Commit not found"
-
-      - name: Fetch base and head branches
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "Fetching base (${{ github.base_ref }}) and head (${{ github.head_ref }}) branches for PR..."
-          git fetch origin ${{ github.base_ref }} --depth=10 || echo "Failed to fetch base ref: ${{ github.base_ref }}"
-          git fetch origin ${{ github.head_ref }} --depth=10 || echo "Failed to fetch head ref: ${{ github.head_ref }}"
-          echo "Fetched branches:"
-          git branch -a
-
-      - name: Detect changed folders
-        id: filter
-        run: |
-          echo "Checking for changed folders..."
-          echo "Event type: ${{ github.event_name }}"
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "Running diff for pull request: origin/${{ github.base_ref }}..origin/${{ github.head_ref }}"
-            CHANGED=$(git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }} || echo "Git diff failed for PR")
-            if [ -z "$CHANGED" ]; then
-              echo "No changes detected in PR diff, falling back to HEAD^ HEAD"
-              CHANGED=$(git diff --name-only HEAD^ HEAD || echo "Fallback diff failed")
-            fi
-          else
-            echo "Running diff for push event: HEAD^ HEAD"
-            CHANGED=$(git diff --name-only HEAD^ HEAD || echo "Git diff failed for push")
-          fi
-          echo "Changed files: $CHANGED"
-          echo "Writing to changed-files.txt for reference:"
-          echo "$CHANGED" > changed-files.txt
-          cat changed-files.txt
-          echo "Checking for frontend/Dockerfile and backend/Dockerfile explicitly:"
-          echo "$CHANGED" | grep -i "frontend/Dockerfile" && echo "frontend/Dockerfile detected" || echo "frontend/Dockerfile not detected"
-          echo "$CHANGED" | grep -i "backend/Dockerfile" && echo "backend/Dockerfile detected" || echo "backend/Dockerfile not detected"
-          echo "frontend=false" >> $GITHUB_OUTPUT
-          echo "backend=false" >> $GITHUB_OUTPUT
-          if echo "$CHANGED" | grep -qi '^frontend/'; then
-            echo "Frontend changes detected"
-            echo "frontend=true" >> $GITHUB_OUTPUT
-          else
-            echo "No frontend changes detected"
-          fi
-          if echo "$CHANGED" | grep -qi '^backend/'; then
-            echo "Backend changes detected"
-            echo "backend=true" >> $GITHUB_OUTPUT
-          else
-            echo "No backend changes detected"
-          fi
-          echo "Output values:"
-          cat $GITHUB_OUTPUT
-
   scan-files:
     runs-on: ubuntu-latest
-    needs: detect-changes
     strategy:
       matrix:
         component: [frontend, backend]
@@ -115,34 +35,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug change detection
+      - name: Debug scan job
         run: |
           echo "Component: ${{ matrix.component }}"
-          echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
-          echo "Proceeding with scan: ${{ needs.detect-changes.outputs[matrix.component] == 'true' }}"
+          echo "Scanning directory: ${{ matrix.path }}"
 
       - name: Setup Node.js
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '21'  # Match Dockerfile Node version
 
       - name: Install Trivy
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
         run: |
           echo "Installing Trivy..."
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy --version
 
       - name: List files to be scanned
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
         working-directory: ${{ matrix.path }}
         run: |
           echo "Files in ${{ matrix.component }} directory:"
           find . -type f
 
       - name: Scan all supported files with Trivy
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
         working-directory: ${{ matrix.path }}
         run: |
           echo "Scanning all supported files in ${{ matrix.component }} for vulnerabilities, misconfigurations, and secrets..."
@@ -176,27 +91,22 @@ jobs:
       - name: Debug build job
         run: |
           echo "Component: ${{ matrix.component }}"
-          echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
-          echo "Proceeding with build: ${{ needs.detect-changes.outputs[matrix.component] == 'true' }}"
           echo "ECR Repository: ${{ env.ECR_REPOSITORY }}"
           echo "Image tag: ${{ env.VERSION_TAG }}"
           echo "Dockerfile: ${{ matrix.dockerfile }}"
           echo "Working directory: ${{ matrix.path }}"
 
       - name: Configure AWS credentials
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
-        if: needs.detect-changes.outputs[matrix.component] == 'true'
         run: |
           echo "Building Docker image for ${{ matrix.component }}..."
           docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} .
