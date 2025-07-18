@@ -20,6 +20,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 USER nodejs
 # Copy application files
 COPY --from=builder /app ./
+# Expose the port and set environment variables
 EXPOSE 8000
 ENV NODE_ENV=production 
 

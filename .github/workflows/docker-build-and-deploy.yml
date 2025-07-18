@@ -12,7 +12,7 @@ env:
   AWS_REGION: us-east-1
   # TODO: Replace with secrets.AWS_ACCOUNT_ID once GitHub Secrets are available
   AWS_ACCOUNT_ID: 123456789012
-  ECR_BASE: 123456789012.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPOSITORY: 123456789012.dkr.ecr.us-east-1.amazonaws.com/riskgps
   MAJOR_VERSION: 1
   MINOR_VERSION: 0
 
@@ -22,15 +22,16 @@ permissions:
 
 jobs:
   detect-changes:
+    name: Detect Changed Folders
     runs-on: ubuntu-latest
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
     steps:
-      - name: Checkout code
+      - name: Checkout full repo history
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full git history for diff
+          fetch-depth: 0  # Full history for git diff
 
       - name: Debug Git context
         run: |
@@ -39,40 +40,58 @@ jobs:
           echo "Head ref: ${{ github.head_ref }}"
           echo "Ref: ${{ github.ref }}"
           echo "Commit SHA: ${{ github.sha }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "PR number: ${{ github.event.number }}"
+          echo "PR head SHA: ${{ github.event.pull_request.head.sha }}"
+          echo "PR base SHA: ${{ github.event.pull_request.base.sha }}"
+          echo "Current branches:"
           git branch -a
-          git log --oneline -n 5
+          echo "Recent commits:"
+          git log --oneline -n 10
+          echo "Checking for commit c09d0a3db5765a23d1e3ae07aa45096622de2dbd:"
+          git log --oneline | grep c09d0a3db5765a23d1e3ae07aa45096622de2dbd || echo "Commit not found"
 
       - name: Fetch base and head branches
         if: github.event_name == 'pull_request'
         run: |
-          echo "Fetching base and head branches for PR..."
-          git fetch origin ${{ github.base_ref }} --depth=1
-          git fetch origin ${{ github.head_ref }} --depth=1
+          echo "Fetching base (${{ github.base_ref }}) and head (${{ github.head_ref }}) branches for PR..."
+          git fetch origin ${{ github.base_ref }} --depth=10 || echo "Failed to fetch base ref: ${{ github.base_ref }}"
+          git fetch origin ${{ github.head_ref }} --depth=10 || echo "Failed to fetch head ref: ${{ github.head_ref }}"
           echo "Fetched branches:"
           git branch -a
 
-      - name: Detect changed components
+      - name: Detect changed folders
         id: filter
         run: |
           echo "Checking for changed folders..."
+          echo "Event type: ${{ github.event_name }}"
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "Running diff for pull request: origin/${{ github.base_ref }}..origin/${{ github.head_ref }}"
-            git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }} > changed-files.txt
+            CHANGED=$(git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }} || echo "Git diff failed for PR")
+            if [ -z "$CHANGED" ]; then
+              echo "No changes detected in PR diff, falling back to HEAD^ HEAD"
+              CHANGED=$(git diff --name-only HEAD^ HEAD || echo "Fallback diff failed")
+            fi
           else
             echo "Running diff for push event: HEAD^ HEAD"
-            git diff --name-only HEAD^ HEAD > changed-files.txt
+            CHANGED=$(git diff --name-only HEAD^ HEAD || echo "Git diff failed for push")
           fi
-          echo "Changed files:"
+          echo "Changed files: $CHANGED"
+          echo "Writing to changed-files.txt for reference:"
+          echo "$CHANGED" > changed-files.txt
           cat changed-files.txt
+          echo "Checking for frontend/Dockerfile and backend/Dockerfile explicitly:"
+          echo "$CHANGED" | grep -i "frontend/Dockerfile" && echo "frontend/Dockerfile detected" || echo "frontend/Dockerfile not detected"
+          echo "$CHANGED" | grep -i "backend/Dockerfile" && echo "backend/Dockerfile detected" || echo "backend/Dockerfile not detected"
           echo "frontend=false" >> $GITHUB_OUTPUT
           echo "backend=false" >> $GITHUB_OUTPUT
-          if grep -q "^frontend/" changed-files.txt; then
+          if echo "$CHANGED" | grep -qi '^frontend/'; then
             echo "Frontend changes detected"
             echo "frontend=true" >> $GITHUB_OUTPUT
           else
             echo "No frontend changes detected"
           fi
-          if grep -q "^backend/" changed-files.txt; then
+          if echo "$CHANGED" | grep -qi '^backend/'; then
             echo "Backend changes detected"
             echo "backend=true" >> $GITHUB_OUTPUT
           else
@@ -140,26 +159,26 @@ jobs:
           - component: frontend
             path: ./frontend
             dockerfile: frontend/Dockerfile
-            ecr_repository: riskgps-frontend
+            tag_prefix: frontend
           - component: backend
             path: ./backend
             dockerfile: backend/Dockerfile
-            ecr_repository: riskgps-backend
+            tag_prefix: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set version tag
         run: |
-          echo "Setting VERSION_TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}"
-          echo "VERSION_TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "Setting VERSION_TAG=${{ matrix.tag_prefix }}/v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}"
+          echo "VERSION_TAG=${{ matrix.tag_prefix }}/v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Debug build job
         run: |
           echo "Component: ${{ matrix.component }}"
           echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
           echo "Proceeding with build: ${{ needs.detect-changes.outputs[matrix.component] == 'true' }}"
-          echo "ECR Repository: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}"
+          echo "ECR Repository: ${{ env.ECR_REPOSITORY }}"
           echo "Image tag: ${{ env.VERSION_TAG }}"
           echo "Dockerfile: ${{ matrix.dockerfile }}"
           echo "Working directory: ${{ matrix.path }}"
@@ -180,6 +199,6 @@ jobs:
         if: needs.detect-changes.outputs[matrix.component] == 'true'
         run: |
           echo "Building Docker image for ${{ matrix.component }}..."
-          docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ env.VERSION_TAG }} .
-          echo "Built image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ env.VERSION_TAG }}"
+          docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} .
+          echo "Built image: ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }}"
         working-directory: ${{ matrix.path }}
