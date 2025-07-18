@@ -12,10 +12,9 @@ env:
   AWS_REGION: us-east-1
   # TODO: Replace with secrets.AWS_ACCOUNT_ID once GitHub Secrets are available
   AWS_ACCOUNT_ID: 123456789012
-  ECR_REGISTRY: 123456789012.dkr.ecr.us-east-1.amazonaws.com
+  ECR_BASE: 123456789012.dkr.ecr.us-east-1.amazonaws.com
   MAJOR_VERSION: 1
   MINOR_VERSION: 0
-  IMAGE_NAME: riskgps
 
 permissions:
   id-token: write
@@ -136,11 +135,13 @@ jobs:
           - component: frontend
             path: ./frontend
             dockerfile: frontend/Dockerfile
-            image_tag: frontend-v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
+            ecr_repository: riskgps-frontend
+            image_tag: v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
           - component: backend
             path: ./backend
             dockerfile: backend/Dockerfile
-            image_tag: backend-v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
+            ecr_repository: riskgps-backend
+            image_tag: v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -149,7 +150,7 @@ jobs:
         run: |
           echo "Component: ${{ matrix.component }}"
           echo "Change detected: ${{ needs.detect-changes.outputs[matrix.component] }}"
-          echo "Building image: ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image_tag }}"
+          echo "Building image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ matrix.image_tag }}"
 
       - name: Configure AWS credentials
         if: needs.detect-changes.outputs[matrix.component] == 'true'
@@ -167,6 +168,6 @@ jobs:
         if: needs.detect-changes.outputs[matrix.component] == 'true'
         run: |
           echo "Building Docker image for ${{ matrix.component }}..."
-          docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image_tag }} .
-          echo "Built image: ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image_tag }}"
+          docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ matrix.image_tag }} .
+          echo "Built image: ${{ env.ECR_BASE }}/${{ matrix.ecr_repository }}:${{ matrix.image_tag }}"
         working-directory: ${{ matrix.path }}
