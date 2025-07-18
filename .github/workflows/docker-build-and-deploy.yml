@@ -63,14 +63,10 @@ jobs:
 
       - name: Set image name and tag
         run: |
-          REPO_NAME=riskgps-${{ matrix.service }}
-          TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}
-          IMAGE_NAME=${{ env.REPO_NAME }}:${{ env.TAG }}
-          ECR_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.REPO_NAME }}:${{ env.TAG }}
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
-          echo "ECR_IMAGE=$ECR_IMAGE" >> $GITHUB_ENV
+          echo "REPO_NAME=riskgps-${{ matrix.service }}" >> $GITHUB_ENV
+          echo "TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=riskgps-${{ matrix.service }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "ECR_IMAGE=${{ env.ECR_REGISTRY }}/riskgps-${{ matrix.service }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
