@@ -1,4 +1,4 @@
-name: Docker Build and Push to ECR
+name: Docker Build and Deploy to ECR
 
 on:
   push:
@@ -47,10 +47,10 @@ jobs:
           find . -maxdepth 2
 
       - name: Setup Node.js
-        working-directory: $GITHUB_WORKSPACE
         uses: actions/setup-node@v4
         with:
           node-version: '21'
+        working-directory: $GITHUB_WORKSPACE
 
       - name: Install Trivy
         working-directory: $GITHUB_WORKSPACE
@@ -121,16 +121,16 @@ jobs:
           find . -maxdepth 2
 
       - name: Configure AWS credentials
-        working-directory: $GITHUB_WORKSPACE
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
           aws-region: ${{ env.AWS_REGION }}
+        working-directory: $GITHUB_WORKSPACE
 
       - name: Login to Amazon ECR
-        working-directory: $GITHUB_WORKSPACE
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+        working-directory: $GITHUB_WORKSPACE
 
       - name: Build Docker image
         working-directory: $GITHUB_WORKSPACE/${{ matrix.path }}
