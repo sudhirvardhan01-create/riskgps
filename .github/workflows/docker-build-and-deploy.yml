@@ -11,8 +11,8 @@ on:
 env:
   AWS_REGION: us-east-1
   # TODO: Replace with secrets.AWS_ACCOUNT_ID once GitHub Secrets are available
-  AWS_ACCOUNT_ID: 123456789012
-  ECR_REPOSITORY: 123456789012.dkr.ecr.us-east-1.amazonaws.com/riskgps
+  AWS_ACCOUNT_ID: 739962689681
+  ECR_REPOSITORY: 739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps
   MAJOR_VERSION: 1
   MINOR_VERSION: 0
 
