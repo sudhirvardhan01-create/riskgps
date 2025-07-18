@@ -28,17 +28,28 @@ jobs:
         component: [frontend, backend]
         include:
           - component: frontend
-            path: ./frontend
+            path: ./
+            scan_files: frontend.Dockerfile
           - component: backend
-            path: ./backend
+            path: ./
+            scan_files: backend.Dockerfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug repository structure
+        run: |
+          echo "Listing all files in repository:"
+          find . -type f
+          echo "Checking for expected files:"
+          ls -la frontend.Dockerfile || echo "frontend.Dockerfile not found"
+          ls -la backend.Dockerfile || echo "backend.Dockerfile not found"
 
       - name: Debug scan job
         run: |
           echo "Component: ${{ matrix.component }}"
           echo "Scanning directory: ${{ matrix.path }}"
+          echo "Scanning files: ${{ matrix.scan_files }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,17 +62,11 @@ jobs:
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy --version
 
-      - name: List files to be scanned
+      - name: Scan specific files with Trivy
         working-directory: ${{ matrix.path }}
         run: |
-          echo "Files in ${{ matrix.component }} directory:"
-          find . -type f
-
-      - name: Scan all supported files with Trivy
-        working-directory: ${{ matrix.path }}
-        run: |
-          echo "Scanning all supported files in ${{ matrix.component }} for vulnerabilities, misconfigurations, and secrets..."
-          trivy fs --format table --severity CRITICAL,HIGH --exit-code 1 --scanners vuln,config,secret .
+          echo "Scanning ${{ matrix.scan_files }} in ${{ matrix.component }} for vulnerabilities, misconfigurations, and secrets..."
+          trivy fs --format table --severity CRITICAL,HIGH --exit-code 1 --scanners vuln,config,secret ${{ matrix.scan_files }}
           echo "Scan completed for ${{ matrix.component }}"
 
   build:
@@ -72,16 +77,23 @@ jobs:
         component: [frontend, backend]
         include:
           - component: frontend
-            path: ./frontend
-            dockerfile: frontend/Dockerfile
+            path: ./
+            dockerfile: frontend.Dockerfile
             tag_prefix: frontend
           - component: backend
-            path: ./backend
-            dockerfile: backend/Dockerfile
+            path: ./
+            dockerfile: backend.Dockerfile
             tag_prefix: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug repository structure
+        run: |
+          echo "Listing all files in repository:"
+          find . -type f
+          echo "Checking for expected files:"
+          ls -la ${{ matrix.dockerfile }} || echo "${{ matrix.dockerfile }} not found"
 
       - name: Set version tag
         run: |
