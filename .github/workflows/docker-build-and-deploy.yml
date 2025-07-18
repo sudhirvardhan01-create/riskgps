@@ -10,8 +10,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: 739962689681
-  ECR_REPOSITORY: 739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps
+  AWS_ACCOUNT_ID: 123456789012
+  ECR_REPOSITORY: 123456789012.dkr.ecr.us-east-1.amazonaws.com/riskgps
   MAJOR_VERSION: 1
   MINOR_VERSION: 0
 
@@ -27,26 +27,51 @@ jobs:
         component: [frontend, backend]
         include:
           - component: frontend
-            path: ./frontend
+            path: frontend
           - component: backend
-            path: ./backend
+            path: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Debug after checkout
+        working-directory: $GITHUB_WORKSPACE
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Directory structure:"
+          find . -maxdepth 2
 
       - name: Setup Node.js
+        working-directory: $GITHUB_WORKSPACE
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '21'
 
       - name: Install Trivy
+        working-directory: $GITHUB_WORKSPACE
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy --version
 
-      - name: Scan files with Trivy
+      - name: Debug working directory
+        working-directory: $GITHUB_WORKSPACE/${{ matrix.path }}
         run: |
-          cd ${{ matrix.path }}
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Directory structure:"
+          find . -maxdepth 2
+
+      - name: Scan files with Trivy
+        working-directory: $GITHUB_WORKSPACE/${{ matrix.path }}
+        run: |
+          cd $GITHUB_WORKSPACE/${{ matrix.path }}
           trivy fs --format table --severity CRITICAL,HIGH --exit-code 1 --scanners vuln,config,secret .
 
   build:
@@ -57,33 +82,59 @@ jobs:
         component: [frontend, backend]
         include:
           - component: frontend
-            path: ./frontend
+            path: frontend
             dockerfile: frontend/Dockerfile
             tag_prefix: frontend
           - component: backend
-            path: ./backend
+            path: backend
             dockerfile: backend/Dockerfile
             tag_prefix: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Debug after checkout
+        working-directory: $GITHUB_WORKSPACE
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Directory structure:"
+          find . -maxdepth 2
 
       - name: Set version tag
+        working-directory: $GITHUB_WORKSPACE
         run: |
           echo "VERSION_TAG=${{ matrix.tag_prefix }}/v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
+      - name: Debug working directory
+        working-directory: $GITHUB_WORKSPACE/${{ matrix.path }}
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Directory structure:"
+          find . -maxdepth 2
+
       - name: Configure AWS credentials
+        working-directory: $GITHUB_WORKSPACE
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GithubActionRole
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        working-directory: $GITHUB_WORKSPACE
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
+        working-directory: $GITHUB_WORKSPACE/${{ matrix.path }}
         run: |
-          cd ${{ matrix.path }}
+          cd $GITHUB_WORKSPACE/${{ matrix.path }}
           docker build -f ${{ matrix.dockerfile }} -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} .
           echo "Built image: ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }}"
