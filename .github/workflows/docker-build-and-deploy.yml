@@ -81,11 +81,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          cd ${{ matrix.service }}
+          cd ${{ matrix.service }}/
           docker build \
             -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} \
             -f Dockerfile.prod .
-        working-directory: ${{ matrix.service }}
 
   scan-images:
     name: Scan Docker Images
@@ -146,13 +145,12 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+ ही       uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image
         run: |
-          cd ${{ matrix.service }}
+          cd ${{ matrix.service }}/
           docker build \
             -t ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }} \
             -f Dockerfile.prod .
           docker push ${{ env.ECR_REPOSITORY }}/${{ env.VERSION_TAG }}
-        working-directory: ${{ matrix.service }}
