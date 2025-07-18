@@ -18,7 +18,7 @@ WORKDIR /app
 # Use a non-root user for security
 RUN addgroup -g 1001 -S nextjs && adduser -S nextjs -u 1001
 USER nextjs
-
+# Copy built application files
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
