@@ -119,19 +119,21 @@ jobs:
             --with-decryption \
             --query Parameter.Value \
             --output text)
-          echo "$CREDS" > creds.txt
-          while IFS='=' read -r key value; do
-            case $key in
-              MAJOR_VERSION) echo "MAJOR_VERSION=$value" >> $GITHUB_ENV ;;
-              MINOR_VERSION) echo "MINOR_VERSION=$value" >> $GITHUB_ENV ;;
-            esac
-          done < creds.txt
-          rm creds.txt
+          MAJOR_VERSION=$(echo "$CREDS" | grep '^MAJOR_VERSION=' | cut -d '=' -f 2)
+          MINOR_VERSION=$(echo "$CREDS" | grep '^MINOR_VERSION=' | cut -d '=' -f 2)
+          if [ -z "$MAJOR_VERSION" ] || [ -z "$MINOR_VERSION" ]; then
+            echo "Error: MAJOR_VERSION or MINOR_VERSION not found in /bluocean/creds"
+            exit 1
+          fi
+          echo "MAJOR_VERSION: $MAJOR_VERSION"
+          echo "MINOR_VERSION: $MINOR_VERSION"
+          echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
+          echo "MINOR_VERSION=$MINOR_VERSION" >> $GITHUB_ENV
           echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-          echo "TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=riskgps-${{ matrix.service }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
-          echo "ECR_IMAGE=$ECR_IMAGE:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "TAG=v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=riskgps-${{ matrix.service }}:v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "ECR_IMAGE=$ECR_IMAGE:v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Login to Amazon ECR
         id: login-ecr
