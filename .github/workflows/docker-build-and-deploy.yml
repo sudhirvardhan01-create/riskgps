@@ -43,8 +43,12 @@ jobs:
             --with-decryption \
             --query Parameter.Value \
             --output text)
-          SERVICES=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[] | split("/")[1] | sub("^riskgps-"; "")' | jq -R . | jq -s .)
-          echo "::set-output name=services::$SERVICES"
+          SERVICES=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[] | split("/")[1] | sub("^riskgps-"; "")' | jq -R . | jq -s '.' || echo '[]')
+          if [ "$SERVICES" = "[]" ]; then
+            echo "Error: No services found in ecr_registry_repository_url"
+            exit 1
+          fi
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
   scan-files:
     name: Scan Source Files with Trivy
