@@ -108,6 +108,12 @@ jobs:
             .env \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }}:${{ env.EC2_DEST_DIR }}/
 
+      - name: Authenticate Docker with ECR on EC2
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}"
+
       - name: Stop and remove existing docker-compose services
         run: |
           ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
