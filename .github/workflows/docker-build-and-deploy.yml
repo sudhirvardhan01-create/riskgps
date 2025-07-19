@@ -15,17 +15,49 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REGISTRY: 739962689681.dkr.ecr.us-east-1.amazonaws.com
-  MAJOR_VERSION: 1
-  MINOR_VERSION: 0
+  SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
+  SSM_CREDS: /bluocean/creds
 
 jobs:
+  get-services:
+    name: Get Services from SSM
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set-services.outputs.services }}
+    steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get ECR Repository URLs
+        id: set-services
+        run: |
+          CREDENTIALS=$(aws ssm get-parameter \
+            --name "${{ env.SSM_EC2_CREDENTIALS }}" \
+            --region ${{ env.AWS_REGION }} \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text)
+          SERVICES=$(echo "$CREDENTIALS" | jq -c '[.ecr_registry_repository_url[] | split("/")[1] | sub("^riskgps-"; "")] | select(length > 0)')
+          if [ -z "$SERVICES" ] || [ "$SERVICES" = "[]" ]; then
+            echo "Error: No services found in ecr_registry_repository_url"
+            exit 1
+          fi
+          echo "Raw SERVICES: $SERVICES"
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+
   scan-files:
     name: Scan Source Files with Trivy
     runs-on: ubuntu-latest
+    needs: get-services
     strategy:
       matrix:
-        service: [frontend, backend]
+        service: ${{ fromJson(needs.get-services.outputs.services) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,25 +85,55 @@ jobs:
   build-scan-push:
     name: Build, Scan, and Push Docker Image
     runs-on: ubuntu-latest
-    needs: scan-files
+    needs: [scan-files, get-services]
     strategy:
       matrix:
-        service: [frontend, backend]
+        service: ${{ fromJson(needs.get-services.outputs.services) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set image name and tag
-        run: |
-          echo "REPO_NAME=riskgps-${{ matrix.service }}" >> $GITHUB_ENV
-          echo "TAG=v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=riskgps-${{ matrix.service }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
-          echo "ECR_IMAGE=${{ env.ECR_REGISTRY }}/riskgps-${{ matrix.service }}:v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get ECR Repository URLs and Versioning from SSM
+        run: |
+          CREDENTIALS=$(aws ssm get-parameter \
+            --name "${{ env.SSM_EC2_CREDENTIALS }}" \
+            --region ${{ env.AWS_REGION }} \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text)
+          ECR_REGISTRY=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[0]' | cut -d '/' -f 1)
+          REPO_NAME=riskgps-${{ matrix.service }}
+          ECR_IMAGE=$(echo $CREDENTIALS | jq -r ".ecr_registry_repository_url[] | select(contains(\"$REPO_NAME\"))")
+          CREDS=$(aws ssm get-parameter \
+            --name "${{ env.SSM_CREDS }}" \
+            --region ${{ env.AWS_REGION }} \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text)
+          MAJOR_VERSION=$(echo "$CREDS" | grep '^MAJOR_VERSION=' | cut -d '=' -f 2)
+          MINOR_VERSION=$(echo "$CREDS" | grep '^MINOR_VERSION=' | cut -d '=' -f 2)
+          if [ -z "$MAJOR_VERSION" ] || [ -z "$MINOR_VERSION" ]; then
+            echo "Error: MAJOR_VERSION or MINOR_VERSION not found in /bluocean/creds"
+            exit 1
+          fi
+          echo "MAJOR_VERSION: $MAJOR_VERSION"
+          echo "MINOR_VERSION: $MINOR_VERSION"
+          echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
+          echo "MINOR_VERSION=$MINOR_VERSION" >> $GITHUB_ENV
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+          echo "TAG=v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=riskgps-${{ matrix.service }}:v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "ECR_IMAGE=$ECR_IMAGE:v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Login to Amazon ECR
         id: login-ecr

@@ -18,7 +18,7 @@ WORKDIR /app
 # Use a non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 USER nodejs
-
+# Copy application files
 COPY --from=builder /app ./
 EXPOSE 8000
 ENV NODE_ENV=production 

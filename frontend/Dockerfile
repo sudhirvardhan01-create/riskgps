@@ -25,7 +25,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 # Expose the port and set environment variables
 EXPOSE 3000
-# Set environment variables
 ENV NODE_ENV=production
 
 CMD ["npm", "start"]
