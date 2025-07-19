@@ -43,11 +43,13 @@ jobs:
             --with-decryption \
             --query Parameter.Value \
             --output text)
-          SERVICES=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[] | split("/")[1] | sub("^riskgps-"; "")' | jq -R . | jq -s '.' || echo '[]')
-          if [ "$SERVICES" = "[]" ]; then
+          echo "Raw CREDENTIALS: $CREDENTIALS"
+          SERVICES=$(echo "$CREDENTIALS" | jq -r '[.ecr_registry_repository_url[] | split("/")[1] | sub("^riskgps-"; "")] | select(length > 0)')
+          if [ -z "$SERVICES" ] || [ "$SERVICES" = "[]" ]; then
             echo "Error: No services found in ecr_registry_repository_url"
             exit 1
           fi
+          echo "Raw SERVICES: $SERVICES"
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
   scan-files:
