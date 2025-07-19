@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    image: 739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps-frontend:${IMAGE_TAG}
+    image: ${ECR_REGISTRY}/${FRONTEND_IMAGE}:${IMAGE_TAG}
     expose:
       - "3000" # Internal communication only
     depends_on:
@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: 739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps-backend:${IMAGE_TAG}
+    image: ${ECR_REGISTRY}/${BACKEND_IMAGE}:${IMAGE_TAG}
     expose:
       - "8000" # Internal communication only
     depends_on:
