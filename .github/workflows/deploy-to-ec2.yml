@@ -15,7 +15,6 @@ env:
   EC2_DEST_DIR: /home/ubuntu/rishgps
   SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
   SSM_CREDS: /bluocean/creds
-  ECR_REGISTRY: 739962689681.dkr.ecr.us-east-1.amazonaws.com
 
 jobs:
   deploy:
@@ -34,7 +33,7 @@ jobs:
           role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get EC2 Credentials from SSM
+      - name: Get EC2 and ECR Credentials from SSM
         run: |
           CREDENTIALS=$(aws ssm get-parameter \
             --name "${{ env.SSM_EC2_CREDENTIALS }}" \
@@ -45,6 +44,13 @@ jobs:
           echo "PUBLIC_IP=$(echo $CREDENTIALS | jq -r '.public_ip')" >> $GITHUB_ENV
           echo "$CREDENTIALS" | jq -r '.pem' > ssh_key.pem
           chmod 600 ssh_key.pem
+          ECR_URLS=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[]')
+          ECR_REGISTRY=$(echo $ECR_URLS | head -n 1 | cut -d '/' -f 1)
+          FRONTEND_IMAGE=$(echo $ECR_URLS | head -n 1 | cut -d '/' -f 2)
+          BACKEND_IMAGE=$(echo $ECR_URLS | tail -n 1 | cut -d '/' -f 2)
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
+          echo "FRONTEND_IMAGE=$FRONTEND_IMAGE" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE=$BACKEND_IMAGE" >> $GITHUB_ENV
 
       - name: Get Application Credentials from SSM
         run: |
@@ -87,6 +93,9 @@ jobs:
       - name: Create .env file
         run: |
           cat << EOF > .env
+          ECR_REGISTRY=${{ env.ECR_REGISTRY }}
+          FRONTEND_IMAGE=${{ env.FRONTEND_IMAGE }}
+          BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}
           IMAGE_TAG=${{ env.IMAGE_TAG }}
           POSTGRES_USER=${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
