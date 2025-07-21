@@ -188,6 +188,7 @@ const LoginPage = () => {
                     fontSize: "16px",
                     fontWeight: 600,
                     height: 40,
+                    boxShadow: "none",
                   }}
                 >
                   Login

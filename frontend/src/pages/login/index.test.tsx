@@ -2,11 +2,13 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import LoginPage from "./index";
 import "@testing-library/jest-dom";
 import { useRouter } from "next/router";
+import { ReactNode } from "react";
 
 // Mock next/link to render children directly
-jest.mock("next/link", () => {
-  return ({ children }: any) => children;
-});
+jest.mock("next/link", () => ({
+  __esModule: true,
+  default: ({ children }: { children: ReactNode }) => children,
+}));
 
 // Mock next/router
 jest.mock("next/router", () => ({
