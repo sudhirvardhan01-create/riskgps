@@ -1,0 +1,16 @@
+# This file controls code owners and automatic reviewer assignment for PRs
+
+# These owners will be default owners for everything in the repo
+
+- @shanand-bluocean
+
+# UI Team Members for UI Files
+
+frontend/\* @nadeem-bluocean @hakansal-bluocean @shkumar-madihum
+
+# Backend Team Members for Backend Files
+
+backend/\* @nadeem-bluocean @hakansal-bluocean @shkumar-madihum
+
+#CI/CD Team Members for Github Actions
+.github/\* @sudhir-madihum

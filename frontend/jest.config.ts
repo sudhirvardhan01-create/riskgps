@@ -1,17 +1,15 @@
-// jest.config.js
-import nextJest  from 'next/jest';
+import nextJest from "next/jest";
 
 const createJestConfig = nextJest({
-  dir: './',
+  dir: "./",
 });
 
-/** @type {import('jest').Config} */
 const customJestConfig = {
+  testEnvironment: "jsdom",
   moduleNameMapper: {
-    // Handle module aliases (e.g. @/components/Button)
-    '^@/(.*)$': '<rootDir>/$1',
+    // optional: add your path aliases here, if you use tsconfig paths
+    "^@/(.*)$": "<rootDir>/$1",
   },
-  testEnvironment: 'jest-environment-jsdom',
 };
 
-module.exports = createJestConfig(customJestConfig);
+export default createJestConfig(customJestConfig);
