@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import LoginPage from "./index";
+import LoginPage from "../../pages/login";
 import "@testing-library/jest-dom";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";

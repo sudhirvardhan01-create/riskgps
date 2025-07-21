@@ -16,9 +16,7 @@ class MyDocument extends Document {
     return (
       <Html lang="en">
         <Head>
-          {/* Use next/script for external scripts in Next.js */}
-          {/* @ts-expect-error: next/script is not available in _document, so use dangerouslySetInnerHTML as fallback */}
-          <script src="https://www.google.com/recaptcha/api.js" async defer />
+          <title>RiskGPS</title>
         </Head>
         <body>
           <Main />
