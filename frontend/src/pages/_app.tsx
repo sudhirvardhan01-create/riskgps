@@ -9,7 +9,7 @@ import { ThemeProvider } from "@mui/material/styles";
 
 export default function App({ Component, pageProps }: AppProps) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const isLoginPage = pathname === "/login" || pathname === "/library/risk-scenario";
 
   return (
     <ThemeProvider theme={theme}>
