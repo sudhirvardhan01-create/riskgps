@@ -60,7 +60,7 @@ jobs:
             --with-decryption \
             --query Parameter.Value \
             --output text)
-          echo "$CREDS" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >> .env
+          echo "$CREDS" >> .env
 
       - name: Get Latest Image Tag from ECR
         run: |
