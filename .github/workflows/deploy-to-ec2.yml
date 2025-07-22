@@ -1,0 +1,138 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  EC2_SSH_USER: ubuntu
+  EC2_DEST_DIR: /home/ubuntu/rishgps
+  SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
+  SSM_CREDS: /bluocean/creds
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get EC2 and ECR Credentials from SSM
+        run: |
+          CREDENTIALS=$(aws ssm get-parameter \
+            --name "${{ env.SSM_EC2_CREDENTIALS }}" \
+            --region ${{ env.AWS_REGION }} \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text)
+          echo "PUBLIC_IP=$(echo $CREDENTIALS | jq -r '.public_ip')" >> $GITHUB_ENV
+          echo "$CREDENTIALS" | jq -r '.pem' > ssh_key.pem
+          chmod 600 ssh_key.pem
+          FRONTEND_IMAGE_URL=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[0]')
+          BACKEND_IMAGE_URL=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[1]')
+          ECR_REGISTRY=$(echo $FRONTEND_IMAGE_URL | cut -d '/' -f 1)
+          echo "FRONTEND_IMAGE_url=$FRONTEND_IMAGE_URL" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE_url=$BACKEND_IMAGE_URL" >> $GITHUB_ENV
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
+
+      - name: Get Application Credentials from SSM
+        run: |
+          CREDS=$(aws ssm get-parameter \
+            --name "${{ env.SSM_CREDS }}" \
+            --region ${{ env.AWS_REGION }} \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text)
+          echo "$CREDS" > creds.txt
+          while IFS='=' read -r key value; do
+            case $key in
+              POSTGRES_USER) echo "POSTGRES_USER=$value" >> $GITHUB_ENV ;;
+              POSTGRES_PASSWORD) echo "POSTGRES_PASSWORD=$value" >> $GITHUB_ENV ;;
+              POSTGRES_DB) echo "POSTGRES_DB=$value" >> $GITHUB_ENV ;;
+              DATABASE_URL) echo "DATABASE_URL=$value" >> $GITHUB_ENV ;;
+            esac
+          done < creds.txt
+          rm creds.txt
+
+      - name: Get Latest Image Tag from ECR
+        run: |
+          FRONTEND_TAG=$(aws ecr describe-images \
+            --repository-name riskgps-frontend \
+            --region ${{ env.AWS_REGION }} \
+            --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
+            --output text)
+          BACKEND_TAG=$(aws ecr describe-images \
+            --repository-name riskgps-backend \
+            --region ${{ env.AWS_REGION }} \
+            --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
+            --output text)
+          if [ "$FRONTEND_TAG" = "$BACKEND_TAG" ]; then
+            echo "IMAGE_TAG=$FRONTEND_TAG" >> $GITHUB_ENV
+          else
+            echo "Error: Frontend and Backend tags do not match!"
+            exit 1
+          fi
+
+      - name: Create .env file
+        run: |
+          cat << EOF > .env
+          FRONTEND_IMAGE_url=${{ env.FRONTEND_IMAGE_url }}
+          BACKEND_IMAGE_url=${{ env.BACKEND_IMAGE_url }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          POSTGRES_USER=${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ env.POSTGRES_DB }}
+          DATABASE_URL=${{ env.DATABASE_URL }}
+          EOF
+
+      - name: Create destination directory on EC2
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "mkdir -p ${{ env.EC2_DEST_DIR }}"
+
+      - name: Copy nginx.conf, docker-compose.yml, and .env to EC2
+        run: |
+          scp -i ssh_key.pem -o StrictHostKeyChecking=no \
+            nginx.conf \
+            docker-compose.yml \
+            .env \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }}:${{ env.EC2_DEST_DIR }}/
+
+      - name: Authenticate Docker with ECR on EC2
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}"
+
+      - name: Stop and remove existing docker-compose services
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "cd ${{ env.EC2_DEST_DIR }} && (docker-compose down || true)"
+
+      - name: Run docker-compose on EC2
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "cd ${{ env.EC2_DEST_DIR }} && docker-compose up -d"
+
+      - name: Clean up SSH key
+        run: |
+          rm -f ssh_key.pem
