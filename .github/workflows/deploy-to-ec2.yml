@@ -13,7 +13,7 @@ permissions:
 env:
   AWS_REGION: us-east-1
   EC2_SSH_USER: ubuntu
-  EC2_DEST_DIR: /home/ubuntu/rishgps
+  EC2_DEST_DIR: /home/ubuntu/riskgps
   SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
   SSM_CREDS: /bluocean/creds
 
@@ -60,7 +60,7 @@ jobs:
             --with-decryption \
             --query Parameter.Value \
             --output text)
-          echo "$CREDS" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >> .env
+          echo "$CREDS" >> .env
 
       - name: Get Latest Image Tag from ECR
         run: |
