@@ -10,8 +10,9 @@ import {
   FormControlLabel
 } from '@mui/material';
 import { DoneOutlined, MoreVert } from '@mui/icons-material';
+import ToggleSwitch from '../toggleSwitch/ToggleSwitch';
 
-interface TicketCardProps {
+interface RiskScenarioCardProps {
   id: string;
   industry: string;
   title: string;
@@ -23,7 +24,7 @@ interface TicketCardProps {
   status: string;
 }
 
-const TicketCard = ({
+const RiskScenarioCard = ({
   id,
   industry,
   title,
@@ -33,7 +34,7 @@ const TicketCard = ({
   threats,
   lastUpdated,
   status,
-}: TicketCardProps) => {
+}: RiskScenarioCardProps) => {
   const getStatusComponent = () => {
     if (status === 'Enabled' || status === 'Disabled') {
       return <FormControlLabel control={<Switch color="success" checked={status === 'Enabled'} />} label={status} />;
@@ -104,4 +105,4 @@ const TicketCard = ({
   );
 };
 
-export default TicketCard;
+export default RiskScenarioCard;
