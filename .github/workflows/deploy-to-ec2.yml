@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'nginx.conf'  
+      - 'docker-compose.yml'
+      - 'frontend/**'
+      - 'backend/**'
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -12,7 +18,7 @@ permissions:
 env:
   AWS_REGION: us-east-1
   EC2_SSH_USER: ubuntu
-  EC2_DEST_DIR: /home/ubuntu/rishgps
+  EC2_DEST_DIR: /home/ubuntu/riskgps
   SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
   SSM_CREDS: /bluocean/creds
 
@@ -59,16 +65,7 @@ jobs:
             --with-decryption \
             --query Parameter.Value \
             --output text)
-          echo "$CREDS" > creds.txt
-          while IFS='=' read -r key value; do
-            case $key in
-              POSTGRES_USER) echo "POSTGRES_USER=$value" >> $GITHUB_ENV ;;
-              POSTGRES_PASSWORD) echo "POSTGRES_PASSWORD=$value" >> $GITHUB_ENV ;;
-              POSTGRES_DB) echo "POSTGRES_DB=$value" >> $GITHUB_ENV ;;
-              DATABASE_URL) echo "DATABASE_URL=$value" >> $GITHUB_ENV ;;
-            esac
-          done < creds.txt
-          rm creds.txt
+          echo "$CREDS" >> .env
 
       - name: Get Latest Image Tag from ECR
         run: |
@@ -91,14 +88,10 @@ jobs:
 
       - name: Create .env file
         run: |
-          cat << EOF > .env
+          cat << EOF >> .env
           FRONTEND_IMAGE_url=${{ env.FRONTEND_IMAGE_url }}
           BACKEND_IMAGE_url=${{ env.BACKEND_IMAGE_url }}
           IMAGE_TAG=${{ env.IMAGE_TAG }}
-          POSTGRES_USER=${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
-          POSTGRES_DB=${{ env.POSTGRES_DB }}
-          DATABASE_URL=${{ env.DATABASE_URL }}
           EOF
 
       - name: Create destination directory on EC2
