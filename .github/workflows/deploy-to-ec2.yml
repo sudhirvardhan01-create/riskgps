@@ -1,6 +1,10 @@
 name: Deploy to EC2
 
 on:
+  workflow_run:
+    workflows: ["Docker Build, Scan, and Push to AWS ECR"]
+    branches: [main]
+    types: [completed]
   push:
     branches:
       - main
