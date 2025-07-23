@@ -11,7 +11,6 @@ COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 # If you have a build step (e.g., TypeScript), add: RUN npm run build
 
-
 # Production image
 FROM node:21-alpine AS runner
 WORKDIR /app

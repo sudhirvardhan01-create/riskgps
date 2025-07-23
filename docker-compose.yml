@@ -3,7 +3,7 @@ version: "3.8"
 services:
   frontend:
     image: ${FRONTEND_IMAGE_url}:${IMAGE_TAG}
-    envireonment:
+    environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     expose:
       - "3000" # Internal communication only
