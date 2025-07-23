@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Footer from ".";
+import Footer from "./index";
 import "@testing-library/jest-dom";
 
 describe("Footer", () => {
