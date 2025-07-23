@@ -8,7 +8,7 @@ import {
   Divider,
   FormControlLabel
 } from '@mui/material';
-import EditDeleteDialog from '@/components/editDeleteDialog';
+import EditDeleteDialog from '@/components/EditDeleteDialog';
 import { DoneOutlined } from '@mui/icons-material';
 
 
