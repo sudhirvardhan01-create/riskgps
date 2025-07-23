@@ -10,7 +10,7 @@ import {
     InputLabel,
     FormControl,
 } from '@mui/material';
-import AccessTypeCard from '@/components/metadata/metadatacard'
+import AccessTypeCard from '@/components/metadata/metadataCard'
 import React from 'react'
 import { Search } from '@mui/icons-material';
 
