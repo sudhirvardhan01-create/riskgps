@@ -7,7 +7,6 @@ const index = () => {
     // <EditDeleteDialog />
     <SuccessToast
   message="Success! The Asset #002 has been deleted."
-  onUndo={() => console.log("Undo action triggered")}
 />
   )
 }

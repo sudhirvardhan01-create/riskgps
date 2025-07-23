@@ -1,13 +1,12 @@
 import React from "react";
-import { Box, Typography, Divider} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 interface SuccessToastProps {
   message: string;
-  onUndo: () => void;
 }
 
-const SuccessToast: React.FC<SuccessToastProps> = ({ message, onUndo }) => {
+const SuccessToast: React.FC<SuccessToastProps> = ({ message}) => {
   return (
     <Box
       sx={{
@@ -29,7 +28,7 @@ const SuccessToast: React.FC<SuccessToastProps> = ({ message, onUndo }) => {
         {message}
       </Typography>
 
-      <Divider orientation="vertical" flexItem sx={{ borderColor: 'black'}} />
+      {/* <Divider orientation="vertical" flexItem sx={{ borderColor: 'black'}} />
 
       <Typography
         onClick={onUndo}
@@ -41,7 +40,7 @@ const SuccessToast: React.FC<SuccessToastProps> = ({ message, onUndo }) => {
         }}
       >
         Undo
-      </Typography>
+      </Typography> */}
     </Box>
   );
 };

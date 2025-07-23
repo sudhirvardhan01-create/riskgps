@@ -11,6 +11,7 @@ import {
 import EditDeleteDialog from '@/components/editDeleteDialog';
 import { DoneOutlined } from '@mui/icons-material';
 
+
 interface RiskScenarioCardProps {
   id: string;
   industry: string;
