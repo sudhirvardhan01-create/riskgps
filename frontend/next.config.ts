@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   webpack(config) {
     // Find the existing file-loader rule for SVGs
     const fileLoaderRule = config.module.rules.find(
-      (rule) =>
+      (rule: any) =>
         typeof rule === "object" &&
         rule !== null &&
         rule.test instanceof RegExp &&
