@@ -1,4 +1,4 @@
-// components/TicketCard.tsx
+// components/RiskScenarioCard.tsx
 import {
   Box,
   Chip,
@@ -8,10 +8,10 @@ import {
   Divider,
   FormControlLabel
 } from '@mui/material';
-import { DoneOutlined } from '@mui/icons-material';
 import EditDeleteDialog from '@/components/editDeleteDialog';
+import { DoneOutlined } from '@mui/icons-material';
 
-interface TicketCardProps {
+interface RiskScenarioCardProps {
   id: string;
   industry: string;
   title: string;
@@ -23,7 +23,7 @@ interface TicketCardProps {
   status: string;
 }
 
-const TicketCard = ({
+const RiskScenarioCard = ({
   id,
   industry,
   title,
@@ -33,7 +33,7 @@ const TicketCard = ({
   threats,
   lastUpdated,
   status,
-}: TicketCardProps) => {
+}: RiskScenarioCardProps) => {
   const getStatusComponent = () => {
     if (status === 'Enabled' || status === 'Disabled') {
       return <FormControlLabel control={<Switch color="success" checked={status === 'Enabled'} />} label={status} />;
@@ -105,4 +105,4 @@ const TicketCard = ({
   );
 };
 
-export default TicketCard;
+export default RiskScenarioCard;
