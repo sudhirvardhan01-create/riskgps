@@ -5,11 +5,11 @@ import {
   Typography,
   Stack,
   Switch,
-  IconButton,
   Divider,
   FormControlLabel
 } from '@mui/material';
-import { DoneOutlined, MoreVert } from '@mui/icons-material';
+import { DoneOutlined } from '@mui/icons-material';
+import EditDeleteDialog from '@/components/editDeleteDialog';
 
 interface TicketCardProps {
   id: string;
@@ -82,9 +82,10 @@ const TicketCard = ({
           <Box sx={{width: '118px', mx: '24px !important'}}>
           {getStatusComponent()}
           </Box>
-          <IconButton sx={{ px: 0, mx:'0px !important'}}>
+          {/* <IconButton sx={{ px: 0, mx:'0px !important'}}>
             <MoreVert sx={{color:"primary.main"}}/>
-          </IconButton>
+          </IconButton> */}
+          <EditDeleteDialog />
         </Stack>
       </Stack>
       </Box>
