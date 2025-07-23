@@ -142,9 +142,9 @@ class RiskScenarioService {
   /**
    * 
    * @typedef {Object} Attribute
+   * @property {number} meta_data_key - The key representing the metadata field.
    * @property {string} value - The value of the attribute.
-   * @property {string|number} meta_data_key - The key representing the metadata field.
-   *
+   *   
    * service to update risk Scenario
    * performs a replace of the current existing record for the risk scenario with the new data object
    * if the update success

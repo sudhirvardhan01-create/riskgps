@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { Attributes, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -19,58 +19,64 @@ import {
 } from "@mui/material";
 import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
 
-interface KeyValue {
-  key: string;
-  value: string;
+interface RiskScenarioAttributes {
+  meta_data_key: number;
+  value: string[];
 }
 
-interface AddRiskScenarioModalProps {
+interface RiskData {
+  riskScenario: string,
+  riskStatement: string,
+  riskDescription: string,
+  riskField1: string,
+  riskField2: string,
+  attributes: RiskScenarioAttributes[]
+}
+
+interface RiskScenarioFormModalProps {
   open: boolean;
   onClose: () => void;
+  riskData: RiskData;
+  setRiskData: React.Dispatch<React.SetStateAction<RiskData>>;
+  onSubmit: () => void;
 }
 
-const AddRiskScenarioModal: React.FC<AddRiskScenarioModalProps> = ({
+const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   open,
   onClose,
+  riskData,
+  setRiskData,
+  onSubmit
 }) => {
-  const [riskData, setRiskData] = useState({
-    riskScenario: "",
-    riskStatement: "",
-    riskDescription: "",
-    riskField1: "",
-    riskField2: "",
-    keyValues: [{ key: "", value: "" }] as KeyValue[],
-  });
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof RiskData, value: string) => {
     setRiskData({ ...riskData, [field]: value });
   };
 
   const handleKeyValueChange = (
     index: number,
-    field: "key" | "value",
-    value: string
+    field: keyof RiskScenarioAttributes,
+    value: number | string[]
   ) => {
-    const updatedKeyValues = [...riskData.keyValues];
-    updatedKeyValues[index][field] = value;
-    setRiskData({ ...riskData, keyValues: updatedKeyValues });
+    const updatedKeyValues = [...riskData.attributes];
+    if (field == "meta_data_key" && typeof value == "number"){
+      updatedKeyValues[index].meta_data_key = value;
+    } else if (field === "value" && Array.isArray(value)) {
+      updatedKeyValues[index].value = value;
+    }
+    setRiskData({ ...riskData, attributes: updatedKeyValues });
   };
 
   const addKeyValue = () => {
     setRiskData({
       ...riskData,
-      keyValues: [...riskData.keyValues, { key: "", value: "" }],
+      attributes: [...riskData.attributes, { meta_data_key: Date.now() * -1, value: [] }],
     });
   };
 
   const removeKeyValue = (index: number) => {
-    const updatedKeyValues = riskData.keyValues.filter((_, i) => i !== index);
-    setRiskData({ ...riskData, keyValues: updatedKeyValues });
-  };
-
-  const handleSubmit = () => {
-    console.log("Submitted:", riskData);
-    onClose();
+    const updatedKeyValues = riskData.attributes.filter((_, i) => i !== index);
+    setRiskData({ ...riskData, attributes: updatedKeyValues });
   };
 
   return (
@@ -331,7 +337,7 @@ const AddRiskScenarioModal: React.FC<AddRiskScenarioModalProps> = ({
             />
           </Grid>
 
-          {riskData.keyValues.map((kv, index) => (
+          {riskData.attributes.map((kv, index) => (
             <Grid
               mt={1}
               sx={{ width: "100%" }}
@@ -359,14 +365,14 @@ const AddRiskScenarioModal: React.FC<AddRiskScenarioModalProps> = ({
                     Key
                   </InputLabel>
                   <Select
-                    value={kv.key}
+                    value={kv.meta_data_key}
                     label="Key"
                     displayEmpty
                     onChange={(e) =>
-                      handleKeyValueChange(index, "key", e.target.value)
+                      handleKeyValueChange(index, "meta_data_key", e.target.value)
                     }
                     renderValue={(selected) => {
-                      if (!selected || selected === "") {
+                      if (!selected || selected < 0) {
                         return (
                           <span style={{ color: "#9e9e9e" }}>Select Key</span>
                         );
@@ -420,14 +426,15 @@ const AddRiskScenarioModal: React.FC<AddRiskScenarioModalProps> = ({
                     Value
                   </InputLabel>
                   <Select
-                    value={kv.key}
+                    multiple
+                    value={kv.value || []}
                     label="Value"
                     displayEmpty
                     onChange={(e) =>
-                      handleKeyValueChange(index, "key", e.target.value)
+                      handleKeyValueChange(index, "value", e.target.value as string[])
                     }
                     renderValue={(selected) => {
-                      if (!selected || selected === "") {
+                      if (!selected || selected.length < 1) {
                         return (
                           <span style={{ color: "#9e9e9e" }}>Enter Value</span>
                         );
@@ -501,7 +508,7 @@ const AddRiskScenarioModal: React.FC<AddRiskScenarioModalProps> = ({
           <Button
             sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
             variant="contained"
-            onClick={handleSubmit}
+            onClick={onSubmit}
           >
             Publish
           </Button>
@@ -511,4 +518,4 @@ const AddRiskScenarioModal: React.FC<AddRiskScenarioModalProps> = ({
   );
 };
 
-export default AddRiskScenarioModal;
+export default RiskScenarioFormModal;

@@ -10,7 +10,6 @@ import {
   FormControlLabel
 } from '@mui/material';
 import { DoneOutlined, MoreVert } from '@mui/icons-material';
-import ToggleSwitch from '../toggleSwitch/ToggleSwitch';
 
 interface RiskScenarioCardProps {
   id: string;
