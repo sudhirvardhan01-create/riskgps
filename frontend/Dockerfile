@@ -12,7 +12,6 @@ COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 RUN npm run build
 
-
 # Production image, copy built assets and run Next.js
 FROM node:21-alpine AS runner
 WORKDIR /app

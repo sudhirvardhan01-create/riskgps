@@ -4,7 +4,6 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-
 # Copy source and build (if needed)
 FROM node:21-alpine AS builder
 WORKDIR /app
