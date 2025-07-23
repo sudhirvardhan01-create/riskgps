@@ -17,11 +17,12 @@ import {
 import { useRouter } from "next/router";
 import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
 import React, { useState } from "react";
-import RiskScenarioCard from "@/components/library/risk-scenario/riskscenariocard";
 import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
-import AddRiskScenarioModal from "@/components/library/risk-scenario/AddRiskScenarioModalPopup";
 
-const riskData = [
+import RiskScenarioCard from "@/components/library/risk-scenario/RiskScenarioCard";
+import RiskScenarioFormModal from "@/components/library/risk-scenario/RiskScenarioFormModal";
+
+const riskScenarioDatas = [
   {
     id: "RS-8306439",
     industry: "Healthcare",
@@ -73,6 +74,11 @@ const riskData = [
   // Add more cards as needed
 ];
 
+interface RiskScenarioAttributes {
+  meta_data_key: number;
+  value: string[];
+}
+
 const Index = () => {
   const router = useRouter();
   const theme = useTheme();
@@ -80,8 +86,19 @@ const Index = () => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [viewRiskScenarioModal, setViewRiskScenarioModal] = useState(false);
-  const [addRiskScenarioModal, setAddRiskScenarioModal] = useState(true)
+  const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(true);
+  const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
+  const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(true);
+  const [riskData, setRiskData] = useState({
+    riskScenario: "",
+    riskStatement: "",
+    riskDescription: "",
+    riskField1: "",
+    riskField2: "",
+    attributes: [
+      { meta_data_key: Date.now() * -1, value: [] },
+    ] as RiskScenarioAttributes[],
+  });
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -100,15 +117,23 @@ const Index = () => {
   return (
     <>
       <ViewRiskScenarioModal
-        open={viewRiskScenarioModal}
+        open={isViewRiskScenarioOpen}
         onClose={() => {
-          setViewRiskScenarioModal(false);
+          setIsViewRiskScenarioOpen(false);
         }}
       />
-      <AddRiskScenarioModal open = {addRiskScenarioModal} onClose={() => {
-        setAddRiskScenarioModal(false);
-      }}/>
-      
+      <RiskScenarioFormModal
+        open={isAddRiskScenarioOpen}
+        riskData={riskData}
+        setRiskData={setRiskData}
+        onSubmit={() => {
+          setIsAddRiskScenarioOpen(false);
+        }}
+        onClose={() => {
+          setIsAddRiskScenarioOpen(false);
+        }}
+      />
+
       <Box p={2}>
         <Box mb={3}>
           {/* Row 1: Breadcrumb + Add Button */}
@@ -136,6 +161,9 @@ const Index = () => {
             </Stack>
 
             <Button
+             onClick={() => {
+              setIsAddRiskScenarioOpen(true)
+             }}
               variant="contained"
               sx={{
                 backgroundColor: "primary.main",
@@ -234,8 +262,12 @@ const Index = () => {
         </Box>
 
         <Stack spacing={2}>
-          {riskData.map((item, index) => (
+          {riskScenarioDatas.map((item, index) => (
+            <div key={index} onClick={() => {
+              setIsViewRiskScenarioOpen(true)
+            }}>
             <RiskScenarioCard key={index} {...item} />
+            </div>
           ))}
         </Stack>
 
