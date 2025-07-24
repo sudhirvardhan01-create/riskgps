@@ -1,9 +1,58 @@
-import EditDeleteDialog from '@/components/editDeleteDialog'
 
-const index = () => {
+ import EditDeleteDialog from '@/components/EditDeleteDialog'
+import Filter from '@/components/library/Filter';
+import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
+// import SuccessToast from '@/components/successToast'
+
+// import ConfirmDialog from "@/components/ConfirmDialog"
+// import React, { useState } from 'react';
+
+const Index = () => {
+  
+    // <SuccessToast
+    //   message="Success! The Asset #002 has been deleted."
+    // />
+
+  // const [open, setOpen] = useState(false);
+
+  const dialogData = [{
+          onAction: () => {console.log("Edit action"); },
+          color: 'primary.main',
+          action: 'Edit',
+          icon: <EditOutlined fontSize = "small" />
+      },
+      {
+          onAction: () => {console.log("Delete action"); },
+          color: '#CD0303',
+          action: 'Delete',
+          icon: <DeleteOutlineOutlined fontSize = "small" />
+      }
+      ]
+
   return (
-    <EditDeleteDialog />
+    <>
+
+      <EditDeleteDialog items={dialogData}/>
+
+      <Filter />
+
+      {/* <button onClick={() => setOpen(true)}>Open Modal</button>
+
+      <ConfirmDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        onConfirm={() => {
+          console.log("Confirmed");
+          setOpen(false);
+        }}
+        title="Cancel Risk Scenario Creation?"
+        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+        confirmColor="#B00020"
+      /> */}
+    </>
   )
 }
 
-export default index
+export default Index
