@@ -14,16 +14,18 @@ import { RiskScenarioData } from '@/types/risk-scenario';
 
 
 interface RiskScenarioCardProps {
-  riskScenarioData: RiskScenarioData
-  setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>
-  setIsAddRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>
-  setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>
+  riskScenarioData: RiskScenarioData;
+  setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>;
+  setIsViewRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAddRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
 }
 
 const RiskScenarioCard:React.FC<RiskScenarioCardProps> = ({
   riskScenarioData,
   setSelectedRiskScenario,
+  setIsViewRiskScenarioOpen,
   setIsAddRiskScenarioOpen,
   setIsEditRiskScenarioOpen
 }: RiskScenarioCardProps) => {
@@ -84,11 +86,9 @@ const RiskScenarioCard:React.FC<RiskScenarioCardProps> = ({
 
       {/* Title */}
       <div onClick={() => {
-        // setSelectedRiskScenario({
-        //   id: id,
-        //   riskScenario: title,
-
-        // })
+        setSelectedRiskScenario(riskScenarioData);
+        setIsViewRiskScenarioOpen(true)
+  
       }}>
       <Typography variant="body1" fontWeight={500} sx={{ px: 3}}>
         {riskScenarioData.riskScenario}
