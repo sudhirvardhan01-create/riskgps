@@ -15,6 +15,15 @@ jest.mock("next/router", () => ({
   useRouter: jest.fn(),
 }));
 
+// Mock react-google-recaptcha
+jest.mock("react-google-recaptcha", () => ({
+  __esModule: true,
+  default: ({ onChange }: { onChange: (value: string) => void }) => {
+    onChange("mock-captcha-token"); // simulate captcha solved
+    return <div data-testid="mock-recaptcha">Mock ReCAPTCHA</div>;
+  },
+}));
+
 describe("LoginPage", () => {
   beforeEach(() => {
     (useRouter as jest.Mock).mockReturnValue({
@@ -26,14 +35,14 @@ describe("LoginPage", () => {
   it("renders login form fields", () => {
     render(<LoginPage />);
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
   it("shows and hides password when toggle is clicked", () => {
     render(<LoginPage />);
-    const passwordInput = screen.getByLabelText(/password/i);
-    const toggleButton = screen.getByRole("button", { name: "" }); // IconButton has no accessible name
+    const passwordInput = screen.getAllByLabelText(/password/i)[0];
+    const toggleButton = screen.getByLabelText(/toggle password visibility/i);
 
     // Initially password type
     expect(passwordInput).toHaveAttribute("type", "password");
@@ -50,7 +59,7 @@ describe("LoginPage", () => {
   it("updates form fields on user input", () => {
     render(<LoginPage />);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
+    const passwordInput = screen.getAllByLabelText(/password/i)[0];
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
     fireEvent.change(passwordInput, { target: { value: "secret" } });
@@ -63,7 +72,7 @@ describe("LoginPage", () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     render(<LoginPage />);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
+    const passwordInput = screen.getAllByLabelText(/password/i)[0];
     const submitButton = screen.getByRole("button", { name: /login/i });
 
     fireEvent.change(emailInput, { target: { value: "user@domain.com" } });
