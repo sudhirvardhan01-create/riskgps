@@ -18,66 +18,129 @@ import { useRouter } from "next/router";
 import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
 import React, { useState } from "react";
 import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
-
 import RiskScenarioCard from "@/components/library/risk-scenario/RiskScenarioCard";
 import RiskScenarioFormModal from "@/components/library/risk-scenario/RiskScenarioFormModal";
+import { RiskScenarioAttributes, RiskScenarioData } from "@/types/risk-scenario";
 
-const riskScenarioDatas = [
+const riskScenarioDatas =  [
   {
-    id: "RS-8306439",
-    industry: "Healthcare",
-    title:
-      "The Fund/Wire Transfer System is not working for extended period of time",
-    tags: 4,
-    processes: 3,
-    assets: 15,
-    threats: 10,
-    lastUpdated: "08 Jan, 2024",
-    status: "Enabled",
+    "id": 1,
+    "risk_code": "RSK-001",
+    "riskScenario": "Unauthorized access to sensitive data",
+    "riskStatement": "Attackers may gain unauthorized access to confidential information",
+    "riskDescription": "Inadequate access control could lead to data leaks.",
+    "industry": ["Finance", "Healthcare"],
+    "tags": 3,
+    "processes": 2,
+    "assets": 5,
+    "threats": 4,
+    "riskField1": "Confidentiality",
+    "riskField2": "High",
+    "attributes": [
+      { "meta_data_key": 101, "value": ["Access Control", "Authentication"] },
+      { "meta_data_key": 102, "value": ["User Management"] }
+    ],
+    "lastUpdated": "2025-07-24T10:00:00Z",
+    "status": "Open"
   },
   {
-    id: "RS-8306439",
-    industry: "Healthcare",
-    title:
-      "The Fund/Wire Transfer System is not working for extended period of time",
-    tags: 4,
-    processes: 3,
-    assets: 15,
-    threats: 10,
-    lastUpdated: "08 Jan, 2024",
-    status: "Draft",
+    "id": 2,
+    "risk_code": "RSK-002",
+    "riskScenario": "Data loss due to ransomware",
+    "riskStatement": "Critical systems may be locked by ransomware",
+    "riskDescription": "Ransomware can encrypt critical files if proper safeguards are not in place.",
+    "industry": ["Technology"],
+    "tags": 1,
+    "processes": 3,
+    "assets": 6,
+    "threats": 2,
+    "riskField1": "Availability",
+    "riskField2": "Critical",
+    "attributes": [
+      { "meta_data_key": 201, "value": ["Patch Management", "Email Filtering"] }
+    ],
+    "lastUpdated": "2025-07-22T14:30:00Z",
+    "status": "In Progress"
   },
   {
-    id: "RS-8306439",
-    industry: "Healthcare",
-    title:
-      "Patients cannot avail diagnostic facility because the devices are not operational for an extended period of time",
-    tags: 4,
-    processes: 3,
-    assets: 15,
-    threats: 10,
-    lastUpdated: "08 Jan, 2024",
-    status: "Disabled",
+    "id": 3,
+    "risk_code": "RSK-003",
+    "riskScenario": "Third-party service breach",
+    "riskStatement": "A breach at a vendor could affect internal systems",
+    "riskDescription": "Weak vendor security practices might compromise internal data.",
+    "industry": ["Retail", "Logistics"],
+    "tags": 5,
+    "processes": 1,
+    "assets": 3,
+    "threats": 6,
+    "riskField1": "Integrity",
+    "riskField2": "Medium",
+    "attributes": [
+      { "meta_data_key": 301, "value": ["Vendor Risk Assessment", "Data Encryption"] }
+    ],
+    "lastUpdated": "2025-07-20T09:15:00Z",
+    "status": "Closed"
   },
   {
-    id: "RS-8306439",
-    industry: "Healthcare",
-    title:
-      "Patients cannot avail diagnostic facility because the devices are not operational for an extended period of time",
-    tags: 4,
-    processes: 3,
-    assets: 15,
-    threats: 10,
-    lastUpdated: "08 Jan, 2024",
-    status: "Disabled",
+    "id": 4,
+    "risk_code": "RSK-004",
+    "riskScenario": "Phishing attacks on employees",
+    "riskStatement": "Employees may unknowingly share credentials",
+    "riskDescription": "Phishing emails could lead to credential theft and system compromise.",
+    "industry": ["Finance", "Education"],
+    "tags": 4,
+    "processes": 2,
+    "assets": 2,
+    "threats": 3,
+    "riskField1": "Confidentiality",
+    "riskField2": "Medium",
+    "attributes": [
+      { "meta_data_key": 401, "value": ["Security Awareness Training", "Email Filtering"] }
+    ],
+    "lastUpdated": "2025-07-19T11:00:00Z",
+    "status": "Open"
   },
-  // Add more cards as needed
-];
+  {
+    "id": 5,
+    "risk_code": "RSK-005",
+    "riskScenario": "Misconfigured cloud storage",
+    "riskStatement": "Data could be publicly exposed due to misconfigurations",
+    "riskDescription": "Cloud storage misconfigurations are a common cause of breaches.",
+    "industry": ["Technology", "Media"],
+    "tags": 2,
+    "processes": 4,
+    "assets": 5,
+    "threats": 1,
+    "riskField1": "Confidentiality",
+    "riskField2": "High",
+    "attributes": [
+      { "meta_data_key": 501, "value": ["Cloud Configuration Auditing", "Access Logs"] }
+    ],
+    "lastUpdated": "2025-07-18T16:00:00Z",
+    "status": "In Review"
+  },
+  {
+    "id": 6,
+    "risk_code": "RSK-006",
+    "riskScenario": "Denial of Service (DoS) attack",
+    "riskStatement": "External attackers may flood the system with traffic",
+    "riskDescription": "Excessive requests could render services unavailable.",
+    "industry": ["Telecom"],
+    "tags": 6,
+    "processes": 1,
+    "assets": 4,
+    "threats": 7,
+    "riskField1": "Availability",
+    "riskField2": "High",
+    "attributes": [
+      { "meta_data_key": 601, "value": ["Rate Limiting", "Traffic Monitoring"] }
+    ],
+    "lastUpdated": "2025-07-17T08:30:00Z",
+    "status": "Mitigated"
+  }
+]
 
-interface RiskScenarioAttributes {
-  meta_data_key: number;
-  value: string[];
-}
+
 
 const Index = () => {
   const router = useRouter();
@@ -86,10 +149,11 @@ const Index = () => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
   const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(true);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
   const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(true);
-  const [riskData, setRiskData] = useState({
+  const [riskData, setRiskData] = useState<RiskScenarioData>({
     riskScenario: "",
     riskStatement: "",
     riskDescription: "",
@@ -262,11 +326,11 @@ const Index = () => {
         </Box>
 
         <Stack spacing={2}>
-          {riskScenarioDatas.map((item, index) => (
+          {riskScenarioDatas.map((item: RiskScenarioData, index) => (
             <div key={index} onClick={() => {
               setIsViewRiskScenarioOpen(true)
             }}>
-            <RiskScenarioCard key={index} {...item} />
+            <RiskScenarioCard  key={index} riskScenarioData={item} setSelectedRiskScenario={setSelectedRiskScenario} setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen} setIsAddRiskScenarioOpen={setIsAddRiskScenarioOpen} />
             </div>
           ))}
         </Stack>
