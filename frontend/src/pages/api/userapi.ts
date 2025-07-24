@@ -1,13 +1,13 @@
 export const fetchUserData = async (userName: string) => {
-  const response = await fetch('http://localhost:8000/users', {
-    method: 'POST',
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+    method: "POST",
     body: JSON.stringify({ name: userName }),
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-  } );
+  });
   if (!response.ok) {
-    throw new Error('Failed to fetch user data');
+    throw new Error("Failed to fetch user data");
   }
   return response.json();
-}
+};

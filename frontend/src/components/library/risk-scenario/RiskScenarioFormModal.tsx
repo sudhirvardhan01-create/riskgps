@@ -1,5 +1,5 @@
 "use client";
-import React, { Attributes, useState } from "react";
+import React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -18,26 +18,16 @@ import {
   Divider,
 } from "@mui/material";
 import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
+import { RiskScenarioAttributes, RiskScenarioData } from "@/types/risk-scenario";
 
-interface RiskScenarioAttributes {
-  meta_data_key: number;
-  value: string[];
-}
 
-interface RiskData {
-  riskScenario: string,
-  riskStatement: string,
-  riskDescription: string,
-  riskField1: string,
-  riskField2: string,
-  attributes: RiskScenarioAttributes[]
-}
+
 
 interface RiskScenarioFormModalProps {
   open: boolean;
   onClose: () => void;
-  riskData: RiskData;
-  setRiskData: React.Dispatch<React.SetStateAction<RiskData>>;
+  riskData: RiskScenarioData;
+  setRiskData: React.Dispatch<React.SetStateAction<RiskScenarioData>>;
   onSubmit: () => void;
 }
 
@@ -49,7 +39,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   onSubmit
 }) => {
 
-  const handleChange = (field: keyof RiskData, value: string) => {
+  const handleChange = (field: keyof RiskScenarioData, value: string) => {
     setRiskData({ ...riskData, [field]: value });
   };
 
@@ -58,7 +48,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
     field: keyof RiskScenarioAttributes,
     value: number | string[]
   ) => {
-    const updatedKeyValues = [...riskData.attributes];
+    const updatedKeyValues = [...(riskData.attributes ?? [])];
     if (field == "meta_data_key" && typeof value == "number"){
       updatedKeyValues[index].meta_data_key = value;
     } else if (field === "value" && Array.isArray(value)) {
@@ -70,12 +60,12 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   const addKeyValue = () => {
     setRiskData({
       ...riskData,
-      attributes: [...riskData.attributes, { meta_data_key: Date.now() * -1, value: [] }],
+      attributes: [...(riskData.attributes ?? []), { meta_data_key: Date.now() * -1, value: [] as string[] }],
     });
   };
 
   const removeKeyValue = (index: number) => {
-    const updatedKeyValues = riskData.attributes.filter((_, i) => i !== index);
+    const updatedKeyValues = riskData.attributes?.filter((_, i) => i !== index);
     setRiskData({ ...riskData, attributes: updatedKeyValues });
   };
 
@@ -337,7 +327,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
             />
           </Grid>
 
-          {riskData.attributes.map((kv, index) => (
+          {riskData?.attributes?.map((kv, index) => (
             <Grid
               mt={1}
               sx={{ width: "100%" }}

@@ -1,15 +1,19 @@
 import { Menu, MenuItem, ListItemIcon, IconButton } from '@mui/material'
 import React from 'react'
-import { EditOutlined, DeleteOutlineOutlined, MoreVert } from '@mui/icons-material';
+import { MoreVert } from '@mui/icons-material'
 
-// interface EditDeleteDialogProps {
-//     // onAction: () => void;
-//     // color: string;
-//     // action: string;
-//     // icon: React.ReactNode;
-// }
+interface EditDeleteDialogItem {
+    onAction: () => void;
+    color: string;
+    action: string;
+    icon: React.ReactNode;
+}
 
-const EditDeleteDialog : React.FC<EditDeleteDialogProps> = () => {
+interface EditDeleteDialogProps {
+    items: EditDeleteDialogItem[];
+}
+
+const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -20,24 +24,9 @@ const EditDeleteDialog : React.FC<EditDeleteDialogProps> = () => {
         setAnchorEl(null);
     };
 
-    // const dialogData = [{
-    //     onAction: () => {console.log("Edit action"); handleClose()},
-    //     color: 'primary.main',
-    //     action: 'Edit',
-    //     icon: <EditOutlined fontSize = "small" />
-    // },
-    // {
-    //     onAction: () => {console.log("Delete action"); handleClose()},
-    //     color: '#CD0303',
-    //     action: 'Delete',
-    //     icon: <DeleteOutlineOutlined fontSize = "small" />
-    // }
-    // ]
-
-
     return (
         <>
-            <IconButton sx={{ px: 0, mx: '0px !important' }} 
+            <IconButton sx={{ px: 0, mx: '0px !important' }}
                 id="open-edit-delete-dialog"
                 aria-controls={open ? 'edit-delete-dialog' : undefined}
                 aria-haspopup="true"
@@ -65,22 +54,9 @@ const EditDeleteDialog : React.FC<EditDeleteDialogProps> = () => {
                     }
                 }}
             >
-                {/* <MenuItem onClick={handleClose}>
-                    <ListItemIcon sx={{ color: 'primary.main' }}>
-                        <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    Edit
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                    <ListItemIcon sx={{ color: '#CD0303' }}>
-                        <DeleteOutlineOutlined fontSize="small" />
-                    </ListItemIcon>
-                    Delete
-                </MenuItem> */}
-
-                {dialogData.map((item, index) => (
-                    <MenuItem key={index} onClick ={item.onAction}>
-                        <ListItemIcon sx={{ color: item.color}}>
+                {items.map((item, index) => (
+                    <MenuItem key={index} onClick={item.onAction}>
+                        <ListItemIcon sx={{ color: item.color }}>
                             {item.icon}
                         </ListItemIcon>
                         {item.action}
@@ -93,3 +69,18 @@ const EditDeleteDialog : React.FC<EditDeleteDialogProps> = () => {
 }
 
 export default EditDeleteDialog
+
+//For static data,
+
+{/* <MenuItem onClick={handleClose}>
+                    <ListItemIcon sx={{ color: 'primary.main' }}>
+                        <EditOutlined fontSize="small" />
+                    </ListItemIcon>
+                    Edit
+                </MenuItem>
+                <MenuItem onClick={handleClose}>
+                    <ListItemIcon sx={{ color: '#CD0303' }}>
+                        <DeleteOutlineOutlined fontSize="small" />
+                    </ListItemIcon>
+                    Delete
+                </MenuItem> */}

@@ -10,34 +10,26 @@ import {
 } from '@mui/material';
 import EditDeleteDialog from '@/components/EditDeleteDialog';
 import { DoneOutlined } from '@mui/icons-material';
+import { RiskScenarioData } from '@/types/risk-scenario';
 
 
 interface RiskScenarioCardProps {
-  id: string;
-  industry: string;
-  title: string;
-  tags: number;
-  processes: number;
-  assets: number;
-  threats: number;
-  lastUpdated: string;
-  status: string;
+  riskScenarioData: RiskScenarioData
+  setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>
+  setIsAddRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>
+
 }
 
-const RiskScenarioCard = ({
-  id,
-  industry,
-  title,
-  tags,
-  processes,
-  assets,
-  threats,
-  lastUpdated,
-  status,
+const RiskScenarioCard:React.FC<RiskScenarioCardProps> = ({
+  riskScenarioData,
+  setSelectedRiskScenario,
+  setIsAddRiskScenarioOpen,
+  setIsEditRiskScenarioOpen
 }: RiskScenarioCardProps) => {
   const getStatusComponent = () => {
-    if (status === 'Enabled' || status === 'Disabled') {
-      return <FormControlLabel control={<Switch color="success" checked={status === 'Enabled'} />} label={status} />;
+    if (riskScenarioData.status === 'Enabled' || riskScenarioData.status === 'Disabled') {
+      return <FormControlLabel control={<Switch color="success" checked={riskScenarioData.status === 'Enabled'} />} label={riskScenarioData.status} />;
     }
     return (
       <Chip
@@ -72,13 +64,13 @@ const RiskScenarioCard = ({
         flexWrap="wrap"
       >
         <Stack direction="row" spacing={1} alignItems="center">
-          <Typography fontWeight={600}>{id}</Typography>
-          <Chip label={`Industry: ${industry}`} variant="outlined" size="small" sx={{borderRadius: 0.5}}/>
+          <Typography fontWeight={600}>{riskScenarioData.risk_code}</Typography>
+          <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry }`} variant="outlined" size="small" sx={{borderRadius: 0.5}}/>
         </Stack>
 
         <Stack direction="row" alignItems="center" spacing={1}>
           <Typography variant="body2" color="textSecondary">
-            Last Updated: {lastUpdated}
+            Last Updated: {riskScenarioData.lastUpdated}
           </Typography>
           <Box sx={{width: '118px', mx: '24px !important'}}>
           {getStatusComponent()}
@@ -92,16 +84,24 @@ const RiskScenarioCard = ({
       </Box>
 
       {/* Title */}
+      <div onClick={() => {
+        // setSelectedRiskScenario({
+        //   id: id,
+        //   riskScenario: title,
+
+        // })
+      }}>
       <Typography variant="body1" fontWeight={500} sx={{ px: 3}}>
-        {title}
+        {riskScenarioData.riskScenario}
       </Typography>
 
       <Divider sx={{mx: 3}}/>
 
       {/* Meta Info */}
       <Typography variant="body2" color="textSecondary"  sx={{ px: 3, pb: 1}}>
-        {tags} Tags &nbsp; • &nbsp; {processes} Processes &nbsp; • &nbsp; {assets} Assets &nbsp; • &nbsp; {threats} Threats
+        {riskScenarioData.tags} Tags &nbsp; • &nbsp; {riskScenarioData.processes} Processes &nbsp; • &nbsp; {riskScenarioData.assets} Assets &nbsp; • &nbsp; {riskScenarioData.threats} Threats
       </Typography>
+      </div>
       </Box>
   );
 };

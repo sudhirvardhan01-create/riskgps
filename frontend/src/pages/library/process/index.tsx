@@ -1,6 +1,7 @@
 
-// import EditDeleteDialog from '@/components/EditDeleteDialog'
-// import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
+ import EditDeleteDialog from '@/components/EditDeleteDialog'
+import Filter from '@/components/library/Filter';
+import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
 // import SuccessToast from '@/components/successToast'
 
 // import ConfirmDialog from "@/components/ConfirmDialog"
@@ -14,24 +15,26 @@ const Index = () => {
 
   // const [open, setOpen] = useState(false);
 
-  // const dialogData = [{
-  //         onAction: () => {console.log("Edit action"); },
-  //         color: 'primary.main',
-  //         action: 'Edit',
-  //         icon: <EditOutlined fontSize = "small" />
-  //     },
-  //     {
-  //         onAction: () => {console.log("Delete action"); },
-  //         color: '#CD0303',
-  //         action: 'Delete',
-  //         icon: <DeleteOutlineOutlined fontSize = "small" />
-  //     }
-  //     ]
+  const dialogData = [{
+          onAction: () => {console.log("Edit action"); },
+          color: 'primary.main',
+          action: 'Edit',
+          icon: <EditOutlined fontSize = "small" />
+      },
+      {
+          onAction: () => {console.log("Delete action"); },
+          color: '#CD0303',
+          action: 'Delete',
+          icon: <DeleteOutlineOutlined fontSize = "small" />
+      }
+      ]
 
   return (
     <>
 
-        {/* <EditDeleteDialog dialogData={dialogData}/> */}
+      <EditDeleteDialog items={dialogData}/>
+
+      <Filter />
 
       {/* <button onClick={() => setOpen(true)}>Open Modal</button>
 
