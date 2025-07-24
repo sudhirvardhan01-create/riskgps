@@ -7,8 +7,8 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   testEnvironment: "jsdom",
   moduleNameMapper: {
-    // optional: add your path aliases here, if you use tsconfig paths
     "^@/(.*)$": "<rootDir>/$1",
+    "\\.svg$": "<rootDir>/__mocks__/svgMock.tsx",
   },
 };
 

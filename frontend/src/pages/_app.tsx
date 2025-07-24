@@ -1,11 +1,12 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import Footer from "@/components/footer";
-import Header from "@/components/header";
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 import { usePathname } from "next/navigation";
 import theme from "@/styles/theme";
-import { CssBaseline } from "@mui/material";
+import { CssBaseline, Grid } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
+import SideBar from "@/components/SideBar";
 
 export default function App({ Component, pageProps }: AppProps) {
   const pathname = usePathname();
@@ -14,9 +15,14 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {!isLoginPage && <Header />}
-      <Component {...pageProps} />
-      {!isLoginPage && <Footer />}
+      <Grid container sx={{ height: "100vh" }}>
+        <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+        <Grid size={11}>
+          {!isLoginPage && <Header />}
+          <Component {...pageProps} />
+          {!isLoginPage && <Footer />}
+        </Grid>
+      </Grid>
     </ThemeProvider>
   );
 }

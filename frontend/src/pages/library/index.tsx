@@ -1,0 +1,199 @@
+import RiskScenarioCardIcon from "@/icons/risk-scenario-card.svg";
+import ThreatCardIcon from "@/icons/threats-card.svg";
+import AssetCardIcon from "@/icons/assets-card.svg";
+import ControlCardIcon from "@/icons/controls-card.svg";
+import ProcessCardIcon from "@/icons/processes-card.svg";
+import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
+
+const libs = [
+  {
+    name: "Risk Scenarios",
+    description:
+      "Anticipate and address potential cybersecurity threats through proactive exploration of impactful scenarios.",
+    tags: [
+      {
+        label: "All Scenarios",
+        value: 40,
+      },
+      {
+        label: "Published",
+        value: 32,
+      },
+      {
+        label: "Disabled",
+        value: 3,
+      },
+      {
+        label: "Draft",
+        value: 5,
+      },
+    ],
+    icon: <RiskScenarioCardIcon height={24} width={24} />,
+  },
+  {
+    name: "Threats",
+    description:
+      "Categorize and stay informed about diverse cyber threats to empower risk assessment strategies with up-to-date intelligence.",
+    tags: [
+      {
+        label: "All Threats",
+        value: 37,
+      },
+      {
+        label: "Published",
+        value: 32,
+      },
+      {
+        label: "Disabled",
+        value: 4,
+      },
+      {
+        label: "Draft",
+        value: 1,
+      },
+    ],
+    icon: <ThreatCardIcon height={24} width={24} />,
+  },
+  {
+    name: "Assets",
+    description:
+      "Effectively catalog and manage digital assets, providing a clear overview of their significance in the risk assessment process.",
+    tags: [
+      {
+        label: "All Assets",
+        value: 68,
+      },
+      {
+        label: "Published",
+        value: 51,
+      },
+      {
+        label: "Disabled",
+        value: 11,
+      },
+      {
+        label: "Draft",
+        value: 6,
+      },
+    ],
+    icon: <AssetCardIcon height={24} width={24} />,
+  },
+  {
+    name: "Controls",
+    description:
+      "Implement and manage security controls strategically, fortifying client assets against potential threats within the risk assessment framework.",
+    tags: [
+      {
+        label: "All Controls",
+        value: 29,
+      },
+      {
+        label: "Published",
+        value: 15,
+      },
+      {
+        label: "Disabled",
+        value: 8,
+      },
+      {
+        label: "Draft",
+        value: 6,
+      },
+    ],
+    icon: <ControlCardIcon height={24} width={24} />,
+  },
+  {
+    name: "Processes",
+    description:
+      "Streamline and optimize cybersecurity processes, enhancing overall efficiency and bolstering Bluocean's commitment to client cybersecurity.",
+    tags: [
+      {
+        label: "All Processes",
+        value: 40,
+      },
+      {
+        label: "Published",
+        value: 24,
+      },
+      {
+        label: "Disabled",
+        value: 16,
+      },
+      {
+        label: "Draft",
+        value: 0,
+      },
+    ],
+    icon: <ProcessCardIcon height={24} width={24} />,
+  },
+];
+
+const LibraryPage = () => {
+  return (
+    <Box sx={{ p: 5, mb: 8 }}>
+      <Typography variant="h5" fontWeight={600} mb={5}>
+        Library
+      </Typography>
+      <Grid container rowSpacing={3} columnSpacing={3}>
+        {libs.map((lib) => {
+          return (
+            <Grid size={{ xs: 12, md: 6 }} key={lib.name}>
+              <Box
+                key={lib.name}
+                sx={{
+                  p: 4,
+                  border: "1px solid #E4E4E4",
+                  borderRadius: 2,
+                  boxShadow: "0px 4px 4px 0px #D9D9D98F",
+                }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  sx={{ mb: 3 }}
+                >
+                  <Box sx={{ height: 24, width: 24 }}>{lib.icon}</Box>
+                  <Typography
+                    variant="h6"
+                    fontWeight={600}
+                    color="primary.main"
+                  >
+                    {lib.name}
+                  </Typography>
+                </Stack>
+                <Typography variant="body1" color="#91939A">
+                  {lib.description}
+                </Typography>
+                <Divider sx={{ my: 3 }} />
+                <Box sx={{ mt: 1 }}>
+                  {lib.tags.map((tag) => (
+                    <Box
+                      key={tag.label}
+                      sx={{ display: "inline-block", mr: 1 }}
+                    >
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="body1" color="#91939A">
+                          {tag.label}:
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          fontWeight={600}
+                          color="#484848"
+                        >
+                          {tag.value}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Grid>
+          );
+        })}
+      </Grid>
+    </Box>
+  );
+};
+
+export default LibraryPage;

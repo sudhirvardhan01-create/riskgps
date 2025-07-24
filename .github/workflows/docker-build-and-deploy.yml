@@ -7,6 +7,12 @@ on:
     paths:
       - 'frontend/**'
       - 'backend/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
   workflow_dispatch:
 
 permissions:
@@ -218,6 +224,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Tag and push Docker image to ECR
+        if: github.event_name == 'push'
         run: |
           docker tag ${{ env.IMAGE_NAME }} ${{ env.ECR_IMAGE }}
           docker push ${{ env.ECR_IMAGE }}
