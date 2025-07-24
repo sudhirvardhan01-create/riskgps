@@ -4,14 +4,12 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-
 # Build the app
 FROM node:21-alpine AS builder
 WORKDIR /app  
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 RUN npm run build
-
 
 # Production image, copy built assets and run Next.js
 FROM node:21-alpine AS runner

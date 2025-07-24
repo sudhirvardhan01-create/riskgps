@@ -182,6 +182,7 @@ const LoginPage = () => {
                   variant="contained"
                   disableRipple={true}
                   color="primary"
+                  disabled={formData.email === "" || formData.password === ""}
                   sx={{
                     py: 1.5,
                     textTransform: "none",
