@@ -9,21 +9,23 @@ import {
   FormControlLabel
 } from '@mui/material';
 import EditDeleteDialog from '@/components/EditDeleteDialog';
-import { DoneOutlined } from '@mui/icons-material';
+import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
 
 
 interface RiskScenarioCardProps {
-  riskScenarioData: RiskScenarioData
-  setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>
-  setIsAddRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>
-  setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>
+  riskScenarioData: RiskScenarioData;
+  setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>;
+  setIsViewRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAddRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
 }
 
-const RiskScenarioCard:React.FC<RiskScenarioCardProps> = ({
+const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
   riskScenarioData,
   setSelectedRiskScenario,
+  setIsViewRiskScenarioOpen,
   setIsAddRiskScenarioOpen,
   setIsEditRiskScenarioOpen
 }: RiskScenarioCardProps) => {
@@ -33,7 +35,7 @@ const RiskScenarioCard:React.FC<RiskScenarioCardProps> = ({
     }
     return (
       <Chip
-      icon={<DoneOutlined />}
+        icon={<DoneOutlined />}
         label="Draft"
         variant="outlined"
         size="small"
@@ -42,6 +44,20 @@ const RiskScenarioCard:React.FC<RiskScenarioCardProps> = ({
       />
     );
   };
+
+  const dialogData = [{
+    onAction: () => { console.log("Edit action"); },
+    color: 'primary.main',
+    action: 'Edit',
+    icon: <EditOutlined fontSize="small" />
+  },
+  {
+    onAction: () => { console.log("Delete action"); },
+    color: '#CD0303',
+    action: 'Delete',
+    icon: <DeleteOutlineOutlined fontSize="small" />
+  }
+  ]
 
   return (
     <Box
@@ -57,52 +73,50 @@ const RiskScenarioCard:React.FC<RiskScenarioCardProps> = ({
     >
       {/* Header */}
       <Box sx={{ px: 3, py: 1, backgroundColor: '#F3F8FF', borderRadius: '8px 8px 0 0' }}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        flexWrap="wrap"
-      >
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography fontWeight={600}>{riskScenarioData.risk_code}</Typography>
-          <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry }`} variant="outlined" size="small" sx={{borderRadius: 0.5}}/>
-        </Stack>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          flexWrap="wrap"
+        >
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography fontWeight={600}>{riskScenarioData.risk_code}</Typography>
+            <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry}`} variant="outlined" size="small" sx={{ borderRadius: 0.5 }} />
+          </Stack>
 
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="body2" color="textSecondary">
-            Last Updated: {riskScenarioData.lastUpdated}
-          </Typography>
-          <Box sx={{width: '118px', mx: '24px !important'}}>
-          {getStatusComponent()}
-          </Box>
-          {/* <IconButton sx={{ px: 0, mx:'0px !important'}}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="body2" color="textSecondary">
+              Last Updated: {riskScenarioData.lastUpdated}
+            </Typography>
+            <Box sx={{ width: '118px', mx: '24px !important' }}>
+              {getStatusComponent()}
+            </Box>
+            {/* <IconButton sx={{ px: 0, mx:'0px !important'}}>
             <MoreVert sx={{color:"primary.main"}}/>
           </IconButton> */}
-          <EditDeleteDialog />
+            <EditDeleteDialog items={dialogData} />
+          </Stack>
         </Stack>
-      </Stack>
       </Box>
 
       {/* Title */}
       <div onClick={() => {
-        // setSelectedRiskScenario({
-        //   id: id,
-        //   riskScenario: title,
+        setSelectedRiskScenario(riskScenarioData);
+        setIsViewRiskScenarioOpen(true)
 
-        // })
       }}>
-      <Typography variant="body1" fontWeight={500} sx={{ px: 3}}>
-        {riskScenarioData.riskScenario}
-      </Typography>
+        <Typography variant="body1" fontWeight={500} sx={{ px: 3 }}>
+          {riskScenarioData.riskScenario}
+        </Typography>
 
-      <Divider sx={{mx: 3}}/>
+        <Divider sx={{ mx: 3, my: 1 }} />
 
-      {/* Meta Info */}
-      <Typography variant="body2" color="textSecondary"  sx={{ px: 3, pb: 1}}>
-        {riskScenarioData.tags} Tags &nbsp; • &nbsp; {riskScenarioData.processes} Processes &nbsp; • &nbsp; {riskScenarioData.assets} Assets &nbsp; • &nbsp; {riskScenarioData.threats} Threats
-      </Typography>
+        {/* Meta Info */}
+        <Typography variant="body2" color="textSecondary" sx={{ px: 3, pb: 1 }}>
+          {riskScenarioData.tags} Tags &nbsp; • &nbsp; {riskScenarioData.processes} Processes &nbsp; • &nbsp; {riskScenarioData.assets} Assets &nbsp; • &nbsp; {riskScenarioData.threats} Threats
+        </Typography>
       </div>
-      </Box>
+    </Box>
   );
 };
 

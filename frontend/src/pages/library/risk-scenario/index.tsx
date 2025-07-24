@@ -152,7 +152,7 @@ const Index = () => {
   const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
   const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(true);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
-  const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(true);
+  const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
   const [riskData, setRiskData] = useState<RiskScenarioData>({
     riskScenario: "",
     riskStatement: "",
@@ -180,13 +180,18 @@ const Index = () => {
 
   return (
     <>
-      <ViewRiskScenarioModal
+
+     {
+      selectedRiskScenario && isViewRiskScenarioOpen &&  <ViewRiskScenarioModal
+       riskScenarioData={selectedRiskScenario}
         open={isViewRiskScenarioOpen}
         onClose={() => {
           setIsViewRiskScenarioOpen(false);
         }}
       />
-      <RiskScenarioFormModal
+     }
+    {
+      isAddRiskScenarioOpen && <RiskScenarioFormModal
         open={isAddRiskScenarioOpen}
         riskData={riskData}
         setRiskData={setRiskData}
@@ -197,6 +202,29 @@ const Index = () => {
           setIsAddRiskScenarioOpen(false);
         }}
       />
+    }
+
+        { isEditRiskScenarioOpen && selectedRiskScenario && <RiskScenarioFormModal
+        open={isAddRiskScenarioOpen}
+        riskData={selectedRiskScenario}
+        setRiskData={(val) => { 
+          if (typeof val === 'function') {
+          setSelectedRiskScenario((prev) =>
+            val(prev as RiskScenarioData)
+          );
+        } else {
+          setSelectedRiskScenario(val);
+      }
+    }}
+        onSubmit={() => {
+          setIsAddRiskScenarioOpen(false);
+        }}
+        onClose={() => {
+          setIsAddRiskScenarioOpen(false);
+        }}
+      />
+    }
+
 
       <Box p={2}>
         <Box mb={3}>
@@ -327,10 +355,8 @@ const Index = () => {
 
         <Stack spacing={2}>
           {riskScenarioDatas.map((item: RiskScenarioData, index) => (
-            <div key={index} onClick={() => {
-              setIsViewRiskScenarioOpen(true)
-            }}>
-            <RiskScenarioCard  key={index} riskScenarioData={item} setSelectedRiskScenario={setSelectedRiskScenario} setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen} setIsAddRiskScenarioOpen={setIsAddRiskScenarioOpen} />
+            <div key={index}>
+            <RiskScenarioCard  key={index} riskScenarioData={item} setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen} setSelectedRiskScenario={setSelectedRiskScenario} setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen} setIsAddRiskScenarioOpen={setIsAddRiskScenarioOpen} />
             </div>
           ))}
         </Stack>

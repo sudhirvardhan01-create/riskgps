@@ -10,15 +10,18 @@ import {
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../toggle-switch/ToggleSwitch";
+import { RiskScenarioData } from "@/types/risk-scenario";
 
 interface ViewRiskScenarioModalProps {
   open: boolean;
+  riskScenarioData: RiskScenarioData;
   onClose: () => void;
 }
 const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
   open,
+  riskScenarioData,
   onClose,
-}) => {
+}: ViewRiskScenarioModalProps) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
@@ -57,8 +60,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Risk Scenario
               </Typography>
               <Typography variant="body2" fontWeight={500}>
-                The Fund/Wire Transfer System is not working for extended period
-                of time
+                {riskScenarioData.riskScenario}
               </Typography>
             </Box>
           </Grid>
@@ -68,10 +70,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Risk Statement
               </Typography>
               <Typography variant="body2" fontWeight={500}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Suspendisse pulvinar ligula at pulvinar pretium. Suspendisse
-                vitae eleifend ante. Sed aliquam velit quis ante pretium, vel
-                elementum purus dapibus.
+                {riskScenarioData.riskStatement}
               </Typography>
             </Box>
           </Grid>
@@ -81,7 +80,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Risk Description
               </Typography>
               <Typography variant="body2" fontWeight={500}>
-                This is related to the Fund Transfer Process.
+                {riskScenarioData.riskDescription}
               </Typography>
             </Box>
           </Grid>
@@ -91,7 +90,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Risk Field 1
               </Typography>
               <Typography variant="body2" fontWeight={500}>
-                Some Value
+                {riskScenarioData.riskField1? riskScenarioData.riskField1 : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -101,7 +100,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Risk Field 2
               </Typography>
               <Typography variant="body2" fontWeight={500}>
-                Some Value
+                {riskScenarioData.riskField2? riskScenarioData.riskField2 : "-"}
               </Typography>
             </Box>
           </Grid>
