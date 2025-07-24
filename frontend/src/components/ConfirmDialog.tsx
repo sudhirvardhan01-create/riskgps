@@ -34,7 +34,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     return (
         <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth slotProps={{
             paper: {
-                sx: { borderRadius: 2, border: '1px solid var(--Stroke-color-Stroke_Inputs, #E7E7E7)' }
+                sx: { borderRadius: 2, border: '1px solid #E7E7E7'}
             }
         }}>
             <IconButton onClick={onClose} size="small" sx={{ position: 'absolute', top: 4, right: 4, color: 'primary.main' }}>
@@ -47,7 +47,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             </DialogTitle>
 
             <DialogContent>
-                <Typography sx={{ color: "#91939A", fontSize: 16, textAlign: 'center', fontWeight: 400 }}>{description}</Typography>
+                <Typography sx={{ color: "#91939A", fontSize: 14, textAlign: 'center', fontWeight: 400 }}>{description}</Typography>
             </DialogContent>
 
             <DialogActions sx={{ display: 'flex', justifyContent: "center", pb: 3, gap: 3, alignItems: 'center' }}>
