@@ -1,21 +1,39 @@
 
-// import EditDeleteDialog from '@/components/editDeleteDialog'
+// import EditDeleteDialog from '@/components/EditDeleteDialog'
+// import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
 // import SuccessToast from '@/components/successToast'
 
-import ConfirmDialog from "@/components/ConfirmDialog"
-import React, { useState } from 'react';
+// import ConfirmDialog from "@/components/ConfirmDialog"
+// import React, { useState } from 'react';
 
 const Index = () => {
-    // <EditDeleteDialog />
+  
     // <SuccessToast
     //   message="Success! The Asset #002 has been deleted."
     // />
 
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
+
+  // const dialogData = [{
+  //         onAction: () => {console.log("Edit action"); },
+  //         color: 'primary.main',
+  //         action: 'Edit',
+  //         icon: <EditOutlined fontSize = "small" />
+  //     },
+  //     {
+  //         onAction: () => {console.log("Delete action"); },
+  //         color: '#CD0303',
+  //         action: 'Delete',
+  //         icon: <DeleteOutlineOutlined fontSize = "small" />
+  //     }
+  //     ]
 
   return (
     <>
-      <button onClick={() => setOpen(true)}>Open Modal</button>
+
+        {/* <EditDeleteDialog dialogData={dialogData}/> */}
+
+      {/* <button onClick={() => setOpen(true)}>Open Modal</button>
 
       <ConfirmDialog
         open={open}
@@ -29,7 +47,7 @@ const Index = () => {
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
         confirmColor="#B00020"
-      />
+      /> */}
     </>
   )
 }

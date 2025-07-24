@@ -2,7 +2,14 @@ import { Menu, MenuItem, ListItemIcon, IconButton } from '@mui/material'
 import React from 'react'
 import { EditOutlined, DeleteOutlineOutlined, MoreVert } from '@mui/icons-material';
 
-const EditDeleteDialog = () => {
+// interface EditDeleteDialogProps {
+//     // onAction: () => void;
+//     // color: string;
+//     // action: string;
+//     // icon: React.ReactNode;
+// }
+
+const EditDeleteDialog : React.FC<EditDeleteDialogProps> = () => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -12,6 +19,20 @@ const EditDeleteDialog = () => {
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    // const dialogData = [{
+    //     onAction: () => {console.log("Edit action"); handleClose()},
+    //     color: 'primary.main',
+    //     action: 'Edit',
+    //     icon: <EditOutlined fontSize = "small" />
+    // },
+    // {
+    //     onAction: () => {console.log("Delete action"); handleClose()},
+    //     color: '#CD0303',
+    //     action: 'Delete',
+    //     icon: <DeleteOutlineOutlined fontSize = "small" />
+    // }
+    // ]
 
 
     return (
@@ -44,7 +65,7 @@ const EditDeleteDialog = () => {
                     }
                 }}
             >
-                <MenuItem onClick={handleClose}>
+                {/* <MenuItem onClick={handleClose}>
                     <ListItemIcon sx={{ color: 'primary.main' }}>
                         <EditOutlined fontSize="small" />
                     </ListItemIcon>
@@ -55,7 +76,17 @@ const EditDeleteDialog = () => {
                         <DeleteOutlineOutlined fontSize="small" />
                     </ListItemIcon>
                     Delete
-                </MenuItem>
+                </MenuItem> */}
+
+                {dialogData.map((item, index) => (
+                    <MenuItem key={index} onClick ={item.onAction}>
+                        <ListItemIcon sx={{ color: item.color}}>
+                            {item.icon}
+                        </ListItemIcon>
+                        {item.action}
+                    </MenuItem>
+                ))}
+
             </Menu>
         </>
     )
