@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useState } from "react";
+import { register } from "@/pages/api/AuthAPI";
 
 interface FormState {
   name: string;
@@ -19,6 +20,8 @@ interface FormState {
   phone: string;
   organisation: string;
   message: string;
+  password: string;
+  confirmPassword: string;
   communicationPreference: "Email" | "Phone" | "Both";
   captchaValue: string | null;
 }
@@ -31,6 +34,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
   const [formData, setFormData] = useState<FormState>({
     name: "",
     email: "",
+    password: "",
+    confirmPassword: "",
     phone: "",
     organisation: "",
     message: "",
@@ -51,12 +56,45 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.captchaValue) {
-      alert("Please verify the reCAPTCHA.");
+    // if (!formData.captchaValue) {
+    //   alert("Please verify the reCAPTCHA.");
+    //   return;
+    // }
+
+    if (formData.confirmPassword !== formData.password) {
+      alert("Passwords do not match.");
       return;
     }
 
-    console.log("Form submitted:", formData);
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.organisation ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    register(
+      formData.name,
+      formData.email,
+      formData.password,
+      formData.phone,
+      formData.organisation,
+      formData.communicationPreference,
+      formData.message,
+      "User" // Assuming roleName is "User" for simplicity
+    )
+      .then((data) => {
+        console.log("Registration successful:", data);
+        setCurrentForm("login");
+        alert("Registration successful! Please log in.");
+      })
+      .catch((error) => {
+        console.error("Registration failed:", error);
+      });
   };
 
   return (
@@ -117,6 +155,45 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
                 size="small"
                 required
                 value={formData.email}
+                onChange={handleChange}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    "& fieldset": { borderColor: "#D0D5DD" },
+                  },
+                }}
+              />
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                name="password"
+                label="Password"
+                placeholder="Enter password"
+                type="password"
+                size="small"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    "& fieldset": { borderColor: "#D0D5DD" },
+                  },
+                }}
+              />
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                name="confirmPassword"
+                label="Confirm Password"
+                placeholder="Enter confirm password"
+                type="password"
+                size="small"
+                value={formData.confirmPassword}
                 onChange={handleChange}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -244,7 +321,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
               disabled={
                 formData.name === "" ||
                 formData.email === "" ||
-                formData.organisation === ""
+                formData.organisation === "" ||
+                formData.password === ""
                 // !formData.captchaValue
               }
               sx={{

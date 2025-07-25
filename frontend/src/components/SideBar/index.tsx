@@ -6,7 +6,7 @@ import AssessmentIcon from "@/icons/assessment.svg";
 import ReportsIcon from "@/icons/reports.svg";
 import UserManagementIcon from "@/icons/user-management.svg";
 import OrgManagementIcon from "@/icons/org-management.svg";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 const links = [
   { name: "Home", path: "/", icon: <HomeIcon /> },
@@ -34,10 +34,10 @@ const SideBar = () => {
       bgcolor={"primary.main"}
       sx={{
         width: "100%",
-        height: "100%",
+        height: "100vh",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        pt: 1.5,
       }}
     >
       {links.map((link) => {
@@ -46,6 +46,8 @@ const SideBar = () => {
             key={link.name}
             sx={{
               p: 2,
+              mx: 0.5,
+              borderRadius: 1,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -53,6 +55,8 @@ const SideBar = () => {
               color: "white",
               cursor: "pointer",
               textAlign: "center",
+              backgroundColor:
+                router.pathname === link.path ? "#FFFFFF40" : "transparent",
             }}
             onClick={() => router.push(link.path)}
           >

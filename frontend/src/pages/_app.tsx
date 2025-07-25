@@ -2,15 +2,15 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/router";
 import theme from "@/styles/theme";
 import { CssBaseline, Grid } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
 
 export default function App({ Component, pageProps }: AppProps) {
-  const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const router = useRouter();
+  const isLoginPage = router.pathname === "/login";
 
   return (
     <ThemeProvider theme={theme}>

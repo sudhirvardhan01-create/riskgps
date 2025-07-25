@@ -4,7 +4,7 @@ import AssetCardIcon from "@/icons/assets-card.svg";
 import ControlCardIcon from "@/icons/controls-card.svg";
 import ProcessCardIcon from "@/icons/processes-card.svg";
 import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 const libs = [
   {
@@ -142,7 +142,13 @@ const LibraryPage = () => {
       <Typography variant="h5" fontWeight={600} mb={5}>
         Library
       </Typography>
-      <Grid container rowSpacing={3} columnSpacing={3}>
+      <Grid
+        container
+        rowSpacing={3}
+        columnSpacing={3}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
+        className="scroll-container"
+      >
         {libs.map((lib) => {
           return (
             <Grid size={{ xs: 12, md: 6 }} key={lib.name}>

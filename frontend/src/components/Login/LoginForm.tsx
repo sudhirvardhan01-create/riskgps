@@ -1,3 +1,4 @@
+import { login } from "@/pages/api/AuthAPI";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   Box,
@@ -9,9 +10,10 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
+import Cookies from "js-cookie";
 
 interface LoginFormProps {
   setCurrentForm: (form: "login" | "signup") => void;
@@ -39,7 +41,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
     //   return;
     // }
 
-    router.push("/"); // Redirect to dashboard after login
+    login(formData.email, formData.password)
+      .then((data) => {
+        Cookies.set("access_token", data.token);
+        Cookies.set("user", JSON.stringify(data.user));
+        router.push("/"); // Redirect to dashboard after login
+      })
+      .catch((error) => {
+        console.error("Login failed:", error);
+      });
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
