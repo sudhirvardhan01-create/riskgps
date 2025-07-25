@@ -1,40 +1,45 @@
-
- import EditDeleteDialog from '@/components/EditDeleteDialog'
+import EditDeleteDialog from '@/components/EditDeleteDialog'
 import Filter from '@/components/library/Filter';
 import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
+import { Button } from '@mui/material';
 // import SuccessToast from '@/components/successToast'
-
 // import ConfirmDialog from "@/components/ConfirmDialog"
-// import React, { useState } from 'react';
+import React, { useState } from 'react';
 
 const Index = () => {
-  
-    // <SuccessToast
-    //   message="Success! The Asset #002 has been deleted."
-    // />
+
+  // <SuccessToast
+  //   message="Success! The Asset #002 has been deleted."
+  // />
 
   // const [open, setOpen] = useState(false);
 
   const dialogData = [{
-          onAction: () => {console.log("Edit action"); },
-          color: 'primary.main',
-          action: 'Edit',
-          icon: <EditOutlined fontSize = "small" />
-      },
-      {
-          onAction: () => {console.log("Delete action"); },
-          color: '#CD0303',
-          action: 'Delete',
-          icon: <DeleteOutlineOutlined fontSize = "small" />
-      }
-      ]
+    onAction: () => { console.log("Edit action"); },
+    color: 'primary.main',
+    action: 'Edit',
+    icon: <EditOutlined fontSize="small" />
+  },
+  {
+    onAction: () => { console.log("Delete action"); },
+    color: '#CD0303',
+    action: 'Delete',
+    icon: <DeleteOutlineOutlined fontSize="small" />
+  }
+  ]
+
+  const [openFilter, setOpenFilter] = useState(false);
+
+  const statusItems = ['Published', 'Draft', 'Disabled'];
 
   return (
     <>
 
-      <EditDeleteDialog items={dialogData}/>
+      <EditDeleteDialog items={dialogData} />
 
-      <Filter />
+      <Button onClick={() => setOpenFilter(true)}>Open Filter</Button>
+
+      <Filter items={statusItems} open={openFilter} onClose={() => setOpenFilter(false)} onClear={() => console.log("Cleared")} onApply={() => console.log("Applied")} />
 
       {/* <button onClick={() => setOpen(true)}>Open Modal</button>
 
