@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -24,6 +25,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
     password: "",
   });
 
+  const router = useRouter();
+
   const handleCaptchaChange = (value: string | null) => {
     setCaptchaValue(value);
   };
@@ -31,12 +34,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!captchaValue) {
-      alert("Please verify the reCAPTCHA.");
-      return;
-    }
+    // if (!captchaValue) {
+    //   alert("Please verify the reCAPTCHA.");
+    //   return;
+    // }
 
-    console.log("Form submitted:", formData);
+    router.push("/"); // Redirect to dashboard after login
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

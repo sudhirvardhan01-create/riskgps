@@ -9,7 +9,7 @@ import OrgManagementIcon from "@/icons/org-management.svg";
 import { useRouter } from "next/navigation";
 
 const links = [
-  { name: "Home", path: "/home", icon: <HomeIcon /> },
+  { name: "Home", path: "/", icon: <HomeIcon /> },
   { name: "Meta Data", path: "/meta-data", icon: <MetaDataIcon /> },
   { name: "Library", path: "/library", icon: <LibraryIcon /> },
   { name: "Assessment", path: "/assessment", icon: <AssessmentIcon /> },
