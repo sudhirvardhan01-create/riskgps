@@ -114,19 +114,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
                     "& fieldset": { borderColor: "#D0D5DD" },
                   },
                 }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        type="button"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          type="button"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
             </Box>
@@ -163,9 +165,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
               disableRipple
               color="primary"
               disabled={
-                formData.email === "" ||
-                formData.password === "" ||
-                !captchaValue
+                formData.email === "" || formData.password === ""
+                // !captchaValue
               }
               sx={{
                 py: 1.5,
