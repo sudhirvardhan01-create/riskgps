@@ -1,7 +1,7 @@
 
 export interface RiskScenarioAttributes {
-  meta_data_key: number;
-  value: string[];
+  meta_data_key_id: number | null;
+  values: string[];
 }
 
 export interface RiskScenarioData {
@@ -12,7 +12,7 @@ export interface RiskScenarioData {
   riskDescription: string;
   industry?: string[]
   tags?: number;
-  processes?: number;
+  related_processes?: number[]| { process_id: number; [key: string]: any }[];
   assets?: number;
   threats?: number;
   riskField1?: string;

@@ -24,6 +24,7 @@ const MetaDataService = require('../services/meta_data');
  * }
  */
 router.post('/', async (req, res) => {
+  console.log("request re")
   try {
     const metadata = await MetaDataService.createMetaData(req.body);
     res.status(201).json({

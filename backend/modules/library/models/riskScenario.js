@@ -11,10 +11,7 @@ module.exports = (sequelize) => {
     },
     risk_code: {
       type: DataTypes.STRING,
-      unique: true,
-     validate: {
-        is: /^RS-\d{5}$/,
-  }
+      unique: true
     },
     risk_scenario: DataTypes.TEXT,
     risk_description: DataTypes.TEXT,
@@ -26,7 +23,7 @@ module.exports = (sequelize) => {
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    tableName: 'risk_scenarios',
+    tableName: 'library_risk_scenarios',
   });
 
   // hook to generate `risk_code` like RS-00001

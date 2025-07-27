@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  return sequelize.define('RiskScenarioAttribute', {
+  return sequelize.define('ProcessRiskScenarioMappings', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -14,19 +14,15 @@ module.exports = (sequelize) => {
         key: 'id',
       },
     },
-    meta__data_key_id: {
+    process_id: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'library_meta_datas',
+        model: 'library_processes',
         key: 'id',
       },
     },
-    values: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: false,
-    },
   }, {
-    tableName: 'library_attributes_risk_scenario_mapping',
+    tableName: 'library_process_risk_scenario_mapping',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
