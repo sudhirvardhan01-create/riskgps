@@ -3,19 +3,22 @@ const {
   RiskScenarioAttribute,
   MetaData,
   sequelize,
+  Process,
+  ProcessRiskScenarioMappings,
 } = require("../models");
 
 /**
  * services for routes /risk-scenario
  * Risk scenario service contains the function for operation the risk scenario model
- * 
+ *
  */
 class RiskScenarioService {
-
   /**
    * create the Riskscenario
-   * @param {JSON} data 
-   * @returns 
+   * @param {JSON} data
+   * @param {string} data.risk_scenario
+   * @param {string[]} data.process_risk_scenario_mappings
+   * @returns
    */
   static async createRiskScenario(data) {
     const {
@@ -24,13 +27,14 @@ class RiskScenarioService {
       risk_statement,
       status,
       attributes,
+      related_processes
     } = data;
     return await sequelize.transaction(async (t) => {
       if (!risk_scenario) {
         console.log("risk_scenario is required.");
         throw new Error("risk_scenario is required.");
       }
-
+      console.log("[createRiskScenario] request for creating risk scenario received", data);
       const statusSupportedValues = ["draft", "published", "not_published"];
       if (status && !statusSupportedValues.includes(status)) {
         console.log("Invalid Value for Status");
@@ -46,6 +50,25 @@ class RiskScenarioService {
         { transaction: t }
       );
 
+      if (Array.isArray(related_processes) && related_processes.length > 0) {
+        for (const process of related_processes) {
+          if (typeof process != "number" || process < 0) {
+            console.log("Invalid Process Risk Mapping", process);
+            throw new Error("Invalid Process Risk Mapping");
+          }
+          const processData = await Process.findByPk(process);
+          if (!processData) {
+            console.log("Invalid Process ID ", process);
+            throw new Error("Invalid Process Risk Mapping");
+          }
+
+          await ProcessRiskScenarioMappings.create({
+            risk_scenario_id: scenario.id,
+            process_id:process
+          },
+          { transaction: t })
+        }
+      }
       if (Array.isArray(attributes)) {
         for (const attr of attributes) {
           if (!attr.meta_data_key_id || !attr.values) {
@@ -93,8 +116,13 @@ class RiskScenarioService {
    * @returns {Promise<Object>} A promise that resolves to a success message or updated data.
    * @throws {Error} If the update fails or validation errors occur.
    */
-  static async getAllRiskScenarios() {
-    return await RiskScenario.findAll({
+  static async getAllRiskScenarios(page = 1, limit = 6) {
+    const offset = (page - 1) * limit;
+
+    const { rows: data, count: total } = await RiskScenario.findAndCountAll({
+      limit,
+      offset,
+      order: [["created_at", "DESC"]], // optional: sort by created date
       include: [
         {
           model: RiskScenarioAttribute,
@@ -106,13 +134,24 @@ class RiskScenarioService {
             },
           ],
         },
+        {
+          model: Process,
+          as: "processes"
+        },
       ],
     });
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   /**
    * Get Risk Scenario By ID
-   * @param {integer} id 
+   * @param {integer} id
    * @returns {Promise<Object>} A promise that resolves to a success message or updated data.
    * @throws {Error} If the update fails or validation errors occur.
    */
@@ -140,18 +179,18 @@ class RiskScenarioService {
   }
 
   /**
-   * 
+   *
    * @typedef {Object} Attribute
    * @property {number} meta_data_key - The key representing the metadata field.
    * @property {string} value - The value of the attribute.
-   *   
+   *
    * service to update risk Scenario
    * performs a replace of the current existing record for the risk scenario with the new data object
    * if the update success
-   * @param {int} id 
-   * @param {JSON} data 
+   * @param {int} id
+   * @param {JSON} data
    * @param {string} data.risk_scenario the risk scenario title/ name
-   * @param {string} data.risk_description 
+   * @param {string} data.risk_description
    * @param {string} data.risk_statement
    * @param {string} data.status
    * @param {Attribute []} data.attribute
@@ -248,8 +287,8 @@ class RiskScenarioService {
   /**
    * route delete: /risk-scenario
    * Delete Risk Scenario by its ID
-   * @param {integer} id 
-   * @returns 
+   * @param {integer} id
+   * @returns
    */
   static async deleteRiskScenarioById(id) {
     const riskScenario = await RiskScenario.findByPk(id);

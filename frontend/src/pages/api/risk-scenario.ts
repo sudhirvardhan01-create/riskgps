@@ -1,0 +1,149 @@
+import { RiskScenarioData } from "@/types/risk-scenario";
+
+interface APIResponse {
+  data: RiskScenarioData[];
+  page: number;
+  total: number;
+  totalPages: number;
+
+}
+
+export const fetchRiskScenarioById = async (id: number) => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/risk-scenario/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch user data");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+}
+
+export const fetchRiskScenarios = async (page: number, limit: number):Promise<APIResponse> => {
+  const params = new URLSearchParams();
+  if (page) params.append("page", page.toString());
+  if (limit) params.append("limit", limit.toString());
+
+  const transformRiskData = (data: any[]): RiskScenarioData[] => {
+  return data.map((item) => ({
+    id: item.id,
+    risk_code: item.risk_code,
+    riskScenario: item.risk_scenario,
+    riskStatement: item.risk_statement,
+    riskDescription: item.risk_description,
+    industry: item.industry,
+    tags: item.tags,
+    processes: item.processes,
+    assets: item.assets,
+    threats: item.threats,
+    riskField1: item.risk_field1,
+    riskField2: item.risk_field2,
+    attributes: item.attributes,
+    lastUpdated: item.updated_at,
+    status: item.status,
+  }));
+};
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/risk-scenario?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch user data");
+  }
+  const res = await response.json();
+  res.data.data = transformRiskData(res.data.data );
+  console.log(res.data);
+  return res.data;
+};
+
+
+export const createRiskScenario = async (data: RiskScenarioData) => {
+  const riskScenarioData = {
+    "risk_scenario": data.riskScenario,
+    "risk_description": data.riskDescription,
+    "risk_statement": data.riskStatement, 
+    "status": data.status,
+    "related_processes": data.related_processes,
+    "attributes": data.attributes
+  };
+  console.log(riskScenarioData);
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/risk-scenario`, {
+    method: "POST",
+    body: JSON.stringify(riskScenarioData),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+  console.error("Fetch failed with status:", response.status);
+  const errorResponse = await response.json(); // if API returns error details
+  console.log("Error response:", errorResponse);
+  throw new Error("Failed to create Risk Scenario");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+}
+
+export const updateRiskScenario = async (id: number, data: RiskScenarioData) => {
+    const riskScenarioData = {
+    "risk_scenario": data.riskScenario,
+    "risk_description": data.riskDescription,
+    "risk_statement": data.riskStatement, 
+    "status": data.status,
+    "related_processes": data.related_processes,
+    "attributes": data.attributes
+  };
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/risk-scenario/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(riskScenarioData),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch user data");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+
+}
+
+export const deleteRiskScenario = async (id: number) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/risk-scenario/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch user data");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+}
+
+
+export const fetchRiskScenarioMetaData = async () => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/meta-data`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch user data");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+}
