@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
-import EditDeleteDialog from '@/components/editDeleteDialog';
+import EditDeleteDialog from '@/components/EditDeleteDialog';
 
 
 interface RiskScenarioCardProps {
