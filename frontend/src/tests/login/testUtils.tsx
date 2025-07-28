@@ -9,9 +9,12 @@ jest.mock("next/link", () => ({
 
 // Mock next/router
 jest.mock("next/router", () => ({
+  __esModule: true,
   useRouter: () => ({
     push: jest.fn(),
     prefetch: jest.fn(),
+    pathname: "/",
+    // add anything else your component might read
   }),
 }));
 

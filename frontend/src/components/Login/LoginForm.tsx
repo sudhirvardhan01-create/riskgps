@@ -1,3 +1,4 @@
+import { login } from "@/pages/api/AuthAPI";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   Box,
@@ -9,8 +10,10 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
+import Cookies from "js-cookie";
 
 interface LoginFormProps {
   setCurrentForm: (form: "login" | "signup") => void;
@@ -24,6 +27,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
     password: "",
   });
 
+  const router = useRouter();
+
   const handleCaptchaChange = (value: string | null) => {
     setCaptchaValue(value);
   };
@@ -31,12 +36,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!captchaValue) {
-      alert("Please verify the reCAPTCHA.");
-      return;
-    }
+    // if (!captchaValue) {
+    //   alert("Please verify the reCAPTCHA.");
+    //   return;
+    // }
 
-    console.log("Form submitted:", formData);
+    login(formData.email, formData.password)
+      .then((data) => {
+        Cookies.set("access_token", data.token);
+        Cookies.set("user", JSON.stringify(data.user));
+        router.push("/"); // Redirect to dashboard after login
+      })
+      .catch((error) => {
+        console.error("Login failed:", error);
+      });
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,19 +127,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
                     "& fieldset": { borderColor: "#D0D5DD" },
                   },
                 }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        type="button"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          type="button"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
             </Box>
@@ -163,9 +178,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
               disableRipple
               color="primary"
               disabled={
-                formData.email === "" ||
-                formData.password === "" ||
-                !captchaValue
+                formData.email === "" || formData.password === ""
+                // !captchaValue
               }
               sx={{
                 py: 1.5,

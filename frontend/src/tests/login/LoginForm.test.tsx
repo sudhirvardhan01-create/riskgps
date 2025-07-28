@@ -1,8 +1,8 @@
+import "./testUtils";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { useState } from "react";
 import { LoginForm } from "../../components/Login";
-import "./testUtils";
 
 describe("LoginForm", () => {
   const renderLogin = () => {
