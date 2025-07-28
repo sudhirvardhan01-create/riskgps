@@ -14,7 +14,7 @@ module.exports = (sequelize) => {
         key: 'id',
       },
     },
-    meta__data_key_id: {
+    meta_data_key_id: {
       type: DataTypes.INTEGER,
       references: {
         model: 'library_meta_datas',
