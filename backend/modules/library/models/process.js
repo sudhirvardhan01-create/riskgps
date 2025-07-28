@@ -13,7 +13,7 @@ module.exports = (sequelize) => {
     },
     description: DataTypes.TEXT,
   }, {
-    tableName: 'processes',
+    tableName: 'library_processes',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',

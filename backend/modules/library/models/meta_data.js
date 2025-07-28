@@ -30,7 +30,7 @@ module.exports = (sequelize) => {
     },
     description: DataTypes.TEXT,
   }, {
-    tableName: 'meta_datas',
+    tableName: 'library_meta_datas',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',

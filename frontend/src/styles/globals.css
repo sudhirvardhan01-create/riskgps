@@ -43,3 +43,31 @@ a {
     color-scheme: dark;
   }
 }
+
+.scroll-container {
+  overflow: auto;
+}
+
+/* Webkit: make scrollbar transparent by default */
+.scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+/* On hover, show scrollbar thumb */
+.scroll-container:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3); /* adjust color */
+}
+
+/* Firefox: hide thumb by default */
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.scroll-container:hover {
+  scrollbar-color: rgba(0,0,0,0.3) transparent;
+}

@@ -10,14 +10,14 @@ module.exports = (sequelize) => {
     risk_scenario_id: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'risk_scenarios',
+        model: 'library_risk_scenarios',
         key: 'id',
       },
     },
-    meta__data_key_id: {
+    meta_data_key_id: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'meta_datas',
+        model: 'library_meta_datas',
         key: 'id',
       },
     },
@@ -26,7 +26,7 @@ module.exports = (sequelize) => {
       allowNull: false,
     },
   }, {
-    tableName: 'risk_scenario_attributes',
+    tableName: 'library_attributes_risk_scenario_mapping',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',

@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * @route api//risk-scenario
+ * @route api/risk-scenario
  * @description Retrieve all the Risk Scenarios entries
  * 
  * @returns {Object[]} 200 - Array of metadata records.
@@ -51,7 +51,9 @@ router.post('/', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const scenarios = await RiskScenarioService.getAllRiskScenarios();
+    const limit = parseInt(req.query?.limit) || 6;
+    const page = parseInt(req.query?.page) || 1;
+    const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit);
     res.json({
       data: scenarios,
       msg: "risk scenario fetched successfully"

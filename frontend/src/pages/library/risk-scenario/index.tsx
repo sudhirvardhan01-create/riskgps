@@ -16,141 +16,40 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/router";
 import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
 import RiskScenarioCard from "@/components/library/risk-scenario/RiskScenarioCard";
 import RiskScenarioFormModal from "@/components/library/risk-scenario/RiskScenarioFormModal";
-import { RiskScenarioAttributes, RiskScenarioData } from "@/types/risk-scenario";
-
-const riskScenarioDatas =  [
-  {
-    "id": 1,
-    "risk_code": "RSK-001",
-    "riskScenario": "Unauthorized access to sensitive data",
-    "riskStatement": "Attackers may gain unauthorized access to confidential information",
-    "riskDescription": "Inadequate access control could lead to data leaks.",
-    "industry": ["Finance", "Healthcare"],
-    "tags": 3,
-    "processes": 2,
-    "assets": 5,
-    "threats": 4,
-    "riskField1": "Confidentiality",
-    "riskField2": "High",
-    "attributes": [
-      { "meta_data_key": 101, "value": ["Access Control", "Authentication"] },
-      { "meta_data_key": 102, "value": ["User Management"] }
-    ],
-    "lastUpdated": "2025-07-24T10:00:00Z",
-    "status": "Open"
-  },
-  {
-    "id": 2,
-    "risk_code": "RSK-002",
-    "riskScenario": "Data loss due to ransomware",
-    "riskStatement": "Critical systems may be locked by ransomware",
-    "riskDescription": "Ransomware can encrypt critical files if proper safeguards are not in place.",
-    "industry": ["Technology"],
-    "tags": 1,
-    "processes": 3,
-    "assets": 6,
-    "threats": 2,
-    "riskField1": "Availability",
-    "riskField2": "Critical",
-    "attributes": [
-      { "meta_data_key": 201, "value": ["Patch Management", "Email Filtering"] }
-    ],
-    "lastUpdated": "2025-07-22T14:30:00Z",
-    "status": "In Progress"
-  },
-  {
-    "id": 3,
-    "risk_code": "RSK-003",
-    "riskScenario": "Third-party service breach",
-    "riskStatement": "A breach at a vendor could affect internal systems",
-    "riskDescription": "Weak vendor security practices might compromise internal data.",
-    "industry": ["Retail", "Logistics"],
-    "tags": 5,
-    "processes": 1,
-    "assets": 3,
-    "threats": 6,
-    "riskField1": "Integrity",
-    "riskField2": "Medium",
-    "attributes": [
-      { "meta_data_key": 301, "value": ["Vendor Risk Assessment", "Data Encryption"] }
-    ],
-    "lastUpdated": "2025-07-20T09:15:00Z",
-    "status": "Closed"
-  },
-  {
-    "id": 4,
-    "risk_code": "RSK-004",
-    "riskScenario": "Phishing attacks on employees",
-    "riskStatement": "Employees may unknowingly share credentials",
-    "riskDescription": "Phishing emails could lead to credential theft and system compromise.",
-    "industry": ["Finance", "Education"],
-    "tags": 4,
-    "processes": 2,
-    "assets": 2,
-    "threats": 3,
-    "riskField1": "Confidentiality",
-    "riskField2": "Medium",
-    "attributes": [
-      { "meta_data_key": 401, "value": ["Security Awareness Training", "Email Filtering"] }
-    ],
-    "lastUpdated": "2025-07-19T11:00:00Z",
-    "status": "Open"
-  },
-  {
-    "id": 5,
-    "risk_code": "RSK-005",
-    "riskScenario": "Misconfigured cloud storage",
-    "riskStatement": "Data could be publicly exposed due to misconfigurations",
-    "riskDescription": "Cloud storage misconfigurations are a common cause of breaches.",
-    "industry": ["Technology", "Media"],
-    "tags": 2,
-    "processes": 4,
-    "assets": 5,
-    "threats": 1,
-    "riskField1": "Confidentiality",
-    "riskField2": "High",
-    "attributes": [
-      { "meta_data_key": 501, "value": ["Cloud Configuration Auditing", "Access Logs"] }
-    ],
-    "lastUpdated": "2025-07-18T16:00:00Z",
-    "status": "In Review"
-  },
-  {
-    "id": 6,
-    "risk_code": "RSK-006",
-    "riskScenario": "Denial of Service (DoS) attack",
-    "riskStatement": "External attackers may flood the system with traffic",
-    "riskDescription": "Excessive requests could render services unavailable.",
-    "industry": ["Telecom"],
-    "tags": 6,
-    "processes": 1,
-    "assets": 4,
-    "threats": 7,
-    "riskField1": "Availability",
-    "riskField2": "High",
-    "attributes": [
-      { "meta_data_key": 601, "value": ["Rate Limiting", "Traffic Monitoring"] }
-    ],
-    "lastUpdated": "2025-07-17T08:30:00Z",
-    "status": "Mitigated"
-  }
-]
-
-
+import {
+  RiskScenarioAttributes,
+  RiskScenarioData,
+} from "@/types/risk-scenario";
+import {
+  createRiskScenario,
+  deleteRiskScenario,
+  fetchRiskScenarios,
+  updateRiskScenario,
+} from "@/pages/api/risk-scenario";
+import { fetchProcesses } from "@/pages/api/process";
+import { fetchMetaDatas } from "@/pages/api/meta-data";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const Index = () => {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [riskScenarioData, setRiskScenarioData] =
+    useState<RiskScenarioData[]>();
+  const [processesData, setProcessesData] = useState([]);
+  const [metaDatas, setMetaDatas] = useState([]);
   const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
-  const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(true);
+  const [isDeleteConfirmPopupOpen, setIsDeleteConfirmPopupOpen] = useState(false);
+  const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(false);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
   const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
   const [riskData, setRiskData] = useState<RiskScenarioData>({
@@ -160,9 +59,108 @@ const Index = () => {
     riskField1: "",
     riskField2: "",
     attributes: [
-      { meta_data_key: Date.now() * -1, value: [] },
+      { meta_data_key_id: null, values: [] },
     ] as RiskScenarioAttributes[],
   });
+
+  useEffect(() => {
+    const getRiskScenariosData = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchRiskScenarios(page, rowsPerPage);
+        setRiskScenarioData(data.data);
+      } catch (error) {
+        console.error("Error fetching risk scenarios:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getRiskScenariosData();
+  }, [page, rowsPerPage, refreshTrigger]);
+
+  useEffect(() => {
+    const getProcessesData = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchProcesses();
+        setProcessesData(data);
+      } catch (error) {
+        console.error("Error fetching risk scenarios:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getProcessesData();
+  }, []);
+
+  useEffect(() => {
+    const getMetaDatas = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchMetaDatas();
+        setMetaDatas(data);
+      } catch (error) {
+        console.error("Error fetching risk scenarios:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMetaDatas();
+  }, []);
+
+  const handleCreateRiskScenario = async () => {
+    try {
+      console.log(riskData);
+      const res = await createRiskScenario(riskData);
+      console.log(res);
+      setRefreshTrigger((prev) => prev + 1);
+      setIsAddRiskScenarioOpen(false);
+      alert("created");
+    } catch (err) {
+      console.log("Something went wrong", err);
+    }
+  };
+
+  const handleUpdateRiskScenario = async () => {
+    try {
+      if (selectedRiskScenario?.id) {
+        console.log(selectedRiskScenario);
+        const res = await updateRiskScenario(
+          selectedRiskScenario.id as number,
+          selectedRiskScenario
+        );
+        console.log(res);
+        setRefreshTrigger((prev) => prev + 1);
+        setIsEditRiskScenarioOpen(false);
+        setSelectedRiskScenario(null);
+        alert("updated");
+      } else {
+        alert("Invalid operation");
+      }
+    } catch (err) {
+      console.log("Something went wrong", err);
+    }
+  };
+
+  const handleDeleteRiskScenario = async () => {
+    try {
+      if (selectedRiskScenario?.id) {
+        const res = await deleteRiskScenario(
+          selectedRiskScenario?.id as number
+        );
+        console.log(res);
+        setRefreshTrigger((prev) => prev + 1);
+        setIsDeleteConfirmPopupOpen(false);
+        alert("deleted");
+      } else {
+        throw new Error("Invalid ID");
+      }
+    } catch (err) {
+      console.log("Something went wrong", err);
+      alert("Failed to Delete");
+    }
+  };
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -180,51 +178,65 @@ const Index = () => {
 
   return (
     <>
+      {selectedRiskScenario && isViewRiskScenarioOpen && (
+        <ViewRiskScenarioModal
+          riskScenarioData={selectedRiskScenario}
+          open={isViewRiskScenarioOpen}
+          onClose={() => {
+            setIsViewRiskScenarioOpen(false);
+          }}
+        />
+      )}
+      {selectedRiskScenario?.id && (
+        <ConfirmDialog
+          open={isDeleteConfirmPopupOpen}
+          onClose={() => {
+            setIsDeleteConfirmPopupOpen(false);
+          }}
+          title="Confirm Risk Scenario Deletion?"
+          description= {"Are you sure you want to delete Risk Scenario #" + selectedRiskScenario?.id + "? All associated data will be removed from the system."}
+          onConfirm={handleDeleteRiskScenario}
+        />
+      )}
+      {isAddRiskScenarioOpen && (
+        <RiskScenarioFormModal
+          operation={"create"}
+          open={isAddRiskScenarioOpen}
+          riskData={riskData}
+          setRiskData={setRiskData}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={() => {
+            handleCreateRiskScenario();
+          }}
+          onClose={() => {
+            setIsAddRiskScenarioOpen(false);
+          }}
+        />
+      )}
 
-     {
-      selectedRiskScenario && isViewRiskScenarioOpen &&  <ViewRiskScenarioModal
-       riskScenarioData={selectedRiskScenario}
-        open={isViewRiskScenarioOpen}
-        onClose={() => {
-          setIsViewRiskScenarioOpen(false);
-        }}
-      />
-     }
-    {
-      isAddRiskScenarioOpen && <RiskScenarioFormModal
-        open={isAddRiskScenarioOpen}
-        riskData={riskData}
-        setRiskData={setRiskData}
-        onSubmit={() => {
-          setIsAddRiskScenarioOpen(false);
-        }}
-        onClose={() => {
-          setIsAddRiskScenarioOpen(false);
-        }}
-      />
-    }
-
-        { isEditRiskScenarioOpen && selectedRiskScenario && <RiskScenarioFormModal
-        open={isAddRiskScenarioOpen}
-        riskData={selectedRiskScenario}
-        setRiskData={(val) => { 
-          if (typeof val === 'function') {
-          setSelectedRiskScenario((prev) =>
-            val(prev as RiskScenarioData)
-          );
-        } else {
-          setSelectedRiskScenario(val);
-      }
-    }}
-        onSubmit={() => {
-          setIsAddRiskScenarioOpen(false);
-        }}
-        onClose={() => {
-          setIsAddRiskScenarioOpen(false);
-        }}
-      />
-    }
-
+      {isEditRiskScenarioOpen && selectedRiskScenario && (
+        <RiskScenarioFormModal
+          operation={"edit"}
+          open={isEditRiskScenarioOpen}
+          riskData={selectedRiskScenario}
+          processes={processesData}
+          metaDatas={metaDatas}
+          setRiskData={(val) => {
+            if (typeof val === "function") {
+              setSelectedRiskScenario((prev) => val(prev as RiskScenarioData));
+            } else {
+              setSelectedRiskScenario(val);
+            }
+          }}
+          onSubmit={() => {
+            handleUpdateRiskScenario();
+          }}
+          onClose={() => {
+            setIsEditRiskScenarioOpen(false);
+          }}
+        />
+      )}
 
       <Box p={2}>
         <Box mb={3}>
@@ -253,9 +265,9 @@ const Index = () => {
             </Stack>
 
             <Button
-             onClick={() => {
-              setIsAddRiskScenarioOpen(true)
-             }}
+              onClick={() => {
+                setIsAddRiskScenarioOpen(true);
+              }}
               variant="contained"
               sx={{
                 backgroundColor: "primary.main",
@@ -354,11 +366,20 @@ const Index = () => {
         </Box>
 
         <Stack spacing={2}>
-          {riskScenarioDatas.map((item: RiskScenarioData, index) => (
-            <div key={index}>
-            <RiskScenarioCard  key={index} riskScenarioData={item} setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen} setSelectedRiskScenario={setSelectedRiskScenario} setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen} setIsAddRiskScenarioOpen={setIsAddRiskScenarioOpen} />
-            </div>
-          ))}
+          {riskScenarioData &&
+            riskScenarioData?.length > 0 &&
+            riskScenarioData?.map((item: RiskScenarioData, index) => (
+              <div key={index}>
+                <RiskScenarioCard
+                  key={index}
+                  riskScenarioData={item}
+                  setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen}
+                  setSelectedRiskScenario={setSelectedRiskScenario}
+                  setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen}
+                  setIsDeleteConfirmPopupOpen = {setIsDeleteConfirmPopupOpen}
+                />
+              </div>
+            ))}
         </Stack>
 
         {/* Pagination */}

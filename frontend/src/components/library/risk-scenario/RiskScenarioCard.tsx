@@ -8,27 +8,27 @@ import {
   Divider,
   FormControlLabel
 } from '@mui/material';
-import EditDeleteDialog from '@/components/EditDeleteDialog';
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
+import EditDeleteDialog from '@/components/editDeleteDialog';
 
 
 interface RiskScenarioCardProps {
   riskScenarioData: RiskScenarioData;
   setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>;
   setIsViewRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsAddRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
-
+  setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
   riskScenarioData,
   setSelectedRiskScenario,
   setIsViewRiskScenarioOpen,
-  setIsAddRiskScenarioOpen,
-  setIsEditRiskScenarioOpen
+  setIsEditRiskScenarioOpen,
+  setIsDeleteConfirmPopupOpen
 }: RiskScenarioCardProps) => {
+  console.log(riskScenarioData)
   const getStatusComponent = () => {
     if (riskScenarioData.status === 'Enabled' || riskScenarioData.status === 'Disabled') {
       return <FormControlLabel control={<Switch color="success" checked={riskScenarioData.status === 'Enabled'} />} label={riskScenarioData.status} />;
@@ -46,13 +46,19 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
   };
 
   const dialogData = [{
-    onAction: () => { console.log("Edit action"); },
+    onAction: () => { 
+      setSelectedRiskScenario(riskScenarioData);
+      setIsEditRiskScenarioOpen(true)},
     color: 'primary.main',
     action: 'Edit',
     icon: <EditOutlined fontSize="small" />
   },
   {
-    onAction: () => { console.log("Delete action"); },
+    onAction: () => {
+      setSelectedRiskScenario(riskScenarioData);
+      setIsDeleteConfirmPopupOpen(true);
+
+    },
     color: '#CD0303',
     action: 'Delete',
     icon: <DeleteOutlineOutlined fontSize="small" />
@@ -81,7 +87,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
         >
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography fontWeight={600}>{riskScenarioData.risk_code}</Typography>
-            <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry}`} variant="outlined" size="small" sx={{ borderRadius: 0.5 }} />
+            <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry?.length > 0 ? riskScenarioData.industry.join(",") : "Not Defined"}`} variant="outlined" size="small" sx={{ borderRadius: 0.5 }} />
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -101,6 +107,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
 
       {/* Title */}
       <div onClick={() => {
+        console.log(riskScenarioData)
         setSelectedRiskScenario(riskScenarioData);
         setIsViewRiskScenarioOpen(true)
 
@@ -111,10 +118,10 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
 
         <Divider sx={{ mx: 3, my: 1 }} />
 
-        {/* Meta Info */}
-        <Typography variant="body2" color="textSecondary" sx={{ px: 3, pb: 1 }}>
-          {riskScenarioData.tags} Tags &nbsp; • &nbsp; {riskScenarioData.processes} Processes &nbsp; • &nbsp; {riskScenarioData.assets} Assets &nbsp; • &nbsp; {riskScenarioData.threats} Threats
-        </Typography>
+      {/* Meta Info */}
+      <Typography variant="body2" color="textSecondary"  sx={{ px: 3, pb: 1}}>
+        {riskScenarioData.tags} Tags &nbsp; • &nbsp; {1} Processes &nbsp; • &nbsp; {riskScenarioData.assets} Assets &nbsp; • &nbsp; {riskScenarioData.threats} Threats
+      </Typography>
       </div>
     </Box>
   );

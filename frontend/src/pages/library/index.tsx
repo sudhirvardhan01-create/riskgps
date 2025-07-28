@@ -4,6 +4,7 @@ import AssetCardIcon from "@/icons/assets-card.svg";
 import ControlCardIcon from "@/icons/controls-card.svg";
 import ProcessCardIcon from "@/icons/processes-card.svg";
 import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
+import { useRouter } from "next/router";
 
 const libs = [
   {
@@ -29,6 +30,7 @@ const libs = [
       },
     ],
     icon: <RiskScenarioCardIcon height={24} width={24} />,
+    href: "/library/risk-scenarios",
   },
   {
     name: "Threats",
@@ -53,6 +55,7 @@ const libs = [
       },
     ],
     icon: <ThreatCardIcon height={24} width={24} />,
+    href: "/library/threats",
   },
   {
     name: "Assets",
@@ -77,6 +80,7 @@ const libs = [
       },
     ],
     icon: <AssetCardIcon height={24} width={24} />,
+    href: "/library/assets",
   },
   {
     name: "Controls",
@@ -101,6 +105,7 @@ const libs = [
       },
     ],
     icon: <ControlCardIcon height={24} width={24} />,
+    href: "/library/controls",
   },
   {
     name: "Processes",
@@ -125,16 +130,25 @@ const libs = [
       },
     ],
     icon: <ProcessCardIcon height={24} width={24} />,
+    href: "/library/processes",
   },
 ];
 
 const LibraryPage = () => {
+  const router = useRouter();
+
   return (
     <Box sx={{ p: 5, mb: 8 }}>
       <Typography variant="h5" fontWeight={600} mb={5}>
         Library
       </Typography>
-      <Grid container rowSpacing={3} columnSpacing={3}>
+      <Grid
+        container
+        rowSpacing={3}
+        columnSpacing={3}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
+        className="scroll-container"
+      >
         {libs.map((lib) => {
           return (
             <Grid size={{ xs: 12, md: 6 }} key={lib.name}>
@@ -145,6 +159,10 @@ const LibraryPage = () => {
                   border: "1px solid #E4E4E4",
                   borderRadius: 2,
                   boxShadow: "0px 4px 4px 0px #D9D9D98F",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  router.push(lib.href);
                 }}
               >
                 <Stack
@@ -162,7 +180,7 @@ const LibraryPage = () => {
                     {lib.name}
                   </Typography>
                 </Stack>
-                <Typography variant="body1" color="#91939A">
+                <Typography variant="body1" color="#91939A" sx={{ height: 96 }}>
                   {lib.description}
                 </Typography>
                 <Divider sx={{ my: 3 }} />
