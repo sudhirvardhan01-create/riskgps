@@ -10,10 +10,8 @@ import SideBar from "@/components/SideBar";
 import { usePathname } from "next/navigation";
 
 export default function App({ Component, pageProps }: AppProps) {
-  const pathname = usePathname();
-  const isLoginPage = pathname === "/login" || pathname === "/library/risk-scenario";
   const router = useRouter();
-
+  const isLoginPage = router.pathname === "/login";
 
   return (
     <ThemeProvider theme={theme}>

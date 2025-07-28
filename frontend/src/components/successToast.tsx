@@ -1,47 +1,25 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { Alert, Snackbar } from "@mui/material";
 
 interface SuccessToastProps {
+  open: boolean;
   message: string;
+  onClose: () => void;
 }
 
-const SuccessToast: React.FC<SuccessToastProps> = ({ message}) => {
+const SuccessToast: React.FC<SuccessToastProps> = ({ open, message, onClose }) => {
   return (
-    <Box
-      sx={{
-        backgroundColor: "#DDF5EB",
-        border: "1px solid #147A50",
-        borderRadius: 2,
-        px: 4,
-        py: 2,
-        display: "flex",
-        alignItems: "center",
-        gap: 2,
-        width: {xs: "80%", sm: "575px"},
-        boxShadow: '0px 4px 16px 0px #E4E4E7',
+    <Snackbar open={open} autoHideDuration={5000} anchorOrigin={{vertical: 'top', horizontal: 'center'}} onClose={onClose}>
+    <Alert
+      iconMapping={{
+      success: <CheckCircleOutlineIcon fontSize="inherit"/>,
       }}
+      sx={{border: '1px solid #147A50', borderRadius: 2, color: '#147A50', boxShadow: '0px 4px 16px 0px #E4E4E7', backgroundColor: '#DDF5EB', fontWeight: 550}}
     >
-      <CheckCircleOutlineIcon sx={{ color: "#147A50", fontSize: 24 }} />
-
-      <Typography variant="body1" sx={{ fontWeight: 500, color: "#147A50", flexGrow: 1 }}>
-        {message}
-      </Typography>
-
-      {/* <Divider orientation="vertical" flexItem sx={{ borderColor: 'black'}} />
-
-      <Typography
-        onClick={onUndo}
-        sx={{
-          cursor: "pointer",
-          fontWeight: 600,
-          color: "primary.main",
-          "&:hover": { textDecoration: "underline" },
-        }}
-      >
-        Undo
-      </Typography> */}
-    </Box>
+      {message}
+    </Alert>
+    </Snackbar>
   );
 };
 
