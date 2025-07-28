@@ -2,17 +2,17 @@ import EditDeleteDialog from '@/components/EditDeleteDialog'
 import Filter from '@/components/library/Filter';
 import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
 import { Button } from '@mui/material';
-// import SuccessToast from '@/components/successToast'
+import SuccessToast from '@/components/SuccessToast'
 // import ConfirmDialog from "@/components/ConfirmDialog"
 import React, { useState } from 'react';
 
 const Index = () => {
 
-  // <SuccessToast
-  //   message="Success! The Asset #002 has been deleted."
-  // />
+
 
   // const [open, setOpen] = useState(false);
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const dialogData = [{
     onAction: () => { console.log("Edit action"); },
@@ -39,6 +39,8 @@ const Index = () => {
 
       <Button onClick={() => setOpenFilter(true)}>Open Filter</Button>
 
+      <Button onClick={() => setOpenSnackbar(true)}>Open Alert</Button>
+
       <Filter items={statusItems} open={openFilter} onClose={() => setOpenFilter(false)} onClear={() => console.log("Cleared")} onApply={() => console.log("Applied")} />
 
       {/* <button onClick={() => setOpen(true)}>Open Modal</button>
@@ -56,6 +58,13 @@ const Index = () => {
         confirmText="Yes, Cancel"
         confirmColor="#B00020"
       /> */}
+
+      <SuccessToast open={openSnackbar} onClose={() => setOpenSnackbar(false)}
+        message="Success! The Asset #002 has been deleted."
+      />
+
+
+
     </>
   )
 }

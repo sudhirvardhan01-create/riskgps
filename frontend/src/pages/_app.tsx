@@ -9,13 +9,8 @@ import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
 
 export default function App({ Component, pageProps }: AppProps) {
-<<<<<<< HEAD
-  const pathname = usePathname();
-  const isLoginPage = pathname === "/login" || pathname === "/library/risk-scenario";
-=======
   const router = useRouter();
   const isLoginPage = router.pathname === "/login";
->>>>>>> upstream/main
 
   return (
     <ThemeProvider theme={theme}>
