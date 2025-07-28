@@ -46,6 +46,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    e.preventDefault();
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
