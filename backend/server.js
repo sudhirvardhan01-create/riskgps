@@ -6,6 +6,10 @@ const db = require("./modules/library/models");
 const riskScenarioRoutes = require("./modules/library/routes/risk_scenario");
 const metaDataRoutes = require("./modules/library/routes/meta_data");
 const processRoutes = require("./modules/library/routes/process");
+const db = require('./models');
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
+const { authenticateJWT } = require('./middleware/authMiddleware');
 
 const cors = require('cors');
 app.use(express.json());
@@ -28,6 +32,8 @@ app.use("/api/library/process", processRoutes);
 app.use("/api/library/risk-scenario", riskScenarioRoutes);
 
 app.use("/api/library/meta-data", metaDataRoutes);
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 
 db.sequelize.sync().then(() => {
   app.listen(port, () => {

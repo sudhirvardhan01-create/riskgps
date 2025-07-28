@@ -12,6 +12,10 @@ const theme = createTheme({
     background: {
       default: "#f5f5f5",
     },
+    text: {
+      primary: "#484848",
+      secondary: "#9E9FA5",
+    },
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
