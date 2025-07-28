@@ -26,6 +26,8 @@ class RiskScenarioService {
       risk_description,
       risk_statement,
       status,
+      risk_field_1,
+      risk_field_2,
       attributes,
       related_processes
     } = data;
@@ -46,6 +48,8 @@ class RiskScenarioService {
           risk_description,
           risk_statement,
           status,
+          risk_field_1,
+          risk_field_2
         },
         { transaction: t }
       );
@@ -140,9 +144,17 @@ class RiskScenarioService {
         },
       ],
     });
+    let scenarios = data.map(s => s.toJSON())
+    for (let i = 0; i  < scenarios.length; i++) {
+      scenarios[i].industry = scenarios[i].attributes?.filter((val) => val.metaData?.name?.toLowerCase() == "industry")?.flatMap(val => val.values);
+      scenarios[i].domain = scenarios[i].attributes?.filter((val) => val.metaData?.name?.toLowerCase() == "domain")?.flatMap(val => val.values);
+      scenarios[i].attributes = scenarios[i].attributes.map((val) => { return {meta_data_key_id: val.meta_data_key_id, values: val.values} })
+      scenarios[i].related_processes = scenarios[i].processes.map((process) => process.id)
+      delete scenarios[i].processes;
+    }
 
     return {
-      data,
+      data: scenarios,
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -203,6 +215,9 @@ class RiskScenarioService {
       risk_description,
       risk_statement,
       status,
+      risk_field_1,
+      risk_field_2,
+      related_processes,
       attributes,
     } = data;
 
@@ -229,9 +244,36 @@ class RiskScenarioService {
           risk_description,
           risk_statement,
           status,
+          risk_field_1,
+          risk_field_2
         },
         { transaction: t }
       );
+
+      if (Array.isArray(related_processes) && related_processes.length > 0) {
+
+      await ProcessRiskScenarioMappings.destroy({
+          where: { risk_scenario_id: id },
+          transaction: t,
+        });
+        for (const process of related_processes) {
+          if (typeof process != "number" || process < 0) {
+            console.log("Invalid Process Risk Mapping", process);
+            throw new Error("Invalid Process Risk Mapping");
+          }
+          const processData = await Process.findByPk(process);
+          if (!processData) {
+            console.log("Invalid Process ID ", process);
+            throw new Error("Invalid Process Risk Mapping");
+          }
+
+          await ProcessRiskScenarioMappings.create({
+            risk_scenario_id: scenario.id,
+            process_id:process
+          },
+          { transaction: t })
+        }
+      }
 
       // Update attributes with the new attributes
       if (Array.isArray(attributes)) {

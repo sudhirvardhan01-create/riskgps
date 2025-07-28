@@ -24,9 +24,15 @@ import {
   RiskScenarioAttributes,
   RiskScenarioData,
 } from "@/types/risk-scenario";
-import {createRiskScenario, deleteRiskScenario, fetchRiskScenarios, updateRiskScenario } from "@/pages/api/risk-scenario";
+import {
+  createRiskScenario,
+  deleteRiskScenario,
+  fetchRiskScenarios,
+  updateRiskScenario,
+} from "@/pages/api/risk-scenario";
 import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const Index = () => {
   const router = useRouter();
@@ -34,13 +40,16 @@ const Index = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>();
+  const [riskScenarioData, setRiskScenarioData] =
+    useState<RiskScenarioData[]>();
   const [processesData, setProcessesData] = useState([]);
   const [metaDatas, setMetaDatas] = useState([]);
   const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
-  const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(true);
+  const [isDeleteConfirmPopupOpen, setIsDeleteConfirmPopupOpen] = useState(false);
+  const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(false);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
   const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
   const [riskData, setRiskData] = useState<RiskScenarioData>({
@@ -68,20 +77,20 @@ const Index = () => {
     };
 
     getRiskScenariosData();
-  }, [page, rowsPerPage]);
+  }, [page, rowsPerPage, refreshTrigger]);
 
   useEffect(() => {
     const getProcessesData = async () => {
       try {
         setLoading(true);
         const data = await fetchProcesses();
-        setProcessesData(data)
+        setProcessesData(data);
       } catch (error) {
         console.error("Error fetching risk scenarios:", error);
       } finally {
         setLoading(false);
       }
-    }
+    };
     getProcessesData();
   }, []);
 
@@ -96,49 +105,62 @@ const Index = () => {
       } finally {
         setLoading(false);
       }
-    }
+    };
     getMetaDatas();
-  }, [])
+  }, []);
 
   const handleCreateRiskScenario = async () => {
     try {
-      console.log(riskData)
+      console.log(riskData);
       const res = await createRiskScenario(riskData);
       console.log(res);
-      alert('created')
+      setRefreshTrigger((prev) => prev + 1);
+      setIsAddRiskScenarioOpen(false);
+      alert("created");
     } catch (err) {
       console.log("Something went wrong", err);
     }
-  }
+  };
 
   const handleUpdateRiskScenario = async () => {
     try {
       if (selectedRiskScenario?.id) {
-        console.log(selectedRiskScenario)
-      // const res = await updateRiskScenario(selectedRiskScenario.id as number ,selectedRiskScenario);
-      // console.log(res);
-      alert("updated")
-      } else {
-        alert("Invalid operation")
-      }
-    } catch (err) {
-      console.log("Something went wrong", err);
-    } 
-  }
-
-  const handleDeleteRiskScenario = async () => {
-    try {
-      if (selectedRiskScenario?.id) {
-        const res = await deleteRiskScenario(selectedRiskScenario?.id as number);
+        console.log(selectedRiskScenario);
+        const res = await updateRiskScenario(
+          selectedRiskScenario.id as number,
+          selectedRiskScenario
+        );
         console.log(res);
-        alert("deleted");
+        setRefreshTrigger((prev) => prev + 1);
+        setIsEditRiskScenarioOpen(false);
+        setSelectedRiskScenario(null);
+        alert("updated");
+      } else {
+        alert("Invalid operation");
       }
     } catch (err) {
       console.log("Something went wrong", err);
     }
-  }
+  };
 
-
+  const handleDeleteRiskScenario = async () => {
+    try {
+      if (selectedRiskScenario?.id) {
+        const res = await deleteRiskScenario(
+          selectedRiskScenario?.id as number
+        );
+        console.log(res);
+        setRefreshTrigger((prev) => prev + 1);
+        setIsDeleteConfirmPopupOpen(false);
+        alert("deleted");
+      } else {
+        throw new Error("Invalid ID");
+      }
+    } catch (err) {
+      console.log("Something went wrong", err);
+      alert("Failed to Delete");
+    }
+  };
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -154,7 +176,6 @@ const Index = () => {
     setPage(0);
   };
 
-
   return (
     <>
       {selectedRiskScenario && isViewRiskScenarioOpen && (
@@ -166,8 +187,20 @@ const Index = () => {
           }}
         />
       )}
+      {selectedRiskScenario?.id && (
+        <ConfirmDialog
+          open={isDeleteConfirmPopupOpen}
+          onClose={() => {
+            setIsDeleteConfirmPopupOpen(false);
+          }}
+          title="Confirm Risk Scenario Deletion?"
+          description= {"Are you sure you want to delete Risk Scenario #" + selectedRiskScenario?.id + "? All associated data will be removed from the system."}
+          onConfirm={handleDeleteRiskScenario}
+        />
+      )}
       {isAddRiskScenarioOpen && (
         <RiskScenarioFormModal
+          operation={"create"}
           open={isAddRiskScenarioOpen}
           riskData={riskData}
           setRiskData={setRiskData}
@@ -184,7 +217,8 @@ const Index = () => {
 
       {isEditRiskScenarioOpen && selectedRiskScenario && (
         <RiskScenarioFormModal
-          open={isAddRiskScenarioOpen}
+          operation={"edit"}
+          open={isEditRiskScenarioOpen}
           riskData={selectedRiskScenario}
           processes={processesData}
           metaDatas={metaDatas}
@@ -196,10 +230,10 @@ const Index = () => {
             }
           }}
           onSubmit={() => {
-            handleUpdateRiskScenario()
+            handleUpdateRiskScenario();
           }}
           onClose={() => {
-            setIsAddRiskScenarioOpen(false);
+            setIsEditRiskScenarioOpen(false);
           }}
         />
       )}
@@ -332,18 +366,20 @@ const Index = () => {
         </Box>
 
         <Stack spacing={2}>
-          {riskScenarioData && riskScenarioData?.length > 0 && riskScenarioData?.map((item: RiskScenarioData, index) => (
-            <div key={index}>
-              <RiskScenarioCard
-                key={index}
-                riskScenarioData={item}
-                setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen}
-                setSelectedRiskScenario={setSelectedRiskScenario}
-                setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen}
-                setIsAddRiskScenarioOpen={setIsAddRiskScenarioOpen}
-              />
-            </div>
-          ))}
+          {riskScenarioData &&
+            riskScenarioData?.length > 0 &&
+            riskScenarioData?.map((item: RiskScenarioData, index) => (
+              <div key={index}>
+                <RiskScenarioCard
+                  key={index}
+                  riskScenarioData={item}
+                  setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen}
+                  setSelectedRiskScenario={setSelectedRiskScenario}
+                  setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen}
+                  setIsDeleteConfirmPopupOpen = {setIsDeleteConfirmPopupOpen}
+                />
+              </div>
+            ))}
         </Stack>
 
         {/* Pagination */}

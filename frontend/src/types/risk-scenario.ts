@@ -10,9 +10,10 @@ export interface RiskScenarioData {
   riskScenario: string;
   riskStatement: string;
   riskDescription: string;
-  industry?: string[]
+  industry?: string[];
+  domain?: string[];
   tags?: number;
-  related_processes?: number[]| { process_id: number; [key: string]: any }[];
+  related_processes?: number[];
   assets?: number;
   threats?: number;
   riskField1?: string;

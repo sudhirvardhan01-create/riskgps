@@ -25,6 +25,7 @@ import {
 
 
 interface RiskScenarioFormModalProps {
+  operation: "create" | "edit",
   open: boolean;
   onClose: () => void;
   riskData: RiskScenarioData;
@@ -35,6 +36,7 @@ interface RiskScenarioFormModalProps {
 }
 
 const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
+  operation,
   open,
   onClose,
   riskData,
@@ -43,6 +45,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
+  console.log(riskData)
   // State for related processes
   const [relatedProcesses, setRelatedProcesses] = React.useState<number[]>([]);
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<number | null>();
@@ -83,60 +86,26 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
 
   // Related Process handling functions
   const addRelatedProcess = () => {
-    if (newRelatedProcess && !relatedProcesses.includes(newRelatedProcess)) {
-      setRelatedProcesses([...relatedProcesses, newRelatedProcess]);
+    if (newRelatedProcess && !riskData?.related_processes?.includes(newRelatedProcess)) {
+    //   setRelatedProcesses([...relatedProcesses, newRelatedProcess]);
+
       setRiskData({...riskData,
-        related_processes: [...relatedProcesses, newRelatedProcess]
+        related_processes: [...riskData?.related_processes ?? [] , newRelatedProcess]
     })
       setNewRelatedProcess(null);
     }
   };
 
   const removeRelatedProcess = (processToRemove: number) => {
-    setRelatedProcesses(
-      relatedProcesses.filter((process) => process !== processToRemove)
-    );
+    setRiskData({
+      ...riskData,
+      related_processes: riskData?.related_processes?.filter((process) => process !== processToRemove)
+    });
+
+    // setRelatedProcesses(
+    //   relatedProcesses.filter((process) => process !== processToRemove)
+    // );
   };
-
-//   // Available processes for related process dropdown
-//   const processes = [
-//   {
-//     "id": 1,
-//     "name": "KYC",
-//     "description": null,
-//     "created_at": "2025-07-25T10:26:56.941Z",
-//     "updated_at": "2025-07-25T10:26:56.941Z"
-//   },
-//   {
-//     "id": 2,
-//     "name": "AML",
-//     "description": null,
-//     "created_at": "2025-07-25T10:27:01.000Z",
-//     "updated_at": "2025-07-25T10:27:01.000Z"
-//   },
-//   {
-//     "id": 3,
-//     "name": "Risk Assessment",
-//     "description": null,
-//     "created_at": "2025-07-25T10:27:05.000Z",
-//     "updated_at": "2025-07-25T10:27:05.000Z"
-//   },
-//   {
-//     "id": 4,
-//     "name": "Customer Onboarding",
-//     "description": null,
-//     "created_at": "2025-07-25T10:27:10.000Z",
-//     "updated_at": "2025-07-25T10:27:10.000Z"
-//   },
-//   {
-//     "id": 5,
-//     "name": "Transaction Monitoring",
-//     "description": null,
-//     "created_at": "2025-07-25T10:27:15.000Z",
-//     "updated_at": "2025-07-25T10:27:15.000Z"
-//   }
-// ]
-
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
@@ -147,9 +116,13 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="h5" fontWeight={550}>
+        {operation === "create" && <Typography variant="h5" fontWeight={550}>
           Add Risk Scenario
-        </Typography>
+        </Typography> }
+
+        {operation === "edit" && <Typography variant="h5" fontWeight={550}>
+          Edit Risk Scenario RS- {riskData.id}
+        </Typography> }
         <IconButton onClick={onClose}>
           <Close />
         </IconButton>
@@ -511,9 +484,9 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
               </Grid>
 
               {/* Display added related processes */}
-              {relatedProcesses.length > 0 && (
+              {riskData?.related_processes && riskData?.related_processes?.length > 0 && (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
-                  {relatedProcesses.map((process, index) => (
+                  {riskData?.related_processes?.map((process, index) => (
                     <Chip
                       key={index}
                       label={processes.find(item => item.id === process)?.name}

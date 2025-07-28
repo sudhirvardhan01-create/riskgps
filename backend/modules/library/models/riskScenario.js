@@ -18,7 +18,17 @@ module.exports = (sequelize) => {
     risk_statement: DataTypes.TEXT,
     status: {
         type: DataTypes.ENUM(...RISK_STATUS),
+    },
+    risk_field_1: { 
+      type: DataTypes.TEXT,
+      require: false
+    },
+    risk_field_2: { 
+      type: DataTypes.TEXT,
+      require: false
     }
+
+
   }, {
     timestamps: true,
     createdAt: 'created_at',

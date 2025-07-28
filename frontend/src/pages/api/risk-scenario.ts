@@ -37,11 +37,11 @@ export const fetchRiskScenarios = async (page: number, limit: number):Promise<AP
     riskDescription: item.risk_description,
     industry: item.industry,
     tags: item.tags,
-    processes: item.processes,
+    related_processes: item.related_processes,
     assets: item.assets,
     threats: item.threats,
-    riskField1: item.risk_field1,
-    riskField2: item.risk_field2,
+    riskField1: item.risk_field_1,
+    riskField2: item.risk_field_2,
     attributes: item.attributes,
     lastUpdated: item.updated_at,
     status: item.status,
@@ -57,6 +57,7 @@ export const fetchRiskScenarios = async (page: number, limit: number):Promise<AP
     throw new Error("Failed to fetch user data");
   }
   const res = await response.json();
+  if (res.data.data)
   res.data.data = transformRiskData(res.data.data );
   console.log(res.data);
   return res.data;
@@ -68,6 +69,8 @@ export const createRiskScenario = async (data: RiskScenarioData) => {
     "risk_scenario": data.riskScenario,
     "risk_description": data.riskDescription,
     "risk_statement": data.riskStatement, 
+    "risk_field_1": data.riskField1?? null,
+    "risk_field_2": data.riskField2?? null,
     "status": data.status,
     "related_processes": data.related_processes,
     "attributes": data.attributes
@@ -96,6 +99,8 @@ export const updateRiskScenario = async (id: number, data: RiskScenarioData) => 
     "risk_scenario": data.riskScenario,
     "risk_description": data.riskDescription,
     "risk_statement": data.riskStatement, 
+    "risk_field_1": data.riskField1?? null,
+    "risk_field_2": data.riskField2?? null,
     "status": data.status,
     "related_processes": data.related_processes,
     "attributes": data.attributes
