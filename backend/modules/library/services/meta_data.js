@@ -1,6 +1,6 @@
 
 const { Op } = require("sequelize");
-const { MetaData } = require("../models");
+const { MetaData } = require("../../../models");
 
 /**
  * Service class responsible for handling business logic
