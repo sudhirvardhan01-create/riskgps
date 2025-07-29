@@ -15,7 +15,7 @@ const TAG_VALUES: Record<'Domain' | 'Category', string[]> = {
     Category: ['NIST-CSF', 'COBIT', 'ISO-27001'],
 };
 
-interface FilterProps {
+interface FilterComponentProps {
     items: string[];
     open: boolean;
     onClose: () => void;
@@ -23,7 +23,7 @@ interface FilterProps {
     onApply: () => void;
 }
 
-const Filter: React.FC<FilterProps> = ({ items, open, onClose, onClear, onApply }) => {
+const FilterComponent: React.FC<FilterComponentProps> = ({ items, open, onClose, onClear, onApply }) => {
 
     const FormControlLabelStyled = styled(FormControlLabel)({
         '& .MuiFormControlLabel-label': {
@@ -197,4 +197,4 @@ const Filter: React.FC<FilterProps> = ({ items, open, onClose, onClear, onApply 
     );
 }
 
-export default Filter
+export default FilterComponent

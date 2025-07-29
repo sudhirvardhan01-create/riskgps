@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
-import EditDeleteDialog from '@/components/editDeleteDialog';
+import EditDeleteDialog from '@/components/EditDeleteDialog';
 
 
 interface RiskScenarioCardProps {
@@ -87,7 +87,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
         >
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography fontWeight={600}>{riskScenarioData.risk_code}</Typography>
-            <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry?.length > 0 ? riskScenarioData.industry.join(",") : "Not Defined"}`} variant="outlined" size="small" sx={{ borderRadius: 0.5 }} />
+            <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry?.length > 0 ? riskScenarioData.industry.join(", ") : "Not Defined"}`} variant="outlined" size="small" sx={{ borderRadius: 0.5 }} />
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={1}>
