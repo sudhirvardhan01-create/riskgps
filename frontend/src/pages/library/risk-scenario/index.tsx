@@ -109,10 +109,11 @@ const Index = () => {
     getMetaDatas();
   }, []);
 
-  const handleCreateRiskScenario = async () => {
+  const handleCreateRiskScenario = async (status: string) => {
     try {
-      console.log(riskData);
-      const res = await createRiskScenario(riskData);
+      const reqBody = riskData;
+      reqBody.status = status;
+      const res = await createRiskScenario(reqBody);
       console.log(res);
       setRefreshTrigger((prev) => prev + 1);
       setIsAddRiskScenarioOpen(false);
@@ -122,13 +123,15 @@ const Index = () => {
     }
   };
 
-  const handleUpdateRiskScenario = async () => {
+  const handleUpdateRiskScenario = async (status: string) => {
     try {
       if (selectedRiskScenario?.id) {
-        console.log(selectedRiskScenario);
+      console.log(selectedRiskScenario);
+      const reqBody = selectedRiskScenario;
+      reqBody.status = status;
         const res = await updateRiskScenario(
-          selectedRiskScenario.id as number,
-          selectedRiskScenario
+          reqBody.id as number,
+          reqBody
         );
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
@@ -206,9 +209,7 @@ const Index = () => {
           setRiskData={setRiskData}
           processes={processesData}
           metaDatas={metaDatas}
-          onSubmit={() => {
-            handleCreateRiskScenario();
-          }}
+          onSubmit={handleCreateRiskScenario}
           onClose={() => {
             setIsAddRiskScenarioOpen(false);
           }}
@@ -229,9 +230,7 @@ const Index = () => {
               setSelectedRiskScenario(val);
             }
           }}
-          onSubmit={() => {
-            handleUpdateRiskScenario();
-          }}
+          onSubmit={handleUpdateRiskScenario}
           onClose={() => {
             setIsEditRiskScenarioOpen(false);
           }}

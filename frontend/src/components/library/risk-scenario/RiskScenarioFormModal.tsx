@@ -32,7 +32,7 @@ interface RiskScenarioFormModalProps {
   processes: any[];
   metaDatas: any[];
   setRiskData: React.Dispatch<React.SetStateAction<RiskScenarioData>>;
-  onSubmit: () => void;
+  onSubmit: (status: string) => void;
 }
 
 const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
@@ -704,6 +704,9 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
         </Button>
         <Box>
           <Button
+            onClick={() => {
+              onSubmit("draft");
+            }}
             sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
             variant="outlined"
           >
@@ -712,7 +715,9 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
           <Button
             sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
             variant="contained"
-            onClick={onSubmit}
+            onClick={() => {
+              onSubmit("published");
+            }}
           >
             Publish
           </Button>
