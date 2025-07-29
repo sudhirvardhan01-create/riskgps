@@ -5,7 +5,7 @@ const {
   sequelize,
   Process,
   ProcessRiskScenarioMappings,
-} = require("../models");
+} = require("../../../models");
 
 /**
  * services for routes /risk-scenario

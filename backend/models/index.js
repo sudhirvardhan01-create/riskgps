@@ -1,11 +1,11 @@
 'use strict';
-
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require('../config/config')[env];
+
 
 const db = {};
 
@@ -22,6 +22,11 @@ fs.readdirSync(__dirname)
     const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
     db[model.name] = model;
   });
+db.RiskScenario = require("../modules/library/models/riskScenario")(sequelize);
+db.Process = require("../modules/library/models/process")(sequelize);
+db.MetaData = require("../modules/library/models/meta_data")(sequelize);
+db.RiskScenarioAttribute = require("../modules/library/models/risk_scenario_attribute")(sequelize);
+db.ProcessRiskScenarioMappings = require("../modules/library/models/risk_scenario_process")(sequelize);
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
