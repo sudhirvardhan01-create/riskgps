@@ -50,6 +50,8 @@ const Index = () => {
   const [metaDatas, setMetaDatas] = useState([]);
   const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
   const [isDeleteConfirmPopupOpen, setIsDeleteConfirmPopupOpen] = useState(false);
+  const [isAddConfirmPopupOpen, setIsAddConfirmPopupOpen] = useState(false);
+  const [isEditConfirmPopupOpen, setIsEditConfirmPopupOpen] = useState(false);
   const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(false);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
   const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
@@ -205,6 +207,8 @@ const Index = () => {
           title="Confirm Risk Scenario Deletion?"
           description= {"Are you sure you want to delete Risk Scenario #" + selectedRiskScenario?.id + "? All associated data will be removed from the system."}
           onConfirm={handleDeleteRiskScenario}
+          cancelText="Cancel"
+          confirmText="Yes, Delete"
         />
       )}
       {isAddRiskScenarioOpen && (
@@ -217,10 +221,25 @@ const Index = () => {
           metaDatas={metaDatas}
           onSubmit={handleCreateRiskScenario}
           onClose={() => {
-            setIsAddRiskScenarioOpen(false);
+            setIsAddConfirmPopupOpen(true);
           }}
         />
       )}
+
+      <ConfirmDialog
+          open={isAddConfirmPopupOpen}
+          onClose={() => {
+            setIsAddConfirmPopupOpen(false);
+          }}
+          title="Cancel Risk Scenario Creation?"
+          description= "Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+          onConfirm={() => {
+            setIsAddConfirmPopupOpen(false);
+            setIsAddRiskScenarioOpen(false);
+          }}
+          cancelText="Continue Editing"
+          confirmText="Yes, Cancel"
+        />
 
       {isEditRiskScenarioOpen && selectedRiskScenario && (
         <RiskScenarioFormModal
@@ -238,10 +257,25 @@ const Index = () => {
           }}
           onSubmit={handleUpdateRiskScenario}
           onClose={() => {
-            setIsEditRiskScenarioOpen(false);
+            setIsEditConfirmPopupOpen(true);
           }}
         />
       )}
+
+      <ConfirmDialog
+          open={isEditConfirmPopupOpen}
+          onClose={() => {
+            setIsEditConfirmPopupOpen(false);
+          }}
+          title="Cancel Risk Scenario Updation?"
+          description= "Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+          onConfirm={() => {
+            setIsEditConfirmPopupOpen(false);
+            setIsEditRiskScenarioOpen(false);
+          }}
+          cancelText="Continue Editing"
+          confirmText="Yes, Cancel"
+        />
 
       <FilterComponent items={['Published', 'Draft', 'Disabled']} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)}/>
 
