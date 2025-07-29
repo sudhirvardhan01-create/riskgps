@@ -15,7 +15,7 @@ import {
   TablePagination,
 } from "@mui/material";
 import { useRouter } from "next/router";
-import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
+import { FilterAltOutlined, ArrowBack, Search, Filter } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
 import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
 import RiskScenarioCard from "@/components/library/risk-scenario/RiskScenarioCard";
@@ -33,6 +33,7 @@ import {
 import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import FilterComponent from "@/components/library/FilterComponent";
 
 const Index = () => {
   const router = useRouter();
@@ -62,6 +63,7 @@ const Index = () => {
       { meta_data_key_id: null, values: [] },
     ] as RiskScenarioAttributes[],
   });
+  const [isOpenFilter, setIsOpenFilter] = useState(false);
 
   useEffect(() => {
     const getRiskScenariosData = async () => {
@@ -242,6 +244,8 @@ const Index = () => {
         />
       )}
 
+      <FilterComponent items={['Published', 'Draft', 'Disabled']} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)}/>
+
       <Box p={2}>
         <Box mb={3}>
           {/* Row 1: Breadcrumb + Add Button */}
@@ -355,6 +359,7 @@ const Index = () => {
               <Button
                 variant="outlined"
                 endIcon={<FilterAltOutlined />}
+                onClick={() => setIsOpenFilter(true)}
                 sx={{
                   textTransform: "none",
                   borderColor: "#ccc",

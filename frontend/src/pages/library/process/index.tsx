@@ -1,5 +1,5 @@
 import EditDeleteDialog from '@/components/EditDeleteDialog'
-import Filter from '@/components/library/Filter';
+import FilterComponent from '@/components/library/FilterComponent';
 import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import SuccessToast from '@/components/SuccessToast'
@@ -41,7 +41,7 @@ const Index = () => {
 
       <Button onClick={() => setOpenSnackbar(true)}>Open Alert</Button>
 
-      <Filter items={statusItems} open={openFilter} onClose={() => setOpenFilter(false)} onClear={() => console.log("Cleared")} onApply={() => console.log("Applied")} />
+      <FilterComponent items={statusItems} open={openFilter} onClose={() => setOpenFilter(false)} onClear={() => console.log("Cleared")} onApply={() => console.log("Applied")} />
 
       {/* <button onClick={() => setOpen(true)}>Open Modal</button>
 
