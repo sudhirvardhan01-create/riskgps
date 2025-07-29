@@ -1,4 +1,4 @@
-const { Process } = require('../models');
+const { Process } = require("../../../models");
 
 class ProcessService {
   

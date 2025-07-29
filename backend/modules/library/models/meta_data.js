@@ -1,31 +1,18 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  return sequelize.define('MetaData', {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      unique: true,
-      allowNull: false,
-    },
-    label: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+  const MetaData = sequelize.define('MetaData', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING, unique: true, allowNull: false },
+    label: { type: DataTypes.STRING, allowNull: false },
     input_type: {
       type: DataTypes.ENUM('text', 'select', 'multiselect', 'number'),
-      default: "multiselect",
+      defaultValue: "multiselect",
       allowNull: false,
     },
-    supported_values: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-    },
+    supported_values: { type: DataTypes.ARRAY(DataTypes.STRING) },
     applies_to: {
-      type: DataTypes.ARRAY(DataTypes.STRING), // e.g., ['all', 'risk_scenario', 'process', 'threat']
+      type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: ['all'],
     },
     description: DataTypes.TEXT,
@@ -35,4 +22,9 @@ module.exports = (sequelize) => {
     createdAt: 'created_at',
     updatedAt: 'updated_at',
   });
+
+  // No association needed for now
+  MetaData.associate = (models) => {};
+
+  return MetaData;
 };

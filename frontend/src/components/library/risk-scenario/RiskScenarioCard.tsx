@@ -30,8 +30,8 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
 }: RiskScenarioCardProps) => {
   console.log(riskScenarioData)
   const getStatusComponent = () => {
-    if (riskScenarioData.status === 'Enabled' || riskScenarioData.status === 'Disabled') {
-      return <FormControlLabel control={<Switch color="success" checked={riskScenarioData.status === 'Enabled'} />} label={riskScenarioData.status} />;
+    if (riskScenarioData.status === 'published' || riskScenarioData.status === 'not_published') {
+      return <FormControlLabel control={<Switch color="success" checked={riskScenarioData.status === 'published'} />} label={riskScenarioData.status} />;
     }
     return (
       <Chip
