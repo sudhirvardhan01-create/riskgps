@@ -55,7 +55,7 @@ const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
                 }}
             >
                 {items.map((item, index) => (
-                    <MenuItem key={index} onClick={item.onAction}>
+                    <MenuItem key={index} onClick={() => {item.onAction();setAnchorEl(null)}}>
                         <ListItemIcon sx={{ color: item.color }}>
                             {item.icon}
                         </ListItemIcon>
@@ -69,18 +69,3 @@ const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
 }
 
 export default EditDeleteDialog
-
-//For static data,
-
-{/* <MenuItem onClick={handleClose}>
-                    <ListItemIcon sx={{ color: 'primary.main' }}>
-                        <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    Edit
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                    <ListItemIcon sx={{ color: '#CD0303' }}>
-                        <DeleteOutlineOutlined fontSize="small" />
-                    </ListItemIcon>
-                    Delete
-                </MenuItem> */}

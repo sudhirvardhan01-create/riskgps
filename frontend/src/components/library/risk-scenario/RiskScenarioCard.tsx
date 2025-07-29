@@ -1,4 +1,5 @@
 // components/RiskScenarioCard.tsx
+import React from "react";
 import {
   Box,
   Chip,
@@ -45,10 +46,12 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
     );
   };
 
+
   const dialogData = [{
     onAction: () => { 
       setSelectedRiskScenario(riskScenarioData);
-      setIsEditRiskScenarioOpen(true)},
+      setIsEditRiskScenarioOpen(true);
+},
     color: 'primary.main',
     action: 'Edit',
     icon: <EditOutlined fontSize="small" />
@@ -100,7 +103,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
             {/* <IconButton sx={{ px: 0, mx:'0px !important'}}>
             <MoreVert sx={{color:"primary.main"}}/>
           </IconButton> */}
-            <EditDeleteDialog items={dialogData} />
+            <EditDeleteDialog items={dialogData}/>
           </Stack>
         </Stack>
       </Box>
