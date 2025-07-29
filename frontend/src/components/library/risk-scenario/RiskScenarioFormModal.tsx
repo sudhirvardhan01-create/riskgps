@@ -712,7 +712,9 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
           <Button
             sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
             variant="contained"
-            onClick={onSubmit}
+            onClick={() => {
+              handleChange("status", 'published');
+              onSubmit()}}
           >
             Publish
           </Button>

@@ -41,7 +41,7 @@ const Index = () => {
 
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [riskScenarioData, setRiskScenarioData] =
     useState<RiskScenarioData[]>();
@@ -181,6 +181,10 @@ const Index = () => {
       {selectedRiskScenario && isViewRiskScenarioOpen && (
         <ViewRiskScenarioModal
           riskScenarioData={selectedRiskScenario}
+          setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen}
+          setSelectedRiskScenario={setSelectedRiskScenario}
+          processes={processesData}
+          metaDatas={metaDatas}
           open={isViewRiskScenarioOpen}
           onClose={() => {
             setIsViewRiskScenarioOpen(false);
