@@ -9,11 +9,17 @@ module.exports = (sequelize) => {
       primaryKey: true,
       autoIncrement: true,
     },
-    risk_code: { type: DataTypes.STRING, unique: true },
+    risk_code: { 
+      type: DataTypes.STRING, 
+      unique: true 
+    },
     risk_scenario: DataTypes.TEXT,
     risk_description: DataTypes.TEXT,
     risk_statement: DataTypes.TEXT,
-    status: { type: DataTypes.ENUM(...RISK_STATUS) },
+    status: { 
+      defaultValue: 'published',
+      allowNull: false,
+      type: DataTypes.ENUM(...RISK_STATUS) },
     risk_field_1: DataTypes.TEXT,
     risk_field_2: DataTypes.TEXT,
   }, {
