@@ -2,18 +2,18 @@ import { Menu, MenuItem, ListItemIcon, IconButton } from '@mui/material'
 import React from 'react'
 import { MoreVert } from '@mui/icons-material'
 
-interface EditDeleteDialogItem {
+interface MenuItemObject {
     onAction: () => void;
     color: string;
     action: string;
     icon: React.ReactNode;
 }
 
-interface EditDeleteDialogProps {
-    items: EditDeleteDialogItem[];
+interface MenuItemComponentProps {
+    items: MenuItemObject[];
 }
 
-const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
+const MenuItemComponent: React.FC<MenuItemComponentProps> = ({ items }) => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -68,4 +68,4 @@ const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
     )
 }
 
-export default EditDeleteDialog
+export default MenuItemComponent

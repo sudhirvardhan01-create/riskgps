@@ -1,4 +1,4 @@
-import EditDeleteDialog from '@/components/EditDeleteDialog'
+import MenuItemComponent from '@/components/MenuItemComponent'
 import FilterComponent from '@/components/library/FilterComponent';
 import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
 import { Button } from '@mui/material';
@@ -35,7 +35,7 @@ const Index = () => {
   return (
     <>
 
-      <EditDeleteDialog items={dialogData} />
+      <MenuItemComponent items={dialogData} />
 
       <Button onClick={() => setOpenFilter(true)}>Open Filter</Button>
 

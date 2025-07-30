@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
-import EditDeleteDialog from '@/components/EditDeleteDialog';
+import MenuItemComponent from '@/components/MenuItemComponent';
 
 
 interface RiskScenarioCardProps {
@@ -103,7 +103,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
             {/* <IconButton sx={{ px: 0, mx:'0px !important'}}>
             <MoreVert sx={{color:"primary.main"}}/>
           </IconButton> */}
-            <EditDeleteDialog items={dialogData}/>
+            <MenuItemComponent items={dialogData}/>
           </Stack>
         </Stack>
       </Box>
