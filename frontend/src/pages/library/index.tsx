@@ -5,6 +5,7 @@ import ControlCardIcon from "@/icons/controls-card.svg";
 import ProcessCardIcon from "@/icons/processes-card.svg";
 import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
 import { useRouter } from "next/router";
+import withAuth from "@/hoc/withAuth";
 
 const libs = [
   {
@@ -214,4 +215,4 @@ const LibraryPage = () => {
   );
 };
 
-export default LibraryPage;
+export default withAuth(LibraryPage);

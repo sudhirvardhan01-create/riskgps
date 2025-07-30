@@ -43,7 +43,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
 
     login(formData.email, formData.password)
       .then((data) => {
-        Cookies.set("access_token", data.token);
+        Cookies.set("access_token", data.access_token, {
+          sameSite: "Strict",
+          secure: true,
+        });
+        Cookies.set("refresh_token", data.refresh_token, {
+          sameSite: "Strict",
+          secure: true,
+        });
         Cookies.set("user", JSON.stringify(data.user));
         router.push("/"); // Redirect to dashboard after login
       })

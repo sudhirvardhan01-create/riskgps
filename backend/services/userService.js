@@ -9,4 +9,3 @@ exports.createUser = async (name) => {
   if (!name) throw new Error('Name is required');
   return await db.User.create({ name });
 };
-

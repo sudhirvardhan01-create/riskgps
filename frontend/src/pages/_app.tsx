@@ -7,6 +7,7 @@ import theme from "@/styles/theme";
 import { CssBaseline, Grid } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -19,7 +20,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
         <Grid size={11}>
           {!isLoginPage && <Header />}
-          <Component {...pageProps} />
+          <AuthProvider>
+            <Component {...pageProps} />
+          </AuthProvider>
           {!isLoginPage && <Footer />}
         </Grid>
       </Grid>
