@@ -120,8 +120,8 @@ class RiskScenarioService {
    * @returns {Promise<Object>} A promise that resolves to a success message or updated data.
    * @throws {Error} If the update fails or validation errors occur.
    */
-  static async getAllRiskScenarios(page = 1, limit = 6) {
-    const offset = (page - 1) * limit;
+  static async getAllRiskScenarios(page = 0, limit = 6) {
+    const offset = (page ) * limit;
 
     const total = await RiskScenario.count(); 
     const data = await RiskScenario.findAll({
@@ -145,7 +145,6 @@ class RiskScenarioService {
         },
       ],
     });
-    console.log(data)
     let scenarios = data.map(s => s.toJSON())
     for (let i = 0; i  < scenarios.length; i++) {
       scenarios[i].industry = scenarios[i].attributes?.filter((val) => val.metaData?.name?.toLowerCase() == "industry")?.flatMap(val => val.values);
