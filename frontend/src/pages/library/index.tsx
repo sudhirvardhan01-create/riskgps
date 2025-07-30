@@ -31,7 +31,7 @@ const libs = [
       },
     ],
     icon: <RiskScenarioCardIcon height={24} width={24} />,
-    href: "/library/risk-scenarios",
+    href: "/library/risk-scenario",
   },
   {
     name: "Threats",
