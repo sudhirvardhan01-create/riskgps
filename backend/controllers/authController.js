@@ -11,8 +11,8 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { user, token, refreshToken } = await authService.login(req.body);
-    res.json({ message: 'Logged in', user: { id: user.id, username: user.username, role: user.Role.name }, access_token: token, refresh_token: refreshToken });
+    const { user, accessToken, refreshToken } = await authService.login(req.body);
+    res.json({ message: 'Logged in', user: { id: user.id, username: user.username, role: user.Role.name }, access_token: accessToken, refresh_token: refreshToken });
   } catch (err) {
     res.status(401).json({ error: err.message });
   }

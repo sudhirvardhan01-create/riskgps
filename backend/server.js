@@ -26,11 +26,11 @@ app.get("/health", (req, res) => {
  * Library Routes 
  * 
  */
-app.use("/api/library/process", processRoutes);
+app.use("/library/process", processRoutes);
 
-app.use("/api/library/risk-scenario", riskScenarioRoutes);
+app.use("/library/risk-scenario", riskScenarioRoutes);
 
-app.use("/api/library/meta-data", metaDataRoutes);
+app.use("/library/meta-data", metaDataRoutes);
 app.use('/auth', authRoutes);
 // app.use('/users', userRoutes);
 

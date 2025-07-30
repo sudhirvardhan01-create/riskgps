@@ -8,22 +8,25 @@ import { CssBaseline, Grid } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
 import { usePathname } from "next/navigation";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isLoginPage = router.pathname === "/login";
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Grid container sx={{ height: "100vh" }}>
-        <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-        <Grid size={11}>
-          {!isLoginPage && <Header />}
-          <Component {...pageProps} />
-          {!isLoginPage && <Footer />}
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Grid container sx={{ height: "100vh" }}>
+          <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+          <Grid size={11}>
+            {!isLoginPage && <Header />}
+            <Component {...pageProps} />
+            {!isLoginPage && <Footer />}
+          </Grid>
         </Grid>
-      </Grid>
-    </ThemeProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
