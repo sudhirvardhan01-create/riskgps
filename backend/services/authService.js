@@ -6,7 +6,7 @@ const register = async ({ username, email, password, roleName }) => {
   const hashed = await bcrypt.hash(password, 10);
   const role = await Role.findOne({ where: { name: roleName } });
   if (!role) throw new Error('Invalid role');
-  return await User.create({ username, email, password: hashed, roleId: role.id });
+  return await User.create({ name: username, email, password: hashed, roleId: role.id });
 };
 
 const login = async ({ email, password }) => {

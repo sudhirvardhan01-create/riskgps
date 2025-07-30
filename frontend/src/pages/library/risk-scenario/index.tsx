@@ -34,6 +34,7 @@ import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import FilterComponent from "@/components/library/FilterComponent";
+import withAuth from "@/hoc/withAuth";
 
 const Index = () => {
   const router = useRouter();
@@ -416,4 +417,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default withAuth(Index);

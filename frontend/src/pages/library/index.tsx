@@ -5,6 +5,7 @@ import ControlCardIcon from "@/icons/controls-card.svg";
 import ProcessCardIcon from "@/icons/processes-card.svg";
 import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
 import { useRouter } from "next/router";
+import withAuth from "@/hoc/withAuth";
 
 const libs = [
   {
@@ -30,7 +31,7 @@ const libs = [
       },
     ],
     icon: <RiskScenarioCardIcon height={24} width={24} />,
-    href: "/library/risk-scenarios",
+    href: "/library/risk-scenario",
   },
   {
     name: "Threats",
@@ -214,4 +215,4 @@ const LibraryPage = () => {
   );
 };
 
-export default LibraryPage;
+export default withAuth(LibraryPage);
