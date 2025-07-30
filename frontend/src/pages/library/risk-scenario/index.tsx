@@ -34,6 +34,7 @@ import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import FilterComponent from "@/components/library/FilterComponent";
+import SuccessToast from "@/components/SuccessToast";
 
 const Index = () => {
   const router = useRouter();
@@ -55,6 +56,8 @@ const Index = () => {
   const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(false);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
   const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
+  const [isAddRSSuccessToastOpen, setIsAddRSSuccessToastOpen] = useState(false);
+  const [addRSSuccessToastMessage, setAddRSSuccessToastMessage] = useState("");
   const [riskData, setRiskData] = useState<RiskScenarioData>({
     riskScenario: "",
     riskStatement: "",
@@ -121,7 +124,9 @@ const Index = () => {
       console.log(res);
       setRefreshTrigger((prev) => prev + 1);
       setIsAddRiskScenarioOpen(false);
-      alert("created");
+      //alert("created");
+      setIsAddRSSuccessToastOpen(true);
+      setAddRSSuccessToastMessage(`Success! The risk scenario RS-ID has been published`)
     } catch (err) {
       console.log("Something went wrong", err);
     }
@@ -240,6 +245,8 @@ const Index = () => {
           cancelText="Continue Editing"
           confirmText="Yes, Cancel"
         />
+
+        <SuccessToast open={isAddRSSuccessToastOpen} onClose={() => setIsAddRSSuccessToastOpen(false)} message={addRSSuccessToastMessage}/>
 
       {isEditRiskScenarioOpen && selectedRiskScenario && (
         <RiskScenarioFormModal
