@@ -1,5 +1,5 @@
 import { login } from "@/pages/api/AuthAPI";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Refresh, Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Cookies from "js-cookie";
+import { useAuth } from "@/context/AuthContext";
 
 interface LoginFormProps {
   setCurrentForm: (form: "login" | "signup") => void;
@@ -29,6 +30,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
 
   const router = useRouter();
 
+  const { loginContext } = useAuth();
+
   const handleCaptchaChange = (value: string | null) => {
     setCaptchaValue(value);
   };
@@ -43,14 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
 
     login(formData.email, formData.password)
       .then((data) => {
-        Cookies.set("access_token", data.access_token, {
-          sameSite: "Strict",
-          secure: true,
-        });
-        Cookies.set("refresh_token", data.refresh_token, {
-          sameSite: "Strict",
-          secure: true,
-        });
+        loginContext(data.access_token, data.refresh_token);
         Cookies.set("user", JSON.stringify(data.user));
         router.push("/"); // Redirect to dashboard after login
       })
