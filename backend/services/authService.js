@@ -2,11 +2,12 @@ const bcrypt = require('bcryptjs');
 const { User, Role, RefreshToken } = require('../models');
 const { generateToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 
-const register = async ({ username, email, password, roleName }) => {
+const register = async ({ name, email, password, phone, organisation, message, communicationPreference, roleName }) => {
   const hashed = await bcrypt.hash(password, 10);
   const role = await Role.findOne({ where: { name: roleName } });
   if (!role) throw new Error('Invalid role');
-  return await User.create({ name: username, email, password: hashed, roleId: role.id });
+  const user = await User.create({ name, email, password: hashed, phone, organisation, message, communicationPreference, roleId: role.id });
+  return user;
 };
 
 const login = async ({ email, password }) => {
