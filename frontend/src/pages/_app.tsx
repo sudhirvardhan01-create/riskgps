@@ -14,18 +14,18 @@ export default function App({ Component, pageProps }: AppProps) {
   const isLoginPage = router.pathname === "/login";
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Grid container sx={{ height: "100vh" }}>
-        <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-        <Grid size={11}>
-          {!isLoginPage && <Header />}
-          <AuthProvider>
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Grid container sx={{ height: "100vh" }}>
+          <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+          <Grid size={11}>
+            {!isLoginPage && <Header />}
             <Component {...pageProps} />
-          </AuthProvider>
-          {!isLoginPage && <Footer />}
+            {!isLoginPage && <Footer />}
+          </Grid>
         </Grid>
-      </Grid>
-    </ThemeProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
