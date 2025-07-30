@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { useState } from "react";
 import { LoginForm } from "../../components/Login";
+import { AuthProvider } from "@/context/AuthContext";
 
 describe("LoginForm", () => {
   const renderLogin = () => {
@@ -12,7 +13,11 @@ describe("LoginForm", () => {
       );
       return <LoginForm setCurrentForm={setCurrentForm} />;
     };
-    return render(<Wrapper />);
+    return render(
+      <AuthProvider>
+        <Wrapper />
+      </AuthProvider>
+    );
   };
 
   it("renders fields and captcha", () => {
