@@ -120,10 +120,11 @@ class RiskScenarioService {
    * @returns {Promise<Object>} A promise that resolves to a success message or updated data.
    * @throws {Error} If the update fails or validation errors occur.
    */
-  static async getAllRiskScenarios(page = 1, limit = 6) {
-    const offset = (page - 1) * limit;
+  static async getAllRiskScenarios(page = 0, limit = 6) {
+    const offset = (page ) * limit;
 
-    const { rows: data, count: total } = await RiskScenario.findAndCountAll({
+    const total = await RiskScenario.count(); 
+    const data = await RiskScenario.findAll({
       limit,
       offset,
       order: [["created_at", "DESC"]], // optional: sort by created date
@@ -157,6 +158,7 @@ class RiskScenarioService {
       data: scenarios,
       total,
       page,
+      limit,
       totalPages: Math.ceil(total / limit),
     };
   }
