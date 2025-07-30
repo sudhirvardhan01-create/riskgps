@@ -15,7 +15,7 @@ import {
   TablePagination,
 } from "@mui/material";
 import { useRouter } from "next/router";
-import { FilterAltOutlined, ArrowBack, Search, Filter } from "@mui/icons-material";
+import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
 import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
 import RiskScenarioCard from "@/components/library/risk-scenario/RiskScenarioCard";
