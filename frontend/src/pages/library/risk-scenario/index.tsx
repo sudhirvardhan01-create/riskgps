@@ -57,8 +57,8 @@ const Index = () => {
   const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(false);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
   const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
-  const [isAddRSSuccessToastOpen, setIsAddRSSuccessToastOpen] = useState(false);
-  const [addRSSuccessToastMessage, setAddRSSuccessToastMessage] = useState("");
+  const [isAddDeleteRSSuccessToastOpen, setIsAddDeleteRSSuccessToastOpen] = useState(false);
+  const [addDeleteRSSuccessToastMessage, setAddDeleteRSSuccessToastMessage] = useState("");
   const [riskData, setRiskData] = useState<RiskScenarioData>({
     riskScenario: "",
     riskStatement: "",
@@ -127,8 +127,8 @@ const Index = () => {
       setRefreshTrigger((prev) => prev + 1);
       setIsAddRiskScenarioOpen(false);
       //alert("created");
-      setIsAddRSSuccessToastOpen(true);
-      setAddRSSuccessToastMessage(`Success! The risk scenario RS-ID has been ${status === "published" ? "published" : "saved as a draft"}`)
+      setIsAddDeleteRSSuccessToastOpen(true);
+      setAddDeleteRSSuccessToastMessage(`Success! The risk scenario RS-ID has been ${status === "published" ? "published" : "saved as a draft"}`)
     } catch (err) {
       console.log("Something went wrong", err);
     }
@@ -166,7 +166,8 @@ const Index = () => {
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsDeleteConfirmPopupOpen(false);
-        alert("deleted");
+        setIsAddDeleteRSSuccessToastOpen(true);
+        setAddDeleteRSSuccessToastMessage(`Success! The risk scenario RS-${selectedRiskScenario?.id} has been deleted`)
       } else {
         throw new Error("Invalid ID");
       }
@@ -248,7 +249,7 @@ const Index = () => {
         confirmText="Yes, Cancel"
       />
 
-      <ToastComponent open={isAddRSSuccessToastOpen} onClose={() => setIsAddRSSuccessToastOpen(false)} message={addRSSuccessToastMessage} toastBorder='1px solid #147A50'
+      <ToastComponent open={isAddDeleteRSSuccessToastOpen} onClose={() => setIsAddDeleteRSSuccessToastOpen(false)} message={addDeleteRSSuccessToastMessage} toastBorder='1px solid #147A50'
         toastColor='#147A50'
         toastBackgroundColor='#DDF5EB'
         toastSeverity='success' />
