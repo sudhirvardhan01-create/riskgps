@@ -43,6 +43,7 @@ const Index = () => {
 
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [totalRows, setTotalRows] = useState(-1);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [riskScenarioData, setRiskScenarioData] =
@@ -76,6 +77,7 @@ const Index = () => {
         setLoading(true);
         const data = await fetchRiskScenarios(page, rowsPerPage);
         setRiskScenarioData(data.data);
+        setTotalRows(data.total);
       } catch (error) {
         console.error("Error fetching risk scenarios:", error);
       } finally {
@@ -286,7 +288,7 @@ const Index = () => {
 
       <FilterComponent items={['Published', 'Draft', 'Disabled']} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)}/>
 
-      <Box p={2}>
+      <Box p={2} sx={{ pb: 8 }}>
         <Box mb={3}>
           {/* Row 1: Breadcrumb + Add Button */}
           <Stack
@@ -434,6 +436,7 @@ const Index = () => {
         {/* Pagination */}
         <Box
           sx={{
+            // marginBottom:"20px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -441,12 +444,12 @@ const Index = () => {
         >
           <TablePagination
             component="div"
-            count={100}
+            count={totalRows}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[6, 12, 18, 24, 30]}
+            rowsPerPageOptions={[2, 6, 12, 18, 24, 30]}
           />
         </Box>
       </Box>

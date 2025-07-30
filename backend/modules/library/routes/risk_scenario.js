@@ -52,7 +52,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const limit = parseInt(req.query?.limit) || 6;
-    const page = parseInt(req.query?.page) || 1;
+    const page = parseInt(req.query?.page) || 0;
     const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit);
     res.json({
       data: scenarios,
