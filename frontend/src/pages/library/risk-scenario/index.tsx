@@ -34,7 +34,7 @@ import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import FilterComponent from "@/components/library/FilterComponent";
-import SuccessToast from "@/components/SuccessToast";
+import ToastComponent from "@/components/ToastComponent";
 
 const Index = () => {
   const router = useRouter();
@@ -128,7 +128,7 @@ const Index = () => {
       setIsAddRiskScenarioOpen(false);
       //alert("created");
       setIsAddRSSuccessToastOpen(true);
-      setAddRSSuccessToastMessage(`Success! The risk scenario RS-ID has been published`)
+      setAddRSSuccessToastMessage(`Success! The risk scenario RS-ID has been ${status === "published" ? "published" : "saved as a draft"}`)
     } catch (err) {
       console.log("Something went wrong", err);
     }
@@ -137,9 +137,9 @@ const Index = () => {
   const handleUpdateRiskScenario = async (status: string) => {
     try {
       if (selectedRiskScenario?.id) {
-      console.log(selectedRiskScenario);
-      const reqBody = selectedRiskScenario;
-      reqBody.status = status;
+        console.log(selectedRiskScenario);
+        const reqBody = selectedRiskScenario;
+        reqBody.status = status;
         const res = await updateRiskScenario(
           reqBody.id as number,
           reqBody
@@ -212,7 +212,7 @@ const Index = () => {
             setIsDeleteConfirmPopupOpen(false);
           }}
           title="Confirm Risk Scenario Deletion?"
-          description= {"Are you sure you want to delete Risk Scenario #" + selectedRiskScenario?.id + "? All associated data will be removed from the system."}
+          description={"Are you sure you want to delete Risk Scenario #" + selectedRiskScenario?.id + "? All associated data will be removed from the system."}
           onConfirm={handleDeleteRiskScenario}
           cancelText="Cancel"
           confirmText="Yes, Delete"
@@ -234,21 +234,24 @@ const Index = () => {
       )}
 
       <ConfirmDialog
-          open={isAddConfirmPopupOpen}
-          onClose={() => {
-            setIsAddConfirmPopupOpen(false);
-          }}
-          title="Cancel Risk Scenario Creation?"
-          description= "Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
-          onConfirm={() => {
-            setIsAddConfirmPopupOpen(false);
-            setIsAddRiskScenarioOpen(false);
-          }}
-          cancelText="Continue Editing"
-          confirmText="Yes, Cancel"
-        />
+        open={isAddConfirmPopupOpen}
+        onClose={() => {
+          setIsAddConfirmPopupOpen(false);
+        }}
+        title="Cancel Risk Scenario Creation?"
+        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsAddConfirmPopupOpen(false);
+          setIsAddRiskScenarioOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
 
-        <SuccessToast open={isAddRSSuccessToastOpen} onClose={() => setIsAddRSSuccessToastOpen(false)} message={addRSSuccessToastMessage}/>
+      <ToastComponent open={isAddRSSuccessToastOpen} onClose={() => setIsAddRSSuccessToastOpen(false)} message={addRSSuccessToastMessage} toastBorder='1px solid #147A50'
+        toastColor='#147A50'
+        toastBackgroundColor='#DDF5EB'
+        toastSeverity='success' />
 
       {isEditRiskScenarioOpen && selectedRiskScenario && (
         <RiskScenarioFormModal
@@ -272,21 +275,21 @@ const Index = () => {
       )}
 
       <ConfirmDialog
-          open={isEditConfirmPopupOpen}
-          onClose={() => {
-            setIsEditConfirmPopupOpen(false);
-          }}
-          title="Cancel Risk Scenario Updation?"
-          description= "Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
-          onConfirm={() => {
-            setIsEditConfirmPopupOpen(false);
-            setIsEditRiskScenarioOpen(false);
-          }}
-          cancelText="Continue Editing"
-          confirmText="Yes, Cancel"
-        />
+        open={isEditConfirmPopupOpen}
+        onClose={() => {
+          setIsEditConfirmPopupOpen(false);
+        }}
+        title="Cancel Risk Scenario Updation?"
+        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsEditConfirmPopupOpen(false);
+          setIsEditRiskScenarioOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
 
-      <FilterComponent items={['Published', 'Draft', 'Disabled']} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)}/>
+      <FilterComponent items={['Published', 'Draft', 'Disabled']} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)} />
 
       <Box p={2} sx={{ pb: 8 }}>
         <Box mb={3}>
@@ -427,7 +430,7 @@ const Index = () => {
                   setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen}
                   setSelectedRiskScenario={setSelectedRiskScenario}
                   setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen}
-                  setIsDeleteConfirmPopupOpen = {setIsDeleteConfirmPopupOpen}
+                  setIsDeleteConfirmPopupOpen={setIsDeleteConfirmPopupOpen}
                 />
               </div>
             ))}
