@@ -36,10 +36,8 @@ app.use('/auth', authRoutes);
 
 
 db.sequelize.sync().then(() => {
-  libraryModulesDB.sequelize.sync().then(() => {
   app.listen(port, () => {
       console.log("Server started on port " + port );
     });
-});
 });
 
