@@ -9,16 +9,21 @@ import {
     TextField,
     InputLabel,
     FormControl,
+    useTheme,
+    useMediaQuery,
 } from '@mui/material';
 import MetaDataCard from '@/components/meta-data/MetaDataCard'
 import React, { useState, useEffect } from 'react'
-import { Search } from '@mui/icons-material';
+import { FilterAltOutlined, Search } from '@mui/icons-material';
 import { fetchMetaDatas, deleteMetaData } from '../api/meta-data';
 import { MetaData } from '@/types/meta-data';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ToastComponent from '@/components/ToastComponent';
 
 const Index = () => {
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
     const [loading, setLoading] = useState(false);
     const [metaDatas, setMetaDatas] = useState<MetaData[]>();
@@ -75,7 +80,7 @@ const Index = () => {
 
 
             {/* Landing Page code*/}
-            <Box p={5} paddingBottom={10}>
+            <Box p={2} paddingBottom={8}>
                 <Box mb={3}>
                     {/* Row 1: Breadcrumb + Add Button */}
                     <Stack
@@ -135,20 +140,41 @@ const Index = () => {
                         />
 
                         {/* Sort */}
-                        <FormControl sx={{ backgroundColor: "#FFFFFF", borderRadius: 1 }}>
-                            <InputLabel id="sort-metadata">Sort</InputLabel>
-                            <Select
-                                size="small"
-                                defaultValue="Alphabetical (A-Z)"
-                                label="Sort"
-                                labelId="sort-metadata"
+                        <Stack
+                            direction="row"
+                            spacing={2}
+                            flexWrap="wrap"
+                            justifyContent={isMobile ? "flex-start" : "flex-end"}
+                        >
+                            <FormControl sx={{ backgroundColor: "#FFFFFF", borderRadius: 1 }}>
+                                <InputLabel id="sort-metadata">Sort</InputLabel>
+                                <Select
+                                    size="small"
+                                    defaultValue="Alphabetical (A-Z)"
+                                    label="Sort"
+                                    labelId="sort-metadata"
+                                >
+                                    <MenuItem value="Latest First">Latest First</MenuItem>
+                                    <MenuItem value="Oldest First">Oldest First</MenuItem>
+                                    <MenuItem value="Alphabetical (A-Z)">Alphabetical (A-Z)</MenuItem>
+                                    <MenuItem value="Alphabetical (Z-A)">Alphabetical (Z-A)</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <Button
+                                variant="outlined"
+                                endIcon={<FilterAltOutlined />}
+                                onClick={() => console.log("Open Filter")}
+                                sx={{
+                                    textTransform: "none",
+                                    borderColor: "#ccc",
+                                    color: "black",
+                                    backgroundColor: "#FFFFFF",
+                                    borderRadius: 1,
+                                }}
                             >
-                                <MenuItem value="Latest First">Latest First</MenuItem>
-                                <MenuItem value="Oldest First">Oldest First</MenuItem>
-                                <MenuItem value="Alphabetical (A-Z)">Alphabetical (A-Z)</MenuItem>
-                                <MenuItem value="Alphabetical (Z-A)">Alphabetical (Z-A)</MenuItem>
-                            </Select>
-                        </FormControl>
+                                Filter
+                            </Button>
+                        </Stack>
                     </Stack>
                 </Box>
 

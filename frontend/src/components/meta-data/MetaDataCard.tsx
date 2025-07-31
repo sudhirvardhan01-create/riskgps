@@ -50,7 +50,7 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
               <Chip
                 key={value}
                 label={value}
-                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.Primary' }}
+                sx={{ borderRadius: '2px', bgcolor: 'text.secondary', color: 'text.Primary' }}
               />
             ))
           ) : (
