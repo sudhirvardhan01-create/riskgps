@@ -142,9 +142,23 @@ router.delete("/:id", async (req, res) => {
       msg: "risk scenario deleted successfully"
     });
   } catch (err) {
+    console.log("delete risk scenario failed", err);
     res.status(404).json({error: err.message});
   }
 })
 
+router.patch("/update-status/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const status = req.body.status;
+    const resposnse = await RiskScenarioService.updateRiskScenarioStatus(id, status);
+    res.status(200).json({
+      msg: "risk scenario status updated successfully"
+    });
+  } catch (err) {
+    console.log("update risk scenario status failed", err);
+    res.status(404).json({error: err.message});
+  }
+})
 
 module.exports = router;
