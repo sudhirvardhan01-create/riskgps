@@ -2,14 +2,14 @@ import { Card, Chip, IconButton, Stack, Typography } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 
-export interface AccessTypeCardProps {
+export interface MetaDataCardProps {
   keyLabel: string;
-  values: string[];
+  values: string[] | undefined;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
-const AccessTypeCard: React.FC<AccessTypeCardProps> = ({
+const MetaDataCard: React.FC<MetaDataCardProps> = ({
   keyLabel,
   values,
   onEdit,
@@ -19,10 +19,10 @@ const AccessTypeCard: React.FC<AccessTypeCardProps> = ({
     <Card
       variant="outlined"
       sx={{
-        borderRadius: 1,
+        borderRadius: 2,
         px: 2,
         py: 1.5,
-        boxShadow: 1,
+        boxShadow: '0px 4px 4px 0px #D9D9D966',
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         alignItems: { sm: 'center' },
@@ -33,24 +33,24 @@ const AccessTypeCard: React.FC<AccessTypeCardProps> = ({
     >
       {/* Key */}
       <Stack spacing={1} flex={1}>
-        <Typography variant="subtitle2" color="text.secondary">
+        <Typography variant="subtitle2" color="#91939A">
           Key
         </Typography>
-        <Typography fontWeight={500}>{keyLabel}</Typography>
+        <Typography fontWeight={500} color="text.Primary">{keyLabel}</Typography>
       </Stack>
 
       {/* Values */}
       <Stack spacing={1} flex={2}>
-        <Typography variant="subtitle2" color="text.secondary">
+        <Typography variant="subtitle2" color="#91939A">
           Values
         </Typography>
         <Stack direction="row" flexWrap="wrap" spacing={1}>
-          {values.length > 0 ? (
-            values.map((value) => (
+          {values && values?.length > 0 ? (
+            values?.map((value) => (
               <Chip
                 key={value}
                 label={value}
-                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8' }}
+                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.Primary' }}
               />
             ))
           ) : (
@@ -74,4 +74,4 @@ const AccessTypeCard: React.FC<AccessTypeCardProps> = ({
   );
 };
 
-export default AccessTypeCard;
+export default MetaDataCard;
