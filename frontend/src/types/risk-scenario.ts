@@ -19,6 +19,7 @@ export interface RiskScenarioData {
   riskField1?: string;
   riskField2?: string;
   attributes?: RiskScenarioAttributes[];
-  lastUpdated?: string;
+  lastUpdated?: Date;
+  createdAt?: Date;
   status?: string;
 }

@@ -344,6 +344,35 @@ class RiskScenarioService {
     await riskScenario.destroy();
     return { message: "Risk Scenario deleted successfully." };
   }
+
+  /**
+   * 
+   * @param {number} id 
+   * @param {string} status 
+   * @returns 
+   */
+  static async updateRiskScenarioStatus(id, status) {
+    const allowed_status_values = ["published", "not_published", "draft"];
+
+    if (!allowed_status_values.includes(status)) {
+      console.log("[updateRiskScenarioStatus] invalid operation", id, status);
+      throw new Error(`Failed to update risk scenario`);
+    }
+
+    const [updatedRowsCount] = await RiskScenario.update(
+      { status },
+      { where: { id } }
+    );
+
+    if (updatedRowsCount === 0) {
+      console.log("[updateRiskScenarioStatus] no Risk Scenario Found by Id ", id);
+      throw new Error(`Invalid Risk Scenario ID ${id}`);
+    }
+    console.log("[updateRiskScenarioStatus] status updated successfully", id, status);
+    return {message: "risks scenario status updated succesfully"};
+
+  }
+
 }
 
 module.exports = RiskScenarioService;

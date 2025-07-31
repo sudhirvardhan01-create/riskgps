@@ -11,6 +11,9 @@ import {
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
 import EditDeleteDialog from '@/components/EditDeleteDialog';
+import ToggleSwitch from '../toggle-switch/ToggleSwitch';
+
+
 
 
 interface RiskScenarioCardProps {
@@ -19,6 +22,7 @@ interface RiskScenarioCardProps {
   setIsViewRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  handleUpdateRiskScenarioStatus: (id: number, status: string) => void
 }
 
 const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
@@ -26,13 +30,17 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
   setSelectedRiskScenario,
   setIsViewRiskScenarioOpen,
   setIsEditRiskScenarioOpen,
-  setIsDeleteConfirmPopupOpen
+  setIsDeleteConfirmPopupOpen,
+  handleUpdateRiskScenarioStatus
 }: RiskScenarioCardProps) => {
-  console.log(riskScenarioData)
   const getStatusComponent = () => {
     if (riskScenarioData.status === 'published' || riskScenarioData.status === 'not_published') {
-      return <FormControlLabel control={<Switch color="success" checked={riskScenarioData.status === 'published'} />} label={riskScenarioData.status} />;
+      return <FormControlLabel control={<ToggleSwitch sx={{m: 1}} color="success" onChange={(e)=>{
+        const updatedStatus = e.target.checked ? "published" : "not_published";
+        handleUpdateRiskScenarioStatus(riskScenarioData.id as number, updatedStatus);
+      }} checked={riskScenarioData.status === 'published'}/>} label={riskScenarioData.status === "published" ? "Enabled" : "Not Enabled"} />;
     }
+
     return (
       <Chip
         icon={<DoneOutlined />}
@@ -80,6 +88,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
       {/* Header */}
       <Box sx={{ px: 3, py: 1, backgroundColor: '#F3F8FF', borderRadius: '8px 8px 0 0' }}>
         <Stack
+          
           direction="row"
           justifyContent="space-between"
           alignItems="center"
@@ -90,11 +99,11 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
             <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry?.length > 0 ? riskScenarioData.industry.join(", ") : "Not Defined"}`} variant="outlined" size="small" sx={{ borderRadius: 0.5 }} />
           </Stack>
 
-          <Stack direction="row" alignItems="center" spacing={1}>
+          <Stack direction="row" alignItems="center" spacing={0}>
             <Typography variant="body2" color="textSecondary">
-              Last Updated: {riskScenarioData.lastUpdated}
+              Last Updated: {new Date(riskScenarioData.lastUpdated as Date).toISOString().split('T')[0]}
             </Typography>
-            <Box sx={{ width: '118px', mx: '24px !important' }}>
+            <Box sx={{ width: '200px', mx: '24px !important' }}>
               {getStatusComponent()}
             </Box>
             {/* <IconButton sx={{ px: 0, mx:'0px !important'}}>
