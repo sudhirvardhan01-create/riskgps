@@ -54,7 +54,7 @@ export const fetchRiskScenarios = async (page: number, limit: number):Promise<AP
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch user data");
+    throw new Error("Failed to fetch risk scenario data");
   }
   const res = await response.json();
   if (res.data.data)
@@ -114,7 +114,7 @@ export const updateRiskScenario = async (id: number, data: RiskScenarioData) => 
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch user data");
+    throw new Error("Failed to update risk scenario data");
   }
   const res = await response.json();
   console.log(res);
@@ -130,7 +130,7 @@ export const deleteRiskScenario = async (id: number) => {
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch user data");
+    throw new Error("Failed to delete risks scenario data");
   }
   const res = await response.json();
   console.log(res);
@@ -146,7 +146,28 @@ export const fetchRiskScenarioMetaData = async () => {
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch user data");
+    throw new Error("Failed to fetch Risk Scenario Meta data");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+}
+
+export const updateRiskScenarioStatus = async (id: number, status: string) => {
+  if (!id || !status) {
+      throw new Error("Failed to perforom the operation, Invalid arguments");
+  }
+  const reqBody = {status};
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/risk-scenario/update-status/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(reqBody),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to Update Risk Scenario Status Data");
   }
   const res = await response.json();
   console.log(res);

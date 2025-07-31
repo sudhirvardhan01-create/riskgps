@@ -29,6 +29,7 @@ import {
   deleteRiskScenario,
   fetchRiskScenarios,
   updateRiskScenario,
+  updateRiskScenarioStatus,
 } from "@/pages/api/risk-scenario";
 import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
@@ -125,6 +126,16 @@ const Index = () => {
       reqBody.status = status;
       const res = await createRiskScenario(reqBody);
       console.log(res);
+      setRiskData({
+        riskScenario: "",
+        riskStatement: "",
+        riskDescription: "",
+        riskField1: "",
+        riskField2: "",
+        attributes: [
+          { meta_data_key_id: null, values: [] },
+        ] as RiskScenarioAttributes[],
+      });
       setRefreshTrigger((prev) => prev + 1);
       setIsAddRiskScenarioOpen(false);
       //alert("created");
@@ -157,6 +168,16 @@ const Index = () => {
       console.log("Something went wrong", err);
     }
   };
+
+  const handleUpdateRiskScenarioStatus = async (id: number ,status: string) => {
+    try {
+        const res = await updateRiskScenarioStatus(id, status);
+        console.log(res);
+        setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      console.log("Something went wrong", err);
+    }
+  }
 
   const handleDeleteRiskScenario = async () => {
     try {
@@ -244,6 +265,16 @@ const Index = () => {
         description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmPopupOpen(false);
+          setRiskData({
+              riskScenario: "",
+              riskStatement: "",
+              riskDescription: "",
+              riskField1: "",
+              riskField2: "",
+              attributes: [
+                { meta_data_key_id: null, values: [] },
+              ] as RiskScenarioAttributes[],
+            });
           setIsAddRiskScenarioOpen(false);
         }}
         cancelText="Continue Editing"
@@ -285,6 +316,7 @@ const Index = () => {
         description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmPopupOpen(false);
+          setSelectedRiskScenario(null);
           setIsEditRiskScenarioOpen(false);
         }}
         cancelText="Continue Editing"
@@ -429,6 +461,7 @@ const Index = () => {
                 <RiskScenarioCard
                   key={index}
                   riskScenarioData={item}
+                  handleUpdateRiskScenarioStatus = {handleUpdateRiskScenarioStatus}
                   setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen}
                   setSelectedRiskScenario={setSelectedRiskScenario}
                   setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen}
@@ -462,4 +495,4 @@ const Index = () => {
   );
 };
 
-export default withAuth(Index);
+export default Index;

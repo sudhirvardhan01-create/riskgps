@@ -18,7 +18,7 @@ app.use(cors({
 }));
 const port = 8000;
 
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
     res.send("Site is healthy");
 })
 
