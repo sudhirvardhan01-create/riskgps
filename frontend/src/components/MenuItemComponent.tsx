@@ -2,18 +2,18 @@ import { Menu, MenuItem, ListItemIcon, IconButton } from '@mui/material'
 import React from 'react'
 import { MoreVert } from '@mui/icons-material'
 
-interface EditDeleteDialogItem {
+interface MenuItemObject {
     onAction: () => void;
     color: string;
     action: string;
     icon: React.ReactNode;
 }
 
-interface EditDeleteDialogProps {
-    items: EditDeleteDialogItem[];
+interface MenuItemComponentProps {
+    items: MenuItemObject[];
 }
 
-const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
+const MenuItemComponent: React.FC<MenuItemComponentProps> = ({ items }) => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -55,7 +55,7 @@ const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
                 }}
             >
                 {items.map((item, index) => (
-                    <MenuItem key={index} onClick={item.onAction}>
+                    <MenuItem key={index} onClick={() => {item.onAction();setAnchorEl(null)}}>
                         <ListItemIcon sx={{ color: item.color }}>
                             {item.icon}
                         </ListItemIcon>
@@ -68,19 +68,4 @@ const EditDeleteDialog: React.FC<EditDeleteDialogProps> = ({ items }) => {
     )
 }
 
-export default EditDeleteDialog
-
-//For static data,
-
-{/* <MenuItem onClick={handleClose}>
-                    <ListItemIcon sx={{ color: 'primary.main' }}>
-                        <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    Edit
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                    <ListItemIcon sx={{ color: '#CD0303' }}>
-                        <DeleteOutlineOutlined fontSize="small" />
-                    </ListItemIcon>
-                    Delete
-                </MenuItem> */}
+export default MenuItemComponent

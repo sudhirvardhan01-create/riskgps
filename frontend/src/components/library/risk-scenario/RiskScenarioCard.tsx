@@ -1,19 +1,17 @@
 // components/RiskScenarioCard.tsx
+import React from "react";
 import {
   Box,
   Chip,
   Typography,
   Stack,
-  Switch,
   Divider,
   FormControlLabel
 } from '@mui/material';
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
-import EditDeleteDialog from '@/components/EditDeleteDialog';
+import MenuItemComponent from '@/components/MenuItemComponent';
 import ToggleSwitch from '../toggle-switch/ToggleSwitch';
-
-
 
 
 interface RiskScenarioCardProps {
@@ -38,7 +36,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
       return <FormControlLabel control={<ToggleSwitch sx={{m: 1}} color="success" onChange={(e)=>{
         const updatedStatus = e.target.checked ? "published" : "not_published";
         handleUpdateRiskScenarioStatus(riskScenarioData.id as number, updatedStatus);
-      }} checked={riskScenarioData.status === 'published'}/>} label={riskScenarioData.status === "published" ? "Enabled" : "Not Enabled"} />;
+      }} checked={riskScenarioData.status === 'published'}/>} label={riskScenarioData.status === "published" ? "Enabled" : "Disabled"} />;
     }
 
     return (
@@ -53,10 +51,12 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
     );
   };
 
+
   const dialogData = [{
     onAction: () => { 
       setSelectedRiskScenario(riskScenarioData);
-      setIsEditRiskScenarioOpen(true)},
+      setIsEditRiskScenarioOpen(true);
+},
     color: 'primary.main',
     action: 'Edit',
     icon: <EditOutlined fontSize="small" />
@@ -109,7 +109,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
             {/* <IconButton sx={{ px: 0, mx:'0px !important'}}>
             <MoreVert sx={{color:"primary.main"}}/>
           </IconButton> */}
-            <EditDeleteDialog items={dialogData} />
+            <MenuItemComponent items={dialogData}/>
           </Stack>
         </Stack>
       </Box>

@@ -41,3 +41,4 @@ db.sequelize.sync().then(() => {
     });
 });
 
+

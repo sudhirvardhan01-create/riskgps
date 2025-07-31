@@ -4,8 +4,8 @@ import { styled } from '@mui/material/styles';
 const ToggleSwitch = styled((props: SwitchProps) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
 ))(({ theme }) => ({
-  width: 42,
-  height: 26,
+  width: 34,
+  height: 18,
   padding: 0,
   '& .MuiSwitch-switchBase': {
     padding: 0,
@@ -45,8 +45,8 @@ const ToggleSwitch = styled((props: SwitchProps) => (
   },
   '& .MuiSwitch-thumb': {
     boxSizing: 'border-box',
-    width: 22,
-    height: 22,
+    width: 14,
+    height: 14,
   },
   '& .MuiSwitch-track': {
     borderRadius: 26 / 2,

@@ -35,8 +35,8 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
 }: ViewRiskScenarioModalProps) => {
 
   const getStatusComponent = () => {
-    if (riskScenarioData.status === 'Enabled' || riskScenarioData.status === 'Disabled') {
-      return <FormControlLabel control={<ToggleSwitch color="success" checked={riskScenarioData.status === 'Enabled'} />} label={riskScenarioData.status} sx={{ width: 30, height: 18, marginLeft: '0 !important' }} />;
+    if (riskScenarioData.status === 'published' || riskScenarioData.status === 'not_published') {
+      return <FormControlLabel control={<ToggleSwitch color="success" checked={riskScenarioData.status === 'published'}/>} label={riskScenarioData.status === "published" ? "Enabled" : "Disabled"} sx={{ width: 30, height: 18, marginLeft: '0 !important', gap: 1}} />;
     }
     return (
       <Chip

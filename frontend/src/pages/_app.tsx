@@ -7,7 +7,6 @@ import theme from "@/styles/theme";
 import { CssBaseline, Grid } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
-import { usePathname } from "next/navigation";
 import { AuthProvider } from "@/context/AuthContext";
 
 export default function App({ Component, pageProps }: AppProps) {

@@ -1,8 +1,8 @@
-import EditDeleteDialog from '@/components/EditDeleteDialog'
+import MenuItemComponent from '@/components/MenuItemComponent'
 import FilterComponent from '@/components/library/FilterComponent';
 import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
 import { Button } from '@mui/material';
-import SuccessToast from '@/components/SuccessToast'
+import ToastComponent from '@/components/ToastComponent'
 // import ConfirmDialog from "@/components/ConfirmDialog"
 import React, { useState } from 'react';
 
@@ -35,7 +35,7 @@ const Index = () => {
   return (
     <>
 
-      <EditDeleteDialog items={dialogData} />
+      <MenuItemComponent items={dialogData} />
 
       <Button onClick={() => setOpenFilter(true)}>Open Filter</Button>
 
@@ -59,8 +59,12 @@ const Index = () => {
         confirmColor="#B00020"
       /> */}
 
-      <SuccessToast open={openSnackbar} onClose={() => setOpenSnackbar(false)}
-        message="Success! The Asset #002 has been deleted."
+      <ToastComponent open={openSnackbar} onClose={() => setOpenSnackbar(false)}
+        message="Success! The Asset #002 has been deleted." 
+        toastBorder='1px solid #147A50' 
+        toastColor='#147A50' 
+        toastBackgroundColor='#DDF5EB'
+        toastSeverity='success'
       />
 
 
