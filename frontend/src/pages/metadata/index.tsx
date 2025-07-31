@@ -13,31 +13,68 @@ import {
 import MetaDataCard from '@/components/meta-data/MetaDataCard'
 import React, { useState, useEffect } from 'react'
 import { Search } from '@mui/icons-material';
-import { fetchMetaDatas } from '../api/meta-data';
+import { fetchMetaDatas, deleteMetaData } from '../api/meta-data';
 import { MetaData } from '@/types/meta-data';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import ToastComponent from '@/components/ToastComponent';
 
 const Index = () => {
 
     const [loading, setLoading] = useState(false);
     const [metaDatas, setMetaDatas] = useState<MetaData[]>();
+    const [selectedMetaData, setSelectedMetaData] = useState<MetaData | null>(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [isAddEditDeleteMDSuccessToastOpen, setIsAddEditDeleteMDSuccessToastOpen] = useState(false);
+    const [addEditDeleteMDSuccessToastMessage, setAddEditDeleteMDSuccessToastMessage] = useState("");
+    const [isDeleteMetaDataConfirmPopupOpen, setIsDeleteMetaDataConfirmPopupOpen] = useState(false);
 
     useEffect(() => {
         const getMetaDatas = async () => {
-          try {
-            setLoading(true);
-            const data = await fetchMetaDatas();
-            setMetaDatas(data);
-          } catch (error) {
-            console.error("Error fetching risk scenarios:", error);
-          } finally {
-            setLoading(false);
-          }
+            try {
+                setLoading(true);
+                const data = await fetchMetaDatas();
+                setMetaDatas(data);
+            } catch (error) {
+                console.error("Error fetching risk scenarios:", error);
+            } finally {
+                setLoading(false);
+            }
         };
         getMetaDatas();
-      }, []);
+    }, [refreshTrigger]);
+
+    //Function to handle the delete of a metadata
+    const handleDeleteMetaData = async () => {
+        try {
+            if (selectedMetaData?.id) {
+                const res = await deleteMetaData(
+                    selectedMetaData?.id as number
+                );
+                console.log(res);
+                setRefreshTrigger((prev) => prev + 1);
+                setIsDeleteMetaDataConfirmPopupOpen(false);
+                setIsAddEditDeleteMDSuccessToastOpen(true);
+                setAddEditDeleteMDSuccessToastMessage(`${selectedMetaData.name} deleted`)
+            } else {
+                throw new Error("Invalid ID");
+            }
+        } catch (err) {
+            console.log("Something went wrong", err);
+            alert("Failed to Delete");
+        }
+    };
 
     return (
         <>
+            {selectedMetaData?.id && <ConfirmDialog open={isDeleteMetaDataConfirmPopupOpen} onClose={() => setIsDeleteMetaDataConfirmPopupOpen(false)} onConfirm={handleDeleteMetaData} title={"Delete " + selectedMetaData.name + "?"} description={"Are you sure about " + selectedMetaData.name + "?"} cancelText='Cancel' confirmText='Yes, Delete' confirmColor='#B20606' />}
+
+            <ToastComponent open={isAddEditDeleteMDSuccessToastOpen} onClose={() => setIsAddEditDeleteMDSuccessToastOpen(false)} message={addEditDeleteMDSuccessToastMessage} toastBorder='1px solid #147A50'
+                toastColor='#147A50'
+                toastBackgroundColor='#DDF5EB'
+                toastSeverity='success' />
+
+
+            {/* Landing Page code*/}
             <Box p={5} paddingBottom={10}>
                 <Box mb={3}>
                     {/* Row 1: Breadcrumb + Add Button */}
@@ -117,14 +154,17 @@ const Index = () => {
 
                 <Stack spacing={2}>
                     {metaDatas && metaDatas?.length > 0 &&
-                    metaDatas?.map((item, index) => (
-                        <MetaDataCard key={index}
-                        keyLabel={item.name}
-                        values={item.supported_values}
-                        onEdit={() => console.log('Edit clicked')}
-                        onDelete={() => console.log('Delete clicked')}
-                    />
-                    ))}
+                        metaDatas?.map((item, index) => (
+                            <MetaDataCard key={index}
+                                keyLabel={item.name}
+                                values={item.supported_values}
+                                onEdit={() => console.log('Edit clicked')}
+                                onDelete={() => {
+                                    setSelectedMetaData(item);
+                                    setIsDeleteMetaDataConfirmPopupOpen(true);
+                                }}
+                            />
+                        ))}
                 </Stack>
             </Box>
         </>
