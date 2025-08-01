@@ -31,6 +31,7 @@ const Index = () => {
     const [selectedMetaData, setSelectedMetaData] = useState<MetaData | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [isViewMetaDataModalOpen, setIsViewMetaDataModalOpen] = useState(false);
+    const [isAddEditMetaDataModalOpen, setIsAddEditMetaDataModalOpen] = useState(false);
     const [isAddEditDeleteMDSuccessToastOpen, setIsAddEditDeleteMDSuccessToastOpen] = useState(false);
     const [addEditDeleteMDSuccessToastMessage, setAddEditDeleteMDSuccessToastMessage] = useState("");
     const [isDeleteMetaDataConfirmPopupOpen, setIsDeleteMetaDataConfirmPopupOpen] = useState(false);
@@ -74,7 +75,7 @@ const Index = () => {
     return (
         <>
 
-            {selectedMetaData && isViewMetaDataModalOpen && (<ViewMetaDataModal open={isViewMetaDataModalOpen} metaData={selectedMetaData} onClose={() => setIsViewMetaDataModalOpen(false)} />)}
+            {selectedMetaData && isViewMetaDataModalOpen && (<ViewMetaDataModal open={isViewMetaDataModalOpen} metaData={selectedMetaData} onClose={() => setIsViewMetaDataModalOpen(false)} onEditButtonClick={() => { setSelectedMetaData(selectedMetaData); setIsAddEditMetaDataModalOpen(true); console.log(selectedMetaData) }} />)}
 
             {selectedMetaData?.id && <ConfirmDialog open={isDeleteMetaDataConfirmPopupOpen} onClose={() => setIsDeleteMetaDataConfirmPopupOpen(false)} onConfirm={handleDeleteMetaData} title={"Delete " + selectedMetaData.name + "?"} description={"Are you sure about " + selectedMetaData.name + "?"} cancelText='Cancel' confirmText='Yes, Delete' confirmColor='#B20606' />}
 

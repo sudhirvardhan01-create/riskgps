@@ -6,12 +6,14 @@ interface ViewMetaDataModalProps {
     open: boolean;
     metaData: MetaData;
     onClose: () => void;
+    onEditButtonClick: () => void;
 }
 
 const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
     open,
     metaData,
     onClose,
+    onEditButtonClick
 }: ViewMetaDataModalProps) => {
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth slotProps={{
@@ -33,10 +35,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                     <Box display={"flex"}
                         alignItems={"center"}
                         justifyContent={"space-between"}>
-                        <IconButton onClick={() => {
-                            // setSelectedRiskScenario(riskScenarioData);
-                            // setIsEditRiskScenarioOpen(true)
-                        }}>
+                        <IconButton onClick={onEditButtonClick}>
                             <EditOutlined sx={{ color: "primary.main" }} />
                         </IconButton>
                         <IconButton onClick={onClose}>
@@ -64,13 +63,13 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                             <Typography variant="caption" color="text.secondary" fontWeight={550} fontSize={"14px"}>
                                 Values
                             </Typography>
-                            <Stack direction="row" flexWrap="wrap" spacing={1}>
+                            <Stack direction="row" flexWrap="wrap">
                                 {metaData?.supported_values && metaData?.supported_values?.length > 0 ? (
                                     metaData?.supported_values?.map((value) => (
                                         <Chip
                                             key={value}
                                             label={value}
-                                            sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontWeight: "500", fontSize: "14px" }}
+                                            sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontWeight: "500", fontSize: "14px", marginRight: "8px", marginBottom: "8px"}}
                                         />
                                     ))
                                 ) : (

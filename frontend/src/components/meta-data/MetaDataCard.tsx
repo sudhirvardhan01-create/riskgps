@@ -23,7 +23,8 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
       sx={{
         borderRadius: 2,
         px: 2,
-        py: 1.5,
+        pt: 1.5,
+        pb: 0.5,
         boxShadow: '0px 4px 4px 0px #D9D9D966',
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
@@ -32,11 +33,10 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
         gap: 2,
         border: '1px solid #E4E4E4',
       }}
-      onClick={onClick}
     >
 
       {/* Key */}
-      <Stack spacing={1} flex={1}>
+      <Stack spacing={1} flex={1} onClick={onClick}>
         <Typography variant="subtitle2" color="text.secondary" fontWeight={550} fontSize={"14px"}>
           Key
         </Typography>
@@ -44,17 +44,17 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
       </Stack>
 
       {/* Values */}
-      <Stack spacing={1} flex={2}>
+      <Stack spacing={1} flex={2} onClick={onClick}>
         <Typography variant="subtitle2" color="text.secondary" fontWeight={550} fontSize={"14px"}>
           Values
         </Typography>
-        <Stack direction="row" flexWrap="wrap" spacing={1}>
+        <Stack direction="row" flexWrap="wrap">
           {values && values?.length > 0 ? (
             values?.map((value) => (
               <Chip
                 key={value}
                 label={value}
-                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontSize: "14px", fontWeight: "medium" }}
+                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontSize: "14px", fontWeight: "medium", marginRight: "8px", marginBottom: "8px" }}
               />
             ))
           ) : (
