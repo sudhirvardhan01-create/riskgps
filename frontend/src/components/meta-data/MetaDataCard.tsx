@@ -37,15 +37,15 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
 
       {/* Key */}
       <Stack spacing={1} flex={1}>
-        <Typography variant="subtitle2" color="text.secondary">
+        <Typography variant="subtitle2" color="text.secondary" fontWeight={550} fontSize={"14px"}>
           Key
         </Typography>
-        <Typography fontWeight={500} color="text.primary" fontSize={"16px"}>{keyLabel}</Typography>
+        <Typography sx={{ fontWeight: "medium"}} color="text.primary" fontSize={"16px"}>{keyLabel}</Typography>
       </Stack>
 
       {/* Values */}
       <Stack spacing={1} flex={2}>
-        <Typography variant="subtitle2" color="text.secondary">
+        <Typography variant="subtitle2" color="text.secondary" fontWeight={550} fontSize={"14px"}>
           Values
         </Typography>
         <Stack direction="row" flexWrap="wrap" spacing={1}>
@@ -54,11 +54,11 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
               <Chip
                 key={value}
                 label={value}
-                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontSize: "14px" }}
+                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontSize: "14px", fontWeight: "medium" }}
               />
             ))
           ) : (
-            <Typography variant="body2" color="text.disabled">
+            <Typography variant="body2" color="text.disabled" sx={{ fontWeight: 'medium'}}>
               No values assigned
             </Typography>
           )}
