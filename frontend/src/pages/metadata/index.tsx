@@ -20,6 +20,7 @@ import { MetaData } from '@/types/meta-data';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ToastComponent from '@/components/ToastComponent';
 import ViewMetaDataModal from '@/components/meta-data/ViewMetaDataModal';
+import MetaDataFormModal from '@/components/meta-data/MetaDataFormModal';
 
 const Index = () => {
 
@@ -31,10 +32,19 @@ const Index = () => {
     const [selectedMetaData, setSelectedMetaData] = useState<MetaData | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [isViewMetaDataModalOpen, setIsViewMetaDataModalOpen] = useState(false);
-    const [isAddEditMetaDataModalOpen, setIsAddEditMetaDataModalOpen] = useState(false);
+    const [isAddMetaDataModalOpen, setIsAddMetaDataModalOpen] = useState(false);
+    const [isEditMetaDataModalOpen, setIsEditMetaDataModalOpen] = useState(false);
     const [isAddEditDeleteMDSuccessToastOpen, setIsAddEditDeleteMDSuccessToastOpen] = useState(false);
     const [addEditDeleteMDSuccessToastMessage, setAddEditDeleteMDSuccessToastMessage] = useState("");
     const [isDeleteMetaDataConfirmPopupOpen, setIsDeleteMetaDataConfirmPopupOpen] = useState(false);
+    const [createMetaData, setCreateMetaData] = useState<MetaData>({
+        name: "",
+        label: "",
+        input_type: "",
+        supported_values: [] as string[],
+        applies_to: [] as string[],
+        description: ""
+    });
 
     useEffect(() => {
         const getMetaDatas = async () => {
@@ -75,7 +85,11 @@ const Index = () => {
     return (
         <>
 
-            {selectedMetaData && isViewMetaDataModalOpen && (<ViewMetaDataModal open={isViewMetaDataModalOpen} metaData={selectedMetaData} onClose={() => setIsViewMetaDataModalOpen(false)} onEditButtonClick={() => { setSelectedMetaData(selectedMetaData); setIsAddEditMetaDataModalOpen(true); console.log(selectedMetaData) }} />)}
+            {selectedMetaData && isViewMetaDataModalOpen && (<ViewMetaDataModal open={isViewMetaDataModalOpen} metaData={selectedMetaData} onClose={() => setIsViewMetaDataModalOpen(false)} onEditButtonClick={() => { setSelectedMetaData(selectedMetaData); setIsEditMetaDataModalOpen(true); console.log(selectedMetaData) }} />)}
+
+            {isAddMetaDataModalOpen && (<MetaDataFormModal open={isAddMetaDataModalOpen} onClose={() => setIsAddMetaDataModalOpen(false)} operation='create' onSubmit={() => console.log("Submitted")} metaData={createMetaData} />)}
+
+            {selectedMetaData && isEditMetaDataModalOpen && (<MetaDataFormModal open={isEditMetaDataModalOpen} onClose={() => setIsEditMetaDataModalOpen(false)} operation='edit' onSubmit={() => console.log("Submitted")} metaData={selectedMetaData} />)}
 
             {selectedMetaData?.id && <ConfirmDialog open={isDeleteMetaDataConfirmPopupOpen} onClose={() => setIsDeleteMetaDataConfirmPopupOpen(false)} onConfirm={handleDeleteMetaData} title={"Delete " + selectedMetaData.name + "?"} description={"Are you sure about " + selectedMetaData.name + "?"} cancelText='Cancel' confirmText='Yes, Delete' confirmColor='#B20606' />}
 
@@ -110,6 +124,7 @@ const Index = () => {
                                     backgroundColor: "#001080",
                                 },
                             }}
+                            onClick={() => setIsAddMetaDataModalOpen(true)}
                         >
                             Add Configuration
                         </Button>
@@ -190,7 +205,10 @@ const Index = () => {
                             <MetaDataCard key={index}
                                 keyLabel={item.name}
                                 values={item.supported_values}
-                                onEdit={() => console.log('Edit clicked')}
+                                onEdit={() => {
+                                    setSelectedMetaData(item);
+                                    setIsEditMetaDataModalOpen(true);
+                                }}
                                 onDelete={() => {
                                     setSelectedMetaData(item);
                                     setIsDeleteMetaDataConfirmPopupOpen(true);
