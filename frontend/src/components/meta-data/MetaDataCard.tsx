@@ -7,6 +7,7 @@ export interface MetaDataCardProps {
   values: string[] | undefined;
   onEdit?: () => void;
   onDelete?: () => void;
+  onClick?: () => void;
 }
 
 const MetaDataCard: React.FC<MetaDataCardProps> = ({
@@ -14,6 +15,7 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
   values,
   onEdit,
   onDelete,
+  onClick
 }) => {
   return (
     <Card
@@ -28,20 +30,22 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
         alignItems: { sm: 'center' },
         justifyContent: 'space-between',
         gap: 2,
-        border: '1px solid #E4E4E4'
+        border: '1px solid #E4E4E4',
       }}
+      onClick={onClick}
     >
+
       {/* Key */}
       <Stack spacing={1} flex={1}>
-        <Typography variant="subtitle2" color="#91939A">
+        <Typography variant="subtitle2" color="text.secondary">
           Key
         </Typography>
-        <Typography fontWeight={500} color="text.Primary">{keyLabel}</Typography>
+        <Typography fontWeight={500} color="text.primary" fontSize={"16px"}>{keyLabel}</Typography>
       </Stack>
 
       {/* Values */}
       <Stack spacing={1} flex={2}>
-        <Typography variant="subtitle2" color="#91939A">
+        <Typography variant="subtitle2" color="text.secondary">
           Values
         </Typography>
         <Stack direction="row" flexWrap="wrap" spacing={1}>
@@ -50,7 +54,7 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
               <Chip
                 key={value}
                 label={value}
-                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.Primary' }}
+                sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontSize: "14px" }}
               />
             ))
           ) : (
