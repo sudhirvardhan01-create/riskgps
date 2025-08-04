@@ -63,6 +63,7 @@ export const deleteMetaData = async (id: number) => {
 
 //Function to update a metadata
 export const updateMetaData = async (id: number, data: MetaData) => {
+  console.log(data);
   const metaData = {
     "name": data.name,
     "label": data.label,

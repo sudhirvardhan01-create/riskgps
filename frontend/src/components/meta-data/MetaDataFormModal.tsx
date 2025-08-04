@@ -317,22 +317,24 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                                 displayEmpty
                                 onChange={(e) => {
                                     const selectedValues = e.target.value as string[];
+                                    console.log(selectedValues);
 
                                     let newValue: string[];
 
                                     // If "all" is selected alone
-                                    if (selectedValues.includes("all") && selectedValues.length === 1) {
-                                        newValue = ["all"];
-                                    }
-                                    // If "all" is selected among others, only keep "all"
-                                    else if (selectedValues.includes("all")) {
+                                    // if (selectedValues.includes("all") && selectedValues.length === 1) {
+                                    //     newValue = ["all"];
+                                    // }
+                                    // // If "all" is selected among others, only keep "all"
+                                    // else 
+                                    if (selectedValues.includes("all")) {
                                         newValue = ["all"];
                                     }
                                     // If anything else is selected (excluding all)
                                     else {
                                         newValue = selectedValues.filter((v) => v !== "all");
                                     }
-
+                                    console.log(newValue);
                                     handleFieldChange("applies_to", newValue);
                                 }}
                                 renderValue={(selected) =>

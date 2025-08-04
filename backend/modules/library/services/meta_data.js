@@ -212,7 +212,8 @@ class MetaDataService {
           name,
           label,
           input_type,
-          supported_values
+          supported_values,
+          applies_to
         }
     );
   }
