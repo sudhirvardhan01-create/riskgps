@@ -1,6 +1,7 @@
 import { MetaData } from "@/types/meta-data";
 import { Close, EditOutlined } from "@mui/icons-material";
 import { Box, Chip, Dialog, DialogContent, DialogTitle, Divider, Grid, IconButton, Stack, Typography } from "@mui/material";
+import { appliesToOptions } from "./MetaDataFormModal";
 
 interface ViewMetaDataModalProps {
     open: boolean;
@@ -18,10 +19,10 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth slotProps={{
             paper: {
-                sx: { borderRadius: 2 }
+                sx: { borderRadius: 2,}
             }
         }}>
-            <DialogTitle>
+            <DialogTitle sx={{paddingRight: "12px !important" }}>
                 <Stack
                     display={"flex"}
                     direction={"row"}
@@ -34,16 +35,16 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
 
                     <Box display={"flex"}
                         alignItems={"center"}
-                        justifyContent={"space-between"}>
+                        justifyContent={"space-between"} gap={1}>
                         <IconButton onClick={onEditButtonClick}>
                             <EditOutlined sx={{ color: "primary.main" }} />
                         </IconButton>
                         <IconButton onClick={onClose}>
-                            <Close sx={{ color: "primary.main" }} />
+                            <Close sx={{ color: "primary.main"}} />
                         </IconButton>
                     </Box>
                 </Stack>
-                <Divider sx={{ mt: 2, mb: 0.5 }} />
+                <Divider sx={{ mt: 2, mb: 0.5, mr: 1.5 }} />
             </DialogTitle>
 
             <DialogContent>
@@ -95,8 +96,10 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                             <Typography variant="caption" color="text.secondary" fontWeight={550} fontSize={"14px"}>
                                 Applies To
                             </Typography>
-                            <Typography variant="body2" fontWeight={500} fontSize={"16px"} sx={{ textTransform: "capitalize" }}>
-                                {metaData.applies_to}
+                            <Typography variant="body2" fontWeight={500} fontSize={"16px"}>
+                                {metaData.applies_to?.map((item) => {
+                                    return appliesToOptions?.find(option => option.value === item)?.label
+                                }).join(", ")}
                             </Typography>
                         </Box>
                     </Grid>

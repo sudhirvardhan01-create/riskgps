@@ -3,6 +3,15 @@ import { MetaData } from "@/types/meta-data";
 import { Close } from "@mui/icons-material";
 import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 
+export const appliesToOptions = [
+    { value: "all", label: "All" },
+    { value: "process", label: "Process" },
+    { value: "risk_scenario", label: "Risk Scenario" },
+    { value: "asset", label: "Asset" },
+    { value: "threat", label: "Threat" },
+    { value: "control", label: "Control" },
+];
+
 interface MetaDataFormModalProps {
     operation: 'create' | 'edit';
     open: boolean;
@@ -22,14 +31,6 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
 }) => {
 
     const [inputValue, setInputValue] = useState("");
-    const appliesToOptions = [
-        { value: "all", label: "All" },
-        { value: "process", label: "Process" },
-        { value: "risk_scenario", label: "Risk Scenario" },
-        { value: "asset", label: "Asset" },
-        { value: "threat", label: "Threat" },
-        { value: "control", label: "Control" },
-    ];
 
 
     //Function to handle the Field change
@@ -317,24 +318,16 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                                 displayEmpty
                                 onChange={(e) => {
                                     const selectedValues = e.target.value as string[];
-                                    console.log(selectedValues);
 
                                     let newValue: string[];
 
-                                    // If "all" is selected alone
-                                    // if (selectedValues.includes("all") && selectedValues.length === 1) {
-                                    //     newValue = ["all"];
-                                    // }
-                                    // // If "all" is selected among others, only keep "all"
-                                    // else 
-                                    if (selectedValues.includes("all")) {
+                                    if (selectedValues.includes("all") || (!selectedValues.includes("all") && selectedValues.length === (appliesToOptions.length - 1))) {
                                         newValue = ["all"];
                                     }
                                     // If anything else is selected (excluding all)
                                     else {
                                         newValue = selectedValues.filter((v) => v !== "all");
                                     }
-                                    console.log(newValue);
                                     handleFieldChange("applies_to", newValue);
                                 }}
                                 renderValue={(selected) =>
