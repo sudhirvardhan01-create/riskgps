@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { MetaData } from "@/types/meta-data";
 import { Close } from "@mui/icons-material";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 
 interface MetaDataFormModalProps {
     operation: 'create' | 'edit';
     open: boolean;
     onClose: () => void;
-    metaData: MetaData;
+    formData: MetaData;
+    setFormData: React.Dispatch<React.SetStateAction<MetaData>>;
     onSubmit: () => void;
 }
 
@@ -15,9 +16,61 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
     operation,
     open,
     onClose,
-    metaData,
+    formData,
+    setFormData,
     onSubmit
 }) => {
+
+    const [inputValue, setInputValue] = useState("");
+    const appliesToOptions = [
+        { value: "all", label: "All" },
+        { value: "process", label: "Process" },
+        { value: "risk_scenario", label: "Risk Scenario" },
+        { value: "asset", label: "Asset" },
+        { value: "threat", label: "Threat" },
+        { value: "control", label: "Control" },
+    ];
+
+
+    //Function to handle the Field change
+    const handleFieldChange = (field: keyof typeof formData, value: any) => {
+        setFormData((prev) => {
+            if (field === "name") {
+                return {
+                    ...prev,
+                    name: value,
+                    label: value, // always sync label with name
+                };
+            }
+            return {
+                ...prev,
+                [field]: value,
+            };
+        });
+    };
+
+    //Function to handle the addition of chip
+    const handleAddChip = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && inputValue.trim()) {
+            e.preventDefault();
+            if (!formData.supported_values.includes(inputValue.trim())) {
+                setFormData((prev) => ({
+                    ...prev,
+                    supported_values: [...prev.supported_values, inputValue.trim()],
+                }));
+                setInputValue("");
+            }
+        }
+    };
+
+    //Function to handle the deletion of chip
+    const handleRemoveChip = (chipToDelete: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            supported_values: prev.supported_values.filter((val) => val !== chipToDelete),
+        }));
+    };
+
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" slotProps={{
@@ -35,14 +88,14 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                 <Typography variant="h5" fontWeight={550}>
                     {operation === "create" ? "Add Configuration" : "Edit Configuration"}
                 </Typography>
-                <IconButton onClick={onClose} sx={{paddingRight: "0px !important"}}>
+                <IconButton onClick={onClose} sx={{ padding: "0px !important", }}>
                     <Close />
                 </IconButton>
             </DialogTitle>
 
             <DialogContent>
                 <Grid container spacing={2}>
-                    {/* Existing form fields */}
+                    {/* Key */}
                     <Grid mt={1} size={{ xs: 12 }}>
                         <TextField
                             slotProps={{
@@ -53,10 +106,10 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                             fullWidth
                             label="Key"
                             placeholder="Enter key name"
-                            value={metaData.name}
+                            value={formData.name}
                             required
                             variant="outlined"
-                            //onChange={(e) => handleChange("riskScenario", e.target.value)}
+                            onChange={(e) => handleFieldChange("name", e.target.value)}
                             sx={{
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: 2,
@@ -93,8 +146,8 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                         />
                     </Grid>
 
-                    {/* Risk Statement field */}
-                    <Grid mt={1} size={{ xs: 12 }}>
+                    {/* Value field */}
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             slotProps={{
                                 inputLabel: {
@@ -104,8 +157,9 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                             fullWidth
                             label="Add a value"
                             placeholder="Enter value and return to add"
-                            value={metaData.supported_values}
-                            //onChange={(e) => handleChange("riskStatement", e.target.value)}
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={handleAddChip}
                             required
                             variant="outlined"
                             sx={{
@@ -142,8 +196,29 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                                 },
                             }}
                         />
+                        <Box display="flex" flexWrap="wrap" gap={1} sx={{ marginTop: formData.supported_values?.length > 0 ? 1 : 0 }}>
+                            {formData.supported_values.map((val, idx) => (
+                                <Chip
+                                    key={idx}
+                                    label={val}
+                                    onDelete={() => handleRemoveChip(val)}
+                                    deleteIcon={<Close fontSize="small" />}
+                                    sx={{
+                                        borderRadius: "2px",
+                                        border: "0.5px solid #04139A",
+                                        color: "tet.primary",
+                                        fontSize: '14px',
+                                        backgroundColor: '#EDF3FCA3',
+                                        "& .MuiChip-deleteIcon": {
+                                            color: "#04139A",
+                                        },
+                                    }}
+                                />
+                            ))}
+                        </Box>
                     </Grid>
 
+                    {/* Input Type */}
                     <Grid size={{ xs: 6 }}>
                         <FormControl fullWidth>
                             <InputLabel
@@ -163,31 +238,28 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                                 Input Type
                             </InputLabel>
                             <Select
-                                value={metaData.input_type}
+                                value={formData.input_type}
                                 label="Input Type"
                                 displayEmpty
-                                // onChange={(e) =>
-                                //     handleKeyValueChange(
-                                //         index,
-                                //         "meta_data_key_id",
-                                //         e.target.value as number
-                                //     )
-                                // }
-                                // renderValue={(selected) => {
-                                //     if (!selected || selected < 0) {
-                                //         return (
-                                //             <span style={{ color: "#9e9e9e" }}>Select Key</span>
-                                //         );
-                                //     } else {
-                                //         const label = metaDatas.find((m) => m.id === selected)?.label;
-                                //         return (label ?? (
-                                //             <span style={{ color: "#9e9e9e" }}>
-                                //                 Select Key
-                                //             </span>
-                                //         )
-                                //         );
-                                //     }
-                                // }}
+                                onChange={(e) =>
+                                    handleFieldChange(
+                                        "input_type",
+                                        e.target.value
+                                    )
+                                }
+                                renderValue={(selected) => {
+                                    if (!selected) {
+                                        return (
+                                            <span style={{ color: "#9e9e9e" }}>Select Input Type</span>
+                                        );
+                                    } else {
+                                        return (
+                                            <Typography variant="body2" sx={{ color: "text.primary", textTransform: "capitalize", fontSize: "14px" }}>
+                                                {selected}
+                                            </Typography>
+                                        )
+                                    }
+                                }}
                                 sx={{
                                     borderRadius: 2,
                                     backgroundColor: "#ffffff",
@@ -210,13 +282,16 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                                     },
                                 }}
                             >
-                                    <MenuItem>text</MenuItem>
-                                    <MenuItem>select</MenuItem>
-                                    <MenuItem>multiselect</MenuItem>
-                                    <MenuItem>number</MenuItem>
+                                <MenuItem value="text">Text</MenuItem>
+                                <MenuItem value="select">Select</MenuItem>
+                                <MenuItem value="multiselect">Multiselect</MenuItem>
+                                <MenuItem value="number">Number</MenuItem>
+
                             </Select>
                         </FormControl>
                     </Grid>
+
+                    {/* Applies To */}
                     <Grid size={{ xs: 6 }}>
                         <FormControl fullWidth>
                             <InputLabel
@@ -236,26 +311,38 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                                 Applies To
                             </InputLabel>
                             <Select
-                                value={metaData.applies_to}
+                                value={formData.applies_to}
                                 label="Applies To"
+                                multiple
                                 displayEmpty
-                                // onChange={(e) =>
-                                //     handleKeyValueChange(
-                                //         index,
-                                //         "values",
-                                //         e.target.value as string[]
-                                //     )
-                                // }
-                                renderValue={(selected) => {
-                                  if (!selected || selected.length < 0) {
-                                        return (
-                                            <span style={{ color: "#9e9e9e" }}>
-                                                Enter Value
-                                            </span>
-                                        );
+                                onChange={(e) => {
+                                    const selectedValues = e.target.value as string[];
+
+                                    let newValue: string[];
+
+                                    // If "all" is selected alone
+                                    if (selectedValues.includes("all") && selectedValues.length === 1) {
+                                        newValue = ["all"];
                                     }
-                                    return selected;
+                                    // If "all" is selected among others, only keep "all"
+                                    else if (selectedValues.includes("all")) {
+                                        newValue = ["all"];
+                                    }
+                                    // If anything else is selected (excluding all)
+                                    else {
+                                        newValue = selectedValues.filter((v) => v !== "all");
+                                    }
+
+                                    handleFieldChange("applies_to", newValue);
                                 }}
+                                renderValue={(selected) =>
+                                    (selected as string[])
+                                        .map(
+                                            (val) =>
+                                                appliesToOptions.find((option) => option.value === val)?.label || val
+                                        )
+                                        .join(", ")
+                                }
                                 sx={{
                                     borderRadius: 2,
                                     backgroundColor: "#ffffff",
@@ -278,11 +365,17 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                                     },
                                 }}
                             >
-                                {/* {selectedMeta?.supported_values?.map((val: string | number, i: number) => (
-                                    <MenuItem key={i} value={val}>
-                                        {val}
+                                {appliesToOptions.map((option) => (
+                                    <MenuItem
+                                        key={option.value}
+                                        value={option.value}
+                                        disabled={
+                                            option.value !== "all" && formData.applies_to?.includes("all")
+                                        }
+                                    >
+                                        {option.label}
                                     </MenuItem>
-                                ))} */}
+                                ))}
                             </Select>
                         </FormControl>
                     </Grid>
@@ -296,9 +389,7 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
             >
                 <Box>
                     <Button
-                        // onClick={() => {
-                        //     onSubmit("draft");
-                        // }}
+                        onClick={onClose}
                         sx={{ width: 110, height: 40, borderRadius: 1, margin: 1 }}
                         variant="outlined"
                     >
@@ -307,11 +398,9 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                     <Button
                         sx={{ width: 110, height: 40, borderRadius: 1, margin: 1, marginRight: 0 }}
                         variant="contained"
-                    // onClick={() => {
-                    //     onSubmit("published");
-                    // }}
+                        onClick={onSubmit}
                     >
-                        Add
+                        {operation === "create" ? "Add" : "Save"}
                     </Button>
                 </Box>
             </DialogActions>

@@ -37,7 +37,7 @@ class MetaDataService {
     // Basic validation
     console.log("Received request for creating meta data", data);
 
-    const requiredFields = ["name", "label", "input_type", "supported_values"];
+    const requiredFields = ["name", "label", "supported_values"];
 
     for (const field of requiredFields) {
       if (!data[field]) {
@@ -59,7 +59,7 @@ class MetaDataService {
       "process",
       "threat",
       "asset",
-      "assesment",
+      "control",
     ];
     if (
       !data.applies_to.every((value) => validAppliesToField.includes(value))
@@ -198,7 +198,7 @@ class MetaDataService {
       "process",
       "threat",
       "asset",
-      "assesment",
+      "control",
     ];
     if (
       !applies_to.every((value) => validAppliesToField.includes(value))

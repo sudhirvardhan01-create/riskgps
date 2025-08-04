@@ -15,7 +15,7 @@ import {
 import MetaDataCard from '@/components/meta-data/MetaDataCard'
 import React, { useState, useEffect } from 'react'
 import { FilterAltOutlined, Search } from '@mui/icons-material';
-import { fetchMetaDatas, deleteMetaData } from '../api/meta-data';
+import { fetchMetaDatas, deleteMetaData, createMetaData, updateMetaData } from '../api/meta-data';
 import { MetaData } from '@/types/meta-data';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ToastComponent from '@/components/ToastComponent';
@@ -34,16 +34,16 @@ const Index = () => {
     const [isViewMetaDataModalOpen, setIsViewMetaDataModalOpen] = useState(false);
     const [isAddMetaDataModalOpen, setIsAddMetaDataModalOpen] = useState(false);
     const [isEditMetaDataModalOpen, setIsEditMetaDataModalOpen] = useState(false);
+    const [isEditConfirmPopupOpen, setIsEditConfirmPopupOpen] = useState(false);
     const [isAddEditDeleteMDSuccessToastOpen, setIsAddEditDeleteMDSuccessToastOpen] = useState(false);
     const [addEditDeleteMDSuccessToastMessage, setAddEditDeleteMDSuccessToastMessage] = useState("");
     const [isDeleteMetaDataConfirmPopupOpen, setIsDeleteMetaDataConfirmPopupOpen] = useState(false);
-    const [createMetaData, setCreateMetaData] = useState<MetaData>({
+    const [formData, setFormData] = useState<MetaData>({
         name: "",
         label: "",
         input_type: "",
         supported_values: [] as string[],
         applies_to: [] as string[],
-        description: ""
     });
 
     useEffect(() => {
@@ -82,15 +82,94 @@ const Index = () => {
         }
     };
 
+    //Function to handle the create of a metadata
+    const handleCreateMetaData = async () => {
+        try {
+            const reqBody = formData;
+            const res = await createMetaData(reqBody);
+            console.log(res);
+            setFormData({
+                name: "",
+                label: "",
+                input_type: "",
+                supported_values: [] as string[],
+                applies_to: [] as string[],
+            });
+            setRefreshTrigger(prev => prev + 1);
+            setIsAddMetaDataModalOpen(false);
+            // alert("Created");
+            setIsAddEditDeleteMDSuccessToastOpen(true);
+            setAddEditDeleteMDSuccessToastMessage(`${reqBody.name} has been added successfully.`)
+        }
+        catch (err) {
+            console.log("Something went wrong", err);
+        }
+    };
+
+    //Function to handle the update of a metadata
+    const handleUpdateMetaData = async () => {
+        try {
+            if (selectedMetaData?.id) {
+                console.log(selectedMetaData);
+                const reqBody = selectedMetaData;
+                const res = await updateMetaData(reqBody.id as number, reqBody);
+                console.log(res);
+                setRefreshTrigger(prev => prev + 1);
+                setIsEditMetaDataModalOpen(false);
+                setSelectedMetaData(null);
+                // alert("Updated");
+                setIsAddEditDeleteMDSuccessToastOpen(true);
+                setAddEditDeleteMDSuccessToastMessage(`Changes have been saved successfully.`)
+            }
+            else {
+                alert("Invalid Operation");
+            }
+        }
+        catch (err) {
+            console.log("Something went wrong", err);
+        }
+    }
+
     return (
         <>
-
+            {/* To view Metadata */}
             {selectedMetaData && isViewMetaDataModalOpen && (<ViewMetaDataModal open={isViewMetaDataModalOpen} metaData={selectedMetaData} onClose={() => setIsViewMetaDataModalOpen(false)} onEditButtonClick={() => { setSelectedMetaData(selectedMetaData); setIsEditMetaDataModalOpen(true); console.log(selectedMetaData) }} />)}
 
-            {isAddMetaDataModalOpen && (<MetaDataFormModal open={isAddMetaDataModalOpen} onClose={() => setIsAddMetaDataModalOpen(false)} operation='create' onSubmit={() => console.log("Submitted")} metaData={createMetaData} />)}
+            {/* To add Metadata */}
+            {isAddMetaDataModalOpen && (<MetaDataFormModal open={isAddMetaDataModalOpen} onClose={() => {setIsAddMetaDataModalOpen(false);setFormData({
+                name: "",
+                label: "",
+                input_type: "",
+                supported_values: [] as string[],
+                applies_to: [] as string[],
+            });}} operation='create' onSubmit={handleCreateMetaData} formData={formData} setFormData={setFormData} />)}
 
-            {selectedMetaData && isEditMetaDataModalOpen && (<MetaDataFormModal open={isEditMetaDataModalOpen} onClose={() => setIsEditMetaDataModalOpen(false)} operation='edit' onSubmit={() => console.log("Submitted")} metaData={selectedMetaData} />)}
+            {/* To edit Metadata */}
+            {selectedMetaData && isEditMetaDataModalOpen && (<MetaDataFormModal open={isEditMetaDataModalOpen} onClose={() => setIsEditConfirmPopupOpen(true)} operation='edit' onSubmit={handleUpdateMetaData} formData={selectedMetaData} setFormData={(val) => {
+                if (typeof val === "function") {
+                    setSelectedMetaData((prev) => val(prev as MetaData));
+                } else {
+                    setSelectedMetaData(val);
+                }
+            }} />)}
 
+            <ConfirmDialog
+                open={isEditConfirmPopupOpen}
+                onClose={() => {
+                    setIsEditConfirmPopupOpen(false);
+                }}
+                title="You have unsaved changes"
+                description="Are you sure you want to discard the changes?"
+                onConfirm={() => {
+                    setIsEditConfirmPopupOpen(false);
+                    setSelectedMetaData(null);
+                    setIsEditMetaDataModalOpen(false);
+                }}
+                cancelText="Continue Editing"
+                confirmText="Yes, Discard"
+            />
+
+            {/* To delete Metadata */}
             {selectedMetaData?.id && <ConfirmDialog open={isDeleteMetaDataConfirmPopupOpen} onClose={() => setIsDeleteMetaDataConfirmPopupOpen(false)} onConfirm={handleDeleteMetaData} title={"Delete " + selectedMetaData.name + "?"} description={"Are you sure about " + selectedMetaData.name + "?"} cancelText='Cancel' confirmText='Yes, Delete' confirmColor='#B20606' />}
 
             <ToastComponent open={isAddEditDeleteMDSuccessToastOpen} onClose={() => setIsAddEditDeleteMDSuccessToastOpen(false)} message={addEditDeleteMDSuccessToastMessage} toastBorder='1px solid #147A50'
