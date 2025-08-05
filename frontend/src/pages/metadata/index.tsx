@@ -53,7 +53,7 @@ const Index = () => {
                 const data = await fetchMetaDatas();
                 setMetaDatas(data);
             } catch (error) {
-                console.error("Error fetching risk scenarios:", error);
+                console.error("Error while fetching metadata:", error);
             } finally {
                 setLoading(false);
             }
@@ -97,7 +97,6 @@ const Index = () => {
             });
             setRefreshTrigger(prev => prev + 1);
             setIsAddMetaDataModalOpen(false);
-            // alert("Created");
             setIsAddEditDeleteMDSuccessToastOpen(true);
             setAddEditDeleteMDSuccessToastMessage(`${reqBody.name} has been added successfully.`)
         }
@@ -110,14 +109,12 @@ const Index = () => {
     const handleUpdateMetaData = async () => {
         try {
             if (selectedMetaData?.id) {
-                console.log(selectedMetaData);
                 const reqBody = selectedMetaData;
                 const res = await updateMetaData(reqBody.id as number, reqBody);
                 console.log(res);
                 setRefreshTrigger(prev => prev + 1);
                 setIsEditMetaDataModalOpen(false);
                 setSelectedMetaData(null);
-                // alert("Updated");
                 setIsAddEditDeleteMDSuccessToastOpen(true);
                 setAddEditDeleteMDSuccessToastMessage(`Changes have been saved successfully.`)
             }
@@ -133,7 +130,7 @@ const Index = () => {
     return (
         <>
             {/* To view Metadata */}
-            {selectedMetaData && isViewMetaDataModalOpen && (<ViewMetaDataModal open={isViewMetaDataModalOpen} metaData={selectedMetaData} onClose={() => setIsViewMetaDataModalOpen(false)} onEditButtonClick={() => { setSelectedMetaData(selectedMetaData); setIsEditMetaDataModalOpen(true); console.log(selectedMetaData) }} />)}
+            {selectedMetaData && isViewMetaDataModalOpen && (<ViewMetaDataModal open={isViewMetaDataModalOpen} metaData={selectedMetaData} onClose={() => setIsViewMetaDataModalOpen(false)} onEditButtonClick={() => { setSelectedMetaData(selectedMetaData); setIsEditMetaDataModalOpen(true)}} />)}
 
             {/* To add Metadata */}
             {isAddMetaDataModalOpen && (<MetaDataFormModal open={isAddMetaDataModalOpen} onClose={() => {setIsAddMetaDataModalOpen(false);setFormData({
