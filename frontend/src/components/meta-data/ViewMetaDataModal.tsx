@@ -19,20 +19,17 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth slotProps={{
             paper: {
-                sx: { borderRadius: 2,}
+                sx: { borderRadius: 2, }
             }
         }}>
-            <DialogTitle sx={{paddingRight: "12px !important" }}>
+            <DialogTitle sx={{ paddingRight: "12px !important" }}>
                 <Stack
                     display={"flex"}
                     direction={"row"}
                     alignItems={"center"}
                     justifyContent={"space-between"}
                 >
-                    <Stack display={"flex"} direction="row" justifyContent={"center"} alignItems={"center"} gap={2}>
-                        <Typography variant="h6" fontWeight={550}>Configuration</Typography>
-                    </Stack>
-
+                    <Typography variant="h6" fontWeight={550}>Configuration</Typography>
                     <Box display={"flex"}
                         alignItems={"center"}
                         justifyContent={"space-between"} gap={1}>
@@ -40,7 +37,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                             <EditOutlined sx={{ color: "primary.main" }} />
                         </IconButton>
                         <IconButton onClick={onClose}>
-                            <Close sx={{ color: "primary.main"}} />
+                            <Close sx={{ color: "primary.main" }} />
                         </IconButton>
                     </Box>
                 </Stack>
@@ -70,7 +67,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                                         <Chip
                                             key={value}
                                             label={value}
-                                            sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontWeight: "500", fontSize: "14px", marginRight: "8px", marginBottom: "8px"}}
+                                            sx={{ borderRadius: '2px', bgcolor: '#E7E7E8', color: 'text.primary', fontWeight: "500", fontSize: "14px", marginRight: "8px", marginBottom: "8px" }}
                                         />
                                     ))
                                 ) : (
