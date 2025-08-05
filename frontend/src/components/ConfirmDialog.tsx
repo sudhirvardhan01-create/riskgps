@@ -41,7 +41,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <CloseIcon fontSize="small" />
             </IconButton>
             <DialogTitle sx={{ textAlign: "center", mb: 0, pb: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#484848' }}>
+                <Typography variant="body1" fontSize="24px" sx={{ fontWeight: 600, color: '#484848' }}>
                     {title}
                 </Typography>
             </DialogTitle>
