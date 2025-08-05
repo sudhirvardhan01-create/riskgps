@@ -2,7 +2,7 @@ import { Card, Chip, IconButton, Stack, Typography } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 
-export interface MetaDataCardProps {
+interface MetaDataCardProps {
   keyLabel: string;
   values: string[] | undefined;
   onEdit?: () => void;
