@@ -18,7 +18,6 @@ const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/meta-da
 
 //Function to create a metadata
 export const createMetaData = async (data : MetaData) => {
-  console.log(data);
   const metaData = {
     "name":data.name,
     "label": data.label,
@@ -26,7 +25,6 @@ export const createMetaData = async (data : MetaData) => {
     "supported_values": data.supported_values,
     "applies_to": data.applies_to
 };
-  console.log(metaData);
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/meta-data`, {
     method: "POST",
     body: JSON.stringify(metaData),
@@ -63,11 +61,10 @@ export const deleteMetaData = async (id: number) => {
 
 //Function to update a metadata
 export const updateMetaData = async (id: number, data: MetaData) => {
-  console.log(data);
   const metaData = {
     "name": data.name,
     "label": data.label,
-    "input_type": data.input_type,
+    "input_type": data.input_type ?? null,
     "supported_values": data.supported_values,
     "applies_to": data.applies_to
   };
