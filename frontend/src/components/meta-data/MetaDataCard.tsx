@@ -37,15 +37,15 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
 
       {/* Key */}
       <Stack spacing={1} flex={1} onClick={onClick}>
-        <Typography variant="subtitle2" color="text.secondary" fontWeight={550} fontSize={"14px"}>
+        <Typography variant="body2" color="text.secondary" fontWeight={550}>
           Key
         </Typography>
-        <Typography sx={{ fontWeight: "medium"}} color="text.primary" fontSize={"16px"}>{keyLabel}</Typography>
+        <Typography variant="body1" sx={{ fontWeight: "medium"}} color="text.primary">{keyLabel}</Typography>
       </Stack>
 
       {/* Values */}
       <Stack spacing={1} flex={2} onClick={onClick}>
-        <Typography variant="subtitle2" color="text.secondary" fontWeight={550} fontSize={"14px"}>
+        <Typography variant="body2" color="text.secondary" fontWeight={550}>
           Values
         </Typography>
         <Stack direction="row" flexWrap="wrap">

@@ -12,3 +12,5 @@ backend/modules/library/services/prepopulate_metadata.js
 backend/modules/library/services/prepopulate_process.js
 backend/modules/library/services/prepopulate_risk_scenario.js
 frontend/src/components/LibraryRowsCardComponent/LibraryRowsCardComponent.tsx
+
+.vscode
