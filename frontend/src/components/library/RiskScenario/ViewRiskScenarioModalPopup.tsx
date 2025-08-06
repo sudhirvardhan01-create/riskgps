@@ -36,7 +36,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
 
   const getStatusComponent = () => {
     if (riskScenarioData.status === 'published' || riskScenarioData.status === 'not_published') {
-      return <FormControlLabel control={<ToggleSwitch color="success" checked={riskScenarioData.status === 'published'}/>} label={riskScenarioData.status === "published" ? "Enabled" : "Disabled"} sx={{ width: 30, height: 18, marginLeft: '0 !important', gap: 1}} />;
+      return <FormControlLabel control={<ToggleSwitch color="success" checked={riskScenarioData.status === 'published'} />} label={riskScenarioData.status === "published" ? "Enabled" : "Disabled"} sx={{ width: 30, height: 18, marginLeft: '0 !important', gap: 1 }} />;
     }
     return (
       <Chip
@@ -64,7 +64,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
           justifyContent={"space-between"}
         >
           <Stack display={"flex"} direction="row" justifyContent={"center"} alignItems={"center"} gap={2}>
-            <Typography variant="h6">Risk Scenario {riskScenarioData.risk_code}</Typography>
+            <Typography variant="h6" fontWeight={550}>Risk Scenario {riskScenarioData.risk_code}</Typography>
             {getStatusComponent()}
           </Stack>
 
@@ -151,15 +151,15 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
           </Grid>
           {riskScenarioData?.attributes?.map((item, index) => (
             <Grid key={index} size={{ xs: 6 }}>
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                {metaDatas?.find(metaData => metaData.id === item.meta_data_key_id)?.label}
-              </Typography>
-              <Typography variant="body2" fontWeight={500}>
-                {item.values.join(", ")}
-              </Typography>
-            </Box>
-          </Grid>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  {metaDatas?.find(metaData => metaData.id === item.meta_data_key_id)?.label}
+                </Typography>
+                <Typography variant="body2" fontWeight={500}>
+                  {item.values.join(", ")}
+                </Typography>
+              </Box>
+            </Grid>
           ))}
         </Grid>
         <Grid
