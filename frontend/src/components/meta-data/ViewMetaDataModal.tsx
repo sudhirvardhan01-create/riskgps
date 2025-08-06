@@ -29,7 +29,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                     alignItems={"center"}
                     justifyContent={"space-between"}
                 >
-                    <Typography variant="h6" fontWeight={550}>Configuration</Typography>
+                    <Typography variant="h5" fontWeight={550}>Configuration</Typography>
                     <Box display={"flex"}
                         alignItems={"center"}
                         justifyContent={"space-between"} gap={1}>
@@ -48,17 +48,17 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>
                         <Box>
-                            <Typography variant="caption" color="text.secondary" fontWeight={550} fontSize={"14px"}>
+                            <Typography variant="body2" color="text.secondary" fontWeight={550}>
                                 Key
                             </Typography>
-                            <Typography variant="body2" fontWeight={500} fontSize={"16px"}>
+                            <Typography variant="body1" fontWeight={500}>
                                 {metaData.name}
                             </Typography>
                         </Box>
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                         <Box>
-                            <Typography variant="caption" color="text.secondary" fontWeight={550} fontSize={"14px"}>
+                            <Typography variant="body2" color="text.secondary" fontWeight={550}>
                                 Values
                             </Typography>
                             <Stack direction="row" flexWrap="wrap">
@@ -71,7 +71,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                                         />
                                     ))
                                 ) : (
-                                    <Typography variant="body2" color="text.disabled" fontWeight={500} fontSize={"16px"}>
+                                    <Typography variant="body1" color="text.disabled" fontWeight={500}>
                                         No values assigned
                                     </Typography>
                                 )}
@@ -80,20 +80,20 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                         <Box>
-                            <Typography variant="caption" color="text.secondary" fontWeight={550} fontSize={"14px"}>
+                            <Typography variant="body2" color="text.secondary" fontWeight={550}>
                                 Input Type
                             </Typography>
-                            <Typography variant="body2" fontWeight={500} fontSize={"16px"} sx={{ textTransform: "capitalize" }}>
+                            <Typography variant="body1" fontWeight={500} sx={{ textTransform: "capitalize" }}>
                                 {metaData.input_type}
                             </Typography>
                         </Box>
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                         <Box>
-                            <Typography variant="caption" color="text.secondary" fontWeight={550} fontSize={"14px"}>
+                            <Typography variant="body2" color="text.secondary" fontWeight={550}>
                                 Applies To
                             </Typography>
-                            <Typography variant="body2" fontWeight={500} fontSize={"16px"}>
+                            <Typography variant="body1" fontWeight={500}>
                                 {metaData.applies_to?.map((item) => {
                                     return appliesToOptions?.find(option => option.value === item)?.label
                                 }).join(", ")}
