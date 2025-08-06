@@ -11,7 +11,7 @@ import {
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { RiskScenarioData } from '@/types/risk-scenario';
 import MenuItemComponent from '@/components/MenuItemComponent';
-import ToggleSwitch from '../toggle-switch/ToggleSwitch';
+import ToggleSwitch from '../ToggleSwitch/ToggleSwitch';
 
 
 interface RiskScenarioCardProps {

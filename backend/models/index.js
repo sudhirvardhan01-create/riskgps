@@ -27,7 +27,8 @@ db.Process = require("../modules/library/models/process")(sequelize);
 db.MetaData = require("../modules/library/models/meta_data")(sequelize);
 db.RiskScenarioAttribute = require("../modules/library/models/risk_scenario_attribute")(sequelize);
 db.ProcessRiskScenarioMappings = require("../modules/library/models/risk_scenario_process")(sequelize);
-
+db.ProcessRelationship = require("../modules/library/models/process_relation")(sequelize);
+db.ProcessAttribute = require("../modules/library/models/process_attribute")(sequelize);
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);

@@ -19,7 +19,8 @@ module.exports = (sequelize) => {
     status: { 
       defaultValue: 'published',
       allowNull: false,
-      type: DataTypes.ENUM(...RISK_STATUS) },
+      type: DataTypes.ENUM(...RISK_STATUS) 
+    },
     risk_field_1: DataTypes.TEXT,
     risk_field_2: DataTypes.TEXT,
   }, {

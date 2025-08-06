@@ -17,9 +17,9 @@ import {
 import { useRouter } from "next/router";
 import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
-import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
-import RiskScenarioCard from "@/components/library/risk-scenario/RiskScenarioCard";
-import RiskScenarioFormModal from "@/components/library/risk-scenario/RiskScenarioFormModal";
+import ViewRiskScenarioModal from "@/components/library/RiskScenario/ViewRiskScenarioModalPopup";
+import RiskScenarioCard from "@/components/library/RiskScenario/RiskScenarioCard";
+import RiskScenarioFormModal from "@/components/library/RiskScenario/RiskScenarioFormModal";
 import {
   RiskScenarioAttributes,
   RiskScenarioData,
@@ -38,7 +38,7 @@ import FilterComponent from "@/components/library/FilterComponent";
 import ToastComponent from "@/components/ToastComponent";
 import withAuth from "@/hoc/withAuth";
 
-const Index = () => {
+const RiskScenarioLibraryPage = () => {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -94,8 +94,8 @@ const Index = () => {
     const getProcessesData = async () => {
       try {
         setLoading(true);
-        const data = await fetchProcesses();
-        setProcessesData(data);
+        const data = await fetchProcesses(0, 0);
+        setProcessesData(data.data);
       } catch (error) {
         console.error("Error fetching risk scenarios:", error);
       } finally {
@@ -495,4 +495,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default RiskScenarioLibraryPage;
