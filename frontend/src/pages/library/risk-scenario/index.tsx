@@ -18,7 +18,7 @@ import { useRouter } from "next/router";
 import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
 import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
-import RiskScenarioCard from "@/components/library/risk-scenario/RiskScenarioCard";
+import LibraryCard from "@/components/library/LibraryCard";
 import RiskScenarioFormModal from "@/components/library/risk-scenario/RiskScenarioFormModal";
 import {
   RiskScenarioAttributes,
@@ -37,6 +37,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import FilterComponent from "@/components/library/FilterComponent";
 import ToastComponent from "@/components/ToastComponent";
 import withAuth from "@/hoc/withAuth";
+import LibraryHeader from "@/components/library/LibraryHeader";
 
 const Index = () => {
   const router = useRouter();
@@ -52,15 +53,19 @@ const Index = () => {
     useState<RiskScenarioData[]>();
   const [processesData, setProcessesData] = useState([]);
   const [metaDatas, setMetaDatas] = useState([]);
-  const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
-  const [isDeleteConfirmPopupOpen, setIsDeleteConfirmPopupOpen] = useState(false);
+  const [selectedRiskScenario, setSelectedRiskScenario] =
+    useState<RiskScenarioData | null>(null);
+  const [isDeleteConfirmPopupOpen, setIsDeleteConfirmPopupOpen] =
+    useState(false);
   const [isAddConfirmPopupOpen, setIsAddConfirmPopupOpen] = useState(false);
   const [isEditConfirmPopupOpen, setIsEditConfirmPopupOpen] = useState(false);
   const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(false);
   const [isAddRiskScenarioOpen, setIsAddRiskScenarioOpen] = useState(false);
   const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
-  const [isAddDeleteRSSuccessToastOpen, setIsAddDeleteRSSuccessToastOpen] = useState(false);
-  const [addDeleteRSSuccessToastMessage, setAddDeleteRSSuccessToastMessage] = useState("");
+  const [isAddDeleteRSSuccessToastOpen, setIsAddDeleteRSSuccessToastOpen] =
+    useState(false);
+  const [addDeleteRSSuccessToastMessage, setAddDeleteRSSuccessToastMessage] =
+    useState("");
   const [riskData, setRiskData] = useState<RiskScenarioData>({
     riskScenario: "",
     riskStatement: "",
@@ -71,7 +76,24 @@ const Index = () => {
       { meta_data_key_id: null, values: [] },
     ] as RiskScenarioAttributes[],
   });
-  const [isOpenFilter, setIsOpenFilter] = useState(false);
+
+  const sortItems = [
+    { label: "Risk ID (Ascending)", value: "risk_asc" },
+    { label: "Risk ID (Descending)", value: "risk_desc" },
+    { label: "Created (Latest to Oldest)", value: "created_lto" },
+    { label: "Created (Oldest to Latest)", value: "created_otl" },
+    { label: "Updated (Latest to Oldest)", value: "updated_lto" },
+    { label: "Updated (Oldest to Latest)", value: "updated_otl" },
+  ];
+
+  const breadcrumbItems = [
+    {
+      label: "Library",
+      onClick: () => router.push("/library"),
+      icon: <ArrowBack fontSize="small" />,
+    },
+    { label: "Risk Scenarios" },
+  ];
 
   useEffect(() => {
     const getRiskScenariosData = async () => {
@@ -140,7 +162,11 @@ const Index = () => {
       setIsAddRiskScenarioOpen(false);
       //alert("created");
       setIsAddDeleteRSSuccessToastOpen(true);
-      setAddDeleteRSSuccessToastMessage(`Success! The risk scenario RS-ID has been ${status === "published" ? "published" : "saved as a draft"}`)
+      setAddDeleteRSSuccessToastMessage(
+        `Success! The risk scenario RS-ID has been ${
+          status === "published" ? "published" : "saved as a draft"
+        }`
+      );
     } catch (err) {
       console.log("Something went wrong", err);
     }
@@ -152,10 +178,7 @@ const Index = () => {
         console.log(selectedRiskScenario);
         const reqBody = selectedRiskScenario;
         reqBody.status = status;
-        const res = await updateRiskScenario(
-          reqBody.id as number,
-          reqBody
-        );
+        const res = await updateRiskScenario(reqBody.id as number, reqBody);
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsEditRiskScenarioOpen(false);
@@ -169,15 +192,15 @@ const Index = () => {
     }
   };
 
-  const handleUpdateRiskScenarioStatus = async (id: number ,status: string) => {
+  const handleUpdateRiskScenarioStatus = async (id: number, status: string) => {
     try {
-        const res = await updateRiskScenarioStatus(id, status);
-        console.log(res);
-        setRefreshTrigger((prev) => prev + 1);
+      const res = await updateRiskScenarioStatus(id, status);
+      console.log(res);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
       console.log("Something went wrong", err);
     }
-  }
+  };
 
   const handleDeleteRiskScenario = async () => {
     try {
@@ -189,7 +212,9 @@ const Index = () => {
         setRefreshTrigger((prev) => prev + 1);
         setIsDeleteConfirmPopupOpen(false);
         setIsAddDeleteRSSuccessToastOpen(true);
-        setAddDeleteRSSuccessToastMessage(`Success! The risk scenario RS-${selectedRiskScenario?.id} has been deleted`)
+        setAddDeleteRSSuccessToastMessage(
+          `Success! The risk scenario RS-${selectedRiskScenario?.id} has been deleted`
+        );
       } else {
         throw new Error("Invalid ID");
       }
@@ -235,7 +260,11 @@ const Index = () => {
             setIsDeleteConfirmPopupOpen(false);
           }}
           title="Confirm Risk Scenario Deletion?"
-          description={"Are you sure you want to delete Risk Scenario #" + selectedRiskScenario?.id + "? All associated data will be removed from the system."}
+          description={
+            "Are you sure you want to delete Risk Scenario #" +
+            selectedRiskScenario?.id +
+            "? All associated data will be removed from the system."
+          }
           onConfirm={handleDeleteRiskScenario}
           cancelText="Cancel"
           confirmText="Yes, Delete"
@@ -266,25 +295,30 @@ const Index = () => {
         onConfirm={() => {
           setIsAddConfirmPopupOpen(false);
           setRiskData({
-              riskScenario: "",
-              riskStatement: "",
-              riskDescription: "",
-              riskField1: "",
-              riskField2: "",
-              attributes: [
-                { meta_data_key_id: null, values: [] },
-              ] as RiskScenarioAttributes[],
-            });
+            riskScenario: "",
+            riskStatement: "",
+            riskDescription: "",
+            riskField1: "",
+            riskField2: "",
+            attributes: [
+              { meta_data_key_id: null, values: [] },
+            ] as RiskScenarioAttributes[],
+          });
           setIsAddRiskScenarioOpen(false);
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
       />
 
-      <ToastComponent open={isAddDeleteRSSuccessToastOpen} onClose={() => setIsAddDeleteRSSuccessToastOpen(false)} message={addDeleteRSSuccessToastMessage} toastBorder='1px solid #147A50'
-        toastColor='#147A50'
-        toastBackgroundColor='#DDF5EB'
-        toastSeverity='success' />
+      <ToastComponent
+        open={isAddDeleteRSSuccessToastOpen}
+        onClose={() => setIsAddDeleteRSSuccessToastOpen(false)}
+        message={addDeleteRSSuccessToastMessage}
+        toastBorder="1px solid #147A50"
+        toastColor="#147A50"
+        toastBackgroundColor="#DDF5EB"
+        toastSeverity="success"
+      />
 
       {isEditRiskScenarioOpen && selectedRiskScenario && (
         <RiskScenarioFormModal
@@ -323,149 +357,58 @@ const Index = () => {
         confirmText="Yes, Cancel"
       />
 
-      <FilterComponent items={['Published', 'Draft', 'Disabled']} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)} />
-
       <Box p={2} sx={{ pb: 8 }}>
-        <Box mb={3}>
-          {/* Row 1: Breadcrumb + Add Button */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            flexWrap="wrap"
-            spacing={2}
-            sx={{ mb: 2 }}
-          >
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <IconButton onClick={() => router.back()} size="small">
-                <ArrowBack fontSize="small" />
-              </IconButton>
-              <Typography variant="body1" color="textPrimary">
-                Library /
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ color: "primary.main", fontWeight: 600 }}
-              >
-                Risk Scenarios
-              </Typography>
-            </Stack>
-
-            <Button
-              onClick={() => {
-                setIsAddRiskScenarioOpen(true);
-              }}
-              variant="contained"
-              sx={{
-                backgroundColor: "primary.main",
-                textTransform: "none",
-                borderRadius: 1,
-                "&:hover": {
-                  backgroundColor: "#001080",
-                },
-              }}
-            >
-              Add Risk Scenario
-            </Button>
-          </Stack>
-
-          {/* Row 2: Search + Sort + Filter */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            useFlexGap
-            flexWrap="wrap"
-            justifyContent="space-between"
-            alignItems={{ xs: "stretch", sm: "center" }}
-          >
-            {/* Search Bar */}
-            <TextField
-              size="small"
-              placeholder="Search by keywords"
-              variant="outlined"
-              sx={{
-                borderRadius: 1,
-                height: "40px",
-                width: "33%",
-                minWidth: 200,
-                backgroundColor: "#FFFFFF",
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {/* Right Controls */}
-            <Stack
-              direction="row"
-              spacing={2}
-              flexWrap="wrap"
-              justifyContent={isMobile ? "flex-start" : "flex-end"}
-            >
-              <FormControl sx={{ backgroundColor: "#FFFFFF", borderRadius: 1 }}>
-                <InputLabel id="sort-risk-scenarios">Sort</InputLabel>
-                <Select
-                  size="small"
-                  defaultValue="Risk ID (Ascending)"
-                  label="Sort"
-                  labelId="sort-risk-scenarios"
-                >
-                  <MenuItem value="Risk ID (Ascending)">
-                    Risk ID (Ascending)
-                  </MenuItem>
-                  <MenuItem value="Risk ID (Descending)">
-                    Risk ID (Descending)
-                  </MenuItem>
-                  <MenuItem value="Created (Latest to Oldest)">
-                    Created (Latest to Oldest)
-                  </MenuItem>
-                  <MenuItem value="Created (Oldest to Latest)">
-                    Created (Oldest to Latest)
-                  </MenuItem>
-                  <MenuItem value="Updated (Latest to Oldest)">
-                    Updated (Latest to Oldest)
-                  </MenuItem>
-                  <MenuItem value="Updated (Oldest to Latest)">
-                    Updated (Oldest to Latest)
-                  </MenuItem>
-                </Select>
-              </FormControl>
-
-              <Button
-                variant="outlined"
-                endIcon={<FilterAltOutlined />}
-                onClick={() => setIsOpenFilter(true)}
-                sx={{
-                  textTransform: "none",
-                  borderColor: "#ccc",
-                  color: "black",
-                  backgroundColor: "#FFFFFF",
-                  borderRadius: 1,
-                }}
-              >
-                Filter
-              </Button>
-            </Stack>
-          </Stack>
-        </Box>
+        <LibraryHeader
+          breadcrumbItems={breadcrumbItems}
+          addButtonText={"Add Risk Scenario"}
+          addAction={() => {
+            setIsAddRiskScenarioOpen(true);
+          }}
+          sortItems={sortItems}
+        />
 
         <Stack spacing={2}>
           {riskScenarioData &&
             riskScenarioData?.length > 0 &&
             riskScenarioData?.map((item: RiskScenarioData, index) => (
               <div key={index}>
-                <RiskScenarioCard
+                <LibraryCard
                   key={index}
-                  riskScenarioData={item}
-                  handleUpdateRiskScenarioStatus = {handleUpdateRiskScenarioStatus}
+                  libraryData={item}
+                  handleUpdateRiskScenarioStatus={
+                    handleUpdateRiskScenarioStatus
+                  }
                   setIsViewRiskScenarioOpen={setIsViewRiskScenarioOpen}
                   setSelectedRiskScenario={setSelectedRiskScenario}
                   setIsEditRiskScenarioOpen={setIsEditRiskScenarioOpen}
                   setIsDeleteConfirmPopupOpen={setIsDeleteConfirmPopupOpen}
+                  title={item.risk_code ?? ""}
+                  desc={item.riskDescription}
+                  chip={
+                    item.industry?.length > 0
+                      ? item.industry?.join(",")
+                      : "Not Defined"
+                  }
+                  status={item.status ?? ""}
+                  lastUpdated={item.lastUpdated ?? ""}
+                  tagItems={[
+                    {
+                      label: "Tags",
+                      value: item.tags,
+                    },
+                    {
+                      label: "Processes",
+                      value: item.related_processes,
+                    },
+                    {
+                      label: "Assets",
+                      value: item.assets,
+                    },
+                    {
+                      label: "Threats",
+                      value: item.threats,
+                    },
+                  ]}
                 />
               </div>
             ))}
