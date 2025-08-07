@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
 import { AssetAttributes, AssetForm } from "@/types/asset";
+import TextFieldStyled from "@/components/TextFieldStyled";
 
 interface AssetFormModalProps {
   operation: "create" | "edit";
@@ -800,60 +801,71 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           </Grid>
 
           {/* Geographic Location */}
-          {isAssetThirdPartyManaged && (
-            <Grid mt={1} size={{ xs: 6 }}>
-              <TextField
-                slotProps={{
-                  inputLabel: {
-                    shrink: true,
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextField
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
+              fullWidth
+              label="Third Party Location"
+              placeholder="Enter Third Party Location"
+              value={assetFormData.thirdPartyLocation}
+              variant="outlined"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  height: "52px",
+                  borderRadius: 2,
+                  backgroundColor: "#ffffff",
+                  "& fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1px",
                   },
-                }}
-                fullWidth
-                label="Third Party Location"
-                placeholder="Enter Third Party Location"
-                value={assetFormData.thirdPartyLocation}
-                variant="outlined"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    height: "52px",
-                    borderRadius: 2,
-                    backgroundColor: "#ffffff",
-                    "& fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1px",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1.5px",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1.5px",
-                    },
-                    "& input": {
-                      padding: "14px 16px",
-                      fontSize: "16px",
-                      color: "text.primary",
-                    },
+                  "&:hover fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
                   },
-                  "& .MuiInputLabel-root": {
-                    fontSize: "14px",
-                    fontWeight: 500,
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "& input": {
+                    padding: "14px 16px",
+                    fontSize: "16px",
+                    color: "text.primary",
+                  },
+                },
+                "& .MuiInputLabel-root": {
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#121212",
+                  "&.Mui-focused": {
                     color: "#121212",
-                    "&.Mui-focused": {
-                      color: "#121212",
-                    },
-                    "&.MuiInputLabel-shrink": {
-                      transform: "translate(14px, -9px) scale(0.75)",
-                    },
                   },
-                }}
-                onChange={(e) =>
-                  handleChange("thirdPartyLocation", e.target.value)
-                }
-              />
-            </Grid>
-          )}
+                  "&.MuiInputLabel-shrink": {
+                    transform: "translate(14px, -9px) scale(0.75)",
+                  },
+                },
+              }}
+              onChange={(e) =>
+                handleChange("thirdPartyLocation", e.target.value)
+              }
+            />
+          </Grid>
+
+          {/* Databases */}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled
+              label="Databases"
+              placeholder="Enter Databases"
+              value={assetFormData.databases}
+              onChange={(e) =>
+                handleChange("databases", e.target.value)
+              }
+              required
+            ></TextFieldStyled>
+          </Grid>
 
           {/* RELATED PROCESS SECTION */}
           <Grid mt={3} size={{ xs: 12 }}>
