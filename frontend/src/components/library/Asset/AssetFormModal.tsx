@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -16,6 +16,10 @@ import {
   DialogActions,
   Divider,
   Chip,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from "@mui/material";
 import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
 import { AssetAttributes, AssetForm } from "@/types/asset";
@@ -41,15 +45,17 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-
   console.log(assetFormData);
+
+  const [isAssetThirdPartyManaged, setIsAssetThirdPartyManaged] =
+    useState<boolean>(false);
 
   // State for related processes
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<
     number | null
   >();
 
-  const handleChange = (field: keyof AssetForm, value: string) => {
+  const handleChange = (field: keyof AssetForm, value: any) => {
     setAssetFormData({ ...assetFormData, [field]: value });
   };
 
@@ -118,29 +124,38 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      slotProps={{ paper: { sx: { borderRadius: 2, padding: 5 } } }}
+    >
       <DialogTitle
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          paddingY: 0,
+          paddingX: 0,
+          marginBottom: 5,
         }}
       >
-        <Typography variant="h5" fontWeight={550}>
+        <Typography variant="h5" fontWeight={550} color="#121212">
           {operation === "create"
             ? "Add Asset"
             : `Edit Asset A-${assetFormData.id}`}
         </Typography>
 
-        <IconButton onClick={onClose}>
-          <Close />
+        <IconButton onClick={onClose} sx={{ padding: 0 }}>
+          <Close sx={{ color: "primary.main" }} />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2 }}>
-        <Grid container spacing={2} ml={5}>
-          {/* Existing form fields */}
-          <Grid mt={1} size={{ xs: 11 }}>
+      <DialogContent sx={{ padding: 0 }}>
+        <Grid container spacing={4}>
+          {/* Asset Name */}
+          <Grid mt={1} size={{ xs: 6 }}>
             <TextField
               slotProps={{
                 inputLabel: {
@@ -148,13 +163,14 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 },
               }}
               fullWidth
-              label="Risk Scenario"
-              placeholder="Enter Risk Scenario"
+              label="Asset Name"
+              placeholder="Enter Asset Name"
               value={assetFormData.assetName}
               required
               variant="outlined"
               sx={{
                 "& .MuiOutlinedInput-root": {
+                  height: "52px",
                   borderRadius: 2,
                   backgroundColor: "#ffffff",
                   "& fieldset": {
@@ -171,15 +187,16 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                   },
                   "& input": {
                     padding: "14px 16px",
-                    fontSize: "14px",
+                    fontSize: "16px",
+                    color: "text.primary",
                   },
                 },
                 "& .MuiInputLabel-root": {
                   fontSize: "14px",
                   fontWeight: 500,
-                  color: "#000000",
+                  color: "#121212",
                   "&.Mui-focused": {
-                    color: "#000000",
+                    color: "#121212",
                   },
                   "&.MuiInputLabel-shrink": {
                     transform: "translate(14px, -9px) scale(0.75)",
@@ -190,8 +207,89 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             />
           </Grid>
 
-          {/* Risk Statement field */}
-          <Grid mt={1} size={{ xs: 11 }}>
+          {/* Asset Category */}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel
+                shrink
+                sx={{
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#000000",
+                  "&.Mui-focused": {
+                    color: "#000000",
+                  },
+                  "&.MuiInputLabel-shrink": {
+                    transform: "translate(14px, -9px) scale(0.75)",
+                  },
+                }}
+              >
+                Asset Category
+              </InputLabel>
+              <Select
+                value={assetFormData.assetCategory}
+                label="Asset Category"
+                displayEmpty
+                onChange={(e) => handleChange("assetCategory", e.target.value)}
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "#9e9e9e",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        Select Asset Category
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {selected}
+                      </Typography>
+                    );
+                  }
+                }}
+                sx={{
+                  borderRadius: 2,
+                  backgroundColor: "#ffffff",
+                  fontSize: "14px",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1px",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "& .MuiSelect-select": {
+                    padding: "14px 16px",
+                    fontSize: "14px",
+                  },
+                }}
+              >
+                <MenuItem value="text">Text</MenuItem>
+                <MenuItem value="select">Select</MenuItem>
+                <MenuItem value="multiselect">Multiselect</MenuItem>
+                <MenuItem value="number">Number</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Asset Owner */}
+          <Grid mt={1} size={{ xs: 6 }}>
             <TextField
               slotProps={{
                 inputLabel: {
@@ -199,50 +297,51 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 },
               }}
               fullWidth
-              label="Risk Statement"
-              placeholder="Enter Risk Statement"
+              label="Asset Owner"
+              placeholder="Enter Asset Owner Name"
               value={assetFormData.assetOwner}
+              variant="outlined"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  height: "52px",
+                  borderRadius: 2,
+                  backgroundColor: "#ffffff",
+                  "& fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1px",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "& input": {
+                    padding: "14px 16px",
+                    fontSize: "16px",
+                    color: "text.primary",
+                  },
+                },
+                "& .MuiInputLabel-root": {
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#121212",
+                  "&.Mui-focused": {
+                    color: "#121212",
+                  },
+                  "&.MuiInputLabel-shrink": {
+                    transform: "translate(14px, -9px) scale(0.75)",
+                  },
+                },
+              }}
               onChange={(e) => handleChange("assetOwner", e.target.value)}
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
 
-          {/* Risk Description field */}
-          <Grid mt={1} size={{ xs: 11 }}>
+          {/* Asset IT Owner */}
+          <Grid mt={1} size={{ xs: 6 }}>
             <TextField
               slotProps={{
                 inputLabel: {
@@ -250,14 +349,13 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 },
               }}
               fullWidth
-              label="Risk Description"
-              placeholder="Enter Risk Description"
-              value={assetFormData.assetName}
-              onChange={(e) => handleChange("assetName", e.target.value)}
-              required
+              label="Asset IT Owner"
+              placeholder="Enter Asset IT Owner Name"
+              value={assetFormData.assetITOwner}
               variant="outlined"
               sx={{
                 "& .MuiOutlinedInput-root": {
+                  height: "52px",
                   borderRadius: 2,
                   backgroundColor: "#ffffff",
                   "& fieldset": {
@@ -274,61 +372,189 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                   },
                   "& input": {
                     padding: "14px 16px",
-                    fontSize: "14px",
+                    fontSize: "16px",
+                    color: "text.primary",
                   },
                 },
                 "& .MuiInputLabel-root": {
                   fontSize: "14px",
                   fontWeight: 500,
-                  color: "#000000",
+                  color: "#121212",
                   "&.Mui-focused": {
-                    color: "#000000",
+                    color: "#121212",
                   },
                   "&.MuiInputLabel-shrink": {
                     transform: "translate(14px, -9px) scale(0.75)",
                   },
                 },
               }}
+              onChange={(e) => handleChange("assetITOwner", e.target.value)}
             />
           </Grid>
 
-          {/* Risk Field 1 and 2 */}
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Risk Field 1"
-              placeholder="Enter Risk Field 1"
-              value={assetFormData.assetName}
-              onChange={(e) => handleChange("assetName", e.target.value)}
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
+          {/* Third Party Management */}
+          <Grid pl={1.5} size={{ xs: 6 }}>
+            <FormControl component="fieldset" sx={{ width: "100%" }}>
+              <FormLabel
+                component="legend"
+                id="third-party-management-radio-buttons-group"
+              >
+                <Typography variant="body2" color="#121212">
+                  Third Party Management
+                </Typography>
+              </FormLabel>
+              <RadioGroup
+                aria-labelledby="third-party-management-radio-buttons-group"
+                name="isThirdPartyManagement"
+                row
+                value={
+                  assetFormData.isThirdPartyManagement
+                    ? isAssetThirdPartyManaged
+                    : null
+                }
+                onChange={(e) => {
+                  handleChange("isThirdPartyManagement", e.target.value);
+                  setIsAssetThirdPartyManaged(e.target.value === "true");
+                }}
+              >
+                <FormControlLabel
+                  value={true}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      Yes
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  value={false}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      No
+                    </Typography>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+
+          {/* Third Party Name */}
+          {isAssetThirdPartyManaged && (
+            <Grid mt={1} size={{ xs: 6 }}>
+              <TextField
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
                   },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
+                }}
+                fullWidth
+                label="Third Party Name"
+                placeholder="Enter Third Party Name"
+                value={assetFormData.thirdPartyName}
+                variant="outlined"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    height: "52px",
+                    borderRadius: 2,
+                    backgroundColor: "#ffffff",
+                    "& fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1px",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1.5px",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1.5px",
+                    },
+                    "& input": {
+                      padding: "14px 16px",
+                      fontSize: "16px",
+                      color: "text.primary",
+                    },
                   },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
+                  "& .MuiInputLabel-root": {
                     fontSize: "14px",
+                    fontWeight: 500,
+                    color: "#121212",
+                    "&.Mui-focused": {
+                      color: "#121212",
+                    },
+                    "&.MuiInputLabel-shrink": {
+                      transform: "translate(14px, -9px) scale(0.75)",
+                    },
                   },
-                },
-                "& .MuiInputLabel-root": {
+                }}
+                onChange={(e) => handleChange("thirdPartyName", e.target.value)}
+              />
+            </Grid>
+          )}
+
+          {/* Third Party Location */}
+          {isAssetThirdPartyManaged && (
+            <Grid mt={1} size={{ xs: 6 }}>
+              <TextField
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                fullWidth
+                label="Third Party Location"
+                placeholder="Enter Third Party Location"
+                value={assetFormData.thirdPartyLocation}
+                variant="outlined"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    height: "52px",
+                    borderRadius: 2,
+                    backgroundColor: "#ffffff",
+                    "& fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1px",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1.5px",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1.5px",
+                    },
+                    "& input": {
+                      padding: "14px 16px",
+                      fontSize: "16px",
+                      color: "text.primary",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    color: "#121212",
+                    "&.Mui-focused": {
+                      color: "#121212",
+                    },
+                    "&.MuiInputLabel-shrink": {
+                      transform: "translate(14px, -9px) scale(0.75)",
+                    },
+                  },
+                }}
+                onChange={(e) =>
+                  handleChange("thirdPartyLocation", e.target.value)
+                }
+              />
+            </Grid>
+          )}
+
+          {/* Hosting */}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel
+                shrink
+                sx={{
                   fontSize: "14px",
                   fontWeight: 500,
                   color: "#000000",
@@ -338,46 +564,78 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                   "&.MuiInputLabel-shrink": {
                     transform: "translate(14px, -9px) scale(0.75)",
                   },
-                },
-              }}
-            />
-          </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Risk Field 2"
-              placeholder="Enter Field 2"
-              value={assetFormData.assetName}
-              onChange={(e) => handleChange("assetName", e.target.value)}
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
+                }}
+              >
+                Hosting
+              </InputLabel>
+              <Select
+                value={assetFormData.hosting}
+                label="Hosting"
+                displayEmpty
+                onChange={(e) => handleChange("hosting", e.target.value)}
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "#9e9e9e",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        Select Hosting
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {selected}
+                      </Typography>
+                    );
+                  }
+                }}
+                sx={{
                   borderRadius: 2,
                   backgroundColor: "#ffffff",
-                  "& fieldset": {
+                  fontSize: "14px",
+                  "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#cecfd2",
                     borderWidth: "1px",
                   },
-                  "&:hover fieldset": {
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#cecfd2",
                     borderWidth: "1.5px",
                   },
-                  "&.Mui-focused fieldset": {
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#cecfd2",
                     borderWidth: "1.5px",
                   },
-                  "& input": {
+                  "& .MuiSelect-select": {
                     padding: "14px 16px",
                     fontSize: "14px",
                   },
-                },
-                "& .MuiInputLabel-root": {
+                }}
+              >
+                <MenuItem value="saas">SaaS</MenuItem>
+                <MenuItem value="paas">PaaS</MenuItem>
+                <MenuItem value="iaas">IaaS</MenuItem>
+                <MenuItem value="on-prem">On-Prem</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Hosting Facility */}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel
+                shrink
+                sx={{
                   fontSize: "14px",
                   fontWeight: 500,
                   color: "#000000",
@@ -387,13 +645,218 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                   "&.MuiInputLabel-shrink": {
                     transform: "translate(14px, -9px) scale(0.75)",
                   },
-                },
-              }}
-            />
+                }}
+              >
+                Hosting Facility
+              </InputLabel>
+              <Select
+                value={assetFormData.hostingFacility}
+                label="Hosting Facility"
+                displayEmpty
+                onChange={(e) =>
+                  handleChange("hostingFacility", e.target.value)
+                }
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "#9e9e9e",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        Select Hosting Facility
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {selected}
+                      </Typography>
+                    );
+                  }
+                }}
+                sx={{
+                  borderRadius: 2,
+                  backgroundColor: "#ffffff",
+                  fontSize: "14px",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1px",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "& .MuiSelect-select": {
+                    padding: "14px 16px",
+                    fontSize: "14px",
+                  },
+                }}
+              >
+                <MenuItem value="public cloud">Public Cloud</MenuItem>
+                <MenuItem value="private cloud">Private Cloud</MenuItem>
+                <MenuItem value="n/a">N/A</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
+
+          {/*Cloud Service Provider */}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel
+                shrink
+                sx={{
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#000000",
+                  "&.Mui-focused": {
+                    color: "#000000",
+                  },
+                  "&.MuiInputLabel-shrink": {
+                    transform: "translate(14px, -9px) scale(0.75)",
+                  },
+                }}
+              >
+                Cloud Service Provider
+              </InputLabel>
+              <Select
+                value={assetFormData.cloudServiceProvider}
+                multiple
+                label="Cloud Service Provider"
+                displayEmpty
+                onChange={(e) =>
+                  handleChange(
+                    "cloudServiceProvider",
+                    e.target.value as string[]
+                  )
+                }
+                renderValue={(selected) => {
+                  if (selected?.length === 0) {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "#9e9e9e",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        Select Cloud Service Provider
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {selected.join(", ")}
+                      </Typography>
+                    );
+                  }
+                }}
+                sx={{
+                  borderRadius: 2,
+                  backgroundColor: "#ffffff",
+                  fontSize: "14px",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1px",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "& .MuiSelect-select": {
+                    padding: "14px 16px",
+                    fontSize: "14px",
+                  },
+                }}
+              >
+                <MenuItem value="AWS">AWS</MenuItem>
+                <MenuItem value="Azure">Azure</MenuItem>
+                <MenuItem value="GCP">GCP</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Geographic Location */}
+          {isAssetThirdPartyManaged && (
+            <Grid mt={1} size={{ xs: 6 }}>
+              <TextField
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                fullWidth
+                label="Third Party Location"
+                placeholder="Enter Third Party Location"
+                value={assetFormData.thirdPartyLocation}
+                variant="outlined"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    height: "52px",
+                    borderRadius: 2,
+                    backgroundColor: "#ffffff",
+                    "& fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1px",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1.5px",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#cecfd2",
+                      borderWidth: "1.5px",
+                    },
+                    "& input": {
+                      padding: "14px 16px",
+                      fontSize: "16px",
+                      color: "text.primary",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    color: "#121212",
+                    "&.Mui-focused": {
+                      color: "#121212",
+                    },
+                    "&.MuiInputLabel-shrink": {
+                      transform: "translate(14px, -9px) scale(0.75)",
+                    },
+                  },
+                }}
+                onChange={(e) =>
+                  handleChange("thirdPartyLocation", e.target.value)
+                }
+              />
+            </Grid>
+          )}
 
           {/* RELATED PROCESS SECTION */}
-          <Grid mt={3} size={{ xs: 11 }}>
+          <Grid mt={3} size={{ xs: 12 }}>
             <Box
               sx={{
                 border: "1px dashed #cecfd2",
@@ -714,7 +1177,13 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         <Divider sx={{ width: "90%" }} />
       </Box>
       <DialogActions
-        sx={{ px: 3, py: 2, display: "flex", justifyContent: "space-between" }}
+        sx={{
+          px: 3,
+          pt: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          pb: 0,
+        }}
       >
         <Button
           sx={{ width: 160, height: 40, borderRadius: 1 }}
