@@ -860,9 +860,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               label="Databases"
               placeholder="Enter Databases"
               value={assetFormData.databases}
-              onChange={(e) =>
-                handleChange("databases", e.target.value)
-              }
+              onChange={(e) => handleChange("databases", e.target.value)}
               required
             ></TextFieldStyled>
           </Grid>
