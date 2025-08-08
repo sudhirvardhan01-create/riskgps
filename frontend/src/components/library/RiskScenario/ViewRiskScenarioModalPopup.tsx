@@ -144,7 +144,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
               </Typography>
               <Typography variant="body2" fontWeight={500}>
                 {riskScenarioData?.related_processes && riskScenarioData?.related_processes?.length > 0 ? riskScenarioData?.related_processes?.map((processId) => {
-                  return processes?.find(process => process.id === processId)?.name
+                  return processes?.find(process => process.id === processId)?.processName
                 }).join(", ") : "-"}
               </Typography>
             </Box>

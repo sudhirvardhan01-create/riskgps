@@ -1,4 +1,4 @@
-import RiskScenarioCardIcon from "@/icons/risk-scenario-card.svg";
+import LibraryCardIcon from "@/icons/risk-scenario-card.svg";
 import ThreatCardIcon from "@/icons/threats-card.svg";
 import AssetCardIcon from "@/icons/assets-card.svg";
 import ControlCardIcon from "@/icons/controls-card.svg";
@@ -30,7 +30,7 @@ const libs = [
         value: 5,
       },
     ],
-    icon: <RiskScenarioCardIcon height={24} width={24} />,
+    icon: <LibraryCardIcon height={24} width={24} />,
     href: "/library/risk-scenario",
   },
   {
@@ -131,7 +131,7 @@ const libs = [
       },
     ],
     icon: <ProcessCardIcon height={24} width={24} />,
-    href: "/library/processes",
+    href: "/library/process",
   },
 ];
 

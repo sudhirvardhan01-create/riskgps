@@ -8,6 +8,7 @@ export const fetchProcesses = async (page: number, limit: number) => {
 const transformProcessData = (data: any[]): ProcessData[] => {
   return data.map((item) => ({
     id: item.id,
+    processCode:item.process_code,
     processName: item.process_name,
     processDescription: item.process_description,
     seniorExecutiveOwnerName: item.senior_executive__owner_name,
@@ -49,6 +50,7 @@ const transformProcessData = (data: any[]): ProcessData[] => {
   }
   const res = await response.json();
   res.data.data = transformProcessData(res.data.data);
+  console.log(res.data.data);
 //   const a: { data?: any } = {};
 //   a.data = transformProcessData(respons);
   return res.data;

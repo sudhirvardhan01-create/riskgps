@@ -116,10 +116,10 @@ module.exports = (sequelize) => {
     });
   };
 
-  Process.afterCreate(async (instance) => {
+  Process.afterCreate(async (instance, options) => {
     const paddedId = String(instance.id).padStart(5, "0");
-    const code = `BP-${paddedId}`;
-    await instance.update({ process_code: code });
+    const code = `#BP-${paddedId}`;
+    await instance.update({ process_code: code }, { transaction: options.transaction });
   });
   return Process;
 

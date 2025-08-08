@@ -45,7 +45,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(riskData)
+  console.log(processes)
   // State for related processes
   const [relatedProcesses, setRelatedProcesses] = React.useState<number[]>([]);
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<number | null>();
@@ -430,7 +430,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
                             </span>
                           );
                         }
-                        return processes.find(item => item.id === selected)?.name;
+                        return processes.find(item => item.id === selected)?.processName;
                       }}
                       sx={{
                         borderRadius: 2,
@@ -454,9 +454,9 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
                         },
                       }}
                     >
-                      {processes.map((process, index) => (
+                      {processes.length && processes.map((process, index) => (
                         <MenuItem key={index} value={process.id}>
-                          {process.name}
+                          {process.processName}
                         </MenuItem>
                       ))}
                     </Select>
@@ -489,7 +489,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
                   {riskData?.related_processes?.map((process, index) => (
                     <Chip
                       key={index}
-                      label={processes.find(item => item.id === process)?.name}
+                      label={processes.find(item => item.id === process)?.processName}
                       onDelete={() => removeRelatedProcess(process)}
                       sx={{
                         backgroundColor: "#e8f5e8",

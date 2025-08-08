@@ -24,21 +24,21 @@ import {
   AccountTree,
   ViewList,
 } from "@mui/icons-material";
-import React, { useEffect, useState } from "react";
+import MenuItemComponent from '@/components/MenuItemComponent'
+import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
+// import ConfirmDialog from "@/components/ConfirmDialog"
+import React, { useEffect, useState } from 'react';
 
 import { createProcess, deleteProcess, fetchProcesses, updateProcess, updateProcessStatus } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import FilterComponent from "@/components/library/FilterComponent";
+import FilterComponent from "@/components/Library/FilterComponent";
 import ToastComponent from "@/components/ToastComponent";
 import withAuth from "@/hoc/withAuth";
 import { ProcessAttributes, ProcessData } from "@/types/process";
-import ProcessCard from "@/components/library/Process/ProcessCard";
-// import ProcessDependencyGraph from "@/components/library/Process/ProcessDependencyGraph";
-import ViewProcessModal from "@/components/library/Process/ViewProcessModal";
-import ProcessFormModal from "@/components/library/Process/ProcessFormModal";
-import ProcessDependencyGraph from "@/components/library/Process/ProcessDependencyGraph/ProcessDependencyGraph";
-import ProcessAssetConnectionGraph from "@/components/library/Process/ProcessDependencyGraph/ProcessAssetConnectionGraph";
+import ProcessCard from "@/components/Library/Process/ProcessCard";
+import ViewProcessModal from "@/components/Library/Process/ViewProcessModal";
+import ProcessFormModal from "@/components/Library/Process/ProcessFormModal";
 
 interface TabPanelProps {
   children?: React.ReactNode;
