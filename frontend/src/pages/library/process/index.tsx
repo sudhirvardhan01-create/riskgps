@@ -13,8 +13,6 @@ import {
   InputLabel,
   FormControl,
   TablePagination,
-  Tabs,
-  Tab,
 } from "@mui/material";
 import { useRouter } from "next/router";
 import {
@@ -24,8 +22,7 @@ import {
   AccountTree,
   ViewList,
 } from "@mui/icons-material";
-import MenuItemComponent from '@/components/MenuItemComponent'
-import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
+
 // import ConfirmDialog from "@/components/ConfirmDialog"
 import React, { useEffect, useState } from 'react';
 
@@ -62,12 +59,6 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-function a11yProps(index: number) {
-  return {
-    id: `process-tab-${index}`,
-    "aria-controls": `process-tabpanel-${index}`,
-  };
-}
 
 const ProcessLibraryPage = () => {
   const router = useRouter();
@@ -117,8 +108,6 @@ const ProcessLibraryPage = () => {
   });
   const [isOpenFilter, setIsOpenFilter] = useState(false);
 
-  // New state for tabs
-  const [tabValue, setTabValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("Process ID (Ascending)");
 
@@ -152,10 +141,6 @@ const ProcessLibraryPage = () => {
     };
     getMetaDatas();
   }, []);
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
 
   const handleCreateProcess = async (status: string) => {
     try {
@@ -507,39 +492,6 @@ const ProcessLibraryPage = () => {
             </Button>
           </Stack>
 
-          {/* Tabs */}
-          {/* <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              aria-label="process tabs"
-              sx={{
-                "& .MuiTab-root": {
-                  textTransform: "none",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  minHeight: 48,
-                  minWidth: 120,
-                },
-              }}
-            >
-              <Tab
-                label="Process List"
-                icon={<ViewList />}
-                iconPosition="start"
-                {...a11yProps(0)}
-              />
-              <Tab
-                label="Dependencies"
-                icon={<AccountTree />}
-                iconPosition="start"
-                {...a11yProps(1)}
-              />
-            </Tabs>
-          </Box> */}
-
-          {/* Tab Panel 0: Process List */}
-          <TabPanel value={tabValue} index={0}>
             {/* Search + Sort + Filter Controls */}
             <Stack
               direction={{ xs: "column", sm: "row" }}
@@ -692,21 +644,6 @@ const ProcessLibraryPage = () => {
                 />
               </Box>
             )}
-          </TabPanel>
-
-          {/* Tab Panel 1: Dependencies */}
-          {/* <TabPanel value={tabValue} index={1}>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Process Dependencies
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Visualize the relationships and dependencies between your
-                processes and connected services.
-              </Typography>
-            </Box>
-            <ProcessDependencyGraph processesData={processesData} />
-          </TabPanel> */}
         </Box>
       </Box>
     </>
