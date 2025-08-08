@@ -8,6 +8,7 @@ export interface AssetForm {
   asset_code?: string;
   assetName: string;
   assetCategory?: string;
+  assetDescription?: string;
   assetOwner?: string;
   assetITOwner?: string;
   isThirdPartyManagement?: boolean | null;

@@ -63,6 +63,7 @@ const Index = () => {
   const [assetFormData, setAssetFormData] = useState<AssetForm>({
     assetName: "",
     assetCategory: "",
+    assetDescription: "",
     assetOwner: "",
     assetITOwner: "",
     isThirdPartyManagement: null,
@@ -136,6 +137,7 @@ const Index = () => {
       setAssetFormData({
         assetName: "",
         assetCategory: "",
+        assetDescription: "",
         assetOwner: "",
         assetITOwner: "",
         isThirdPartyManagement: null,
@@ -290,6 +292,7 @@ const Index = () => {
           setAssetFormData({
             assetName: "",
             assetCategory: "",
+            assetDescription: "",
             assetOwner: "",
             assetITOwner: "",
             isThirdPartyManagement: null,

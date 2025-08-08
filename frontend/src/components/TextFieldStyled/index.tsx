@@ -29,9 +29,9 @@ const TextFieldStyled = styled((props: TextFieldProps) => {
       }}
     />
   );
-})(() => ({
+})<TextFieldProps>(({ multiline }) => ({
   "& .MuiOutlinedInput-root": {
-    height: "52px",
+    height: multiline ? "auto" : "52px", // Conditional height
     borderRadius: "8px",
     backgroundColor: "#ffffff",
     "& fieldset": {
@@ -48,6 +48,14 @@ const TextFieldStyled = styled((props: TextFieldProps) => {
     },
     "& input": {
       padding: "14px 16px",
+      fontSize: "16px",
+      color: "#484848",
+      "&::placeholder": {
+        color: "#9E9FA5",
+        opacity: 1,
+      },
+    },
+    "& textarea": {
       fontSize: "16px",
       color: "#484848",
       "&::placeholder": {

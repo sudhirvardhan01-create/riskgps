@@ -3,7 +3,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  TextField,
   Box,
   Grid,
   Button,
@@ -157,53 +156,11 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         <Grid container spacing={4}>
           {/* Asset Name */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
+            <TextFieldStyled
               label="Asset Name"
               placeholder="Enter Asset Name"
               value={assetFormData.assetName}
               required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  height: "52px",
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "16px",
-                    color: "text.primary",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
               onChange={(e) => handleChange("assetName", e.target.value)}
             />
           </Grid>
@@ -289,106 +246,34 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             </FormControl>
           </Grid>
 
+          {/* Asset Description */}
+          <Grid mt={1} size={{ xs: 12 }}>
+            <TextFieldStyled
+              label="Asset Description"
+              placeholder="Enter Asset Description"
+              value={assetFormData.assetDescription}
+              multiline
+              minRows={1}
+              onChange={(e) => handleChange("assetDescription", e.target.value)}
+            />
+          </Grid>
+
           {/* Asset Owner */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
+            <TextFieldStyled
               label="Asset Owner"
               placeholder="Enter Asset Owner Name"
               value={assetFormData.assetOwner}
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  height: "52px",
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "16px",
-                    color: "text.primary",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
               onChange={(e) => handleChange("assetOwner", e.target.value)}
             />
           </Grid>
 
           {/* Asset IT Owner */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
+            <TextFieldStyled
               label="Asset IT Owner"
               placeholder="Enter Asset IT Owner Name"
               value={assetFormData.assetITOwner}
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  height: "52px",
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "16px",
-                    color: "text.primary",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
               onChange={(e) => handleChange("assetITOwner", e.target.value)}
             />
           </Grid>
@@ -443,52 +328,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Third Party Name */}
           {isAssetThirdPartyManaged && (
             <Grid mt={1} size={{ xs: 6 }}>
-              <TextField
-                slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
-                }}
-                fullWidth
+              <TextFieldStyled
                 label="Third Party Name"
                 placeholder="Enter Third Party Name"
                 value={assetFormData.thirdPartyName}
-                variant="outlined"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    height: "52px",
-                    borderRadius: 2,
-                    backgroundColor: "#ffffff",
-                    "& fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1px",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1.5px",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1.5px",
-                    },
-                    "& input": {
-                      padding: "14px 16px",
-                      fontSize: "16px",
-                      color: "text.primary",
-                    },
-                  },
-                  "& .MuiInputLabel-root": {
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#121212",
-                    "&.Mui-focused": {
-                      color: "#121212",
-                    },
-                    "&.MuiInputLabel-shrink": {
-                      transform: "translate(14px, -9px) scale(0.75)",
-                    },
-                  },
-                }}
                 onChange={(e) => handleChange("thirdPartyName", e.target.value)}
               />
             </Grid>
@@ -497,52 +340,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Third Party Location */}
           {isAssetThirdPartyManaged && (
             <Grid mt={1} size={{ xs: 6 }}>
-              <TextField
-                slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
-                }}
-                fullWidth
+              <TextFieldStyled
                 label="Third Party Location"
                 placeholder="Enter Third Party Location"
                 value={assetFormData.thirdPartyLocation}
-                variant="outlined"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    height: "52px",
-                    borderRadius: 2,
-                    backgroundColor: "#ffffff",
-                    "& fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1px",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1.5px",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#cecfd2",
-                      borderWidth: "1.5px",
-                    },
-                    "& input": {
-                      padding: "14px 16px",
-                      fontSize: "16px",
-                      color: "text.primary",
-                    },
-                  },
-                  "& .MuiInputLabel-root": {
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#121212",
-                    "&.Mui-focused": {
-                      color: "#121212",
-                    },
-                    "&.MuiInputLabel-shrink": {
-                      transform: "translate(14px, -9px) scale(0.75)",
-                    },
-                  },
-                }}
                 onChange={(e) =>
                   handleChange("thirdPartyLocation", e.target.value)
                 }
@@ -802,56 +603,56 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
 
           {/* Geographic Location */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Third Party Location"
-              placeholder="Enter Third Party Location"
-              value={assetFormData.thirdPartyLocation}
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  height: "52px",
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "16px",
-                    color: "text.primary",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
+            <TextFieldStyled
+              label="Geographic Location"
+              placeholder="Enter Geographic Location"
+              value={assetFormData.geographicLocation}
               onChange={(e) =>
-                handleChange("thirdPartyLocation", e.target.value)
+                handleChange("geographicLocation", e.target.value)
               }
             />
+          </Grid>
+
+          {/* Redundancy */}
+          <Grid pl={1.5} size={{ xs: 6 }}>
+            <FormControl component="fieldset" sx={{ width: "100%" }}>
+              <FormLabel
+                component="legend"
+                id="is-redundancy-radio-buttons-group"
+              >
+                <Typography variant="body2" color="#121212">
+                  Redundancy
+                </Typography>
+              </FormLabel>
+              <RadioGroup
+                aria-labelledby="is-redundancy-radio-buttons-group"
+                name="isRedundancy"
+                row
+                value={assetFormData.isRedundancy}
+                onChange={(e) => {
+                  handleChange("isRedundancy", e.target.value);
+                }}
+              >
+                <FormControlLabel
+                  value={true}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      Yes
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  value={false}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      No
+                    </Typography>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
           </Grid>
 
           {/* Databases */}
@@ -861,8 +662,59 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               placeholder="Enter Databases"
               value={assetFormData.databases}
               onChange={(e) => handleChange("databases", e.target.value)}
-              required
-            ></TextFieldStyled>
+            />
+          </Grid>
+
+          {/* Network Segmentation */}
+          <Grid pl={1.5} size={{ xs: 6 }}>
+            <FormControl component="fieldset" sx={{ width: "100%" }}>
+              <FormLabel
+                component="legend"
+                id="is-network-segmentation-radio-buttons-group"
+              >
+                <Typography variant="body2" color="#121212">
+                  Network Segmentation
+                </Typography>
+              </FormLabel>
+              <RadioGroup
+                aria-labelledby="is-network-segmentation-radio-buttons-group"
+                name="isNetworkSegmentation"
+                row
+                value={assetFormData.isNetworkSegmentation}
+                onChange={(e) => {
+                  handleChange("isNetworkSegmentation", e.target.value);
+                }}
+              >
+                <FormControlLabel
+                  value={true}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      Yes
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  value={false}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      No
+                    </Typography>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+
+          {/* Network Name */}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled
+              label="Network Name"
+              placeholder="Enter Network Name"
+              value={assetFormData.networkName}
+              onChange={(e) => handleChange("networkName", e.target.value)}
+            />
           </Grid>
 
           {/* RELATED PROCESS SECTION */}
@@ -1183,38 +1035,38 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           </Grid>
         </Grid>
       </DialogContent>
-      <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-        <Divider sx={{ width: "90%" }} />
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <Divider sx={{ width: "100%" }} />
       </Box>
       <DialogActions
         sx={{
-          px: 3,
-          pt: 2,
+          pt: 4,
           display: "flex",
           justifyContent: "space-between",
           pb: 0,
+          px: 0
         }}
       >
         <Button
-          sx={{ width: 160, height: 40, borderRadius: 1 }}
+          sx={{ width: 113, height: 40, borderRadius: 1 }}
           variant="outlined"
           color="error"
           onClick={onClose}
         >
           Cancel
         </Button>
-        <Box>
+        <Box display={"flex"} gap={3}>
           <Button
             onClick={() => {
               onSubmit("draft");
             }}
-            sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
+            sx={{ width: 161, height: 40, borderRadius: 1 }}
             variant="outlined"
           >
             Save as Draft
           </Button>
           <Button
-            sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
+            sx={{ width: 132, height: 40, borderRadius: 1}}
             variant="contained"
             onClick={() => {
               onSubmit("published");

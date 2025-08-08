@@ -22,6 +22,7 @@ export const fetchAssets = async (
       asset_code: item.asset_code,
       assetName: item.asset_name,
       assetCategory: item.asset_category,
+      assetDescription: item.asset_description,
       assetOwner: item.asset_owner,
       assetITOwner: item.asset_it_owner,
       isThirdPartyManagement: item.is_third_party_management,
@@ -67,6 +68,7 @@ export const createAsset = async (data: AssetForm) => {
   const assetData = {
     "asset_name": data.assetName,
     "asset_category": data.assetCategory,
+    "asset_description": data.assetDescription,
     "asset_owner": data.assetOwner,
     "asset_it_owner": data.assetITOwner,
     "is_third_party_management": data.isThirdPartyManagement,
@@ -114,6 +116,7 @@ export const updateAsset = async (
   const assetData = {
     "asset_name": data.assetName,
     "asset_category": data.assetCategory,
+    "asset_description": data.assetDescription,
     "asset_owner": data.assetOwner,
     "asset_it_owner": data.assetITOwner,
     "is_third_party_management": data.isThirdPartyManagement,
