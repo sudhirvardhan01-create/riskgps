@@ -1,11 +1,11 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  const RiskScenarioAttribute = sequelize.define('RiskScenarioAttribute', {
+  const ProcessAttribute = sequelize.define('ProcessAttribute', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    risk_scenario_id: {
+    process_id: {
       type: DataTypes.INTEGER,
-      references: { model: 'library_risk_scenarios', key: 'id' },
+      references: { model: 'library_processes', key: 'id' },
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     },
@@ -17,22 +17,22 @@ module.exports = (sequelize) => {
     },
     values: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false },
   }, {
-    tableName: 'library_attributes_risk_scenario_mapping',
+    tableName: 'library_attributes_process_mapping',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
   });
 
   // Associations
-  RiskScenarioAttribute.associate = (models) => {
-    RiskScenarioAttribute.belongsTo(models.RiskScenario, {
-      foreignKey: 'risk_scenario_id',
+  ProcessAttribute.associate = (models) => {
+    ProcessAttribute.belongsTo(models.Process, {
+      foreignKey: 'process_id',
     });
-    RiskScenarioAttribute.belongsTo(models.MetaData, {
+    ProcessAttribute.belongsTo(models.MetaData, {
       foreignKey: 'meta_data_key_id',
       as: 'metaData',
     });
   };
 
-  return RiskScenarioAttribute;
+  return ProcessAttribute;
 };
