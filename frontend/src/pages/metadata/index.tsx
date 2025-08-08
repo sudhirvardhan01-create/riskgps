@@ -26,6 +26,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastComponent from "@/components/ToastComponent";
 import ViewMetaDataModal from "@/components/meta-data/ViewMetaDataModal";
 import MetaDataFormModal from "@/components/meta-data/MetaDataFormModal";
+import withAuth from "@/hoc/withAuth";
 
 const Index = () => {
   const theme = useTheme();
@@ -238,8 +239,8 @@ const Index = () => {
       />
 
       {/* Landing Page code*/}
-      <Box p={2} paddingBottom={8}>
-        <Box mb={3}>
+      <Box p={5} paddingBottom={10}>
+        <Box mb={5} display={"flex"} flexDirection={"column"} gap={5}>
           {/* Row 1: Breadcrumb + Add Button */}
           <Stack
             direction="row"
@@ -247,9 +248,8 @@ const Index = () => {
             alignItems="center"
             flexWrap="wrap"
             spacing={2}
-            sx={{ mb: 2 }}
           >
-            <Typography variant="body1" color="#121212" fontWeight={600}>
+            <Typography variant="h5" color="#121212" fontWeight={600}>
               Metadata
             </Typography>
             <Button
@@ -264,7 +264,7 @@ const Index = () => {
               }}
               onClick={() => setIsAddMetaDataModalOpen(true)}
             >
-              Add Configuration
+              <Typography variant="body1" fontWeight={600} color="#F4F4F4">Add Configuration</Typography>
             </Button>
           </Stack>
 
@@ -369,4 +369,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default withAuth(Index);
