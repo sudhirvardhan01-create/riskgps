@@ -1,7 +1,7 @@
 import { Box, Chip, Typography, Stack, Divider, FormControlLabel } from "@mui/material";
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
-import ToggleSwitch from "@/components/Library/toggle-switch/ToggleSwitch";
+import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 
 
 interface TagItem {
