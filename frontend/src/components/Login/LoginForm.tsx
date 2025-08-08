@@ -48,7 +48,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
       .then((data) => {
         loginContext(data.access_token, data.refresh_token);
         Cookies.set("user", JSON.stringify(data.user));
-        router.push("/"); // Redirect to dashboard after login
+        router.push("/library"); // Redirect to dashboard after login
       })
       .catch((error) => {
         console.error("Login failed:", error);
