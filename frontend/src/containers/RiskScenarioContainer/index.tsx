@@ -1,0 +1,295 @@
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Box } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import LibraryHeader from "@/components/library/LibraryHeader";
+import RiskScenarioList from "@/components/library/RiskScenarioList";
+import ToastComponent from "@/components/ToastComponent";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import RiskScenarioFormModal from "@/components/library/risk-scenario/RiskScenarioFormModal";
+import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
+import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario";
+import { RiskScenarioService } from "@/services/riskScenarioService";
+import { fetchProcesses } from "@/pages/api/process";
+import { fetchMetaDatas } from "@/pages/api/meta-data";
+
+const initialRiskData: RiskScenarioData = {
+  riskScenario: "",
+  riskStatement: "",
+  riskDescription: "",
+  riskField1: "",
+  riskField2: "",
+  attributes: [{ meta_data_key_id: null, values: [] }] as RiskScenarioAttributes[],
+};
+
+const sortItems = [
+  { label: "Risk ID (Ascending)", value: "risk_asc" },
+  { label: "Risk ID (Descending)", value: "risk_desc" },
+  { label: "Created (Latest to Oldest)", value: "created_lto" },
+  { label: "Created (Oldest to Latest)", value: "created_otl" },
+  { label: "Updated (Latest to Oldest)", value: "updated_lto" },
+  { label: "Updated (Oldest to Latest)", value: "updated_otl" },
+];
+
+const breadcrumbItems = [
+  // keep the same breadcrumb behavior from original page
+  { label: "Library", onClick: () => (window.location.href = "/library") , icon: <ArrowBack fontSize="small" /> },
+  { label: "Risk Scenarios" },
+];
+
+export default function RiskScenarioContainer() {
+  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [totalRows, setTotalRows] = useState(0);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>([]);
+  const [processesData, setProcessesData] = useState<any[]>([]);
+  const [metaDatas, setMetaDatas] = useState<any[]>([]);
+
+  const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
+
+  // modals / confirm / toast
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+  const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  const [toast, setToast] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" });
+
+  const [formData, setFormData] = useState<RiskScenarioData>(initialRiskData);
+
+  // fetch list
+  const loadList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await RiskScenarioService.fetch(page, rowsPerPage);
+      setRiskScenarioData(data?.data ?? []);
+      setTotalRows(data?.total ?? 0);
+    } catch (err) {
+      console.error(err);
+      setToast({ open: true, message: "Failed to fetch risk scenarios", severity: "error" });
+    } finally {
+      setLoading(false);
+    }
+  }, [page, rowsPerPage]);
+
+  useEffect(() => {
+    loadList();
+  }, [loadList, refreshTrigger]);
+
+  // fetch processes & meta
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const [proc, meta] = await Promise.all([fetchProcesses(), fetchMetaDatas()]);
+        setProcessesData(proc ?? []);
+        setMetaDatas(meta ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({ open: true, message: "Failed to fetch supporting data", severity: "error" });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  // Create
+  const handleCreate = async (status: string) => {
+    try {
+      const req = { ...formData, status };
+      await RiskScenarioService.create(req);
+      setFormData(initialRiskData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: `Success! Risk scenario ${status === "published" ? "published" : "saved as draft"}`, severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({ open: true, message: "Failed to create risk scenario", severity: "error" });
+    }
+  };
+
+  // Update
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
+      const body = { ...selectedRiskScenario, status };
+      await RiskScenarioService.update(selectedRiskScenario.id as number, body);
+      setIsEditOpen(false);
+      setSelectedRiskScenario(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: "Risk scenario updated", severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({ open: true, message: "Failed to update risk scenario", severity: "error" });
+    }
+  };
+
+  // Update status only
+  const handleUpdateStatus = async (id: number, status: string) => {
+    try {
+      await RiskScenarioService.updateStatus(id, status);
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: "Status updated", severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({ open: true, message: "Failed to update status", severity: "error" });
+    }
+  };
+
+  // Delete
+  const handleDelete = async () => {
+    try {
+      if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
+      await RiskScenarioService.delete(selectedRiskScenario.id as number);
+      setIsDeleteConfirmOpen(false);
+      setSelectedRiskScenario(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: `Deleted RS-${selectedRiskScenario?.id}`, severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({ open: true, message: "Failed to delete risk scenario", severity: "error" });
+    }
+  };
+
+  const handleChangePage = (event: any, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // memoize props used by list/header
+  const headerProps = useMemo(
+    () => ({
+      breadcrumbItems,
+      addButtonText: "Add Risk Scenario",
+      addAction: () => setIsAddOpen(true),
+      sortItems,
+    }),
+    []
+  );
+
+  return (
+    <>
+      {/* View modal */}
+      {selectedRiskScenario && isViewOpen && (
+        <ViewRiskScenarioModal
+          open={isViewOpen}
+          onClose={() => setIsViewOpen(false)}
+          riskScenarioData={selectedRiskScenario}
+          setIsEditRiskScenarioOpen={setIsEditOpen}
+          setSelectedRiskScenario={setSelectedRiskScenario}
+          processes={processesData}
+          metaDatas={metaDatas}
+        />
+      )}
+
+      {/* Add form */}
+      {isAddOpen && (
+        <RiskScenarioFormModal
+          operation="create"
+          open={isAddOpen}
+          riskData={formData}
+          setRiskData={setFormData}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleCreate}
+          onClose={() => setIsAddConfirmOpen(true)}
+        />
+      )}
+
+      {/* Edit form */}
+      {isEditOpen && selectedRiskScenario && (
+        <RiskScenarioFormModal
+          operation="edit"
+          open={isEditOpen}
+          riskData={selectedRiskScenario}
+          setRiskData={(val: any) => {
+            if (typeof val === "function") {
+              setSelectedRiskScenario((prev) => val(prev as RiskScenarioData));
+            } else {
+              setSelectedRiskScenario(val);
+            }
+          }}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleUpdate}
+          onClose={() => setIsEditConfirmOpen(true)}
+        />
+      )}
+
+      {/* Confirm dialogs */}
+      <ConfirmDialog
+        open={isAddConfirmOpen}
+        onClose={() => setIsAddConfirmOpen(false)}
+        title="Cancel Risk Scenario Creation?"
+        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsAddConfirmOpen(false);
+          setFormData(initialRiskData);
+          setIsAddOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
+
+      <ConfirmDialog
+        open={isEditConfirmOpen}
+        onClose={() => setIsEditConfirmOpen(false)}
+        title="Cancel Risk Scenario Updation?"
+        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsEditConfirmOpen(false);
+          setSelectedRiskScenario(null);
+          setIsEditOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
+
+      <ConfirmDialog
+        open={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        title="Confirm Risk Scenario Deletion?"
+        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.id}? All associated data will be removed from the system.`}
+        onConfirm={handleDelete}
+        cancelText="Cancel"
+        confirmText="Yes, Delete"
+      />
+
+      {/* Page content */}
+      <Box p={5}>
+        <LibraryHeader {...headerProps} />
+        <RiskScenarioList
+          loading={loading}
+          data={riskScenarioData}
+          totalRows={totalRows}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          setSelectedRiskScenario={setSelectedRiskScenario}
+          setIsViewOpen={setIsViewOpen}
+          setIsEditOpen={setIsEditOpen}
+          setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
+          handleUpdateStatus={handleUpdateStatus}
+        />
+      </Box>
+
+      <ToastComponent
+        open={toast.open}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+        message={toast.message}
+        toastBorder={toast.severity === "success" ? "1px solid #147A50" : undefined}
+        toastColor={toast.severity === "success" ? "#147A50" : undefined}
+        toastBackgroundColor={toast.severity === "success" ? "#DDF5EB" : undefined}
+        toastSeverity={toast.severity}
+      />
+    </>
+  );
+}

@@ -1,20 +1,13 @@
-// components/LibraryCard.tsx
-import React from "react";
-import {
-  Box,
-  Chip,
-  Typography,
-  Stack,
-  Divider,
-  FormControlLabel,
-} from "@mui/material";
-import {
-  DeleteOutlineOutlined,
-  DoneOutlined,
-  EditOutlined,
-} from "@mui/icons-material";
+import { Box, Chip, Typography, Stack, Divider, FormControlLabel } from "@mui/material";
+import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
-import ToggleSwitch from "../toggle-switch/ToggleSwitch";
+import ToggleSwitch from "@/components/Library/toggle-switch/ToggleSwitch";
+
+
+interface TagItem {
+  label: string;
+  value: any;
+}
 
 interface LibraryCardProps {
   libraryData: any;
@@ -25,9 +18,10 @@ interface LibraryCardProps {
   handleUpdateStatus: (id: number, status: string) => void;
   title: string;
   desc: string;
-  chip: string;
+  chip?: string;
   status: string;
-  lastUpdated: string | Date;
+  lastUpdated?: string | Date;
+  tagItems: TagItem[];
 }
 
 const LibraryCard: React.FC<LibraryCardProps> = ({
@@ -42,7 +36,8 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
   chip = "Not Defined",
   status,
   lastUpdated,
-}: LibraryCardProps) => {
+  tagItems,
+}) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
       return (
@@ -50,11 +45,8 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
           control={
             <ToggleSwitch
               sx={{ m: 1 }}
-              color="success"
               onChange={(e) => {
-                const updatedStatus = e.target.checked
-                  ? "published"
-                  : "not_published";
+                const updatedStatus = e.target.checked ? "published" : "not_published";
                 handleUpdateStatus(libraryData.id as number, updatedStatus);
               }}
               checked={status === "published"}
@@ -98,6 +90,9 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
     },
   ];
 
+  const formattedDate =
+    lastUpdated ? new Date(lastUpdated as string | Date).toISOString().split("T")[0] : "";
+
   return (
     <Box
       sx={{
@@ -111,33 +106,15 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
       }}
     >
       {/* Header */}
-      <Box
-        sx={{
-          px: 3,
-          py: 1,
-          backgroundColor: "#F3F8FF",
-          borderRadius: "8px 8px 0 0",
-        }}
-      >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          flexWrap="wrap"
-        >
+      <Box sx={{ px: 3, py: 1, backgroundColor: "#F3F8FF", borderRadius: "8px 8px 0 0" }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap">
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography variant="body1" color={"text.primary"}>
               {title}
             </Typography>
             <Chip
               label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Typography variant="body2" color="#91939A">
                     {"Industry:"}
                   </Typography>
@@ -149,34 +126,27 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
               }
               variant="outlined"
               size="small"
-              sx={{
-                borderRadius: 0.5,
-                border: "1px solid #DDDDDD",
-                height: 24,
-              }}
+              sx={{ borderRadius: 0.5, border: "1px solid #DDDDDD", height: 24 }}
             />
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={0}>
             <Typography variant="body2" color="textSecondary">
-              Last Updated:{" "}
-              {new Date(lastUpdated as Date).toISOString().split("T")[0]}
+              Last Updated: {formattedDate}
             </Typography>
-            <Box sx={{ width: 96, mx: "24px !important" }}>
-              {getStatusComponent()}
-            </Box>
+            <Box sx={{ width: 96, mx: "24px !important" }}>{getStatusComponent()}</Box>
             <MenuItemComponent items={dialogData} />
           </Stack>
         </Stack>
       </Box>
 
-      {/* Title */}
-      <div
+      {/* Body */}
+      <Box
         onClick={() => {
-          console.log(libraryData);
           setSelectedLibraryData(libraryData);
           setIsViewLibraryOpen(true);
         }}
+        sx={{ cursor: "pointer" }}
       >
         <Typography variant="body1" fontWeight={550} sx={{ px: 3 }}>
           {desc}
@@ -185,12 +155,17 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
         <Divider sx={{ mx: 3, my: 1 }} />
 
         {/* Meta Info */}
-        <Typography variant="body2" color="textSecondary" sx={{ px: 3, pb: 1 }}>
-          {libraryData.tags} Tags &nbsp; • &nbsp; {1} Processes &nbsp; • &nbsp;{" "}
-          {libraryData.assets} Assets &nbsp; • &nbsp; {libraryData.threats}{" "}
-          Threats
-        </Typography>
-      </div>
+        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center" }}>
+          {tagItems.map((item, index) => (
+            <>
+              <Typography variant="body2" color="text.primary">
+                {item.value} &nbsp; {item.label}
+              </Typography>
+              {index !== tagItems.length - 1 && <Typography color="#D9D9D9" sx={{ ml: 1.5 }}>•</Typography>}
+            </>
+          ))}
+        </Box>
+      </Box>
     </Box>
   );
 };
