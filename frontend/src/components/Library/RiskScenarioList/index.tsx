@@ -1,5 +1,5 @@
 import { Box, Stack, TablePagination } from "@mui/material";
-import LibraryCard from "@/components/library/LibraryCard";
+import LibraryCard from "@/components/Library/LibraryCard";
 import { RiskScenarioData } from "@/types/risk-scenario";
 
 interface Props {

@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Box } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
-import LibraryHeader from "@/components/library/LibraryHeader";
-import RiskScenarioList from "@/components/library/RiskScenarioList";
+import LibraryHeader from "@/components/Library/LibraryHeader";
+import RiskScenarioList from "@/components/Library/RiskScenarioList";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import RiskScenarioFormModal from "@/components/library/risk-scenario/RiskScenarioFormModal";
-import ViewRiskScenarioModal from "@/components/library/risk-scenario/ViewRiskScenarioModalPopup";
+import RiskScenarioFormModal from "@/components/Library/risk-scenario/RiskScenarioFormModal";
+import ViewRiskScenarioModal from "@/components/Library/risk-scenario/ViewRiskScenarioModalPopup";
 import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario";
 import { RiskScenarioService } from "@/services/riskScenarioService";
 import { fetchProcesses } from "@/pages/api/process";

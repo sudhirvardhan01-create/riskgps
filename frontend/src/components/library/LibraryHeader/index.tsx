@@ -5,7 +5,7 @@ import {
   MenuItem, Select, Stack, TextField, Typography, useMediaQuery, useTheme
 } from "@mui/material";
 import { useState } from "react";
-import FilterComponent from "@/components/library/FilterComponent";
+import FilterComponent from "@/components/Library/FilterComponent";
 
 
 interface Props {
