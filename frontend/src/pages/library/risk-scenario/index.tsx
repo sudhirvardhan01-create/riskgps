@@ -36,7 +36,6 @@ import { fetchMetaDatas } from "@/pages/api/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import FilterComponent from "@/components/library/FilterComponent";
 import ToastComponent from "@/components/ToastComponent";
-import withAuth from "@/hoc/withAuth";
 
 const RiskScenarioLibraryPage = () => {
   const router = useRouter();
@@ -67,9 +66,7 @@ const RiskScenarioLibraryPage = () => {
     riskDescription: "",
     riskField1: "",
     riskField2: "",
-    attributes: [
-      { meta_data_key_id: null, values: [] },
-    ] as RiskScenarioAttributes[],
+    attributes: [] as RiskScenarioAttributes[],
   });
   const [isOpenFilter, setIsOpenFilter] = useState(false);
 
@@ -159,8 +156,10 @@ const RiskScenarioLibraryPage = () => {
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsEditRiskScenarioOpen(false);
+        setIsAddDeleteRSSuccessToastOpen(true);
+        setAddDeleteRSSuccessToastMessage(`Success! The risk scenario RS-ID has been ${status === "published" ? "published" : "saved as a draft"}`)
         setSelectedRiskScenario(null);
-        alert("updated");
+
       } else {
         alert("Invalid operation");
       }
