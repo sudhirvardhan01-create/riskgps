@@ -34,9 +34,11 @@ import ToastComponent from "@/components/ToastComponent";
 import withAuth from "@/hoc/withAuth";
 import { ProcessAttributes, ProcessData } from "@/types/process";
 import ProcessCard from "@/components/library/Process/ProcessCard";
-import ProcessDependencyGraph from "@/components/library/Process/ProcessDependencyGraph";
+// import ProcessDependencyGraph from "@/components/library/Process/ProcessDependencyGraph";
 import ViewProcessModal from "@/components/library/Process/ViewProcessModal";
 import ProcessFormModal from "@/components/library/Process/ProcessFormModal";
+import ProcessDependencyGraph from "@/components/library/Process/ProcessDependencyGraph/ProcessDependencyGraph";
+import ProcessAssetConnectionGraph from "@/components/library/Process/ProcessDependencyGraph/ProcessAssetConnectionGraph";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -506,7 +508,7 @@ const ProcessLibraryPage = () => {
           </Stack>
 
           {/* Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+          {/* <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
             <Tabs
               value={tabValue}
               onChange={handleTabChange}
@@ -534,7 +536,7 @@ const ProcessLibraryPage = () => {
                 {...a11yProps(1)}
               />
             </Tabs>
-          </Box>
+          </Box> */}
 
           {/* Tab Panel 0: Process List */}
           <TabPanel value={tabValue} index={0}>
@@ -693,7 +695,7 @@ const ProcessLibraryPage = () => {
           </TabPanel>
 
           {/* Tab Panel 1: Dependencies */}
-          <TabPanel value={tabValue} index={1}>
+          {/* <TabPanel value={tabValue} index={1}>
             <Box sx={{ mb: 2 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Process Dependencies
@@ -704,7 +706,7 @@ const ProcessLibraryPage = () => {
               </Typography>
             </Box>
             <ProcessDependencyGraph processesData={processesData} />
-          </TabPanel>
+          </TabPanel> */}
         </Box>
       </Box>
     </>
