@@ -1,5 +1,5 @@
 import MenuItemComponent from '@/components/MenuItemComponent'
-import FilterComponent from '@/components/library/FilterComponent';
+import FilterComponent from '@/components/Library/FilterComponent';
 import { DeleteOutlineOutlined, EditOutlined } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import ToastComponent from '@/components/ToastComponent'
