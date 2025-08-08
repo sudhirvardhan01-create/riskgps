@@ -8,14 +8,15 @@ module.exports = (sequelize) => {
     input_type: {
       type: DataTypes.ENUM('text', 'select', 'multiselect', 'number'),
       defaultValue: "multiselect",
-      allowNull: false,
+      allowNull: true,
     },
-    supported_values: { type: DataTypes.ARRAY(DataTypes.STRING) },
+    supported_values: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false },
     applies_to: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: ['all'],
+      allowNull: false,
     },
-    description: DataTypes.TEXT,
+    description: { type: DataTypes.TEXT, allowNull: true },
   }, {
     tableName: 'library_meta_datas',
     timestamps: true,

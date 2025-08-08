@@ -41,13 +41,13 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <CloseIcon fontSize="small" />
             </IconButton>
             <DialogTitle sx={{ textAlign: "center", mb: 0, pb: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#484848' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#484848' }}>
                     {title}
                 </Typography>
             </DialogTitle>
 
             <DialogContent>
-                <Typography sx={{ color: "#91939A", fontSize: 14, textAlign: 'center', fontWeight: 400 }}>{description}</Typography>
+                <Typography variant="body2" sx={{ color: "#91939A", textAlign: 'center', fontWeight: 400 }}>{description}</Typography>
             </DialogContent>
 
             <DialogActions sx={{ display: 'flex', justifyContent: "center", pb: 3, gap: 3, alignItems: 'center' }}>
