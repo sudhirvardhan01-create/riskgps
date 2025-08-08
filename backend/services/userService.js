@@ -1,8 +1,18 @@
 // backend/services/userService.js
 const db = require('../models');
+const CustomError = require('../utils/CustomError');
+const Messages = require('../constants/messages');
+
+//exports.getAllUsers = async () => {
+//  return await db.User.findAll();
+//};
 
 exports.getAllUsers = async () => {
-  return await db.User.findAll();
+    const user = await db.User.findAll();
+    if (!user) {
+        throw new CustomError(MESSAGES.USER.NOT_FOUND, 404);
+    }
+    return user;
 };
 
 exports.createUser = async (name) => {
