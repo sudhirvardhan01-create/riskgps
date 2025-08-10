@@ -1,7 +1,7 @@
 const express = require('express');
 const RiskScenarioService = require('../services/risk_scenario');
 const router = express.Router();
-
+const HttpStatus = require('./constants/httpStatusCodes');
 
 
 /**
@@ -30,13 +30,13 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const result = await RiskScenarioService.createRiskScenario(req.body);
-    res.status(201).json({
+    res.status(HttpStatus.CREATED).json({
       data: result,
       msg: "risk scneario created successfully"
     });
   } catch (err) {
     console.log("failed to create risk scenario", err);
-    res.status(400).json({ error: err.message });
+    res.status(HttpStatus.BAD_REQUEST).json({ error: err.message });
   }
 });
 
@@ -60,7 +60,7 @@ router.get('/', async (req, res) => {
       msg: "risk scenario fetched successfully"
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: err.message });
   }
 });
 
@@ -84,7 +84,7 @@ router.get('/:id', async (req, res) => {
       msg: "risk scenario fetched successfully by ID"
     });
   } catch (err) {
-    res.status(404).json({ error: err.message });
+    res.status(HttpStatus.NOT_FOUND).json({ error: err.message });
   }
 });
 
@@ -115,7 +115,7 @@ router.put("/:id", async (req, res) => {
     const id = req.params.id;
     const body = req.body;
     const response = await RiskScenarioService.updateRiskScenario(id, body);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       data: response,
       msg: "risk scneario updated successfully"
     });
@@ -139,12 +139,12 @@ router.delete("/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const response = await RiskScenarioService.deleteRiskScenarioById(id);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       msg: "risk scenario deleted successfully"
     });
   } catch (err) {
     console.log("delete risk scenario failed", err);
-    res.status(404).json({error: err.message});
+    res.status(HttpStatus.NOT_FOUND).json({error: err.message});
   }
 })
 
@@ -153,12 +153,12 @@ router.patch("/update-status/:id", async (req, res) => {
     const id = req.params.id;
     const status = req.body.status;
     const resposnse = await RiskScenarioService.updateRiskScenarioStatus(id, status);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       msg: "risk scenario status updated successfully"
     });
   } catch (err) {
     console.log("update risk scenario status failed", err);
-    res.status(404).json({error: err.message});
+    res.status(HttpStatus.NOT_FOUND).json({error: err.message});
   }
 })
 

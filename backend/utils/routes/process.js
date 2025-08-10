@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ProcessService = require("../services/process");
-
+const HttpStatus = require('./constants/httpStatusCodes');
 /**
  * @route POST /process
  */
@@ -9,12 +9,12 @@ router.post('/', async (req, res) => {
   console.log("req recived for process creation", req.body);
   try {
     const process = await ProcessService.createProcess(req.body);
-    res.status(201).json({
+    res.status(HttpStatus.CREATED).json({
       data: process,
       msg: "process created successfully"
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(HttpStatus.BAD_REQUEST).json({ error: err.message });
   }
 });
 
@@ -29,12 +29,12 @@ router.get('/', async (req, res) => {
     const page = parseInt(req.query?.page) || 0;
     console.log("aa")
     const processes = await ProcessService.getAllProcesses(page, limit, filters);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       data: processes,
       msg: "fetched all the process"
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: err.message });
   }
 });
 
@@ -42,12 +42,12 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const process = await ProcessService.getProcessById(req.params.id);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       data: process,
       msg: "process fetched by ID"
     });
   } catch (err) {
-    res.status(404).json({ error: err.message });
+    res.status(HttpStatus.NOT_FOUND).json({ error: err.message });
   }
 });
 
@@ -55,12 +55,12 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const process = await ProcessService.updateProcess(req.params.id, req.body);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       data: process,
       msg: "process  updated successfully"
     });
   } catch (err) {
-    res.status(404).json({ error: err.message });
+    res.status(HttpStatus.NOT_FOUND).json({ error: err.message });
   }
 });
 
@@ -69,13 +69,13 @@ router.patch("/update-status/:id", async (req, res) => {
     const id = req.params.id;
     const status = req.body.status;
     const response = await ProcessService.updateProcessStatus(id, status);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       msg: "process Status  updated successfully"
     });
 
   } catch (err) {
     console.log("failed operation update status", err);
-    res.status(404).json({ error: err.message });
+    res.status(HttpStatus.NOT_FOUND).json({ error: err.message });
   }
 })
 
@@ -83,11 +83,11 @@ router.patch("/update-status/:id", async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const result = await ProcessService.deleteProcess(req.params.id);
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       msg: "process deleted successfully"
     });
   } catch (err) {
-    res.status(404).json({ error: err.message });
+    res.status(HttpStatus.NOT_FOUND).json({ error: err.message });
   }
 });
 
