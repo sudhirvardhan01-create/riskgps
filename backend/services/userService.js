@@ -2,15 +2,12 @@
 const db = require('../models');
 const CustomError = require('../utils/CustomError');
 const Messages = require('../constants/messages');
-
-//exports.getAllUsers = async () => {
-//  return await db.User.findAll();
-//};
+const HttpStatus = require('./constants/httpStatusCodes');
 
 exports.getAllUsers = async () => {
     const user = await db.User.findAll();
     if (!user) {
-        throw new CustomError(MESSAGES.USER.NOT_FOUND, 404);
+        throw new CustomError(MESSAGES.USER.NOT_FOUND, HttpStatus.NOT_FOUND);
     }
     return user;
 };
