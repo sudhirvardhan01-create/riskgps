@@ -4,7 +4,13 @@ const router = express.Router();
 const Messages = require("../../../constants/messages");
 const HttpStatus = require('../../../constants/httpStatusCodes');
 
-// Create Risk Scenario
+/**
+ * @route POST /risk-scenario
+ * @description Create a new risk scenario
+ * @param {Object} req.body - Risk scenario data
+ * @returns {JSON} 201 - Created risk scenario
+ * @returns {JSON} 400 - Bad request or creation failure
+ */
 router.post('/', async (req, res) => {
     try {
         const result = await RiskScenarioService.createRiskScenario(req.body);
@@ -20,7 +26,14 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Get All Risk Scenarios
+/**
+ * @route GET /risk-scenario
+ * @description Retrieve all risk scenarios with pagination
+ * @param {Number} [req.query.limit=6] - Number of records per page
+ * @param {Number} [req.query.page=0] - Page number
+ * @returns {JSON} 200 - List of risk scenarios
+ * @returns {JSON} 500 - Server error
+ */
 router.get('/', async (req, res) => {
     try {
         const limit = parseInt(req.query?.limit) || 6;
@@ -37,7 +50,13 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get Risk Scenario by ID
+/**
+ * @route GET /risk-scenario/:id
+ * @description Get a risk scenario by ID
+ * @param {String} req.params.id - Risk scenario ID
+ * @returns {JSON} 200 - Risk scenario data
+ * @returns {JSON} 404 - Scenario not found
+ */
 router.get('/:id', async (req, res) => {
     try {
         const scenario = await RiskScenarioService.getRiskScenarioById(req.params.id);
@@ -52,7 +71,14 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Update Risk Scenario
+/**
+ * @route PUT /risk-scenario/:id
+ * @description Update an existing risk scenario by ID
+ * @param {String} req.params.id - Risk scenario ID
+ * @param {Object} req.body - Updated risk scenario fields
+ * @returns {JSON} 200 - Updated scenario
+ * @returns {JSON} 404 - Scenario not found or update failed
+ */
 router.put("/:id", async (req, res) => {
     try {
         const id = req.params.id;
@@ -70,7 +96,13 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-// Delete Risk Scenario
+/**
+ * @route DELETE /risk-scenario/:id
+ * @description Delete a risk scenario by ID
+ * @param {String} req.params.id - Risk scenario ID
+ * @returns {JSON} 200 - Deletion success message
+ * @returns {JSON} 404 - Scenario not found or deletion failed
+ */
 router.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id;
@@ -86,7 +118,14 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-// Update Risk Scenario Status
+/**
+ * @route PATCH /risk-scenario/update-status/:id
+ * @description Update the status of a risk scenario
+ * @param {String} req.params.id - Risk scenario ID
+ * @param {String} req.body.status - New status value
+ * @returns {JSON} 200 - Status update success message
+ * @returns {JSON} 404 - Scenario not found or update failed
+ */
 router.patch("/update-status/:id", async (req, res) => {
     try {
         const id = req.params.id;

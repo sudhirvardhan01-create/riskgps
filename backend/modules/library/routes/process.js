@@ -6,6 +6,10 @@ const HttpStatus = require('../../../constants/httpStatusCodes');
 
 /**
  * @route POST /process
+ * @description Create a new process
+ * @param {Object} req.body - Process data to be created
+ * @returns {JSON} 201 - Created process with success message
+ * @returns {JSON} 400 - Bad request with error message
  */
 router.post('/', async (req, res) => {
     console.log("Request received for process creation", req.body);
@@ -22,7 +26,15 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Get All Processes (optional filter by name)
+/**
+ * @route GET /process
+ * @description Get all processes with optional filtering by name and pagination
+ * @param {String} [req.query.name] - Optional process name filter
+ * @param {Number} [req.query.limit=6] - Number of records per page
+ * @param {Number} [req.query.page=0] - Page number
+ * @returns {JSON} 200 - List of processes
+ * @returns {JSON} 500 - Server error with message
+ */
 router.get('/', async (req, res) => {
     try {
         const filters = { name: req.query.name };
@@ -41,7 +53,13 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get Process by ID
+/**
+ * @route GET /process/:id
+ * @description Get a process by ID
+ * @param {String} req.params.id - Process ID
+ * @returns {JSON} 200 - Process object
+ * @returns {JSON} 404 - Not found error
+ */
 router.get('/:id', async (req, res) => {
     try {
         const process = await ProcessService.getProcessById(req.params.id);
@@ -56,7 +74,14 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Update Process
+/**
+ * @route PUT /process/:id
+ * @description Update a process by ID
+ * @param {String} req.params.id - Process ID
+ * @param {Object} req.body - Updated process data
+ * @returns {JSON} 200 - Updated process object
+ * @returns {JSON} 404 - Not found or update failed
+ */
 router.put('/:id', async (req, res) => {
     try {
         const process = await ProcessService.updateProcess(req.params.id, req.body);
@@ -71,7 +96,14 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Patch - Update Process Status
+/**
+ * @route PATCH /process/update-status/:id
+ * @description Update the status of a process
+ * @param {String} req.params.id - Process ID
+ * @param {String} req.body.status - New status value
+ * @returns {JSON} 200 - Success message
+ * @returns {JSON} 404 - Process not found or update failed
+ */
 router.patch("/update-status/:id", async (req, res) => {
     try {
         const id = req.params.id;
@@ -89,7 +121,13 @@ router.patch("/update-status/:id", async (req, res) => {
     }
 });
 
-// Delete Process
+/**
+ * @route DELETE /process/:id
+ * @description Delete a process by ID
+ * @param {String} req.params.id - Process ID
+ * @returns {JSON} 200 - Success message
+ * @returns {JSON} 404 - Process not found or deletion failed
+ */
 router.delete('/:id', async (req, res) => {
     try {
         await ProcessService.deleteProcess(req.params.id);
