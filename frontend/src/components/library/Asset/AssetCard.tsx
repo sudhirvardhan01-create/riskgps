@@ -10,7 +10,7 @@ import {
 import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from '@mui/icons-material';
 import { AssetForm } from '@/types/asset';
 import MenuItemComponent from '@/components/MenuItemComponent';
-import ToggleSwitch from '../toggle-switch/ToggleSwitch';
+import ToggleSwitch from '../ToggleSwitch/ToggleSwitch';
 
 
 interface AssetCardProps {

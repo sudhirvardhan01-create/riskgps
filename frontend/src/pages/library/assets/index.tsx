@@ -17,7 +17,7 @@ import {
 import { useRouter } from "next/router";
 import { FilterAltOutlined, ArrowBack, Search } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
-import AssetFormModal from "@/components/library/Asset/AssetFormModal";
+import AssetFormModal from "@/components/Library/Asset/AssetFormModal";
 import {
   createAsset,
   updateAsset,
@@ -28,12 +28,12 @@ import {
 import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import FilterComponent from "@/components/library/FilterComponent";
+import FilterComponent from "@/components/Library/FilterComponent";
 import ToastComponent from "@/components/ToastComponent";
 import withAuth from "@/hoc/withAuth";
 import { AssetAttributes, AssetForm } from "@/types/asset";
-import ViewAssetModal from "@/components/library/Asset/ViewAssetModal";
-import AssetCard from "@/components/library/Asset/AssetCard";
+import ViewAssetModal from "@/components/Library/Asset/ViewAssetModal";
+import AssetCard from "@/components/Library/Asset/AssetCard";
 
 const Index = () => {
   const router = useRouter();

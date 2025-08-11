@@ -12,7 +12,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import ToggleSwitch from "../toggle-switch/ToggleSwitch";
+import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { AssetForm } from "@/types/asset";
 
 interface ViewAssetModalProps {
