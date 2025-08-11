@@ -94,7 +94,7 @@ export const createRiskScenario = async (data: RiskScenarioData) => {
   return res.data;
 }
 
-export const updateRiskScenario = async (id: number, data: RiskScenarioData) => {
+export const updateRiskScenario = async (id: number, data: any) => {
     const riskScenarioData = {
     "risk_scenario": data.riskScenario,
     "risk_description": data.riskDescription,

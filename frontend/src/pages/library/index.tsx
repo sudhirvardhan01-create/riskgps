@@ -131,7 +131,7 @@ const libs = [
       },
     ],
     icon: <ProcessCardIcon height={24} width={24} />,
-    href: "/library/processes",
+    href: "/library/process",
   },
 ];
 

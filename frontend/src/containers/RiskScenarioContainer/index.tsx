@@ -5,12 +5,12 @@ import LibraryHeader from "@/components/Library/LibraryHeader";
 import RiskScenarioList from "@/components/Library/RiskScenarioList";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import RiskScenarioFormModal from "@/components/Library/risk-scenario/RiskScenarioFormModal";
-import ViewRiskScenarioModal from "@/components/Library/risk-scenario/ViewRiskScenarioModalPopup";
+import RiskScenarioFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
+import ViewRiskScenarioModal from "@/components/Library/RiskScenario/ViewRiskScenarioModalPopup";
 import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario";
 import { RiskScenarioService } from "@/services/riskScenarioService";
-import { fetchProcesses } from "@/pages/api/process";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
+import { fetchProcesses } from "@/pages/api/process";
 
 const initialRiskData: RiskScenarioData = {
   riskScenario: "",
@@ -18,7 +18,7 @@ const initialRiskData: RiskScenarioData = {
   riskDescription: "",
   riskField1: "",
   riskField2: "",
-  attributes: [{ meta_data_key_id: null, values: [] }] as RiskScenarioAttributes[],
+  attributes: [] as RiskScenarioAttributes[],
 };
 
 const sortItems = [
@@ -84,8 +84,8 @@ export default function RiskScenarioContainer() {
     (async () => {
       try {
         setLoading(true);
-        const [proc, meta] = await Promise.all([fetchProcesses(), fetchMetaDatas()]);
-        setProcessesData(proc ?? []);
+        const [proc, meta] = await Promise.all([fetchProcesses(0, 0), fetchMetaDatas()]);
+        setProcessesData(proc.data ?? []);
         setMetaDatas(meta ?? []);
       } catch (err) {
         console.error(err);

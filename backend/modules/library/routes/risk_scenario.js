@@ -35,6 +35,7 @@ router.post('/', async (req, res) => {
       msg: "risk scneario created successfully"
     });
   } catch (err) {
+    console.log("failed to create risk scenario", err);
     res.status(400).json({ error: err.message });
   }
 });

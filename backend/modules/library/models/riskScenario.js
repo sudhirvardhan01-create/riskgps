@@ -19,7 +19,8 @@ module.exports = (sequelize) => {
     status: { 
       defaultValue: 'published',
       allowNull: false,
-      type: DataTypes.ENUM(...RISK_STATUS) },
+      type: DataTypes.ENUM(...RISK_STATUS) 
+    },
     risk_field_1: DataTypes.TEXT,
     risk_field_2: DataTypes.TEXT,
   }, {
@@ -45,11 +46,11 @@ module.exports = (sequelize) => {
   };
 
   // Generate risk_code hook
-  RiskScenario.afterCreate(async (instance) => {
-    const paddedId = String(instance.id).padStart(5, '0');
-    const code = `RS-${paddedId}`;
-    await instance.update({ risk_code: code });
-  });
+RiskScenario.afterCreate(async (instance, options) => {
+  const paddedId = String(instance.id).padStart(5, '0');
+  const code = `#RS-${paddedId}`;
+  await instance.update({ risk_code: code }, { transaction: options.transaction });
+});
 
   return RiskScenario;
 };
