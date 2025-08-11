@@ -53,12 +53,12 @@ const Index = () => {
     useState(false);
   const [isAddConfirmPopupOpen, setIsAddConfirmPopupOpen] = useState(false);
   const [isEditConfirmPopupOpen, setIsEditConfirmPopupOpen] = useState(false);
-  const [isViewRiskScenarioOpen, setIsViewRiskScenarioOpen] = useState(false);
+  const [isViewAssetOpen, setIsViewAssetOpen] = useState(false);
   const [isAddAssetOpen, setIsAddAssetOpen] = useState(false);
-  const [isEditRiskScenarioOpen, setIsEditRiskScenarioOpen] = useState(false);
-  const [isAddDeleteRSSuccessToastOpen, setIsAddDeleteRSSuccessToastOpen] =
+  const [isEditAssetOpen, setIsEditAssetOpen] = useState(false);
+  const [isAddEditDeleteAssetSuccessToastOpen, setIsAddEditDeleteAssetSuccessToastOpen] =
     useState(false);
-  const [addDeleteRSSuccessToastMessage, setAddDeleteRSSuccessToastMessage] =
+  const [addEditDeleteAssetSuccessToastMessage, setAddEditDeleteAssetSuccessToastMessage] =
     useState("");
   const [assetFormData, setAssetFormData] = useState<AssetForm>({
     assetName: "",
@@ -105,7 +105,7 @@ const Index = () => {
         const data = await fetchProcesses();
         setProcessesData(data);
       } catch (error) {
-        console.error("Error fetching risk scenarios:", error);
+        console.error("Error fetching processes:", error);
       } finally {
         setLoading(false);
       }
@@ -120,7 +120,7 @@ const Index = () => {
         const data = await fetchMetaDatas();
         setMetaDatas(data);
       } catch (error) {
-        console.error("Error fetching risk scenarios:", error);
+        console.error("Error fetching metadatas:", error);
       } finally {
         setLoading(false);
       }
@@ -158,8 +158,8 @@ const Index = () => {
       setRefreshTrigger((prev) => prev + 1);
       setIsAddAssetOpen(false);
       //alert("created");
-      setIsAddDeleteRSSuccessToastOpen(true);
-      setAddDeleteRSSuccessToastMessage(
+      setIsAddEditDeleteAssetSuccessToastOpen(true);
+      setAddEditDeleteAssetSuccessToastMessage(
         `Success! The risk scenario RS-ID has been ${
           status === "published" ? "published" : "saved as a draft"
         }`
@@ -178,7 +178,7 @@ const Index = () => {
         const res = await updateAsset(reqBody.id as number, reqBody);
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
-        setIsEditRiskScenarioOpen(false);
+        setIsEditAssetOpen(false);
         setSelectedAsset(null);
         alert("updated");
       } else {
@@ -206,8 +206,8 @@ const Index = () => {
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsDeleteConfirmPopupOpen(false);
-        setIsAddDeleteRSSuccessToastOpen(true);
-        setAddDeleteRSSuccessToastMessage(
+        setIsAddEditDeleteAssetSuccessToastOpen(true);
+        setAddEditDeleteAssetSuccessToastMessage(
           `Success! The risk scenario RS-${selectedAsset?.id} has been deleted`
         );
       } else {
@@ -235,16 +235,16 @@ const Index = () => {
 
   return (
     <>
-      {selectedAsset && isViewRiskScenarioOpen && (
+      {selectedAsset && isViewAssetOpen && (
         <ViewAssetModal
           assetData={selectedAsset}
-          setIsEditAssetOpen={setIsEditRiskScenarioOpen}
+          setIsEditAssetOpen={setIsEditAssetOpen}
           setSelectedAsset={setSelectedAsset}
           processes={processesData}
           metaDatas={metaDatas}
-          open={isViewRiskScenarioOpen}
+          open={isViewAssetOpen}
           onClose={() => {
-            setIsViewRiskScenarioOpen(false);
+            setIsViewAssetOpen(false);
           }}
         />
       )}
@@ -317,19 +317,19 @@ const Index = () => {
       />
 
       <ToastComponent
-        open={isAddDeleteRSSuccessToastOpen}
-        onClose={() => setIsAddDeleteRSSuccessToastOpen(false)}
-        message={addDeleteRSSuccessToastMessage}
+        open={isAddEditDeleteAssetSuccessToastOpen}
+        onClose={() => setIsAddEditDeleteAssetSuccessToastOpen(false)}
+        message={addEditDeleteAssetSuccessToastMessage}
         toastBorder="1px solid #147A50"
         toastColor="#147A50"
         toastBackgroundColor="#DDF5EB"
         toastSeverity="success"
       />
 
-      {isEditRiskScenarioOpen && selectedAsset && (
+      {isEditAssetOpen && selectedAsset && (
         <AssetFormModal
           operation={"edit"}
-          open={isEditRiskScenarioOpen}
+          open={isEditAssetOpen}
           assetFormData={selectedAsset}
           processes={processesData}
           metaDatas={metaDatas}
@@ -357,7 +357,7 @@ const Index = () => {
         onConfirm={() => {
           setIsEditConfirmPopupOpen(false);
           setSelectedAsset(null);
-          setIsEditRiskScenarioOpen(false);
+          setIsEditAssetOpen(false);
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
@@ -508,9 +508,9 @@ const Index = () => {
                   key={index}
                   assetData={item}
                   handleUpdateAssetStatus={handleUpdateAssetStatus}
-                  setIsViewAssetOpen={setIsViewRiskScenarioOpen}
+                  setIsViewAssetOpen={setIsViewAssetOpen}
                   setSelectedAsset={setSelectedAsset}
-                  setIsEditAssetOpen={setIsEditRiskScenarioOpen}
+                  setIsEditAssetOpen={setIsEditAssetOpen}
                   setIsDeleteConfirmPopupOpen={setIsDeleteConfirmPopupOpen}
                 />
               </div>
