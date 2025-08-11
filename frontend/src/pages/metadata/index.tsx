@@ -341,7 +341,7 @@ const Index = () => {
           </Stack>
         </Box>
 
-        <Stack spacing={2}>
+        <Stack spacing={3}>
           {metaDatas &&
             metaDatas?.length > 0 &&
             metaDatas?.map((item, index) => (
