@@ -86,7 +86,7 @@ export default function RiskScenarioContainer() {
         setLoading(true);
         const [proc, meta] = await Promise.all([fetchProcesses(0, 0), fetchMetaDatas()]);
         setProcessesData(proc.data ?? []);
-        setMetaDatas(meta ?? []);
+        setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error(err);
         setToast({ open: true, message: "Failed to fetch supporting data", severity: "error" });

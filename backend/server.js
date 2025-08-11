@@ -1,13 +1,13 @@
 require('dotenv').config();
 const express = require("express");
 const app = express();
-const riskScenarioRoutes = require("./modules/library/routes/risk_scenario");
-const metaDataRoutes = require("./modules/library/routes/meta_data");
-const processRoutes = require("./modules/library/routes/process");
+const riskScenarioRoutes = require("./routes/risk_scenario");
+const metaDataRoutes = require("./routes/meta_data");
+const processRoutes = require("./routes/process");
 const db = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const { authenticateJWT } = require('./middleware/authMiddleware');
-
+const errorHandler = require('./middleware/errorHandler');
 
 
 const cors = require('cors');
@@ -33,7 +33,7 @@ app.use("/library/risk-scenario", riskScenarioRoutes);
 app.use("/library/meta-data", metaDataRoutes);
 app.use('/auth', authRoutes);
 // app.use('/users', userRoutes);
-
+app.use(errorHandler);
 
 db.sequelize.sync().then(() => {
   app.listen(port, () => {

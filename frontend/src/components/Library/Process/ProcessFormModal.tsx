@@ -46,7 +46,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(processData)
+  console.log(metaDatas)
   console.log(processes);
 
 

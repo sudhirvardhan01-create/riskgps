@@ -94,7 +94,7 @@ export default function ProcessContainer() {
       try {
         setLoading(true);
         const [meta] = await Promise.all([fetchMetaDatas()]);
-        setMetaDatas(meta ?? []);
+        setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error(err);
         setToast({ open: true, message: "Failed to fetch supporting data", severity: "error" });
