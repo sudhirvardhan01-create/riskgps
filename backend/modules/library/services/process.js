@@ -1,352 +1,280 @@
+const { Op } = require("sequelize");
+const {
+    Process,
+    sequelize,
+    ProcessRelationship,
+    MetaData,
+    ProcessAttribute,
+    RiskScenario,
+} = require("../../../models");
+
 const { STATUS_SUPPORTED_VALUES } = require("../../../constants/library");
 const { PROCESS_RELATIONSHIP_TYPES } = require("../../../constants/process");
-const {
-  Process,
-  sequelize,
-  ProcessRelationship,
-  MetaData,
-  ProcessAttribute,
-  RiskScenario,
-} = require("../../../models");
 const { validateProcessData } = require("../utils/process");
 
+const CustomError = require("../../../utils/CustomError");
+const Messages = require("../../../constants/messages");
+const HttpStatus = require("../../../constants/httpStatusCodes");
+
 class ProcessService {
-  
-  static async createProcess(data) {
-    return await sequelize.transaction(async (t) => {
-      validateProcessData(data);
+    static async createProcess(data) {
+        return await sequelize.transaction(async (t) => {
+            validateProcessData(data);
 
-      const processData = this.handleProcessDataColumnMapping(data);
-      console.log(processData);
-      const newProcess = await Process.create(processData, { transaction: t });
+            const processData = this.handleProcessDataColumnMapping(data);
+            console.log("Creating process with data:", processData);
 
-      if (
-        Array.isArray(data.process_dependency) &&
-        data.process_dependency.length > 0
-      ) {
-        await this.handleProcessDependencies(
-          newProcess.id,
-          data.process_dependency,
-          t
-        );
-      }
+            const newProcess = await Process.create(processData, { transaction: t });
 
-      if (Array.isArray(data.attributes) && data.attributes.length > 0) {
-        await this.handleProcessAttributes(newProcess.id, data.attributes, t);
-      }
+            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+                await this.handleProcessDependencies(newProcess.id, data.process_dependency, t);
+            }
 
-      return newProcess;
-    });
-  }
+            if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+                await this.handleProcessAttributes(newProcess.id, data.attributes, t);
+            }
 
-  static async getAllProcesses(page = 0, limit = 6, filters = {}) {
-    const offset = page * limit;
-    const total = await Process.count();
-
-    const whereClause = {};
-
-    // Optional filter by name
-    if (filters.name) {
-      whereClause.process_name = {
-        [Op.iLike]: `%${filters.name}%`,
-      };
+            return newProcess;
+        });
     }
-    let data;
-    if (limit == 0) {
-      data = await Process.findAll({
-        order: [["created_at", "DESC"]], // sort by created date
-        include: [
-          {
-            model: ProcessAttribute,
-            as: "attributes",
-            include: [
-              {
-                model: MetaData,
-                as: "metaData",
-              },
-            ],
-          },
-          {
-            model: RiskScenario,
-            as: "riskScenarios",
-          },
-          { 
-            model: ProcessRelationship, 
-            as: "sourceRelationships" 
-          },
-          { 
-            model: ProcessRelationship, 
-            as: "targetRelationships" 
-          },
-        ],
-      });
-    } else {
-      data = await Process.findAll({
-      limit,
-      offset,
-      order: [["created_at", "DESC"]], // sort by created date
-      include: [
-        {
-          model: ProcessAttribute,
-          as: "attributes",
-          include: [
+
+    static async getAllProcesses(page = 0, limit = 6, filters = {}) {
+        const offset = page * limit;
+        const total = await Process.count();
+        const whereClause = {};
+
+        if (filters.name) {
+            whereClause.process_name = {
+                [Op.iLike]: `%${filters.name}%`,
+            };
+        }
+
+        console.log("Fetching all processes");
+
+        const includeRelations = [
             {
-              model: MetaData,
-              as: "metaData",
+                model: ProcessAttribute,
+                as: "attributes",
+                include: [{ model: MetaData, as: "metaData" }],
             },
-          ],
-        },
-        {
-          model: RiskScenario,
-          as: "riskScenarios",
-        },
-        { 
-          model: ProcessRelationship, 
-          as: "sourceRelationships" 
-        },
-        { 
-          model: ProcessRelationship, 
-          as: "targetRelationships" 
-        },
-      ],
-    });
-    }
-    let processes = data.map(s => s.toJSON())
-    for (let i = 0; i  < processes.length; i++) {
-      processes[i].industry = processes[i].attributes?.filter((val) => val.metaData?.name?.toLowerCase() == "industry")?.flatMap(val => val.values);
-      processes[i].domain = processes[i].attributes?.filter((val) => val.metaData?.name?.toLowerCase() == "domain")?.flatMap(val => val.values);
-      processes[i].attributes = processes[i].attributes.map((val) => { return {meta_data_key_id: val.meta_data_key_id, values: val.values} })
-      processes[i].process_dependency = [];
-      if (processes[i]?.sourceRelationships?.length > 0) {
-          processes[i].process_dependency.push(...processes[i]?.sourceRelationships.map((val)=> {
-            return {
-              source_process_id: val.source_process_id,
-              target_process_id: val.target_process_id,
-              relationship_type: val.relationship_type
+            { model: RiskScenario, as: "riskScenarios" },
+            { model: ProcessRelationship, as: "sourceRelationships" },
+            { model: ProcessRelationship, as: "targetRelationships" },
+        ];
+
+        const data = await Process.findAll({
+            ...(limit > 0 ? { limit, offset } : {}),
+            order: [["created_at", "DESC"]],
+            include: includeRelations,
+        });
+
+        let processes = data.map((s) => s.toJSON());
+
+        for (let i = 0; i < processes.length; i++) {
+            const p = processes[i];
+
+            p.industry = p.attributes?.filter((val) => val.metaData?.name?.toLowerCase() === "industry")
+                ?.flatMap((val) => val.values);
+            p.domain = p.attributes?.filter((val) => val.metaData?.name?.toLowerCase() === "domain")
+                ?.flatMap((val) => val.values);
+
+            p.attributes = p.attributes.map((val) => ({
+                meta_data_key_id: val.meta_data_key_id,
+                values: val.values,
+            }));
+
+            p.process_dependency = [];
+
+            if (p?.sourceRelationships?.length > 0) {
+                p.process_dependency.push(
+                    ...p.sourceRelationships.map((val) => ({
+                        source_process_id: val.source_process_id,
+                        target_process_id: val.target_process_id,
+                        relationship_type: val.relationship_type,
+                    }))
+                );
             }
-          }))
-      }
-      if ( processes[i]?.targetRelationships?.length > 0 ) {
-          processes[i].process_dependency.push(...processes[i]?.targetRelationships.map((val)=> {
-            return {
-              source_process_id: val.target_process_id,
-              target_process_id: val.source_process_id, 
-              relationship_type: val.relationship_type === "follows" ? "precedes" : "follows"
+
+            if (p?.targetRelationships?.length > 0) {
+                p.process_dependency.push(
+                    ...p.targetRelationships.map((val) => ({
+                        source_process_id: val.target_process_id,
+                        target_process_id: val.source_process_id,
+                        relationship_type: val.relationship_type === "follows" ? "precedes" : "follows",
+                    }))
+                );
             }
-          }))
-      }
-      delete processes[i].sourceRelationships;
-      delete processes[i].targetRelationships;
-    }
-    return {
-      data: processes,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
-  }
 
-  static async getProcessById(id) {
-    const process = await Process.findByPk(id);
+            delete p.sourceRelationships;
+            delete p.targetRelationships;
+        }
 
-    if (!process) {
-      throw new Error("Process not found.");
+        return {
+            data: processes,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
-    return process;
-  }
+    static async getProcessById(id) {
+        const process = await Process.findByPk(id);
 
-  static async updateProcess(id, data) {
-    return await sequelize.transaction(async (t) => {
-        const process = await Process.findByPk(id, { transaction: t });
-        
         if (!process) {
-          console.log("No process found", id , data);
-          throw new Error("No Process found.")
+            console.log("Process not found:", id);
+            throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
         }
-        validateProcessData(data);
 
-        const processData = this.handleProcessDataColumnMapping(data);
-        await process.update(processData, { transaction: t });
-        
-        await ProcessAttribute.destroy({
-          where: {
-            process_id: id
-          }, 
-          transaction: t
+        return process;
+    }
+
+    static async updateProcess(id, data) {
+        return await sequelize.transaction(async (t) => {
+            const process = await Process.findByPk(id, { transaction: t });
+
+            if (!process) {
+                console.log("No process found:", id);
+                throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
+            }
+
+            validateProcessData(data);
+
+            const processData = this.handleProcessDataColumnMapping(data);
+            await process.update(processData, { transaction: t });
+
+            await ProcessAttribute.destroy({ where: { process_id: id }, transaction: t });
+            await ProcessRelationship.destroy({ where: { source_process_id: id }, transaction: t });
+
+            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+                await this.handleProcessDependencies(id, data.process_dependency, t);
+            }
+
+            if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+                await this.handleProcessAttributes(id, data.attributes, t);
+            }
+
+            console.log("Process updated successfully:", id);
         });
+    }
 
-        await ProcessRelationship.destroy({
-          where: {
-            source_process_id: id
-          },
-          transaction: t
-        });
-
-        if (
-          Array.isArray(data.process_dependency) &&
-          data.process_dependency.length > 0
-        ) {
-          await this.handleProcessDependencies(
-            id,
-            data.process_dependency,
-            t
-          );
+    static async updateProcessStatus(id, status) {
+        if (!STATUS_SUPPORTED_VALUES.includes(status)) {
+            console.log("[updateProcessStatus] Invalid status:", status);
+            throw new CustomError(Messages.PROCESS.INVALID_STATUS, HttpStatus.BAD_REQUEST);
         }
 
-        if (Array.isArray(data.attributes) && data.attributes.length > 0) {
-          await this.handleProcessAttributes(id, data.attributes, t);
+        const [updatedRowsCount] = await Process.update({ status }, { where: { id } });
+
+        if (updatedRowsCount === 0) {
+            console.log("[updateProcessStatus] No process found:", id);
+            throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
         }
-        
 
-    })
-  }
-
-    /**
-   * 
-   * @param {number} id 
-   * @param {string} status 
-   * @returns 
-   */
-  static async updateProcessStatus(id, status) {
-
-    if (!STATUS_SUPPORTED_VALUES.includes(status)) {
-      console.log("[updateProcessStatus] invalid operation", id, status);
-      throw new Error(`Failed to update process status failed`);
+        console.log("[updateProcessStatus] Status updated successfully:", id);
+        return { message: Messages.PROCESS.STATUS_UPDATED };
     }
 
-    const [updatedRowsCount] = await Process.update(
-      { status },
-      { where: { id } }
-    );
+    static async deleteProcess(id) {
+        const process = await Process.findByPk(id);
 
-    if (updatedRowsCount === 0) {
-      console.log("[updateProcessStatus] no process Found by Id ", id);
-      throw new Error(`Invalid process ID ${id}`);
-    }
-    console.log("[updateProcessStatus] status updated successfully", id, status);
-    return {message: "process status updated succesfully"};
+        if (!process) {
+            console.log("Delete failed - process not found:", id);
+            throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
 
-  }
-
-  static async deleteProcess(id) {
-    const process = await Process.findByPk(id);
-
-    if (!process) {
-      throw new Error("Process not found.");
+        await process.destroy();
+        console.log("Process deleted successfully:", id);
+        return { message: Messages.PROCESS.DELETED };
     }
 
-    await process.destroy();
-    return { message: "Process deleted successfully." };
-  }
+    static handleProcessDataColumnMapping(data) {
+        const fields = [
+            "process_name",
+            "process_description",
+            "senior_executive__owner_name",
+            "senior_executive__owner_email",
+            "operations__owner_name",
+            "operations__owner_email",
+            "technology_owner_name",
+            "technology_owner_email",
+            "organizational_revenue_impact_percentage",
+            "financial_materiality",
+            "third_party_involvement",
+            "users_customers",
+            "regulatory_and_compliance",
+            "criticality_of_data_processed",
+            "data_processed",
+            "status",
+        ];
 
-  static handleProcessDataColumnMapping(data) {
-    const processFields = [
-      "process_name",
-      "process_description",
-      "senior_executive__owner_name",
-      "senior_executive__owner_email",
-      "operations__owner_name",
-      "operations__owner_email",
-      "technology_owner_name",
-      "technology_owner_email",
-      "organizational_revenue_impact_percentage",
-      "financial_materiality",
-      "third_party_involvement",
-      "users_customers",
-      "regulatory_and_compliance",
-      "criticality_of_data_processed",
-      "data_processed",
-      "status",
-    ];
-
-    const processData = Object.fromEntries(
-      processFields.map((key) => [key, data[key]])
-    );
-
-    return processData
-  }
-
-  static async handleProcessDependencies(
-    sourceProcessId,
-    dependencies,
-    transaction
-  ) {
-    for (const dependency of dependencies) {
-      if (
-        !dependency.relationship_type ||
-        !PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
-      ) {
-        throw new Error(
-          "Invalid Process dependency Mapping: invalid relationship type"
-        );
-      }
-
-      if (
-        !dependency.target_process_id ||
-        typeof dependency.target_process_id !== "number"
-      ) {
-        throw new Error(
-          "Invalid Process dependency Mapping: missing or invalid target_process_id"
-        );
-      }
-
-      const targetProcess = await Process.findByPk(
-        dependency.target_process_id
-      );
-      if (!targetProcess) {
-        throw new Error(
-          "Invalid Process Dependency Mapping: target process not found"
-        );
-      }
-
-      await ProcessRelationship.create(
-        {
-          source_process_id: sourceProcessId,
-          target_process_id: dependency.target_process_id,
-          relation: dependency.relationship_type,
-        },
-        { transaction }
-      );
+        return Object.fromEntries(fields.map((key) => [key, data[key]]));
     }
-  }
 
-  static async handleProcessAttributes(processId, attributes, transaction) {
-    for (const attr of attributes) {
-      if (!attr.meta_data_key_id || !attr.values) {
-        throw new Error(
-          "Each attribute must have meta_data_key_id and values."
-        );
-      }
+    static async handleProcessDependencies(sourceProcessId, dependencies, transaction) {
+        for (const dependency of dependencies) {
+            if (
+                !dependency.relationship_type ||
+                !PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
+            ) {
+                console.log("Invalid relationship type in dependency:", dependency);
+                throw new CustomError(Messages.PROCESS.INVALID_RELATIONSHIP_TYPE, HttpStatus.BAD_REQUEST);
+            }
 
-      const metaData = await MetaData.findByPk(attr.meta_data_key_id, {
-        transaction,
-      });
-      if (!metaData) {
-        throw new Error(`MetaData not found for ID: ${attr.meta_data_key_id}`);
-      }
+            if (
+                !dependency.target_process_id ||
+                typeof dependency.target_process_id !== "number"
+            ) {
+                console.log("Invalid or missing target_process_id:", dependency);
+                throw new CustomError(Messages.PROCESS.MISSING_TARGET_ID, HttpStatus.BAD_REQUEST);
+            }
 
-      const supportedValues = metaData.supported_values;
-      if (
-        supportedValues?.length > 0 &&
-        !attr.values.every((v) => supportedValues.includes(v))
-      ) {
-        throw new Error(
-          `Invalid Value For Meta Data: ${attr.meta_data_key_id}`
-        );
-      }
+            const targetProcess = await Process.findByPk(dependency.target_process_id);
+            if (!targetProcess) {
+                console.log("Target process not found:", dependency.target_process_id);
+                throw new CustomError(Messages.PROCESS.TARGET_NOT_FOUND, HttpStatus.NOT_FOUND);
+            }
 
-      await ProcessAttribute.create(
-        {
-          process_id: processId,
-          meta_data_key_id: attr.meta_data_key_id,
-          values: attr.values,
-        },
-        { transaction }
-      );
+            await ProcessRelationship.create(
+                {
+                    source_process_id: sourceProcessId,
+                    target_process_id: dependency.target_process_id,
+                    relationship_type: dependency.relationship_type,
+                },
+                { transaction }
+            );
+        }
     }
-  }
+
+    static async handleProcessAttributes(processId, attributes, transaction) {
+        for (const attr of attributes) {
+            if (!attr.meta_data_key_id || !attr.values) {
+                console.log("Missing meta_data_key_id or values:", attr);
+                throw new CustomError(Messages.PROCESS.MISSING_ATTRIBUTE_FIELD, HttpStatus.BAD_REQUEST);
+            }
+
+            const metaData = await MetaData.findByPk(attr.meta_data_key_id, { transaction });
+            if (!metaData) {
+                console.log("MetaData not found:", attr.meta_data_key_id);
+                throw new CustomError(Messages.PROCESS.METADATA_NOT_FOUND, HttpStatus.NOT_FOUND);
+            }
+
+            const supportedValues = metaData.supported_values;
+            if (supportedValues?.length > 0 && !attr.values.every((v) => supportedValues.includes(v))) {
+                console.log("Unsupported values in attribute:", attr);
+                throw new CustomError(Messages.PROCESS.INVALID_ATTRIBUTE_VALUE, HttpStatus.BAD_REQUEST);
+            }
+
+            await ProcessAttribute.create(
+                {
+                    process_id: processId,
+                    meta_data_key_id: attr.meta_data_key_id,
+                    values: attr.values,
+                },
+                { transaction }
+            );
+        }
+    }
 }
 
 module.exports = ProcessService;

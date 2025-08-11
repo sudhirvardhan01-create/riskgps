@@ -1,165 +1,145 @@
 const express = require('express');
 const RiskScenarioService = require('../services/risk_scenario');
 const router = express.Router();
-
-
+const Messages = require("../../../constants/messages");
+const HttpStatus = require('../../../constants/httpStatusCodes');
 
 /**
- * @route POST /api/risk-scenario
- * @description Create a new Risk Scenario Entry.
- * 
- * @body {string} risk_scenario - The name of the risk scenario.
- * @body {string} risk_description - The Description of the risk
- * @body {string} risk_statement - the risk statement.
- * @body {string} status - the status of the risk Scenario from the enum['draft', 'published', 'not_published']
- * @body {array} attributes - an array of JSON in the form with meta_key_id and value
- * 
- * @returns {201 Created} The newly created metadata object.
- * @returns {400 Bad Request} If validation fails or required fields are missing.
- * 
- * @example
- * POST /api/risk-scenario
- * {
- *   "risk_scenario": "Risk 1",
- *   "risk_descriptio": "Risk DESC",
- *   "risk_statement": "statement",
- *   "status": "draft",
- *   "attributes": []
- * }
+ * @route POST /risk-scenario
+ * @description Create a new risk scenario
+ * @param {Object} req.body - Risk scenario data
+ * @returns {JSON} 201 - Created risk scenario
+ * @returns {JSON} 400 - Bad request or creation failure
  */
 router.post('/', async (req, res) => {
-  try {
-    const result = await RiskScenarioService.createRiskScenario(req.body);
-    res.status(201).json({
-      data: result,
-      msg: "risk scneario created successfully"
-    });
-  } catch (err) {
-    console.log("failed to create risk scenario", err);
-    res.status(400).json({ error: err.message });
-  }
+    try {
+        const result = await RiskScenarioService.createRiskScenario(req.body);
+        res.status(HttpStatus.CREATED).json({
+            data: result,
+            msg: Messages.RISK_SCENARIO.CREATED
+        });
+    } catch (err) {
+        console.log("Failed to create risk scenario", err);
+        res.status(HttpStatus.BAD_REQUEST).json({
+            error: err.message || Messages.GENERAL.BAD_REQUEST
+        });
+    }
 });
 
 /**
- * @route api/risk-scenario
- * @description Retrieve all the Risk Scenarios entries
- * 
- * @returns {Object[]} 200 - Array of metadata records.
- * @returns {Object} 500 - Internal server error.
- * 
- * @example
- * GET /api/risk-scenario
+ * @route GET /risk-scenario
+ * @description Retrieve all risk scenarios with pagination
+ * @param {Number} [req.query.limit=6] - Number of records per page
+ * @param {Number} [req.query.page=0] - Page number
+ * @returns {JSON} 200 - List of risk scenarios
+ * @returns {JSON} 500 - Server error
  */
 router.get('/', async (req, res) => {
-  try {
-    const limit = parseInt(req.query?.limit) || 6;
-    const page = parseInt(req.query?.page) || 0;
-    const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit);
-    res.json({
-      data: scenarios,
-      msg: "risk scenario fetched successfully"
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        const limit = parseInt(req.query?.limit) || 6;
+        const page = parseInt(req.query?.page) || 0;
+        const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit);
+        res.status(HttpStatus.OK).json({
+            data: scenarios,
+            msg: Messages.RISK_SCENARIO.FETCHED
+        });
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
 });
 
-
-
 /**
- * @route get api/risk-scenario/:id
- * @description Retrieve a single Risk Scenario By ID
- * @param {String} id - the unique Id for the risk Scenario
- * @returns {Object} 200 - Risk Scneario Object if found.
- * @returns {Object} 404 - Returns error if Risk Scenario is Not Found
- * 
- * @example
- * GET /api/risk-scenario/1
+ * @route GET /risk-scenario/:id
+ * @description Get a risk scenario by ID
+ * @param {String} req.params.id - Risk scenario ID
+ * @returns {JSON} 200 - Risk scenario data
+ * @returns {JSON} 404 - Scenario not found
  */
 router.get('/:id', async (req, res) => {
-  try {
-    const scenario = await RiskScenarioService.getRiskScenarioById(req.params.id);
-    res.json({
-      data: scenario,
-      msg: "risk scenario fetched successfully by ID"
-    });
-  } catch (err) {
-    res.status(404).json({ error: err.message });
-  }
+    try {
+        const scenario = await RiskScenarioService.getRiskScenarioById(req.params.id);
+        res.status(HttpStatus.OK).json({
+            data: scenario,
+            msg: Messages.RISK_SCENARIO.FETCHED_BY_ID
+        });
+    } catch (err) {
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.RISK_SCENARIO.NOT_FOUND(req.params.id)
+        });
+    }
 });
 
 /**
- * @route /PUT /api/risk-scenario/:id
- * @description Replace and update the existing content of the risk Scenario Records by ID
- * @body {string} risk_scenario - The name of the risk scenario.
- * @body {string} risk_description - The Description of the risk
- * @body {string} risk_statement - the risk statement.
- * @body {string} status - the status of the risk Scenario from the enum['draft', 'published', 'not_published']
- * @body {array} attributes - an array of JSON in the form with meta_key_id and value
- * 
- * @returns {201 Created} The newly created metadata object.
- * @returns {400 Bad Request} If validation fails or required fields are missing.
- * 
- * @example
- * PUT /api/risk-scenario/:id
- * {
- *   "risk_scenario": "Risk 1",
- *   "risk_descriptio": "Risk DESC",
- *   "risk_statement": "statement",
- *   "status": "draft",
- *   "attributes": []
- * }
+ * @route PUT /risk-scenario/:id
+ * @description Update an existing risk scenario by ID
+ * @param {String} req.params.id - Risk scenario ID
+ * @param {Object} req.body - Updated risk scenario fields
+ * @returns {JSON} 200 - Updated scenario
+ * @returns {JSON} 404 - Scenario not found or update failed
  */
 router.put("/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const body = req.body;
-    const response = await RiskScenarioService.updateRiskScenario(id, body);
-    res.status(200).json({
-      data: response,
-      msg: "risk scneario updated successfully"
-    });
-  } catch (err) {
-    console.log("Failed to update the risks scenario", err);
-    res.status()
-  }
-})
-
+    try {
+        const id = req.params.id;
+        const body = req.body;
+        const response = await RiskScenarioService.updateRiskScenario(id, body);
+        res.status(HttpStatus.OK).json({
+            data: response,
+            msg: Messages.RISK_SCENARIO.UPDATED
+        });
+    } catch (err) {
+        console.log("Failed to update the risk scenario", err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.RISK_SCENARIO.NOT_FOUND(id)
+        });
+    }
+});
 
 /**
- * @route /api/risk-scenario/:id
- * @param {string} id - The unique identifier for the risk Scneario
- * @returns {object} 200 - Sucess message once deleted
- * @returns {object} 400 - Returns  Error message if the risk scenario by id is not found
- * 
- * @example
- * DELETE /api/risk-scenario/1
+ * @route DELETE /risk-scenario/:id
+ * @description Delete a risk scenario by ID
+ * @param {String} req.params.id - Risk scenario ID
+ * @returns {JSON} 200 - Deletion success message
+ * @returns {JSON} 404 - Scenario not found or deletion failed
  */
 router.delete("/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const response = await RiskScenarioService.deleteRiskScenarioById(id);
-    res.status(200).json({
-      msg: "risk scenario deleted successfully"
-    });
-  } catch (err) {
-    console.log("delete risk scenario failed", err);
-    res.status(404).json({error: err.message});
-  }
-})
+    try {
+        const id = req.params.id;
+        await RiskScenarioService.deleteRiskScenarioById(id);
+        res.status(HttpStatus.OK).json({
+            msg: Messages.RISK_SCENARIO.DELETED
+        });
+    } catch (err) {
+        console.log("Delete risk scenario failed", err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.RISK_SCENARIO.NOT_FOUND(req.params.id)
+        });
+    }
+});
 
+/**
+ * @route PATCH /risk-scenario/update-status/:id
+ * @description Update the status of a risk scenario
+ * @param {String} req.params.id - Risk scenario ID
+ * @param {String} req.body.status - New status value
+ * @returns {JSON} 200 - Status update success message
+ * @returns {JSON} 404 - Scenario not found or update failed
+ */
 router.patch("/update-status/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const status = req.body.status;
-    const resposnse = await RiskScenarioService.updateRiskScenarioStatus(id, status);
-    res.status(200).json({
-      msg: "risk scenario status updated successfully"
-    });
-  } catch (err) {
-    console.log("update risk scenario status failed", err);
-    res.status(404).json({error: err.message});
-  }
-})
+    try {
+        const id = req.params.id;
+        const status = req.body.status;
+        await RiskScenarioService.updateRiskScenarioStatus(id, status);
+        res.status(HttpStatus.OK).json({
+            msg: Messages.RISK_SCENARIO.STATUS_UPDATED
+        });
+    } catch (err) {
+        console.log("Update risk scenario status failed", err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.RISK_SCENARIO.NOT_FOUND(id)
+        });
+    }
+});
 
 module.exports = router;
