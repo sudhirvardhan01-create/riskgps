@@ -19,10 +19,13 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Stack,
 } from "@mui/material";
-import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
+import { Add, Close, DeleteOutlineOutlined, DoneOutlined } from "@mui/icons-material";
 import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
+import SelectStyled from "@/components/SelectStyled";
+import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 
 interface AssetFormModalProps {
   operation: "create" | "edit";
@@ -123,6 +126,38 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
     // );
   };
 
+  const getStatusComponent = () => {
+      if (
+        assetFormData.status === "published" ||
+        assetFormData.status === "not_published"
+      ) {
+        return (
+          <FormControlLabel
+            control={
+              <ToggleSwitch
+                color="success"
+                checked={assetFormData.status === "published"}
+              />
+            }
+            label={assetFormData.status === "published" ? "Enabled" : "Disabled"}
+            sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
+          />
+        );
+      }
+      return (
+        <Chip
+          icon={<DoneOutlined />}
+          label="Draft"
+          variant="outlined"
+          size="small"
+          color="primary"
+          sx={{ fontWeight: 550, borderRadius: 1, color:"primary.main", width: "96px", "& .MuiChip-icon": {
+            marginRight: "1px"
+          }}}
+        />
+      );
+    };
+
   return (
     <Dialog
       open={open}
@@ -133,23 +168,37 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
     >
       <DialogTitle
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
           paddingY: 0,
           paddingX: 0,
           marginBottom: 5,
         }}
       >
-        <Typography variant="h5" fontWeight={550} color="#121212">
-          {operation === "create"
-            ? "Add Asset"
-            : `Edit Asset A-${assetFormData.id}`}
-        </Typography>
+        <Stack
+          display={"flex"}
+          direction={"row"}
+          alignItems={"center"}
+          justifyContent={"space-between"}
+        >
+          <Stack
+            display={"flex"}
+            direction="row"
+            justifyContent={"center"}
+            alignItems={"center"}
+            gap={2}
+          >
+            <Typography variant="h5" fontWeight={550} color="#121212">
+              {operation === "create"
+                ? "Add Asset"
+                : `Edit Asset A-${assetFormData.id}`}
+            </Typography>
+            {operation === "edit" ? getStatusComponent() : null}
+          </Stack>
+        
 
         <IconButton onClick={onClose} sx={{ padding: 0 }}>
           <Close sx={{ color: "primary.main" }} />
         </IconButton>
+        </Stack>
       </DialogTitle>
 
       <DialogContent sx={{ padding: 0 }}>
@@ -295,7 +344,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 row
                 value={
                   assetFormData.isThirdPartyManagement
-                    ? isAssetThirdPartyManaged
+                    ? assetFormData.isThirdPartyManagement
                     : null
                 }
                 onChange={(e) => {
@@ -718,7 +767,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           </Grid>
 
           {/* RELATED PROCESS SECTION */}
-          <Grid mt={3} size={{ xs: 12 }}>
+          <Grid mt={1} size={{ xs: 12 }}>
             <Box
               sx={{
                 border: "1px dashed #cecfd2",
@@ -1028,14 +1077,18 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             );
           })}
 
-          <Grid size={{ xs: 12 }}>
-            <Button startIcon={<Add />} onClick={addKeyValue}>
+          <Grid mt={-2} size={{ xs: 12 }}>
+            <Button
+              startIcon={<Add />}
+              onClick={addKeyValue}
+              sx={{ paddingY: 0 }}
+            >
               Add New Key
             </Button>
           </Grid>
         </Grid>
       </DialogContent>
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
         <Divider sx={{ width: "100%" }} />
       </Box>
       <DialogActions
@@ -1044,7 +1097,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           display: "flex",
           justifyContent: "space-between",
           pb: 0,
-          px: 0
+          px: 0,
         }}
       >
         <Button
@@ -1066,7 +1119,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             Save as Draft
           </Button>
           <Button
-            sx={{ width: 132, height: 40, borderRadius: 1}}
+            sx={{ width: 132, height: 40, borderRadius: 1 }}
             variant="contained"
             onClick={() => {
               onSubmit("published");

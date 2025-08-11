@@ -36,6 +36,86 @@ import ViewAssetModal from "@/components/Library/Asset/ViewAssetModal";
 import AssetCard from "@/components/Library/Asset/AssetCard";
 
 const Index = () => {
+
+const assets = [
+  {
+    id: 1,
+    asset_code: "A-1",
+    assetName: "Customer Database",
+    assetCategory: "Database",
+    assetDescription: "Stores customer details and transaction history",
+    assetOwner: "John Doe",
+    assetITOwner: "Jane Smith",
+    isThirdPartyManagement: true,
+    thirdPartyName: "DataSecure Inc.",
+    thirdPartyLocation: "New York, USA",
+    hosting: "Cloud",
+    hostingFacility: "AWS",
+    cloudServiceProvider: ["AWS"],
+    geographicLocation: "US-East-1",
+    isRedundancy: true,
+    databases: "PostgreSQL",
+    isNetworkSegmentation: true,
+    networkName: "ProdNet",
+    related_processes: [101, 102],
+    attributes: [],
+    lastUpdated: new Date("2025-08-01"),
+    createdAt: new Date("2024-05-15"),
+    status: "published"
+  },
+  {
+    id: 2,
+    asset_code: "A-2",
+    assetName: "Internal File Server",
+    assetCategory: "Server",
+    assetDescription: "Stores internal company documents",
+    assetOwner: "Michael Scott",
+    assetITOwner: "Pam Beesly",
+    isThirdPartyManagement: false,
+    thirdPartyName: "",
+    thirdPartyLocation: "",
+    hosting: "On-Premise",
+    hostingFacility: "HQ Data Center",
+    cloudServiceProvider: [],
+    geographicLocation: "Scranton, USA",
+    isRedundancy: false,
+    databases: "",
+    isNetworkSegmentation: false,
+    networkName: "CorpLAN",
+    related_processes: [201, 202],
+    attributes: [],
+    lastUpdated: new Date("2025-07-20"),
+    createdAt: new Date("2023-09-10"),
+    status: "not_published"
+  },
+  {
+    id: 3,
+    asset_code: "A-3",
+    assetName: "Payment Gateway",
+    assetCategory: "Application",
+    assetDescription: "Handles online payment transactions",
+    assetOwner: "Sarah Connor",
+    assetITOwner: "Kyle Reese",
+    isThirdPartyManagement: true,
+    thirdPartyName: "PaySecure Ltd.",
+    thirdPartyLocation: "London, UK",
+    hosting: "Cloud",
+    hostingFacility: "Azure",
+    cloudServiceProvider: ["Azure", "Cloudflare"],
+    geographicLocation: "UK-West",
+    isRedundancy: true,
+    databases: "MySQL",
+    isNetworkSegmentation: true,
+    networkName: "PaymentNet",
+    related_processes: [301],
+    attributes: [],
+    lastUpdated: new Date("2025-08-10"),
+    createdAt: new Date("2024-02-25"),
+    status: "draft"
+  }
+];
+
+
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -98,20 +178,20 @@ const Index = () => {
   //   getAssetsData();
   // }, [page, rowsPerPage, refreshTrigger]);
 
-  useEffect(() => {
-    const getProcessesData = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchProcesses();
-        setProcessesData(data);
-      } catch (error) {
-        console.error("Error fetching processes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    getProcessesData();
-  }, []);
+  // useEffect(() => {
+  //   const getProcessesData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const data = await fetchProcesses();
+  //       setProcessesData(data);
+  //     } catch (error) {
+  //       console.error("Error fetching processes:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   getProcessesData();
+  // }, []);
 
   useEffect(() => {
     const getMetaDatas = async () => {
@@ -500,9 +580,25 @@ const Index = () => {
         </Box>
 
         <Stack spacing={2}>
-          {assetsData &&
+          {/* {assetsData &&
             assetsData?.length > 0 &&
             assetsData?.map((item: AssetForm, index) => (
+              <div key={index}>
+                <AssetCard
+                  key={index}
+                  assetData={item}
+                  handleUpdateAssetStatus={handleUpdateAssetStatus}
+                  setIsViewAssetOpen={setIsViewAssetOpen}
+                  setSelectedAsset={setSelectedAsset}
+                  setIsEditAssetOpen={setIsEditAssetOpen}
+                  setIsDeleteConfirmPopupOpen={setIsDeleteConfirmPopupOpen}
+                />
+              </div>
+            ))} */}
+
+            {assets &&
+            assets?.length > 0 &&
+            assets?.map((item: AssetForm, index) => (
               <div key={index}>
                 <AssetCard
                   key={index}
