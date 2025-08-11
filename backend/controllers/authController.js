@@ -1,7 +1,7 @@
 const authService = require('../services/authService');
 const catchAsync = require('../utils/catchAsync');
 const messages = require('../constants/messages');
-const HttpStatus = require('./constants/httpStatusCodes');
+const HttpStatus = require('../constants/httpStatusCodes');
 
 const register = catchAsync(async (req, res) => {
     const user = await authService.register(req.body);

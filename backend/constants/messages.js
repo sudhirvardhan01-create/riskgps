@@ -45,9 +45,17 @@ module.exports = {
         INVALID_ATTRIBUTE_VALUE: 'Invalid value for one or more attributes.',
         METADATA_NOT_FOUND: 'MetaData not found for provided key.',
         PROCESS_NAME_REQUIRED: 'process_name is required.',
-        INVALID_VALUE: 'Invalid Value for Status.'
+        INVALID_VALUE: 'Invalid Value for Status.',
+        FETCHED_BY_ID: 'Fetched process by ID successfully.'
     },
     RISK_SCENARIO: {
+        CREATED: 'Risk Scenario created successfully.',
+        UPDATED: 'Risk Scenario updated successfully.',
+        DELETED: 'Risk Scenario deleted successfully.',
+        FETCHED: 'Fetched all risk scenarios successfully.',
+        FETCHED_BY_ID: 'Fetched risk scenario by ID successfully.',
+        STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+        NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
         REQUIRED: 'risk_scenario is required.',
         INVALID_STATUS: 'Invalid value for status.',
         INVALID_PROCESS_MAPPING: 'Invalid Process Risk Mapping',

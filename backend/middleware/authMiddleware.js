@@ -1,5 +1,5 @@
 const { verifyToken } = require('../utils/jwt');
-const HttpStatus = require('./constants/httpStatusCodes');
+const HttpStatus = require('../constants/httpStatusCodes');
 
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;

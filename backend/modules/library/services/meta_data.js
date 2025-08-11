@@ -1,9 +1,9 @@
 const { Op } = require("sequelize");
 const { MetaData } = require("../../../models");
 
-const CustomError = require('../utils/CustomError');
-const HttpStatus = require('../constants/httpStatusCodes');
-const MESSAGES = require('../constants/messages');
+const CustomError = require('../../../utils/CustomError');
+const HttpStatus = require('../../../constants/httpStatusCodes');
+const MESSAGES = require('../../../constants/messages');
 
 class MetaDataService {
     static async createMetaData(data) {
