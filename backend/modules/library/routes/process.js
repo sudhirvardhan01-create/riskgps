@@ -60,6 +60,7 @@ router.put('/:id', async (req, res) => {
       msg: "process  updated successfully"
     });
   } catch (err) {
+    console.log("failed to update process", err);
     res.status(404).json({ error: err.message });
   }
 });

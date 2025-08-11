@@ -117,6 +117,8 @@ class ProcessService {
       processes[i].domain = processes[i].attributes?.filter((val) => val.metaData?.name?.toLowerCase() == "domain")?.flatMap(val => val.values);
       processes[i].attributes = processes[i].attributes.map((val) => { return {meta_data_key_id: val.meta_data_key_id, values: val.values} })
       processes[i].process_dependency = [];
+      console.log(processes[i]?.sourceRelationships, processes[i].process_name );
+      console.log(processes[i].targetRelationships, processes[i].process_name );
       if (processes[i]?.sourceRelationships?.length > 0) {
           processes[i].process_dependency.push(...processes[i]?.sourceRelationships.map((val)=> {
             return {
@@ -127,6 +129,7 @@ class ProcessService {
           }))
       }
       if ( processes[i]?.targetRelationships?.length > 0 ) {
+        console.log(processes[i].process_name, processes[i]?.targetRelationships?.length)
           processes[i].process_dependency.push(...processes[i]?.targetRelationships.map((val)=> {
             return {
               source_process_id: val.target_process_id,
