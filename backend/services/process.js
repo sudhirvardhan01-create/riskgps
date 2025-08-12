@@ -8,7 +8,7 @@ const {
     RiskScenario,
 } = require("../models");
 
-const { PROCESS_RELATIONSHIP_TYPES, PROCESS_ALLOWED_SORT_FIELDS } = require("../constants/process");
+const { PROCESS_RELATIONSHIP_TYPES, PROCESS_ALLOWED_SORT_FIELDS } = require("../constants/library");
 const { STATUS_SUPPORTED_VALUES, ALLOWED_SORT_ORDER } = require("../constants/library");
 
 const { validateProcessData } = require("../utils/process");
@@ -45,7 +45,6 @@ class ProcessService {
         console.log("Fetching all processes");
         
         const offset = page * limit;
-        const total = await Process.count();
         let whereClause = {};
 
         if (!PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
@@ -84,6 +83,9 @@ class ProcessService {
           ],
         };
       }
+        const total = await Process.count({
+            where: whereClause
+        });
 
         const data = await Process.findAll({
           ...(limit > 0 ? { limit, offset } : {}),

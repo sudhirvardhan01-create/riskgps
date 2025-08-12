@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { PROCESS_RELATIONSHIP_TYPES } = require('../constants/process');
+const { PROCESS_RELATIONSHIP_TYPES } = require('../constants/library');
 
 
 
