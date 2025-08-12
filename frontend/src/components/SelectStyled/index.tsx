@@ -22,7 +22,7 @@ const SelectStyled = ({
   ...selectProps
 }: SelectStyledProps) => {
   return (
-    <FormControl fullWidth variant="outlined">
+    <FormControl fullWidth variant="outlined" required={required}>
       <InputLabel
         id={`${selectProps.name}-label`}
         sx={{

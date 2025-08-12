@@ -6,10 +6,8 @@ import {
   Box,
   Grid,
   Button,
-  Select,
   MenuItem,
   IconButton,
-  InputLabel,
   FormControl,
   Typography,
   DialogActions,
@@ -21,7 +19,12 @@ import {
   Radio,
   Stack,
 } from "@mui/material";
-import { Add, Close, DeleteOutlineOutlined, DoneOutlined } from "@mui/icons-material";
+import {
+  Add,
+  Close,
+  DeleteOutlineOutlined,
+  DoneOutlined,
+} from "@mui/icons-material";
 import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
@@ -127,36 +130,42 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   };
 
   const getStatusComponent = () => {
-      if (
-        assetFormData.status === "published" ||
-        assetFormData.status === "not_published"
-      ) {
-        return (
-          <FormControlLabel
-            control={
-              <ToggleSwitch
-                color="success"
-                checked={assetFormData.status === "published"}
-              />
-            }
-            label={assetFormData.status === "published" ? "Enabled" : "Disabled"}
-            sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
-          />
-        );
-      }
+    if (
+      assetFormData.status === "published" ||
+      assetFormData.status === "not_published"
+    ) {
       return (
-        <Chip
-          icon={<DoneOutlined />}
-          label="Draft"
-          variant="outlined"
-          size="small"
-          color="primary"
-          sx={{ fontWeight: 550, borderRadius: 1, color:"primary.main", width: "96px", "& .MuiChip-icon": {
-            marginRight: "1px"
-          }}}
+        <FormControlLabel
+          control={
+            <ToggleSwitch
+              color="success"
+              checked={assetFormData.status === "published"}
+            />
+          }
+          label={assetFormData.status === "published" ? "Enabled" : "Disabled"}
+          sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
         />
       );
-    };
+    }
+    return (
+      <Chip
+        icon={<DoneOutlined />}
+        label="Draft"
+        variant="outlined"
+        size="small"
+        color="primary"
+        sx={{
+          fontWeight: 550,
+          borderRadius: 1,
+          color: "primary.main",
+          width: "96px",
+          "& .MuiChip-icon": {
+            marginRight: "1px",
+          },
+        }}
+      />
+    );
+  };
 
   return (
     <Dialog
@@ -193,11 +202,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             </Typography>
             {operation === "edit" ? getStatusComponent() : null}
           </Stack>
-        
 
-        <IconButton onClick={onClose} sx={{ padding: 0 }}>
-          <Close sx={{ color: "primary.main" }} />
-        </IconButton>
+          <IconButton onClick={onClose} sx={{ padding: 0 }}>
+            <Close sx={{ color: "primary.main" }} />
+          </IconButton>
         </Stack>
       </DialogTitle>
 
@@ -215,7 +223,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           </Grid>
 
           {/* Asset Category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <FormControl fullWidth>
               <InputLabel
                 shrink
@@ -293,6 +301,48 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 <MenuItem value="number">Number</MenuItem>
               </Select>
             </FormControl>
+          </Grid> */}
+
+          {/* Asset Category */}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <SelectStyled
+              value={assetFormData.assetCategory}
+              label="Asset Category"
+              displayEmpty
+              onChange={(e) => handleChange("assetCategory", e.target.value)}
+              renderValue={(selected: any) => {
+                if (!selected) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Asset Category
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected}
+                    </Typography>
+                  );
+                }
+              }}
+            >
+              <MenuItem value="text">Text</MenuItem>
+              <MenuItem value="select">Select</MenuItem>
+              <MenuItem value="multiselect">Multiselect</MenuItem>
+              <MenuItem value="number">Number</MenuItem>
+            </SelectStyled>
           </Grid>
 
           {/* Asset Description */}
@@ -402,252 +452,130 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
 
           {/* Hosting */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel
-                shrink
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              >
-                Hosting
-              </InputLabel>
-              <Select
-                value={assetFormData.hosting}
-                label="Hosting"
-                displayEmpty
-                onChange={(e) => handleChange("hosting", e.target.value)}
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "#9e9e9e",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        Select Hosting
-                      </Typography>
-                    );
-                  } else {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "text.primary",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {selected}
-                      </Typography>
-                    );
-                  }
-                }}
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  fontSize: "14px",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                }}
-              >
-                <MenuItem value="saas">SaaS</MenuItem>
-                <MenuItem value="paas">PaaS</MenuItem>
-                <MenuItem value="iaas">IaaS</MenuItem>
-                <MenuItem value="on-prem">On-Prem</MenuItem>
-              </Select>
-            </FormControl>
+            <SelectStyled
+              value={assetFormData.hosting}
+              label="Hosting"
+              displayEmpty
+              onChange={(e) => handleChange("hosting", e.target.value)}
+              renderValue={(selected: any) => {
+                if (!selected) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Hosting
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected}
+                    </Typography>
+                  );
+                }
+              }}
+            >
+              <MenuItem value="saas">SaaS</MenuItem>
+              <MenuItem value="paas">PaaS</MenuItem>
+              <MenuItem value="iaas">IaaS</MenuItem>
+              <MenuItem value="on-prem">On-Prem</MenuItem>
+            </SelectStyled>
           </Grid>
 
           {/* Hosting Facility */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel
-                shrink
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              >
-                Hosting Facility
-              </InputLabel>
-              <Select
-                value={assetFormData.hostingFacility}
-                label="Hosting Facility"
-                displayEmpty
-                onChange={(e) =>
-                  handleChange("hostingFacility", e.target.value)
+            <SelectStyled
+              value={assetFormData.hostingFacility}
+              label="Hosting Facility"
+              displayEmpty
+              onChange={(e) => handleChange("hostingFacility", e.target.value)}
+              renderValue={(selected: any) => {
+                if (!selected) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Hosting Facility
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected}
+                    </Typography>
+                  );
                 }
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "#9e9e9e",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        Select Hosting Facility
-                      </Typography>
-                    );
-                  } else {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "text.primary",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {selected}
-                      </Typography>
-                    );
-                  }
-                }}
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  fontSize: "14px",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                }}
-              >
-                <MenuItem value="public cloud">Public Cloud</MenuItem>
-                <MenuItem value="private cloud">Private Cloud</MenuItem>
-                <MenuItem value="n/a">N/A</MenuItem>
-              </Select>
-            </FormControl>
+              }}
+            >
+              <MenuItem value="public cloud">Public Cloud</MenuItem>
+              <MenuItem value="private cloud">Private Cloud</MenuItem>
+              <MenuItem value="n/a">N/A</MenuItem>
+            </SelectStyled>
           </Grid>
 
           {/*Cloud Service Provider */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel
-                shrink
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              >
-                Cloud Service Provider
-              </InputLabel>
-              <Select
-                value={assetFormData.cloudServiceProvider}
-                multiple
-                label="Cloud Service Provider"
-                displayEmpty
-                onChange={(e) =>
-                  handleChange(
-                    "cloudServiceProvider",
-                    e.target.value as string[]
-                  )
+            <SelectStyled
+              value={assetFormData.cloudServiceProvider}
+              multiple
+              label="Cloud Service Provider"
+              displayEmpty
+              onChange={(e) =>
+                handleChange("cloudServiceProvider", e.target.value as string[])
+              }
+              renderValue={(selected: any) => {
+                if (selected?.length === 0) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Cloud Service Provider
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected.join(", ")}
+                    </Typography>
+                  );
                 }
-                renderValue={(selected) => {
-                  if (selected?.length === 0) {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "#9e9e9e",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        Select Cloud Service Provider
-                      </Typography>
-                    );
-                  } else {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "text.primary",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {selected.join(", ")}
-                      </Typography>
-                    );
-                  }
-                }}
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  fontSize: "14px",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                }}
-              >
-                <MenuItem value="AWS">AWS</MenuItem>
-                <MenuItem value="Azure">Azure</MenuItem>
-                <MenuItem value="GCP">GCP</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
-              </Select>
-            </FormControl>
+              }}
+            >
+              <MenuItem value="AWS">AWS</MenuItem>
+              <MenuItem value="Azure">Azure</MenuItem>
+              <MenuItem value="GCP">GCP</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </SelectStyled>
           </Grid>
 
           {/* Geographic Location */}
@@ -783,71 +711,38 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               {/* Add Related Process input row */}
               <Grid container spacing={2} alignItems="center" mb={2}>
                 <Grid size={{ xs: 10.5 }}>
-                  <FormControl fullWidth>
-                    <InputLabel
-                      shrink
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#000000",
-                        "&.Mui-focused": {
-                          color: "#000000",
-                        },
-                        "&.MuiInputLabel-shrink": {
-                          transform: "translate(14px, -9px) scale(0.75)",
-                        },
-                      }}
-                    >
-                      Select Related Process
-                    </InputLabel>
-                    <Select
-                      value={newRelatedProcess}
-                      label="Select Related Process"
-                      displayEmpty
-                      onChange={(e) =>
-                        setNewRelatedProcess(e.target.value as number)
+                  <SelectStyled
+                    value={newRelatedProcess}
+                    label="Select Related Process"
+                    displayEmpty
+                    onChange={(e) =>
+                      setNewRelatedProcess(e.target.value as number)
+                    }
+                    renderValue={(selected) => {
+                      if (!selected) {
+                        return (
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              color: "#9E9FA5",
+                            }}
+                          >
+                            Select Related Process
+                          </Typography>
+                        );
                       }
-                      renderValue={(selected) => {
-                        if (!selected) {
-                          return (
-                            <span style={{ color: "#9e9e9e" }}>
-                              Select Related Process
-                            </span>
-                          );
-                        }
-                        return processes.find((item) => item.id === selected)
-                          ?.name;
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        backgroundColor: "#ffffff",
-                        fontSize: "14px",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1px",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "& .MuiSelect-select": {
-                          padding: "14px 16px",
-                          fontSize: "14px",
-                        },
-                      }}
-                    >
-                      {processes.map((process, index) => (
-                        <MenuItem key={index} value={process.id}>
-                          {process.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      return processes.find((item) => item.id === selected)
+                        ?.name;
+                    }}
+                  >
+                    {processes.map((process, index) => (
+                      <MenuItem key={index} value={process.id}>
+                        {process.name}
+                      </MenuItem>
+                    ))}
+                  </SelectStyled>
                 </Grid>
+
                 <Grid size={{ xs: 1.5 }}>
                   <Button
                     variant="contained"
@@ -914,160 +809,106 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 key={index}
               >
                 <Grid size={{ xs: 5.5 }}>
-                  <FormControl fullWidth>
-                    <InputLabel
-                      shrink
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#000000",
-                        "&.Mui-focused": {
-                          color: "#000000",
-                        },
-                        "&.MuiInputLabel-shrink": {
-                          transform: "translate(14px, -9px) scale(0.75)",
-                        },
-                      }}
-                    >
-                      Key
-                    </InputLabel>
-                    <Select
-                      value={kv.meta_data_key_id}
-                      label="Key"
-                      displayEmpty
-                      onChange={(e) =>
-                        handleKeyValueChange(
-                          index,
-                          "meta_data_key_id",
-                          e.target.value as number
-                        )
+                  <SelectStyled
+                    value={kv.meta_data_key_id}
+                    label="Key"
+                    displayEmpty
+                    onChange={(e) =>
+                      handleKeyValueChange(
+                        index,
+                        "meta_data_key_id",
+                        e.target.value as number
+                      )
+                    }
+                    renderValue={(selected: any) => {
+                      if (!selected || selected < 0) {
+                        return (
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              color: "#9E9FA5",
+                            }}
+                          >
+                            Select Key
+                          </Typography>
+                        );
+                      } else {
+                        const label = metaDatas.find(
+                          (m) => m.id === selected
+                        )?.label;
+                        return (
+                          label ?? (
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                color: "#9E9FA5",
+                              }}
+                            >
+                              Select Key
+                            </Typography>
+                          )
+                        );
                       }
-                      renderValue={(selected) => {
-                        if (!selected || selected < 0) {
-                          return (
-                            <span style={{ color: "#9e9e9e" }}>Select Key</span>
-                          );
-                        } else {
-                          const label = metaDatas.find(
-                            (m) => m.id === selected
-                          )?.label;
-                          return (
-                            label ?? (
-                              <span style={{ color: "#9e9e9e" }}>
-                                Select Key
-                              </span>
-                            )
-                          );
-                        }
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        backgroundColor: "#ffffff",
-                        fontSize: "14px",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1px",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "& .MuiSelect-select": {
-                          padding: "14px 16px",
-                          fontSize: "14px",
-                        },
-                      }}
-                    >
-                      {metaDatas.map((metaData, index) => (
-                        <MenuItem key={index} value={metaData.id}>
-                          {metaData.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                    }}
+                  >
+                    {metaDatas.map((metaData, index) => (
+                      <MenuItem key={index} value={metaData.id}>
+                        {metaData.label}
+                      </MenuItem>
+                    ))}
+                  </SelectStyled>
                 </Grid>
+
                 <Grid size={{ xs: 5.5 }}>
-                  <FormControl fullWidth>
-                    <InputLabel
-                      shrink
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#000000",
-                        "&.Mui-focused": {
-                          color: "#000000",
-                        },
-                        "&.MuiInputLabel-shrink": {
-                          transform: "translate(14px, -9px) scale(0.75)",
-                        },
-                      }}
-                    >
-                      Value
-                    </InputLabel>
-                    <Select
-                      multiple
-                      value={kv.values || []}
-                      label="Value"
-                      displayEmpty
-                      onChange={(e) =>
-                        handleKeyValueChange(
-                          index,
-                          "values",
-                          e.target.value as string[]
-                        )
+                  <SelectStyled
+                    multiple
+                    value={kv.values || []}
+                    label="Value"
+                    displayEmpty
+                    onChange={(e) =>
+                      handleKeyValueChange(
+                        index,
+                        "values",
+                        e.target.value as string[]
+                      )
+                    }
+                    renderValue={(selected: any) => {
+                      if (!selectedMeta) {
+                        return (
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              color: "#9E9FA5",
+                            }}
+                          >
+                            Please Select Key First
+                          </Typography>
+                        );
+                      } else if (!selected || selected.length < 1) {
+                        return (
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              color: "#9E9FA5",
+                            }}
+                          >
+                            Enter Value
+                          </Typography>
+                        );
                       }
-                      renderValue={(selected) => {
-                        if (!selectedMeta) {
-                          return (
-                            <span style={{ color: "#9e9e9e" }}>
-                              Please Select Key First
-                            </span>
-                          );
-                        } else if (!selected || selected.length < 1) {
-                          return (
-                            <span style={{ color: "#9e9e9e" }}>
-                              Enter Value
-                            </span>
-                          );
-                        }
-                        return selected.join(", ");
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        backgroundColor: "#ffffff",
-                        fontSize: "14px",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1px",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "& .MuiSelect-select": {
-                          padding: "14px 16px",
-                          fontSize: "14px",
-                        },
-                      }}
-                    >
-                      {selectedMeta?.supported_values?.map(
-                        (val: string | number, i: number) => (
-                          <MenuItem key={i} value={val}>
-                            {val}
-                          </MenuItem>
-                        )
-                      )}
-                    </Select>
-                  </FormControl>
+                      return selected.join(", ");
+                    }}
+                  >
+                    {selectedMeta?.supported_values?.map(
+                      (val: string | number, i: number) => (
+                        <MenuItem key={i} value={val}>
+                          {val}
+                        </MenuItem>
+                      )
+                    )}
+                  </SelectStyled>
                 </Grid>
+
                 <Grid size={{ xs: 1 }}>
                   <IconButton onClick={() => removeKeyValue(index)}>
                     <DeleteOutlineOutlined sx={{ color: "#cd0303" }} />
@@ -1101,12 +942,11 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         }}
       >
         <Button
-          sx={{ width: 113, height: 40, borderRadius: 1 }}
+          sx={{ width: 113, height: 40, border: '1px solid #CD0303', borderRadius: 1 }}
           variant="outlined"
-          color="error"
           onClick={onClose}
         >
-          Cancel
+          <Typography variant="body1" color="#CD0303" fontWeight={500}>Cancel</Typography>
         </Button>
         <Box display={"flex"} gap={3}>
           <Button
@@ -1116,7 +956,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             sx={{ width: 161, height: 40, borderRadius: 1 }}
             variant="outlined"
           >
-            Save as Draft
+            <Typography variant="body1" color="#04139A" fontWeight={500}>Save as Draft</Typography>
           </Button>
           <Button
             sx={{ width: 132, height: 40, borderRadius: 1 }}
@@ -1125,7 +965,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               onSubmit("published");
             }}
           >
-            Publish
+            <Typography variant="body1" color="#F4F4F4" fontWeight={600}>Publish</Typography>
           </Button>
         </Box>
       </DialogActions>
