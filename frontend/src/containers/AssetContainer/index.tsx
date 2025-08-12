@@ -1,0 +1,365 @@
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Box } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import LibraryHeader from "@/components/Library/LibraryHeader";
+import RiskScenarioList from "@/components/Library/RiskScenarioList";
+import ToastComponent from "@/components/ToastComponent";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import AssetFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
+import ViewAssetModal from "@/components/Library/RiskScenario/ViewRiskScenarioModalPopup";
+import { AssetForm, AssetAttributes } from "@/types/asset";
+import { RiskScenarioService } from "@/services/riskScenarioService";
+import { fetchMetaDatas } from "@/pages/api/meta-data";
+import { fetchProcesses } from "@/pages/api/process";
+
+const initialAssetFormData: AssetForm = {
+  assetName: "",
+  assetCategory: "",
+  assetDescription: "",
+  assetOwner: "",
+  assetITOwner: "",
+  isThirdPartyManagement: null,
+  thirdPartyName: "",
+  thirdPartyLocation: "",
+  hosting: "",
+  hostingFacility: "",
+  cloudServiceProvider: [],
+  geographicLocation: "",
+  isRedundancy: null,
+  databases: "",
+  isNetworkSegmentation: null,
+  networkName: "",
+  attributes: [{ meta_data_key_id: null, values: [] }] as AssetAttributes[],
+};
+
+const sortItems = [
+  { label: "Asset ID (Ascending)", value: "asset_asc" },
+  { label: "Asset ID (Descending)", value: "asset_desc" },
+  { label: "Created (Latest to Oldest)", value: "created_lto" },
+  { label: "Created (Oldest to Latest)", value: "created_otl" },
+  { label: "Updated (Latest to Oldest)", value: "updated_lto" },
+  { label: "Updated (Oldest to Latest)", value: "updated_otl" },
+];
+
+const breadcrumbItems = [
+  // keep the same breadcrumb behavior from original page
+  {
+    label: "Library",
+    onClick: () => (window.location.href = "/library"),
+    icon: <ArrowBack fontSize="small" />,
+  },
+  { label: "Assets" },
+];
+
+export default function RiskScenarioContainer() {
+  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [totalRows, setTotalRows] = useState(0);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [assetsData, setAssetsData] = useState<AssetForm[]>();
+  const [processesData, setProcessesData] = useState<any[]>([]);
+  const [metaDatas, setMetaDatas] = useState<any[]>([]);
+
+   const [selectedAsset, setSelectedAsset] = useState<AssetForm | null>(null);
+
+  // modals / confirm / toast
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+  const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "info",
+  });
+
+  const [assetFormData, setAssetFormData] = useState<AssetForm>(initialAssetFormData);
+
+  // fetch list
+  const loadList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await RiskScenarioService.fetch(page, rowsPerPage);
+      setAssetsData(data?.data ?? []);
+      setTotalRows(data?.total ?? 0);
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to fetch assets",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [page, rowsPerPage]);
+
+  useEffect(() => {
+    loadList();
+  }, [loadList, refreshTrigger]);
+
+  // fetch processes & meta
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const [proc, meta] = await Promise.all([
+          fetchProcesses(0, 0),
+          fetchMetaDatas(),
+        ]);
+        setProcessesData(proc.data ?? []);
+        setMetaDatas(meta ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch supporting data",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  // Create
+  const handleCreate = async (status: string) => {
+    try {
+      const req = { ...assetFormData, status };
+      await RiskScenarioService.create(req);
+      setAssetFormData(initialAssetFormData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Success! Asset ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to create asset",
+        severity: "error",
+      });
+    }
+  };
+
+  // Update
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedAsset?.id) throw new Error("Invalid selection");
+      const body = { ...selectedAsset, status };
+      await RiskScenarioService.update(selectedAsset.id as number, body);
+      setIsEditOpen(false);
+      setSelectedAsset(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Asset updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update asset",
+        severity: "error",
+      });
+    }
+  };
+
+  // Update status only
+  const handleUpdateStatus = async (id: number, status: string) => {
+    try {
+      await RiskScenarioService.updateStatus(id, status);
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: "Status updated", severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update status",
+        severity: "error",
+      });
+    }
+  };
+
+  // Delete
+  const handleDelete = async () => {
+    try {
+      if (!selectedAsset?.id) throw new Error("Invalid selection");
+      await RiskScenarioService.delete(selectedAsset.id as number);
+      setIsDeleteConfirmOpen(false);
+      setSelectedAsset(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Deleted A-${selectedAsset?.id}`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to delete asset",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleChangePage = (event: any, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // memoize props used by list/header
+  const headerProps = useMemo(
+    () => ({
+      breadcrumbItems,
+      addButtonText: "Add Asset",
+      addAction: () => setIsAddOpen(true),
+      sortItems,
+    }),
+    []
+  );
+
+  return (
+    <>
+      {/* View modal */}
+      {selectedAsset && isViewOpen && (
+        <ViewAssetModal
+          assetData={selectedAsset}
+          setIsEditAssetOpen={setIsEditOpen}
+          setSelectedAsset={setSelectedAsset}
+          processes={processesData}
+          metaDatas={metaDatas}
+          open={isViewOpen}
+          onClose={() => {
+            setIsViewOpen(false);
+          }}
+        />
+      )}
+
+      {/* Add form */}
+      {isAddOpen && (
+        <AssetFormModal
+          operation={"create"}
+          open={isAddOpen}
+          assetFormData={assetFormData}
+          setAssetFormData={setAssetFormData}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleCreate}
+          onClose={() => {
+            setIsAddConfirmOpen(true);
+          }}
+        />
+      )}
+
+      {/* Edit form */}
+      {isEditOpen && selectedAsset && (
+        <AssetFormModal
+          operation="edit"
+          open={isEditOpen}
+          assetFormData={selectedAsset}
+          setAssetFormData={(val: any) => {
+            if (typeof val === "function") {
+              setSelectedAsset((prev) => val(prev as AssetForm));
+            } else {
+              setSelectedAsset(val);
+            }
+          }}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleUpdate}
+          onClose={() => setIsEditConfirmOpen(true)}
+        />
+      )}
+
+      {/* Confirm dialogs */}
+      <ConfirmDialog
+        open={isAddConfirmOpen}
+        onClose={() => setIsAddConfirmOpen(false)}
+        title="Cancel Risk Scenario Creation?"
+        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsAddConfirmOpen(false);
+          setAssetFormData(initialAssetFormData);
+          setIsAddOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
+
+      <ConfirmDialog
+        open={isEditConfirmOpen}
+        onClose={() => setIsEditConfirmOpen(false)}
+        title="Cancel Risk Scenario Updation?"
+        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsEditConfirmOpen(false);
+          setSelectedAsset(null);
+          setIsEditOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
+
+      <ConfirmDialog
+        open={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        title="Confirm Risk Scenario Deletion?"
+        description={`Are you sure you want to delete Risk Scenario #${selectedAsset?.id}? All associated data will be removed from the system.`}
+        onConfirm={handleDelete}
+        cancelText="Cancel"
+        confirmText="Yes, Delete"
+      />
+
+      {/* Page content */}
+      <Box p={5}>
+        <LibraryHeader {...headerProps} />
+        <RiskScenarioList
+          loading={loading}
+          data={riskScenarioData}
+          totalRows={totalRows}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          setSelectedAsset={setSelectedAsset}
+          setIsViewOpen={setIsViewOpen}
+          setIsEditOpen={setIsEditOpen}
+          setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
+          handleUpdateStatus={handleUpdateStatus}
+        />
+      </Box>
+
+      <ToastComponent
+        open={toast.open}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+        message={toast.message}
+        toastBorder={
+          toast.severity === "success" ? "1px solid #147A50" : undefined
+        }
+        toastColor={toast.severity === "success" ? "#147A50" : undefined}
+        toastBackgroundColor={
+          toast.severity === "success" ? "#DDF5EB" : undefined
+        }
+        toastSeverity={toast.severity}
+      />
+    </>
+  );
+}
