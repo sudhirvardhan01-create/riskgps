@@ -6,8 +6,8 @@ export const fetchProcesses = async (page: number, limit: number, searchPattern?
   params.append("page", JSON.stringify(page));
   params.append("limit", JSON.stringify(limit));
   params.append("search", searchPattern?? '');
-  params.append("sortby",sortBy);
-  params.append("sortorder", sortOrder);
+  params.append("sort_by",sortBy);
+  params.append("sort_order", sortOrder);
 
 
 const transformProcessData = (data: any[]): ProcessData[] => {

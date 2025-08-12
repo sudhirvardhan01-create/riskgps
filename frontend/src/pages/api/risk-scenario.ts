@@ -23,10 +23,14 @@ export const fetchRiskScenarioById = async (id: number) => {
   return res.data;
 }
 
-export const fetchRiskScenarios = async (page: number, limit: number):Promise<APIResponse> => {
+export const fetchRiskScenarios = async (page: number, limit: number, searchPattern?: string, sort?: string):Promise<APIResponse> => {
+  const [sortBy, sortOrder] = (sort?? '').split(":");
   const params = new URLSearchParams();
   if (page) params.append("page", page.toString());
   if (limit) params.append("limit", limit.toString());
+  params.append("sort_by",sortBy);
+  params.append("sort_order", sortOrder);
+  params.append("search", searchPattern?? "");
 
   const transformRiskData = (data: any[]): RiskScenarioData[] => {
   return data.map((item) => ({

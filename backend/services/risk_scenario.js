@@ -114,12 +114,13 @@ class RiskScenarioService {
     static async getAllRiskScenarios(page = 0, limit = 6,  searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
         const offset = page * limit;
         let whereClause = {};
+        console.log(sortOrder)
 
         if (!RISK_SCENARIO_SORT_FIELDS.includes(sortBy)) {
             sortBy = "created_at";
         }
 
-        if (!ALLOWED_SORT_ORDER .includes(sortOrder)) {
+        if (!ALLOWED_SORT_ORDER.includes(sortOrder)) {
             sortOrder = 'ASC';
         }
 
