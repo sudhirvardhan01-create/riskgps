@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const { PROCESS_RELATIONSHIP_TYPES } = require('../constants/process');
 
 
+
 module.exports = (sequelize) => {
   const ProcessRelationship = sequelize.define('ProcessRelationship', {
     id: {

@@ -37,11 +37,14 @@ router.post('/', async (req, res) => {
  */
 router.get('/', async (req, res) => {
     try {
-        const filters = { name: req.query.name };
+        const searchPattern = req.query.search || null;
         const limit = parseInt(req.query?.limit) || 6;
         const page = parseInt(req.query?.page) || 0;
+        const sortBy = req.query.sortby?.toLocaleLowerCase() || 'created_at'
+        const sortOrder = req.query.sortorder?.toUpperCase() || 'DESC'
+        console.log(sortBy, sortOrder)
 
-        const processes = await ProcessService.getAllProcesses(page, limit, filters);
+        const processes = await ProcessService.getAllProcesses(page, limit, searchPattern, sortBy, sortOrder);
         res.status(HttpStatus.OK).json({
             data: processes,
             msg: Messages.PROCESS.FETCHED

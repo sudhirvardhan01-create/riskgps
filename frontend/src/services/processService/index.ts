@@ -2,7 +2,7 @@ import { createProcess, deleteProcess, fetchProcesses, updateProcess, updateProc
 
 
 export const ProcessService = {
-  fetch: (page: number, rowsPerPage: number) => fetchProcesses(page, rowsPerPage),
+  fetch: (page: number, rowsPerPage: number, searchPattern?: string, sort?: string) => fetchProcesses(page, rowsPerPage, searchPattern, sort),
   create: (body: any) => createProcess(body),
   update: (id: number, body: any) => updateProcess(id, body),
   delete: (id: number) => deleteProcess(id),

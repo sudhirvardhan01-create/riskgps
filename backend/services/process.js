@@ -8,11 +8,15 @@ const {
     RiskScenario,
 } = require("../models");
 
-const { STATUS_SUPPORTED_VALUES, PROCESS_RELATIONSHIP_TYPES } = require("../constants/library");
+const { PROCESS_RELATIONSHIP_TYPES, PROCESS_ALLOWED_SORT_FIELDS } = require("../constants/process");
+const { STATUS_SUPPORTED_VALUES, ALLOWED_SORT_ORDER } = require("../constants/library");
+
 const { validateProcessData } = require("../utils/process");
 const CustomError = require("../utils/CustomError");
 const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
+const { search } = require("../routes/process");
+
 
 
 class ProcessService {
@@ -37,18 +41,20 @@ class ProcessService {
         });
     }
 
-    static async getAllProcesses(page = 0, limit = 6, filters = {}) {
+    static async getAllProcesses(page = 0, limit = 6, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
+        console.log("Fetching all processes");
+        
         const offset = page * limit;
         const total = await Process.count();
-        const whereClause = {};
+        let whereClause = {};
 
-        if (filters.name) {
-            whereClause.process_name = {
-                [Op.iLike]: `%${filters.name}%`,
-            };
+        if (!PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
+            sortBy = 'created_at';
         }
 
-        console.log("Fetching all processes");
+        if (!ALLOWED_SORT_ORDER.includes(sortOrder)) {
+            sortOrder = 'ASC';
+        }
 
         const includeRelations = [
             {
@@ -70,10 +76,20 @@ class ProcessService {
         },
       ];
 
+      if (searchPattern) {
+        whereClause = {
+          [Op.or]: [
+            { process_name: { [Op.iLike]: `%${searchPattern}%` } },
+            { process_description: { [Op.iLike]: `%${searchPattern}%` } },
+          ],
+        };
+      }
+
         const data = await Process.findAll({
-            ...(limit > 0 ? { limit, offset } : {}),
-            order: [["created_at", "DESC"]],
-            include: includeRelations,
+          ...(limit > 0 ? { limit, offset } : {}),
+          where: whereClause,
+          order: [[sortBy, sortOrder]],
+          include: includeRelations,
         });
 
         let processes = data.map((s) => s.toJSON());
