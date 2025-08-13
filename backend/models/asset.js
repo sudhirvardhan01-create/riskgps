@@ -55,8 +55,8 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true 
       },
-      redundancy: {
-        type: DataTypes.STRING,
+      has_redundancy: {
+        type: DataTypes.BOOLEAN,
         allowNull: true 
       },
       databases: {
@@ -116,7 +116,7 @@ module.exports = (sequelize) => {
 
   Asset.afterCreate(async (instance, options) => {
     const paddedId = String(instance.id).padStart(5, "0");
-    const code = `#BPA-${paddedId}`;
+    const code = `#A-${paddedId}`;
     await instance.update({ asset_code: code }, { transaction: options.transaction });
   });
   return Asset;
