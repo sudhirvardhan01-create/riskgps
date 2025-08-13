@@ -5,11 +5,12 @@ const {
     sequelize,
     Process,
     ProcessRiskScenarioMappings,
-} = require("../../../models");
+} = require("../models");
+const CustomError = require("../utils/CustomError");
+const HttpStatus = require("../constants/httpStatusCodes");
+const Messages = require("../constants/messages");
 
-const CustomError = require("../../../utils/CustomError");
-const Messages = require("../../../constants/messages");
-const HttpStatus = require("../../../constants/httpStatusCodes");
+
 
 class RiskScenarioService {
     static async createRiskScenario(data) {

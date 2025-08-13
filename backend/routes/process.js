@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const ProcessService = require("../services/process");
-const Messages = require("../../../constants/messages");
-const HttpStatus = require('../../../constants/httpStatusCodes');
+const Messages = require('../constants/messages');
+const HttpStatus = require('../constants/httpStatusCodes');
 
 /**
  * @route POST /process

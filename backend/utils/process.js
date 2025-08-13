@@ -1,7 +1,8 @@
-const { STATUS_SUPPORTED_VALUES } = require("../../../constants/library");
-const CustomError = require("../../../utils/CustomError");
-const Messages = require("../../../constants/messages");
-const HttpStatus = require("../../../constants/httpStatusCodes");
+const HttpStatus = require("../constants/httpStatusCodes");
+const { STATUS_SUPPORTED_VALUES } = require("../constants/library");
+const Messages = require("../constants/messages");
+const CustomError = require("./CustomError");
+
 
 const validateProcessData = (data) => {
     const { process_name, status } = data;

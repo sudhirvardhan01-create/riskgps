@@ -5,4 +5,4 @@ function RiskScenariosPage() {
   return <RiskScenarioContainer />;
 }
 
-export default RiskScenariosPage;
+export default withAuth(RiskScenariosPage);
