@@ -38,7 +38,8 @@ module.exports = {
     ],
     HOSTING_FACILITY_SUPPORTED_VALUES: [
       "Public Cloud",
-      "Private Cloud",      
+      "Private Cloud",   
+      "N/A"   
     ],
     CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES: [
       "AWS",
