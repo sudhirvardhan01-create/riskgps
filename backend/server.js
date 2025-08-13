@@ -4,9 +4,9 @@ const app = express();
 const riskScenarioRoutes = require("./routes/risk_scenario");
 const metaDataRoutes = require("./routes/meta_data");
 const processRoutes = require("./routes/process");
+const assetRoutes = require("./routes/asset")
 const db = require('./models');
 const authRoutes = require('./routes/authRoutes');
-const { authenticateJWT } = require('./middleware/authMiddleware');
 const errorHandler = require('./middleware/errorHandler');
 
 
@@ -31,7 +31,11 @@ app.use("/library/process", processRoutes);
 app.use("/library/risk-scenario", riskScenarioRoutes);
 
 app.use("/library/meta-data", metaDataRoutes);
+
+app.use("/library/asset", assetRoutes);
+
 app.use('/auth', authRoutes);
+
 // app.use('/users', userRoutes);
 app.use(errorHandler);
 

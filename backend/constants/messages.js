@@ -20,7 +20,14 @@ module.exports = {
         SERVER_ERROR: 'Something went wrong. Please try again later.',
         BAD_REQUEST: 'Bad request.',
         INVALID_INPUT: 'Invalid input.',
-        REQUIRED_FIELD_MISSING: 'Required field is missing'
+        REQUIRED_FIELD_MISSING: 'Required field is missing',
+    },
+    LIBARY: {
+        INVALID_STATUS_VALUE: 'Invalid value for status',
+        MISSING_ATTRIBUTE_FIELD: 'Each attribute must have meta_data_key_id and values.',
+        METADATA_NOT_FOUND: 'MetaData not found for provided key.',
+        INVALID_ATTRIBUTE_VALUE: 'Invalid value for one or more attributes.',
+
     },
     META_DATA: {
         NOT_FOUND: 'Meta data not found.',
@@ -65,5 +72,17 @@ module.exports = {
         NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
         DELETED: 'Risk Scenario deleted successfully.',
         STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+    },
+    ASSET: {
+        NOT_FOUND: 'Asset not found.',
+        CREATED: 'Asset created successfully.',
+        UPDATED: 'Asset updated successfully.',
+        DELETED: 'Asset deleted successfully.',
+        FETCHED: 'Fetched all assets successfully.',
+        FETCHED_BY_ID: 'Fetched asset by ID successfully.',
+        APPLICATION_NAME_REQUIRED: 'Application name is required in asset data',
+        INVALID_PROCESS_MAPPING: 'Invalid Process Asset Mapping',
+        NOT_FOUND: (id) => `Asset not found for ID: ${id}`,
+        STATUS_UPDATED: 'Asset Scenario status updated successfully.',
     }
 };

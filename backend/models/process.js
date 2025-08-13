@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
-
-const PROCESS_STATUS = ['draft', 'published', 'not_published'];
+const { STATUS_SUPPORTED_VALUES } = require("../constants/library");
 
 module.exports = (sequelize) => {
   const Process = sequelize.define(
@@ -78,7 +77,7 @@ module.exports = (sequelize) => {
       status: { 
         defaultValue: 'published',
         allowNull: false,
-        type: DataTypes.ENUM(...PROCESS_STATUS) 
+        type: DataTypes.ENUM(...STATUS_SUPPORTED_VALUES) 
       },
     },
     {

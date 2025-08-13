@@ -17,4 +17,12 @@ module.exports = {
     "process_description",
     "process_code"
   ],
+  ASSETS: {
+    ASSET_ALLOWED_SORT_FILED: [
+    "created_at",
+    "updated_at",
+    "application_name",
+    "asset_code",
+    ]
+  }
 };

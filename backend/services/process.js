@@ -11,7 +11,6 @@ const {
 const { PROCESS_RELATIONSHIP_TYPES, PROCESS_ALLOWED_SORT_FIELDS } = require("../constants/library");
 const { STATUS_SUPPORTED_VALUES, ALLOWED_SORT_ORDER } = require("../constants/library");
 
-const { validateProcessData } = require("../utils/process");
 const CustomError = require("../utils/CustomError");
 const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
@@ -22,7 +21,7 @@ const { search } = require("../routes/process");
 class ProcessService {
     static async createProcess(data) {
         return await sequelize.transaction(async (t) => {
-            validateProcessData(data);
+            this.validateProcessData(data);
 
             const processData = this.handleProcessDataColumnMapping(data);
             console.log("Creating process with data:", processData);
@@ -164,7 +163,7 @@ class ProcessService {
                 throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
             }
 
-            validateProcessData(data);
+            this.validateProcessData(data);
 
             const processData = this.handleProcessDataColumnMapping(data);
             await process.update(processData, { transaction: t });
@@ -213,6 +212,18 @@ class ProcessService {
         console.log("Process deleted successfully:", id);
         return { message: Messages.PROCESS.DELETED };
     }
+
+    static validateProcessData = (data) => {
+    const { process_name, status } = data;
+
+    if (!process_name) {
+        throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
+    }
+
+    if (status && !STATUS_SUPPORTED_VALUES.includes(status)) {
+        throw new CustomError(Messages.PROCESS.INVALID_VALUE, HttpStatus.BAD_REQUEST);
+    }
+    };
 
     static handleProcessDataColumnMapping(data) {
         const fields = [
@@ -301,6 +312,7 @@ class ProcessService {
             );
         }
     }
+    
 }
 
 module.exports = ProcessService;
