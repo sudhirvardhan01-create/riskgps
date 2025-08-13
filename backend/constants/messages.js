@@ -84,5 +84,8 @@ module.exports = {
         INVALID_PROCESS_MAPPING: 'Invalid Process Asset Mapping',
         NOT_FOUND: (id) => `Asset not found for ID: ${id}`,
         STATUS_UPDATED: 'Asset Scenario status updated successfully.',
+        INVALID_HOSTING_VALUE: 'Invalid value for hosting in assets',
+        INVALID_HOSTING_FACILITY_VALUE: 'Invalid value for hosting facility in assets',
+        INVALID_CLOUD_SERVICE_PROVIDER: 'Invalid value for cloud service provider'
     }
 };
