@@ -10,7 +10,7 @@ const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
-const { RISK_SCENARIO_SORT_FIELDS, ALLOWED_SORT_ORDER } = require("../constants/library");
+const { ALLOWED_SORT_ORDER, RISK_SCENARIO, GENERAL } = require("../constants/library");
 
 
 
@@ -116,11 +116,11 @@ class RiskScenarioService {
         let whereClause = {};
         console.log(sortOrder)
 
-        if (!RISK_SCENARIO_SORT_FIELDS.includes(sortBy)) {
+        if (!RISK_SCENARIO.RISK_SCENARIO_SORT_FIELDS.includes(sortBy)) {
             sortBy = "created_at";
         }
 
-        if (!ALLOWED_SORT_ORDER.includes(sortOrder)) {
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
             sortOrder = 'ASC';
         }
 

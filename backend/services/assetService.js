@@ -10,7 +10,7 @@ const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
-const { ALLOWED_SORT_ORDER, STATUS_SUPPORTED_VALUES, ASSETS } = require("../constants/library");
+const {ASSETS, GENERAL } = require("../constants/library");
 
 
 
@@ -29,9 +29,9 @@ class AssetService {
 
             const asset = await Asset.create(assetData, { transaction: t });
 
-            await this.handleAssetProcessMapping(asset.id, data.related_processes ?? []);
+            await this.handleAssetProcessMapping(asset.id, data.related_processes ?? [], t);
 
-            await this.handleAssetAttributes(asset.id, data.attributes ?? []);
+            await this.handleAssetAttributes(asset.id, data.attributes ?? [], t);
 
             return asset;
         });
@@ -46,7 +46,7 @@ class AssetService {
             sortBy = "created_at";
         }
 
-        if (!ALLOWED_SORT_ORDER.includes(sortOrder)) {
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
             sortOrder = 'ASC';
         }
 
@@ -128,7 +128,7 @@ class AssetService {
             const asset = await Asset.findByPk(id, { transaction: t });
 
             if (!asset) {
-                throw new CustomError(Messages.RISK_SCENARIO.NOT_FOUND(id), HttpStatus.NOT_FOUND);
+                throw new CustomError(Messages.ASSET.NOT_FOUND(id), HttpStatus.NOT_FOUND);
             }
 
             this.validateAssetData(data);
@@ -140,9 +140,10 @@ class AssetService {
             await AssetAttribute.destroy({ where: { asset_id: id }, transaction: t });
             await AssetProcessMappings.destroy({ where: { asset_id: id }, transaction: t });
 
-            await this.handleAssetProcessMapping(id, data.relatedProcesses ?? []);
+            await this.handleAssetProcessMapping(id, data.related_processes ?? [], t);
 
-            await this.handleAssetAttributes(id, data.attributes ?? []);
+            await this.handleAssetAttributes(id, data.attributes ?? [], t);
+
 
             return updatedAsset;
         });
@@ -186,7 +187,7 @@ class AssetService {
         throw new CustomError(Messages.ASSET.APPLICATION_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
     }
 
-    if (status && !STATUS_SUPPORTED_VALUES.includes(status)) {
+    if (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
         throw new CustomError(Messages.LIBARY.INVALID_STATUS_VALUE, HttpStatus.BAD_REQUEST);
     }
     };
@@ -216,7 +217,7 @@ class AssetService {
         return Object.fromEntries(fields.map((key) => [key, data[key]]));
     }
 
-    static async handleAssetProcessMapping(assetId, relatedProcesses) {
+    static async handleAssetProcessMapping(assetId, relatedProcesses, transaction) {
         if (Array.isArray(relatedProcesses)) {
                 for (const process of relatedProcesses) {
                     if (typeof process !== "number" || process < 0) {
@@ -235,7 +236,7 @@ class AssetService {
                             asset_id: assetId,
                             process_id: process,
                         },
-                        { transaction: t }
+                        { transaction }
                     );
                 }
         }

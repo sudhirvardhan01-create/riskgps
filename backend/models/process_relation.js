@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { PROCESS_RELATIONSHIP_TYPES } = require('../constants/library');
-
+const { PROCESS } = require('../constants/library');
 
 
 module.exports = (sequelize) => {
@@ -31,7 +30,7 @@ module.exports = (sequelize) => {
       onUpdate: 'CASCADE',
     },
     relationship_type: {
-      type: DataTypes.ENUM(...PROCESS_RELATIONSHIP_TYPES),
+      type: DataTypes.ENUM(...PROCESS.PROCESS_RELATIONSHIP_TYPES),
       allowNull: false,
       defaultValue: "follows"
     },

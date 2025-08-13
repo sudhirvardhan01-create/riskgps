@@ -8,8 +8,7 @@ const {
     RiskScenario,
 } = require("../models");
 
-const { PROCESS_RELATIONSHIP_TYPES, PROCESS_ALLOWED_SORT_FIELDS } = require("../constants/library");
-const { STATUS_SUPPORTED_VALUES, ALLOWED_SORT_ORDER } = require("../constants/library");
+const {GENERAL, PROCESS } = require("../constants/library");
 
 const CustomError = require("../utils/CustomError");
 const Messages = require("../constants/messages");
@@ -46,11 +45,11 @@ class ProcessService {
         const offset = page * limit;
         let whereClause = {};
 
-        if (!PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
+        if (!PROCESS.PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
             sortBy = 'created_at';
         }
 
-        if (!ALLOWED_SORT_ORDER.includes(sortOrder)) {
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
             sortOrder = 'ASC';
         }
 
@@ -184,7 +183,7 @@ class ProcessService {
     }
 
     static async updateProcessStatus(id, status) {
-        if (!STATUS_SUPPORTED_VALUES.includes(status)) {
+        if (!GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
             console.log("[updateProcessStatus] Invalid status:", status);
             throw new CustomError(Messages.PROCESS.INVALID_STATUS, HttpStatus.BAD_REQUEST);
         }
@@ -220,7 +219,7 @@ class ProcessService {
         throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
     }
 
-    if (status && !STATUS_SUPPORTED_VALUES.includes(status)) {
+    if (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
         throw new CustomError(Messages.PROCESS.INVALID_VALUE, HttpStatus.BAD_REQUEST);
     }
     };
@@ -252,7 +251,7 @@ class ProcessService {
         for (const dependency of dependencies) {
             if (
                 !dependency.relationship_type ||
-                !PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
+                !PROCESS.PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
             ) {
                 console.log("Invalid relationship type in dependency:", dependency);
                 throw new CustomError(Messages.PROCESS.INVALID_RELATIONSHIP_TYPE, HttpStatus.BAD_REQUEST);
