@@ -19,6 +19,7 @@ import {
   Radio,
   Stack,
   TextField,
+  InputLabel,
 } from "@mui/material";
 import {
   Add,
@@ -30,6 +31,7 @@ import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
+import TooltipComponent from "@/components/TooltipComponent";
 // import TooltipComponent from "@/components/TooltipComponent";
 
 interface AssetFormModalProps {
@@ -696,8 +698,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             />
           </Grid>
 
-          {/* <Grid size={{ xs: 6 }}>
-            <Typography variant="body2" color="#121212" fontWeight={400}>Risk Scenario</Typography>
+          <Grid size={{ xs: 6 }}>
+            {/* <Typography variant="body2" color="#121212" fontWeight={400}>Risk Scenario</Typography> */}
+            <InputLabel sx={{fontSize: "14px", color: "#121212"}}>Risk Scenario *<TooltipComponent title="Enter the Risk Scenario"/></InputLabel>
+            <FormControl fullWidth>
             <TextField
               fullWidth
               // label="Risk Scenario"
@@ -728,8 +732,8 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                   },
                 },
               }}
-            />
-          </Grid> */}
+            /></FormControl>
+          </Grid>
 
           {/* RELATED PROCESS SECTION */}
           <Grid mt={1} size={{ xs: 12 }}>
