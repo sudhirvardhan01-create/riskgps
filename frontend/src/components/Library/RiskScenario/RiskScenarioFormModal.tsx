@@ -45,7 +45,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(processes)
+  console.log(metaDatas)
   // State for related processes
   const [relatedProcesses, setRelatedProcesses] = React.useState<number[]>([]);
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<number | null>();

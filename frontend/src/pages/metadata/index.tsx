@@ -26,6 +26,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastComponent from "@/components/ToastComponent";
 import ViewMetaDataModal from "@/components/meta-data/ViewMetaDataModal";
 import MetaDataFormModal from "@/components/meta-data/MetaDataFormModal";
+import withAuth from "@/hoc/withAuth";
 
 const Index = () => {
   const theme = useTheme();
@@ -369,4 +370,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default withAuth(Index);

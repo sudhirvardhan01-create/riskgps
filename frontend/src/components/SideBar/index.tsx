@@ -10,7 +10,7 @@ import { useRouter } from "next/router";
 
 const links = [
   { name: "Home", path: "/", icon: <HomeIcon /> },
-  { name: "Meta Data", path: "/meta-data", icon: <MetaDataIcon /> },
+  { name: "Meta Data", path: "/metadata", icon: <MetaDataIcon /> },
   { name: "Library", path: "/library", icon: <LibraryIcon /> },
   { name: "Assessment", path: "/assessment", icon: <AssessmentIcon /> },
   { name: "Reports", path: "/reports", icon: <ReportsIcon /> },

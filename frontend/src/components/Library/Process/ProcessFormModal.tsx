@@ -46,7 +46,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(processData)
+  console.log(metaDatas)
   console.log(processes);
 
 
@@ -655,7 +655,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               }}
             />
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
+          {/* <Grid mt={1} size={{ xs: 5.5 }}>
             <TextField
               slotProps={{
                 inputLabel: {
@@ -705,7 +705,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 },
               }}
             />
-          </Grid>
+          </Grid> */}
           <Grid mt={1} size={{ xs: 5.5 }}>
             <TextField
               slotProps={{

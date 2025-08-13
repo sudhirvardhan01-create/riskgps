@@ -1,30 +1,30 @@
 import { Box, Stack, TablePagination } from "@mui/material";
 import LibraryCard from "@/components/Library/LibraryCard";
-import { RiskScenarioData } from "@/types/risk-scenario";
+import { ProcessData } from "@/types/process";
 
 interface Props {
   loading: boolean;
-  data: RiskScenarioData[];
+  data: ProcessData[];
   totalRows: number;
   page: number;
   rowsPerPage: number;
   onPageChange: (e: any, page: number) => void;
   onRowsPerPageChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>;
+  setSelectedProcess: React.Dispatch<React.SetStateAction<ProcessData | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleUpdateStatus: (id: number, status: string) => void;
 }
 
-const RiskScenarioList: React.FC<Props> = ({
+const ProcessList: React.FC<Props> = ({
   data,
   totalRows,
   page,
   rowsPerPage,
   onPageChange,
   onRowsPerPageChange,
-  setSelectedRiskScenario,
+  setSelectedProcess,
   setIsViewOpen,
   setIsEditOpen,
   setIsDeleteConfirmOpen,
@@ -35,31 +35,31 @@ const RiskScenarioList: React.FC<Props> = ({
       <Stack spacing={2} sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}>
         {data && data.length > 0 ? (
           data.map((item) => (
-            <div key={item.id ?? item.risk_code ?? JSON.stringify(item)}>
+            <div key={item.id ?? item.processCode ?? JSON.stringify(item)}>
               <LibraryCard
                 libraryData={item}
-                setSelectedLibraryData={setSelectedRiskScenario}
+                setSelectedLibraryData={setSelectedProcess}
                 setIsViewLibraryOpen={setIsViewOpen}
                 setIsEditLibraryOpen={setIsEditOpen}
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
-                title={item.risk_code ?? ""}
-                desc={item.riskScenario ?? ""}
+                title={item.processCode ?? ""}
+                desc={item.processName ?? ""}
                 chip={item.industry?.length ? item.industry.join(",") : "Not Defined"}
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
                   { label: "Tags", value: item.attributes?.length },
-                  { label: "Processes", value: item.related_processes?.length },
-                  { label: "Assets", value: item.assets },
-                  { label: "Threats", value: item.threats },
+                  { label: "Processes", value: item.processDependency?.length },
+                  // { label: "Assets", value: item. },
+                  // { label: "Threats", value: item.threats },
                 ]}
               />
             </div>
           ))
         ) : (
           // empty state could be enhanced
-          <div>No risk scenarios found</div>
+          <div>No process found</div>
         )}
       </Stack>
 
@@ -78,4 +78,4 @@ const RiskScenarioList: React.FC<Props> = ({
   );
 };
 
-export default RiskScenarioList;
+export default ProcessList;

@@ -6,15 +6,14 @@ const {
     MetaData,
     ProcessAttribute,
     RiskScenario,
-} = require("../../../models");
+} = require("../models");
 
-const { STATUS_SUPPORTED_VALUES } = require("../../../constants/library");
-const { PROCESS_RELATIONSHIP_TYPES } = require("../../../constants/process");
+const { STATUS_SUPPORTED_VALUES, PROCESS_RELATIONSHIP_TYPES } = require("../constants/library");
 const { validateProcessData } = require("../utils/process");
+const CustomError = require("../utils/CustomError");
+const Messages = require("../constants/messages");
+const HttpStatus = require("../constants/httpStatusCodes");
 
-const CustomError = require("../../../utils/CustomError");
-const Messages = require("../../../constants/messages");
-const HttpStatus = require("../../../constants/httpStatusCodes");
 
 class ProcessService {
     static async createProcess(data) {
@@ -57,10 +56,19 @@ class ProcessService {
                 as: "attributes",
                 include: [{ model: MetaData, as: "metaData" }],
             },
-            { model: RiskScenario, as: "riskScenarios" },
-            { model: ProcessRelationship, as: "sourceRelationships" },
-            { model: ProcessRelationship, as: "targetRelationships" },
-        ];
+        {
+          model: RiskScenario,
+          as: "riskScenarios",
+        },
+        { 
+          model: ProcessRelationship, 
+          as: "sourceRelationships" 
+        },
+        { 
+          model: ProcessRelationship, 
+          as: "targetRelationships" 
+        },
+      ];
 
         const data = await Process.findAll({
             ...(limit > 0 ? { limit, offset } : {}),

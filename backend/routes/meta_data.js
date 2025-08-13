@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const MetaDataService = require('../services/meta_data');
-const HttpStatus = require('../../../constants/httpStatusCodes');
-const Messages = require('../../../constants/messages');
+const HttpStatus = require('../constants/httpStatusCodes');
+const Messages = require('../constants/messages');
+
 
 /**
  * @route POST /
