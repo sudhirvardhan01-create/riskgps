@@ -55,8 +55,8 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true 
       },
-      redundancy: {
-        type: DataTypes.STRING,
+      has_redundancy: {
+        type: DataTypes.BOOLEAN,
         allowNull: true 
       },
       databases: {
