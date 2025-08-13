@@ -33,7 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     "jest.config.ts"
-, "src/components/library/Process/a.js"  ],
+, "src/components/Library/Process/a.js"  ],
   "exclude": [
     "node_modules"
   ]
