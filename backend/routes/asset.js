@@ -7,12 +7,19 @@ const Messages = require('../../../constants/messages');
 const mockAsset = {
     id: '8f7a9a48-2e2f-4e13-a7e0-3cfdab59cc82',
     name: 'Name',
-    category: 'Category',
-    description: 'Description',
-    field1: 'Field 1',
-    field2: 'Field 2',
-    key: 'Key',
-    value: 'Value'
+    owner: 'Owner',
+    it_owner: 'IT Owner',
+    third_party_management: 'Yes/No',
+    third_party_name: 'Third Party Name',
+    third_party_location: 'Third Party Location',
+    hosting: 'Hosting',
+    hosting_facility: 'Hosting Facility',
+    cloud_server_provider: 'Cloud Server Provider',
+    geographic_location: 'Geographic Location',
+    redundancy: 'Yes/No',
+    databases: 'Databases',
+    network_segmentation: 'Yes/No',
+    network_home: 'Network Home'
 };
 
 /**
