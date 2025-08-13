@@ -65,5 +65,11 @@ module.exports = {
         NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
         DELETED: 'Risk Scenario deleted successfully.',
         STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+    },
+    ASSET: {
+        CREATED: 'Asset created successfully.',
+        OBTAINED: 'Asset(s) retrieved successfully.',
+        UPDATED: 'Asset updated successfully.',
+        DELETED: 'Asset deleted successfully.'
     }
 };
