@@ -2,28 +2,38 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Box } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import LibraryHeader from "@/components/Library/LibraryHeader";
-import RiskScenarioList from "@/components/Library/RiskScenarioList";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import RiskScenarioFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
-import ViewRiskScenarioModal from "@/components/Library/RiskScenario/ViewRiskScenarioModalPopup";
-import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario";
-import { RiskScenarioService } from "@/services/riskScenarioService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { fetchProcesses } from "@/pages/api/process";
+import { ProcessData } from "@/types/process";
+import ViewProcessModal from "@/components/Library/Process/ViewProcessModal";
+import ProcessFormModal from "@/components/Library/Process/ProcessFormModal";
+import { ProcessService } from "@/services/processService";
+import ProcessList from "@/components/Library/ProcessList";
 
-const initialRiskData: RiskScenarioData = {
-  riskScenario: "",
-  riskStatement: "",
-  riskDescription: "",
-  riskField1: "",
-  riskField2: "",
-  attributes: [] as RiskScenarioAttributes[],
-};
+const initialProcessData: ProcessData = {
+    processName: "",
+    processDescription: "",
+    seniorExecutiveOwnerName: "",
+    seniorExecutiveOwnerEmail: "",
+    operationsOwnerName: "",
+    operationsOwnerEmail: "",
+    technologyOwnerName: "",
+    technologyOwnerEmail: "",
+    organizationalRevenueImpactPercentage: 0,
+    financialMateriality: false,
+    thirdPartyInvolvement: "",
+    users: "",
+    requlatoryAndCompliance: "",
+    criticalityOfDataProcessed: "",
+    dataProcessed: "",
+    processDependency: [],
+    status: "",
+  }
 
 const sortItems = [
-  { label: "Risk ID (Ascending)", value: "risk_asc" },
-  { label: "Risk ID (Descending)", value: "risk_desc" },
+  { label: "Process ID (Ascending)", value: "process_asc" },
+  { label: "Process ID (Descending)", value: "process_desc" },
   { label: "Created (Latest to Oldest)", value: "created_lto" },
   { label: "Created (Oldest to Latest)", value: "created_otl" },
   { label: "Updated (Latest to Oldest)", value: "updated_lto" },
@@ -33,20 +43,19 @@ const sortItems = [
 const breadcrumbItems = [
   // keep the same breadcrumb behavior from original page
   { label: "Library", onClick: () => (window.location.href = "/library") , icon: <ArrowBack fontSize="small" /> },
-  { label: "Risk Scenarios" },
+  { label: "Process" },
 ];
 
-export default function RiskScenarioContainer() {
+export default function ProcessContainer() {
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
 
-  const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
+  const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(null);
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -58,18 +67,18 @@ export default function RiskScenarioContainer() {
 
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" });
 
-  const [formData, setFormData] = useState<RiskScenarioData>(initialRiskData);
+  const [formData, setFormData] = useState<ProcessData>(initialProcessData);
 
   // fetch list
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await RiskScenarioService.fetch(page, rowsPerPage);
-      setRiskScenarioData(data?.data ?? []);
+      const data = await ProcessService.fetch(page, rowsPerPage);
+      setProcessesData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to fetch risk scenarios", severity: "error" });
+      setToast({ open: true, message: "Failed to fetch process", severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -79,13 +88,12 @@ export default function RiskScenarioContainer() {
     loadList();
   }, [loadList, refreshTrigger]);
 
-  // fetch processes & meta
+  // fetch meta data
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-        const [proc, meta] = await Promise.all([fetchProcesses(0, 0), fetchMetaDatas()]);
-        setProcessesData(proc.data ?? []);
+        const [meta] = await Promise.all([fetchMetaDatas()]);
         setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error(err);
@@ -100,37 +108,37 @@ export default function RiskScenarioContainer() {
   const handleCreate = async (status: string) => {
     try {
       const req = { ...formData, status };
-      await RiskScenarioService.create(req);
-      setFormData(initialRiskData);
+      await  ProcessService.create(req);
+      setFormData(initialProcessData);
       setIsAddOpen(false);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: `Success! Risk scenario ${status === "published" ? "published" : "saved as draft"}`, severity: "success" });
+      setToast({ open: true, message: `Success! Process ${status === "published" ? "published" : "saved as draft"}`, severity: "success" });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to create risk scenario", severity: "error" });
+      setToast({ open: true, message: "Failed to create process", severity: "error" });
     }
   };
 
   // Update
   const handleUpdate = async (status: string) => {
     try {
-      if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
-      const body = { ...selectedRiskScenario, status };
-      await RiskScenarioService.update(selectedRiskScenario.id as number, body);
+      if (!selectedProcess?.id) throw new Error("Invalid selection");
+      const body = { ...selectedProcess, status };
+      await ProcessService.update(selectedProcess.id as number, body);
       setIsEditOpen(false);
-      setSelectedRiskScenario(null);
+      setSelectedProcess(null);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: "Risk scenario updated", severity: "success" });
+      setToast({ open: true, message: "Process updated", severity: "success" });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to update risk scenario", severity: "error" });
+      setToast({ open: true, message: "Failed to update process", severity: "error" });
     }
   };
 
   // Update status only
   const handleUpdateStatus = async (id: number, status: string) => {
     try {
-      await RiskScenarioService.updateStatus(id, status);
+      await ProcessService.updateStatus(id, status);
       setRefreshTrigger((p) => p + 1);
       setToast({ open: true, message: "Status updated", severity: "success" });
     } catch (err) {
@@ -142,15 +150,15 @@ export default function RiskScenarioContainer() {
   // Delete
   const handleDelete = async () => {
     try {
-      if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
-      await RiskScenarioService.delete(selectedRiskScenario.id as number);
+      if (!selectedProcess?.id) throw new Error("Invalid selection");
+      await ProcessService.delete(selectedProcess.id as number);
       setIsDeleteConfirmOpen(false);
-      setSelectedRiskScenario(null);
+      setSelectedProcess(null);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: `Deleted RS-${selectedRiskScenario?.id}`, severity: "success" });
+      setToast({ open: true, message: `Deleted BP-${selectedProcess?.id}`, severity: "success" });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to delete risk scenario", severity: "error" });
+      setToast({ open: true, message: "Failed to delete process", severity: "error" });
     }
   };
 
@@ -167,7 +175,7 @@ export default function RiskScenarioContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      addButtonText: "Add Risk Scenario",
+      addButtonText: "Add Process",
       addAction: () => setIsAddOpen(true),
       sortItems,
     }),
@@ -177,49 +185,56 @@ export default function RiskScenarioContainer() {
   return (
     <>
       {/* View modal */}
-      {selectedRiskScenario && isViewOpen && (
-        <ViewRiskScenarioModal
+      {selectedProcess && isViewOpen && (
+        <ViewProcessModal
           open={isViewOpen}
-          onClose={() => setIsViewOpen(false)}
-          riskScenarioData={selectedRiskScenario}
-          setIsEditRiskScenarioOpen={setIsEditOpen}
-          setSelectedRiskScenario={setSelectedRiskScenario}
-          processes={processesData}
+          processes={processesData as any[]}
           metaDatas={metaDatas}
+          processData={selectedProcess}
+          setIsEditProcessOpen={setIsEditOpen}
+          setSelectedProcess={setSelectedProcess}
+          onClose={() => {
+            setSelectedProcess(null);
+            setIsViewOpen(false);
+          }}
         />
       )}
 
       {/* Add form */}
       {isAddOpen && (
-        <RiskScenarioFormModal
-          operation="create"
+        <ProcessFormModal
+          operation={"create"}
           open={isAddOpen}
-          riskData={formData}
-          setRiskData={setFormData}
-          processes={processesData}
+          processData={formData}
+          setProcessData={setFormData}
+          processes={processesData as ProcessData[]}
           metaDatas={metaDatas}
           onSubmit={handleCreate}
-          onClose={() => setIsAddConfirmOpen(true)}
+          onClose={() => {
+            setIsAddConfirmOpen(true);
+          }}
         />
       )}
 
       {/* Edit form */}
-      {isEditOpen && selectedRiskScenario && (
-        <RiskScenarioFormModal
-          operation="edit"
+      {isEditOpen && selectedProcess && (
+        <ProcessFormModal
+          operation={"edit"}
           open={isEditOpen}
-          riskData={selectedRiskScenario}
-          setRiskData={(val: any) => {
+          processData={selectedProcess}
+          setProcessData={(val) => {
             if (typeof val === "function") {
-              setSelectedRiskScenario((prev) => val(prev as RiskScenarioData));
+              setSelectedProcess((prev) => val(prev as ProcessData));
             } else {
-              setSelectedRiskScenario(val);
+              setSelectedProcess(val);
             }
           }}
-          processes={processesData}
+          processes={processesData as ProcessData[]}
           metaDatas={metaDatas}
           onSubmit={handleUpdate}
-          onClose={() => setIsEditConfirmOpen(true)}
+          onClose={() => {
+            setIsEditConfirmOpen(true);
+          }}
         />
       )}
 
@@ -227,11 +242,11 @@ export default function RiskScenarioContainer() {
       <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Risk Scenario Creation?"
-        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        title="Cancel Process Creation?"
+        description="Are you sure you want to cancel the process creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
-          setFormData(initialRiskData);
+          setFormData(initialProcessData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
@@ -241,11 +256,11 @@ export default function RiskScenarioContainer() {
       <ConfirmDialog
         open={isEditConfirmOpen}
         onClose={() => setIsEditConfirmOpen(false)}
-        title="Cancel Risk Scenario Updation?"
-        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        title="Cancel Process Updation?"
+        description="Are you sure you want to cancel the process updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmOpen(false);
-          setSelectedRiskScenario(null);
+          setSelectedProcess(null);
           setIsEditOpen(false);
         }}
         cancelText="Continue Editing"
@@ -255,8 +270,8 @@ export default function RiskScenarioContainer() {
       <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Confirm Risk Scenario Deletion?"
-        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.id}? All associated data will be removed from the system.`}
+        title="Confirm Process Deletion?"
+        description={`Are you sure you want to delete Process #${selectedProcess?.id}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"
@@ -265,15 +280,15 @@ export default function RiskScenarioContainer() {
       {/* Page content */}
       <Box p={5}>
         <LibraryHeader {...headerProps} />
-        <RiskScenarioList
+        <ProcessList
           loading={loading}
-          data={riskScenarioData}
+          data={processesData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          setSelectedRiskScenario={setSelectedRiskScenario}
+          setSelectedProcess={setSelectedProcess}
           setIsViewOpen={setIsViewOpen}
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}

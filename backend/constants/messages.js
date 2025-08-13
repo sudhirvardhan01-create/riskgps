@@ -1,0 +1,69 @@
+module.exports = {
+    USER: {
+        NOT_FOUND: 'User not found.',
+        CREATED: 'User created successfully.',
+        UPDATED: 'User updated successfully.',
+        DELETED: 'User deleted successfully.',
+        FETCHED: 'Fetched all users successfully.'
+    },
+    AUTH: {
+        UNAUTHORIZED: 'Unauthorized access.',
+        INVALID_CREDENTIALS: 'Invalid email or password.',
+        TOKEN_EXPIRED: 'Authentication token expired.',
+        INVALID_REFRESH_TOKEN: 'Invalid or expired refresh token.',
+        LOGIN_SUCCESS: 'Login successful.',
+        LOGOUT_SUCCESS: 'Logout successful.',
+        REFRESH_SUCCESS: 'Access token refreshed successfully.',
+        INVALID_ROLE: 'Invalid role specified.'
+    },
+    GENERAL: {
+        SERVER_ERROR: 'Something went wrong. Please try again later.',
+        BAD_REQUEST: 'Bad request.',
+        INVALID_INPUT: 'Invalid input.',
+        REQUIRED_FIELD_MISSING: 'Required field is missing'
+    },
+    META_DATA: {
+        NOT_FOUND: 'Meta data not found.',
+        CREATED: 'Meta data created successfully.',
+        UPDATED: 'Meta data updated successfully.',
+        DELETED: 'Meta data deleted successfully.',
+        OBTAINED: 'Obtained all meta data.',
+        INVALID_INPUT_TYPE: 'Invalid input_type.',
+        INVALID_APPLIES_TO: 'Invalid value for applies_to.'
+    },
+    PROCESS: {
+        NOT_FOUND: 'Process not found.',
+        CREATED: 'Process created successfully.',
+        UPDATED: 'Process updated successfully.',
+        DELETED: 'Process deleted successfully.',
+        STATUS_UPDATED: 'Process status updated successfully.',
+        INVALID_STATUS: 'Invalid status provided.',
+        INVALID_RELATIONSHIP_TYPE: 'Invalid relationship type for process dependency.',
+        MISSING_TARGET_ID: 'Missing or invalid target_process_id.',
+        TARGET_NOT_FOUND: 'Target process not found for dependency.',
+        MISSING_ATTRIBUTE_FIELD: 'Each attribute must have meta_data_key_id and values.',
+        INVALID_ATTRIBUTE_VALUE: 'Invalid value for one or more attributes.',
+        METADATA_NOT_FOUND: 'MetaData not found for provided key.',
+        PROCESS_NAME_REQUIRED: 'process_name is required.',
+        INVALID_VALUE: 'Invalid Value for Status.',
+        FETCHED_BY_ID: 'Fetched process by ID successfully.'
+    },
+    RISK_SCENARIO: {
+        CREATED: 'Risk Scenario created successfully.',
+        UPDATED: 'Risk Scenario updated successfully.',
+        DELETED: 'Risk Scenario deleted successfully.',
+        FETCHED: 'Fetched all risk scenarios successfully.',
+        FETCHED_BY_ID: 'Fetched risk scenario by ID successfully.',
+        STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+        NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
+        REQUIRED: 'risk_scenario is required.',
+        INVALID_STATUS: 'Invalid value for status.',
+        INVALID_PROCESS_MAPPING: 'Invalid Process Risk Mapping',
+        MISSING_ATTRIBUTE_FIELD: 'Each attribute must have meta_data_key_id and values.',
+        METADATA_NOT_FOUND: (id) => `MetaData not found for ID: ${id}`,
+        INVALID_ATTRIBUTE_VALUE: (id) => `Invalid Value For Meta Data: ${id}`,
+        NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
+        DELETED: 'Risk Scenario deleted successfully.',
+        STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+    }
+};
