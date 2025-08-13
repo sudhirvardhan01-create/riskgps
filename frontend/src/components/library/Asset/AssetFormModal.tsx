@@ -29,7 +29,6 @@ import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
-import TooltipComponent from "@/components/TooltipComponent";
 
 interface AssetFormModalProps {
   operation: "create" | "edit";
@@ -219,6 +218,8 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               placeholder="Enter Asset Name"
               value={assetFormData.assetName}
               required
+              isTooltipRequired={true}
+              tooltipTitle="Enter the Asset Name"
               onChange={(e) => handleChange("assetName", e.target.value)}
             />
           </Grid>
@@ -307,6 +308,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Asset Category */}
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
+              required
+              isTooltipRequired={true}
+              tooltipTitle="Select the Asset Category"
               value={assetFormData.assetCategory}
               label="Asset Category"
               displayEmpty
