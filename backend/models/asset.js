@@ -15,6 +15,7 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
       },
       application_name: { 
+        unique: true,
         type: DataTypes.STRING, 
         allowNull: false 
       },
@@ -26,7 +27,7 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true 
       },
-      third_party_management: {
+      is_third_party_management: {
         type: DataTypes.BOOLEAN,
         allowNull: true 
       },
@@ -75,6 +76,7 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       asset_name: {
+        unique: true,
         type: DataTypes.STRING,
         allowNull: true
       },
