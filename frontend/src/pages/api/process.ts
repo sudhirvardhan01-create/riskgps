@@ -1,9 +1,14 @@
 import { ProcessData, ProcessDependency } from "@/types/process";
 
-export const fetchProcesses = async (page: number, limit: number) => {
+export const fetchProcesses = async (page: number, limit: number, searchPattern?: string, sort?: string) => {
+  const [sortBy, sortOrder] = (sort ?? '').split(':');;
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
   params.append("limit", JSON.stringify(limit));
+  params.append("search", searchPattern?? '');
+  params.append("sort_by",sortBy);
+  params.append("sort_order", sortOrder);
+
 
 const transformProcessData = (data: any[]): ProcessData[] => {
   return data.map((item) => ({

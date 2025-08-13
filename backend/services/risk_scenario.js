@@ -6,9 +6,11 @@ const {
     Process,
     ProcessRiskScenarioMappings,
 } = require("../models");
+const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
+const { ALLOWED_SORT_ORDER, RISK_SCENARIO, GENERAL } = require("../constants/library");
 
 
 
@@ -109,14 +111,37 @@ class RiskScenarioService {
         });
     }
 
-    static async getAllRiskScenarios(page = 0, limit = 6) {
+    static async getAllRiskScenarios(page = 0, limit = 6,  searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
         const offset = page * limit;
+        let whereClause = {};
+        console.log(sortOrder)
 
-        const total = await RiskScenario.count();
+        if (!RISK_SCENARIO.RISK_SCENARIO_SORT_FIELDS.includes(sortBy)) {
+            sortBy = "created_at";
+        }
+
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
+            sortOrder = 'ASC';
+        }
+
+        if (searchPattern) {
+          whereClause = {
+            [Op.or]: [
+              { risk_scenario: { [Op.iLike]: `%${searchPattern}%` } },
+              { risk_description: { [Op.iLike]: `%${searchPattern}%` } },
+              { risk_statement: { [Op.iLike]: `%${searchPattern}%` } },
+            ],
+          };
+        }
+
+        const total = await RiskScenario.count({
+            where: whereClause
+        });
         const data = await RiskScenario.findAll({
             limit,
             offset,
-            order: [["created_at", "DESC"]],
+            order: [[sortBy, sortOrder]],
+            where: whereClause,
             include: [
                 {
                     model: RiskScenarioAttribute,

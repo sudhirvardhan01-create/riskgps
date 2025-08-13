@@ -38,7 +38,11 @@ router.get('/', async (req, res) => {
     try {
         const limit = parseInt(req.query?.limit) || 6;
         const page = parseInt(req.query?.page) || 0;
-        const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit);
+        const searchPattern = req.query.search || null;
+        const sortBy = req.query.sort_by || 'created_at';
+        const sortOrder = req.query.sort_order?.toUpperCase() || 'ASC';
+
+        const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit, searchPattern, sortBy, sortOrder);
         res.status(HttpStatus.OK).json({
             data: scenarios,
             msg: Messages.RISK_SCENARIO.FETCHED

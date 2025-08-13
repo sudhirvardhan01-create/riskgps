@@ -3,21 +3,22 @@ const router = express.Router();
 const ProcessService = require("../services/process");
 const Messages = require('../constants/messages');
 const HttpStatus = require('../constants/httpStatusCodes');
+const AssetService = require('../services/assetService');
 
 /**
- * @route POST /process
- * @description Create a new process
- * @param {Object} req.body - Process data to be created
- * @returns {JSON} 201 - Created process with success message
+ * @route POST /asset
+ * @description Create a new Asset
+ * @param {Object} req.body - Asset data to be created
+ * @returns {JSON} 201 - Created Asset with success message
  * @returns {JSON} 400 - Bad request with error message
  */
 router.post('/', async (req, res) => {
-    console.log("Request received for process creation", req.body);
+    console.log("Request received for asset creation", req.body);
     try {
-        const process = await ProcessService.createProcess(req.body);
+        const process = await AssetService.createAsset(req.body);
         res.status(HttpStatus.CREATED).json({
             data: process,
-            msg: Messages.PROCESS.CREATED
+            msg: Messages.ASSET.CREATED
         });
     } catch (err) {
         res.status(HttpStatus.BAD_REQUEST).json({
@@ -27,8 +28,8 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * @route GET /process
- * @description Get all processes with optional filtering by name and pagination
+ * @route GET /asset
+ * @description Get all assets with optional filtering by name and pagination
  * @param {String} [req.query.name] - Optional process name filter
  * @param {Number} [req.query.limit=6] - Number of records per page
  * @param {Number} [req.query.page=0] - Page number
@@ -44,10 +45,10 @@ router.get('/', async (req, res) => {
         const sortOrder = req.query.sort_order?.toUpperCase() || 'DESC'
         console.log(sortBy, sortOrder)
 
-        const processes = await ProcessService.getAllProcesses(page, limit, searchPattern, sortBy, sortOrder);
+        const processes = await AssetService.getAllAssets(page, limit, searchPattern, sortBy, sortOrder);
         res.status(HttpStatus.OK).json({
             data: processes,
-            msg: Messages.PROCESS.FETCHED
+            msg: Messages.ASSET.FETCHED
         });
     } catch (err) {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -57,18 +58,18 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * @route GET /process/:id
- * @description Get a process by ID
- * @param {String} req.params.id - Process ID
+ * @route GET /asset/:id
+ * @description Get a asset by ID
+ * @param {String} req.params.id - asset ID
  * @returns {JSON} 200 - Process object
  * @returns {JSON} 404 - Not found error
  */
 router.get('/:id', async (req, res) => {
     try {
-        const process = await ProcessService.getProcessById(req.params.id);
+        const process = await AssetService.getAssetById(req.params.id);
         res.status(HttpStatus.OK).json({
             data: process,
-            msg: Messages.PROCESS.FETCHED_BY_ID
+            msg: Messages.ASSET.FETCHED_BY_ID
         });
     } catch (err) {
         res.status(HttpStatus.NOT_FOUND).json({
@@ -78,19 +79,19 @@ router.get('/:id', async (req, res) => {
 });
 
 /**
- * @route PUT /process/:id
- * @description Update a process by ID
- * @param {String} req.params.id - Process ID
- * @param {Object} req.body - Updated process data
- * @returns {JSON} 200 - Updated process object
+ * @route PUT /asset/:id
+ * @description Update a asset by ID
+ * @param {String} req.params.id - asset ID
+ * @param {Object} req.body - Updated asset data
+ * @returns {JSON} 200 - Updated asset object
  * @returns {JSON} 404 - Not found or update failed
  */
 router.put('/:id', async (req, res) => {
     try {
-        const process = await ProcessService.updateProcess(req.params.id, req.body);
+        const process = await AssetService.updateAsset(req.params.id, req.body);
         res.status(HttpStatus.OK).json({
             data: process,
-            msg: Messages.PROCESS.UPDATED
+            msg: Messages.ASSET.UPDATED
         });
     } catch (err) {
         res.status(HttpStatus.NOT_FOUND).json({
@@ -100,21 +101,21 @@ router.put('/:id', async (req, res) => {
 });
 
 /**
- * @route PATCH /process/update-status/:id
- * @description Update the status of a process
- * @param {String} req.params.id - Process ID
+ * @route PATCH /asset/update-status/:id
+ * @description Update the status of a asset
+ * @param {String} req.params.id - asset ID
  * @param {String} req.body.status - New status value
  * @returns {JSON} 200 - Success message
- * @returns {JSON} 404 - Process not found or update failed
+ * @returns {JSON} 404 - asset not found or update failed
  */
 router.patch("/update-status/:id", async (req, res) => {
     try {
         const id = req.params.id;
         const status = req.body.status;
 
-        await ProcessService.updateProcessStatus(id, status);
+        await AssetService.updateAssetStatus(id, status);
         res.status(HttpStatus.OK).json({
-            msg: Messages.PROCESS.STATUS_UPDATED
+            msg: Messages.ASSET.STATUS_UPDATED
         });
     } catch (err) {
         console.log("Failed operation: update status", err);
@@ -125,17 +126,17 @@ router.patch("/update-status/:id", async (req, res) => {
 });
 
 /**
- * @route DELETE /process/:id
- * @description Delete a process by ID
- * @param {String} req.params.id - Process ID
+ * @route DELETE /asset/:id
+ * @description Delete a asset by ID
+ * @param {String} req.params.id - asset ID
  * @returns {JSON} 200 - Success message
- * @returns {JSON} 404 - Process not found or deletion failed
+ * @returns {JSON} 404 - asset not found or deletion failed
  */
 router.delete('/:id', async (req, res) => {
     try {
-        await ProcessService.deleteProcess(req.params.id);
+        await AssetService.deleteAssetById(req.params.id);
         res.status(HttpStatus.OK).json({
-            msg: Messages.PROCESS.DELETED
+            msg: Messages.ASSET.DELETED
         });
     } catch (err) {
         res.status(HttpStatus.NOT_FOUND).json({

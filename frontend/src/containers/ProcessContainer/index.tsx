@@ -32,12 +32,14 @@ const initialProcessData: ProcessData = {
   }
 
 const sortItems = [
-  { label: "Process ID (Ascending)", value: "process_asc" },
-  { label: "Process ID (Descending)", value: "process_desc" },
-  { label: "Created (Latest to Oldest)", value: "created_lto" },
-  { label: "Created (Oldest to Latest)", value: "created_otl" },
-  { label: "Updated (Latest to Oldest)", value: "updated_lto" },
-  { label: "Updated (Oldest to Latest)", value: "updated_otl" },
+  { label: "Process ID (Ascending)", value: "id:asc" },
+  { label: "Process ID (Descending)", value: "id:desc" },
+  { label: "Process Name (Ascending)", value: "process_name:asc" },
+  { label: "Process Name (Descending)", value: "process_name:desc" },
+  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
+  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
+  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
+  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
 ];
 
 const breadcrumbItems = [
@@ -52,6 +54,8 @@ export default function ProcessContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [sort, setSort] = useState<string>('id:asc');
+  const [searchPattern, setSearchPattern] = useState<string> ();
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
 
@@ -73,7 +77,7 @@ export default function ProcessContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ProcessService.fetch(page, rowsPerPage);
+      const data = await ProcessService.fetch(page, rowsPerPage, searchPattern as string, sort);
       setProcessesData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -82,7 +86,7 @@ export default function ProcessContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage]);
+  }, [page, rowsPerPage, searchPattern, sort]);
 
   useEffect(() => {
     loadList();
@@ -171,6 +175,7 @@ export default function ProcessContainer() {
     setPage(0);
   };
 
+
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
@@ -178,8 +183,11 @@ export default function ProcessContainer() {
       addButtonText: "Add Process",
       addAction: () => setIsAddOpen(true),
       sortItems,
-    }),
-    []
+      searchPattern,
+      setSearchPattern,
+      sort,
+      setSort,
+    }),[]
   );
 
   return (

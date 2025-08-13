@@ -7,7 +7,7 @@ import {
 } from "@/pages/api/risk-scenario";
 
 export const RiskScenarioService = {
-  fetch: (page: number, rowsPerPage: number) => fetchRiskScenarios(page, rowsPerPage),
+  fetch: (page: number, rowsPerPage: number, searchPattern?: string, sort?: string) => fetchRiskScenarios(page, rowsPerPage, searchPattern, sort),
   create: (body: any) => createRiskScenario(body),
   update: (id: number, body: any) => updateRiskScenario(id, body),
   delete: (id: number) => deleteRiskScenario(id),

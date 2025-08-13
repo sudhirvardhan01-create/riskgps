@@ -8,17 +8,19 @@ const {
     RiskScenario,
 } = require("../models");
 
-const { STATUS_SUPPORTED_VALUES, PROCESS_RELATIONSHIP_TYPES } = require("../constants/library");
-const { validateProcessData } = require("../utils/process");
+const {GENERAL, PROCESS } = require("../constants/library");
+
 const CustomError = require("../utils/CustomError");
 const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
+const { search } = require("../routes/process");
+
 
 
 class ProcessService {
     static async createProcess(data) {
         return await sequelize.transaction(async (t) => {
-            validateProcessData(data);
+            this.validateProcessData(data);
 
             const processData = this.handleProcessDataColumnMapping(data);
             console.log("Creating process with data:", processData);
@@ -37,18 +39,19 @@ class ProcessService {
         });
     }
 
-    static async getAllProcesses(page = 0, limit = 6, filters = {}) {
+    static async getAllProcesses(page = 0, limit = 6, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
+        console.log("Fetching all processes");
+        
         const offset = page * limit;
-        const total = await Process.count();
-        const whereClause = {};
+        let whereClause = {};
 
-        if (filters.name) {
-            whereClause.process_name = {
-                [Op.iLike]: `%${filters.name}%`,
-            };
+        if (!PROCESS.PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
+            sortBy = 'created_at';
         }
 
-        console.log("Fetching all processes");
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
+            sortOrder = 'ASC';
+        }
 
         const includeRelations = [
             {
@@ -70,10 +73,23 @@ class ProcessService {
         },
       ];
 
+      if (searchPattern) {
+        whereClause = {
+          [Op.or]: [
+            { process_name: { [Op.iLike]: `%${searchPattern}%` } },
+            { process_description: { [Op.iLike]: `%${searchPattern}%` } },
+          ],
+        };
+      }
+        const total = await Process.count({
+            where: whereClause
+        });
+
         const data = await Process.findAll({
-            ...(limit > 0 ? { limit, offset } : {}),
-            order: [["created_at", "DESC"]],
-            include: includeRelations,
+          ...(limit > 0 ? { limit, offset } : {}),
+          where: whereClause,
+          order: [[sortBy, sortOrder]],
+          include: includeRelations,
         });
 
         let processes = data.map((s) => s.toJSON());
@@ -146,7 +162,7 @@ class ProcessService {
                 throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
             }
 
-            validateProcessData(data);
+            this.validateProcessData(data);
 
             const processData = this.handleProcessDataColumnMapping(data);
             await process.update(processData, { transaction: t });
@@ -167,7 +183,7 @@ class ProcessService {
     }
 
     static async updateProcessStatus(id, status) {
-        if (!STATUS_SUPPORTED_VALUES.includes(status)) {
+        if (!GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
             console.log("[updateProcessStatus] Invalid status:", status);
             throw new CustomError(Messages.PROCESS.INVALID_STATUS, HttpStatus.BAD_REQUEST);
         }
@@ -196,6 +212,18 @@ class ProcessService {
         return { message: Messages.PROCESS.DELETED };
     }
 
+    static validateProcessData = (data) => {
+    const { process_name, status } = data;
+
+    if (!process_name) {
+        throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
+    }
+
+    if (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
+        throw new CustomError(Messages.PROCESS.INVALID_VALUE, HttpStatus.BAD_REQUEST);
+    }
+    };
+
     static handleProcessDataColumnMapping(data) {
         const fields = [
             "process_name",
@@ -223,7 +251,7 @@ class ProcessService {
         for (const dependency of dependencies) {
             if (
                 !dependency.relationship_type ||
-                !PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
+                !PROCESS.PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
             ) {
                 console.log("Invalid relationship type in dependency:", dependency);
                 throw new CustomError(Messages.PROCESS.INVALID_RELATIONSHIP_TYPE, HttpStatus.BAD_REQUEST);
@@ -283,6 +311,7 @@ class ProcessService {
             );
         }
     }
+    
 }
 
 module.exports = ProcessService;

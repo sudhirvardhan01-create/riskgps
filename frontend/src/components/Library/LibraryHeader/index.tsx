@@ -13,28 +13,28 @@ interface Props {
   addButtonText: string;
   addAction: () => void;
   sortItems: { label: string; value: string }[];
-  // optional controlled props (for future extension)
-  searchValue?: string;
-  onSearchChange?: (val: string) => void;
+  // optional controlled props
+  searchPattern?: string;
+  setSearchPattern?: (val: string) => void;
   sortValue?: string;
-  onSortChange?: (val: string) => void;
+  setSort?: (val: string) => void;
 }
 
-const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAction, sortItems, searchValue = "", onSearchChange, sortValue, onSortChange }) => {
+const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAction, sortItems, searchPattern = "", setSearchPattern, sortValue, setSort }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isOpenFilter, setIsOpenFilter] = useState(false);
-  const [localSearch, setLocalSearch] = useState(searchValue);
+  const [localSearch, setLocalSearch] = useState(searchPattern);
   const [localSort, setLocalSort] = useState(sortValue ?? sortItems[0]?.value ?? "");
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearch(e.target.value);
-    onSearchChange?.(e.target.value);
+    setSearchPattern?.(e.target.value);
   };
 
   const handleSortChange = (event: any) => {
     setLocalSort(event.target.value);
-    onSortChange?.(event.target.value);
+    setSort?.(event.target.value);
   };
 
   return (
