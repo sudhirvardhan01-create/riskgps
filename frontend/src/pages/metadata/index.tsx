@@ -62,12 +62,13 @@ const Index = () => {
     applies_to: [] as string[],
   });
 
+  // fetch meta data
   useEffect(() => {
     const getMetaDatas = async () => {
       try {
         setLoading(true);
-        const data = await fetchMetaDatas();
-        setMetaDatas(data);
+        const [meta] = await Promise.all([fetchMetaDatas()]);
+        setMetaDatas(meta.data ?? []);
       } catch (error) {
         console.error("Error while fetching metadata:", error);
       } finally {
@@ -153,6 +154,7 @@ const Index = () => {
           metaData={selectedMetaData}
           onClose={() => setIsViewMetaDataModalOpen(false)}
           onEditButtonClick={() => {
+            setIsViewMetaDataModalOpen(false);
             setSelectedMetaData(selectedMetaData);
             setIsEditMetaDataModalOpen(true);
           }}
@@ -264,7 +266,9 @@ const Index = () => {
               }}
               onClick={() => setIsAddMetaDataModalOpen(true)}
             >
-              <Typography variant="body1" fontWeight={600} color="#F4F4F4">Add Configuration</Typography>
+              <Typography variant="body1" fontWeight={600} color="#F4F4F4">
+                Add Configuration
+              </Typography>
             </Button>
           </Stack>
 
