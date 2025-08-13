@@ -13,7 +13,7 @@ interface ToastComponentProps {
 
 const ToastComponent: React.FC<ToastComponentProps> = ({ open, message, onClose, toastBorder, toastColor, toastBackgroundColor, toastSeverity }) => {
   return (
-    <Snackbar open={open} autoHideDuration={5000} anchorOrigin={{vertical: 'top', horizontal: 'center'}} onClose={onClose}>
+    <Snackbar open={open} autoHideDuration={3000} anchorOrigin={{vertical: 'top', horizontal: 'center'}} onClose={onClose}>
     <Alert
       severity={toastSeverity}
       sx={{border: toastBorder, borderRadius: 2, color: toastColor, boxShadow: '0px 4px 16px 0px #E4E4E7', backgroundColor: toastBackgroundColor, fontWeight: 550}}
