@@ -1,28 +1,35 @@
 import {
+  Box,
   FormControl,
   InputLabel,
   Select,
   SelectProps,
   styled,
+  Typography,
 } from "@mui/material";
 import { ReactNode } from "react";
+import TooltipComponent from "../TooltipComponent";
 
 type SelectStyledProps = Omit<SelectProps, "label"> & {
   label: string;
   required?: boolean;
   children?: ReactNode;
+  tooltipTitle?: string;
+  isTooltipRequired?: boolean;
 };
 
 const SelectStyled = ({
   label,
   required = false,
   children,
+  tooltipTitle,
+  isTooltipRequired = false,
   displayEmpty = true,
   renderValue,
   ...selectProps
 }: SelectStyledProps) => {
   return (
-    <FormControl fullWidth variant="outlined" required={required}>
+    <FormControl fullWidth variant="outlined">
       <InputLabel
         id={`${selectProps.name}-label`}
         sx={{
@@ -39,9 +46,14 @@ const SelectStyled = ({
           },
         }}
         shrink
-        required={required}
       >
-        {label}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Typography variant="body2" color="#121212" fontWeight={500}>
+            {label}
+          </Typography>
+          {required && <Typography color="#FB2020">*</Typography>}
+          {isTooltipRequired && <TooltipComponent title={tooltipTitle} />}
+        </Box>
       </InputLabel>
 
       <StyledSelect
@@ -49,7 +61,6 @@ const SelectStyled = ({
         displayEmpty={displayEmpty}
         renderValue={renderValue}
         labelId={`${selectProps.name}-label`}
-        label={label}
       >
         {children}
       </StyledSelect>

@@ -18,8 +18,6 @@ import {
   FormControlLabel,
   Radio,
   Stack,
-  TextField,
-  InputLabel,
 } from "@mui/material";
 import {
   Add,
@@ -32,7 +30,6 @@ import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import TooltipComponent from "@/components/TooltipComponent";
-// import TooltipComponent from "@/components/TooltipComponent";
 
 interface AssetFormModalProps {
   operation: "create" | "edit";
@@ -696,43 +693,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               value={assetFormData.networkName}
               onChange={(e) => handleChange("networkName", e.target.value)}
             />
-          </Grid>
-
-          <Grid size={{ xs: 6 }}>
-            {/* <Typography variant="body2" color="#121212" fontWeight={400}>Risk Scenario</Typography> */}
-            <InputLabel sx={{fontSize: "14px", color: "#121212"}}>Risk Scenario *<TooltipComponent title="Enter the Risk Scenario"/></InputLabel>
-            <FormControl fullWidth>
-            <TextField
-              fullWidth
-              // label="Risk Scenario"
-              placeholder="Enter Risk Scenario"
-              value={assetFormData.assetDescription}
-              required
-              variant="outlined"
-              onChange={(e) => handleChange("assetDescription", e.target.value)}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-              }}
-            /></FormControl>
           </Grid>
 
           {/* RELATED PROCESS SECTION */}
