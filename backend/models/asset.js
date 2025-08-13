@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const { GENERAL } = require("../constants/library");
+const { GENERAL, ASSETS } = require("../constants/library");
 
 module.exports = (sequelize) => {
   const Asset = sequelize.define(
@@ -40,15 +40,15 @@ module.exports = (sequelize) => {
         allowNull: true 
       },
       hosting: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM(...ASSETS.HOSTING_SUPPORTED_VALUES), 
         allowNull: true 
       },
       hosting_facility: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM(...ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES), 
         allowNull: true 
       },
       cloud_service_provider: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES), 
         allowNull: true 
       },
       geographic_location: {
@@ -63,8 +63,8 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true
       },
-      network_segmentation: {
-        type: DataTypes.STRING,
+      has_network_segmentation: {
+        type: DataTypes.BOOLEAN,
         allowNull: true
       },
       network_name: {

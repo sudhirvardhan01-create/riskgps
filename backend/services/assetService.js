@@ -181,7 +181,7 @@ class AssetService {
 
 
     static validateAssetData = (data) => {
-    const { application_name, status } = data;
+    const { application_name, status, hosting, hosting_facility, cloud_service_provider } = data;
 
     if (!application_name) {
         throw new CustomError(Messages.ASSET.APPLICATION_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
@@ -190,6 +190,19 @@ class AssetService {
     if (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
         throw new CustomError(Messages.LIBARY.INVALID_STATUS_VALUE, HttpStatus.BAD_REQUEST);
     }
+
+    if (hosting && !ASSETS.HOSTING_SUPPORTED_VALUES.includes(hosting)) {
+        throw new CustomError(Messages.ASSET.INVALID_HOSTING_VALUE, HttpStatus.BAD_REQUEST);
+    } 
+
+    if (hosting_facility && !ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.includes(hosting_facility)) {
+        throw new CustomError(Messages.ASSET.INVALID_HOSTING_FACILITY_VALUE, HttpStatus.BAD_REQUEST);
+    } 
+
+    if (cloud_service_provider && !ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(cloud_service_provider)) {
+        throw new CustomError(Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER, HttpStatus.BAD_REQUEST);
+    } 
+
     };
 
     static handleAssetDataColumnMapping(data) {

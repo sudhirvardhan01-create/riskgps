@@ -29,6 +29,22 @@ module.exports = {
     "updated_at",
     "application_name",
     "asset_code",
+    ],
+    HOSTING_SUPPORTED_VALUES: [
+      "SaaS",
+      "PaaS",
+      "IaaS",
+      "On-Premise"
+    ],
+    HOSTING_FACILITY_SUPPORTED_VALUES: [
+      "Public Cloud",
+      "Private Cloud",      
+    ],
+    CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES: [
+      "AWS",
+      "Azure",
+      "Google Cloud Platform",
+      "Other"
     ]
   }
 };
