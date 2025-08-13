@@ -66,7 +66,7 @@ const Index = () => {
       try {
         setLoading(true);
         const data = await fetchMetaDatas();
-        setMetaDatas(data);
+        setMetaDatas(data.data);
       } catch (error) {
         console.error("Error while fetching metadata:", error);
       } finally {

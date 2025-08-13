@@ -18,6 +18,7 @@ import {
   FormControlLabel,
   Radio,
   Stack,
+  TextField,
 } from "@mui/material";
 import {
   Add,
@@ -29,6 +30,7 @@ import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
+// import TooltipComponent from "@/components/TooltipComponent";
 
 interface AssetFormModalProps {
   operation: "create" | "edit";
@@ -694,6 +696,41 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             />
           </Grid>
 
+          {/* <Grid size={{ xs: 6 }}>
+            <Typography variant="body2" color="#121212" fontWeight={400}>Risk Scenario</Typography>
+            <TextField
+              fullWidth
+              // label="Risk Scenario"
+              placeholder="Enter Risk Scenario"
+              value={assetFormData.assetDescription}
+              required
+              variant="outlined"
+              onChange={(e) => handleChange("assetDescription", e.target.value)}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                  backgroundColor: "#ffffff",
+                  "& fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1px",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#cecfd2",
+                    borderWidth: "1.5px",
+                  },
+                  "& input": {
+                    padding: "14px 16px",
+                    fontSize: "14px",
+                  },
+                },
+              }}
+            />
+          </Grid> */}
+
           {/* RELATED PROCESS SECTION */}
           <Grid mt={1} size={{ xs: 12 }}>
             <Box
@@ -942,11 +979,18 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         }}
       >
         <Button
-          sx={{ width: 113, height: 40, border: '1px solid #CD0303', borderRadius: 1 }}
+          sx={{
+            width: 113,
+            height: 40,
+            border: "1px solid #CD0303",
+            borderRadius: 1,
+          }}
           variant="outlined"
           onClick={onClose}
         >
-          <Typography variant="body1" color="#CD0303" fontWeight={500}>Cancel</Typography>
+          <Typography variant="body1" color="#CD0303" fontWeight={500}>
+            Cancel
+          </Typography>
         </Button>
         <Box display={"flex"} gap={3}>
           <Button
@@ -956,7 +1000,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             sx={{ width: 161, height: 40, borderRadius: 1 }}
             variant="outlined"
           >
-            <Typography variant="body1" color="#04139A" fontWeight={500}>Save as Draft</Typography>
+            <Typography variant="body1" color="#04139A" fontWeight={500}>
+              Save as Draft
+            </Typography>
           </Button>
           <Button
             sx={{ width: 132, height: 40, borderRadius: 1 }}
@@ -965,7 +1011,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               onSubmit("published");
             }}
           >
-            <Typography variant="body1" color="#F4F4F4" fontWeight={600}>Publish</Typography>
+            <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
+              Publish
+            </Typography>
           </Button>
         </Box>
       </DialogActions>

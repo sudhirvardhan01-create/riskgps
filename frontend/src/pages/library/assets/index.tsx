@@ -198,7 +198,7 @@ const assets = [
       try {
         setLoading(true);
         const data = await fetchMetaDatas();
-        setMetaDatas(data);
+        setMetaDatas(data.data ?? []);
       } catch (error) {
         console.error("Error fetching metadatas:", error);
       } finally {

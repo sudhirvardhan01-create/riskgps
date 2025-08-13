@@ -49,6 +49,7 @@ const SelectStyled = ({
         displayEmpty={displayEmpty}
         renderValue={renderValue}
         labelId={`${selectProps.name}-label`}
+        label={label}
       >
         {children}
       </StyledSelect>
