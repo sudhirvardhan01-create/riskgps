@@ -92,7 +92,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
             gap={2}
           >
             <Typography variant="h5" color="#121212" fontWeight={550}>
-              Asset {assetData.asset_code}
+              Asset {assetData.assetCode}
             </Typography>
             {getStatusComponent()}
           </Stack>
@@ -129,7 +129,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetName}
+                {assetData.applicationName}
               </Typography>
             </Box>
           </Grid>
@@ -165,7 +165,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset Owner
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetOwner}
+                {assetData.applicationOwner}
               </Typography>
             </Box>
           </Grid>
@@ -177,7 +177,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset IT Owner
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetITOwner}
+                {assetData.applicationITOwner}
               </Typography>
             </Box>
           </Grid>
@@ -285,7 +285,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Redundancy
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.isRedundancy ? "Yes" : "No"}
+                {assetData.hasRedundancy ? "Yes" : "No"}
               </Typography>
             </Box>
           </Grid>
@@ -309,7 +309,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Network Segmentation
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.isNetworkSegmentation ? "Yes" : "No"}
+                {assetData.hasNetworkSegmentation ? "Yes" : "No"}
               </Typography>
             </Box>
           </Grid>
@@ -333,9 +333,9 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Process
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData?.related_processes &&
-                assetData?.related_processes?.length > 0
-                  ? assetData?.related_processes
+                {assetData?.relatedProcesses &&
+                assetData?.relatedProcesses?.length > 0
+                  ? assetData?.relatedProcesses
                       ?.map((processId) => {
                         return processes?.find(
                           (process) => process.id === processId

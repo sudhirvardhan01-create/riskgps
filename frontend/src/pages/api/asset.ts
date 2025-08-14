@@ -10,12 +10,12 @@ interface APIResponse {
 
 //Function to fetch assets
 export const fetchAssets = async (
-  page: number,
-  limit: number
+  page: number
+  // limit: number
 ): Promise<APIResponse> => {
   const params = new URLSearchParams();
-  if(page) params.append("page", page.toString());
-  if(limit) params.append("limit", limit.toString());
+  if (page) params.append("page", page.toString());
+  // if(limit) params.append("limit", limit.toString());
 
   const transformAssetData = (data: any[]): AssetForm[] => {
     return data.map((item) => ({
@@ -44,13 +44,11 @@ export const fetchAssets = async (
       createdAt: item.created_at,
       status: item.status,
       industry: item.industry,
-      domain: item.domain
+      domain: item.domain,
     }));
   };
   const response = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_API_URL
-    }/library/asset?${params.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset?${params.toString()}`,
     {
       method: "GET",
       headers: {
@@ -70,28 +68,28 @@ export const fetchAssets = async (
 //Function to create an asset
 export const createAsset = async (data: AssetForm) => {
   const assetData = {
-    "asset_name": data.assetName,
-    "asset_category": data.assetCategory,
-    "asset_description": data.assetDescription,
-    "application_name": data.applicationName,
-    "application_owner": data.applicationOwner,
-    "application_it_owner": data.applicationITOwner,
-    "is_third_party_management": data.isThirdPartyManagement,
-    "third_party_name": data.thirdPartyName,
-    "third_party_location": data.thirdPartyLocation,
-    "hosting": data.hosting,
-    "hosting_facility": data.hostingFacility,
-    "cloud_service_provider": data.cloudServiceProvider,
-    "geographic_location": data.geographicLocation,
-    "has_redundancy": data.hasRedundancy,
-    "databases": data.databases,
-    "has_network_segmentation": data.hasNetworkSegmentation,
-    "network_name": data.networkName,
-    "status": data.status,
-    "related_processes": data.relatedProcesses,
-    "attributes": data.attributes,
-    "industry": data.industry,
-    "domain": data.domain,
+    asset_name: data.assetName,
+    asset_category: data.assetCategory,
+    asset_description: data.assetDescription,
+    application_name: data.applicationName,
+    application_owner: data.applicationOwner,
+    application_it_owner: data.applicationITOwner,
+    is_third_party_management: data.isThirdPartyManagement,
+    third_party_name: data.thirdPartyName,
+    third_party_location: data.thirdPartyLocation,
+    hosting: data.hosting,
+    hosting_facility: data.hostingFacility,
+    cloud_service_provider: data.cloudServiceProvider,
+    geographic_location: data.geographicLocation,
+    has_redundancy: data.hasRedundancy,
+    databases: data.databases,
+    has_network_segmentation: data.hasNetworkSegmentation,
+    network_name: data.networkName,
+    status: data.status,
+    related_processes: data.relatedProcesses,
+    attributes: data.attributes,
+    industry: data.industry,
+    domain: data.domain,
   };
   console.log(assetData);
   const response = await fetch(
@@ -116,33 +114,30 @@ export const createAsset = async (data: AssetForm) => {
 };
 
 //Function to update an asset
-export const updateAsset = async (
-  id: number,
-  data: AssetForm
-) => {
+export const updateAsset = async (id: number, data: AssetForm) => {
   const assetData = {
-    "asset_name": data.assetName,
-    "asset_category": data.assetCategory,
-    "asset_description": data.assetDescription,
-    "application_name": data.applicationName,
-    "application_owner": data.applicationOwner,
-    "application_it_owner": data.applicationITOwner,
-    "is_third_party_management": data.isThirdPartyManagement,
-    "third_party_name": data.thirdPartyName,
-    "third_party_location": data.thirdPartyLocation,
-    "hosting": data.hosting,
-    "hosting_facility": data.hostingFacility,
-    "cloud_service_provider": data.cloudServiceProvider,
-    "geographic_location": data.geographicLocation,
-    "has_redundancy": data.hasRedundancy,
-    "databases": data.databases,
-    "has_network_segmentation": data.hasNetworkSegmentation,
-    "network_name": data.networkName,
-    "status": data.status,
-    "related_processes": data.relatedProcesses,
-    "attributes": data.attributes,
-    "industry": data.industry,
-    "domain": data.domain,
+    asset_name: data.assetName,
+    asset_category: data.assetCategory,
+    asset_description: data.assetDescription,
+    application_name: data.applicationName,
+    application_owner: data.applicationOwner,
+    application_it_owner: data.applicationITOwner,
+    is_third_party_management: data.isThirdPartyManagement,
+    third_party_name: data.thirdPartyName,
+    third_party_location: data.thirdPartyLocation,
+    hosting: data.hosting,
+    hosting_facility: data.hostingFacility,
+    cloud_service_provider: data.cloudServiceProvider,
+    geographic_location: data.geographicLocation,
+    has_redundancy: data.hasRedundancy,
+    databases: data.databases,
+    has_network_segmentation: data.hasNetworkSegmentation,
+    network_name: data.networkName,
+    status: data.status,
+    related_processes: data.relatedProcesses,
+    attributes: data.attributes,
+    industry: data.industry,
+    domain: data.domain,
   };
 
   const response = await fetch(
