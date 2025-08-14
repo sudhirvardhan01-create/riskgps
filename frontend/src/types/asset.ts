@@ -5,12 +5,13 @@ export interface AssetAttributes {
 
 export interface AssetForm {
   id? : number;
-  asset_code?: string;
-  assetName: string;
+  assetCode?: string;
+  applicationName: string;
+  assetName?: string;
   assetCategory?: string;
   assetDescription?: string;
-  assetOwner?: string;
-  assetITOwner?: string;
+  applicationOwner?: string;
+  applicationITOwner?: string;
   isThirdPartyManagement?: boolean | null;
   thirdPartyName?: string;
   thirdPartyLocation?: string;
@@ -18,13 +19,15 @@ export interface AssetForm {
   hostingFacility?: string;
   cloudServiceProvider?: string[];
   geographicLocation?: string;
-  isRedundancy?: boolean | null;
+  hasRedundancy?: boolean | null;
   databases?: string;
-  isNetworkSegmentation?: boolean | null;
+  hasNetworkSegmentation?: boolean | null;
   networkName?: string;
-  related_processes?: number[];
+  relatedProcesses?: number[];
   attributes?: AssetAttributes[];
-  lastUpdated?: Date;
+  updatedAt?: Date;
   createdAt?: Date;
   status?: string;
+  industry?: string[];
+  domain?: string[];
 }
