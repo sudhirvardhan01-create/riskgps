@@ -202,7 +202,7 @@ export default function AssetContainer() {
       setRefreshTrigger((p) => p + 1);
       setToast({
         open: true,
-        message: `Deleted A-${selectedAsset?.id}`,
+        message: `Deleted ${selectedAsset?.assetCode}`,
         severity: "success",
       });
     } catch (err) {
@@ -296,8 +296,8 @@ export default function AssetContainer() {
       <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Risk Scenario Creation?"
-        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        title="Cancel Asset Creation?"
+        description="Are you sure you want to cancel the asset creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
           setAssetFormData(initialAssetFormData);
@@ -310,8 +310,8 @@ export default function AssetContainer() {
       <ConfirmDialog
         open={isEditConfirmOpen}
         onClose={() => setIsEditConfirmOpen(false)}
-        title="Cancel Risk Scenario Updation?"
-        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        title="Cancel Asset Updation?"
+        description="Are you sure you want to cancel the asset updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmOpen(false);
           setSelectedAsset(null);
@@ -324,8 +324,8 @@ export default function AssetContainer() {
       <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Confirm Risk Scenario Deletion?"
-        description={`Are you sure you want to delete Risk Scenario #${selectedAsset?.id}? All associated data will be removed from the system.`}
+        title="Confirm Asset Deletion?"
+        description={`Are you sure you want to delete Asset ${selectedAsset?.assetCode}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"

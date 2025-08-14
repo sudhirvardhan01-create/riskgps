@@ -29,6 +29,7 @@ import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
+import { tooltips } from "@/utils/tooltips";
 
 interface AssetFormModalProps {
   operation: "create" | "edit";
@@ -52,6 +53,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   onSubmit,
 }) => {
   console.log(assetFormData);
+  console.log(processes);
 
   const [isAssetThirdPartyManaged, setIsAssetThirdPartyManaged] =
     useState<boolean>(false);
@@ -198,7 +200,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             <Typography variant="h5" fontWeight={550} color="#121212">
               {operation === "create"
                 ? "Add Asset"
-                : `Edit Asset A-${assetFormData.id}`}
+                : `Edit Asset ${assetFormData.assetCode}`}
             </Typography>
             {operation === "edit" ? getStatusComponent() : null}
           </Stack>
@@ -219,7 +221,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               value={assetFormData.applicationName}
               required
               isTooltipRequired={true}
-              tooltipTitle="Enter the Asset Name"
+              tooltipTitle={tooltips.applicationName}
               onChange={(e) => handleChange("applicationName", e.target.value)}
             />
           </Grid>
@@ -490,10 +492,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 }
               }}
             >
-              <MenuItem value="saas">SaaS</MenuItem>
-              <MenuItem value="paas">PaaS</MenuItem>
-              <MenuItem value="iaas">IaaS</MenuItem>
-              <MenuItem value="on-prem">On-Prem</MenuItem>
+              <MenuItem value="SaaS">SaaS</MenuItem>
+              <MenuItem value="PaaS">PaaS</MenuItem>
+              <MenuItem value="IaaS">IaaS</MenuItem>
+              <MenuItem value="On-Premise">On-Prem</MenuItem>
             </SelectStyled>
           </Grid>
 
@@ -532,9 +534,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 }
               }}
             >
-              <MenuItem value="public cloud">Public Cloud</MenuItem>
-              <MenuItem value="private cloud">Private Cloud</MenuItem>
-              <MenuItem value="n/a">N/A</MenuItem>
+              <MenuItem value="Public Cloud">Public Cloud</MenuItem>
+              <MenuItem value="Private Cloud">Private Cloud</MenuItem>
+              <MenuItem value="N/A">N/A</MenuItem>
             </SelectStyled>
           </Grid>
 
@@ -578,7 +580,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             >
               <MenuItem value="AWS">AWS</MenuItem>
               <MenuItem value="Azure">Azure</MenuItem>
-              <MenuItem value="GCP">GCP</MenuItem>
+              <MenuItem value="Google Cloud Platform">GCP</MenuItem>
               <MenuItem value="Other">Other</MenuItem>
             </SelectStyled>
           </Grid>
@@ -737,12 +739,12 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                         );
                       }
                       return processes.find((item) => item.id === selected)
-                        ?.name;
+                        ?.processName;
                     }}
                   >
                     {processes.map((process, index) => (
                       <MenuItem key={index} value={process.id}>
-                        {process.name}
+                        {process.processName}
                       </MenuItem>
                     ))}
                   </SelectStyled>
@@ -779,7 +781,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                       <Chip
                         key={index}
                         label={
-                          processes.find((item) => item.id === process)?.name
+                          processes.find((item) => item.id === process)?.processName
                         }
                         onDelete={() => removeRelatedProcess(process)}
                         sx={{

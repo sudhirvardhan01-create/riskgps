@@ -9,7 +9,9 @@ interface Props {
   page: number;
   rowsPerPage: number;
   onPageChange: (e: any, page: number) => void;
-  onRowsPerPageChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onRowsPerPageChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   setSelectedAsset: React.Dispatch<React.SetStateAction<AssetForm | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -32,7 +34,10 @@ const AssetList: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <Stack spacing={2} sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}>
+      <Stack
+        spacing={2}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
+      >
         {data && data.length > 0 ? (
           data.map((item) => (
             <div key={item.id ?? item.assetCode ?? JSON.stringify(item)}>
@@ -45,14 +50,15 @@ const AssetList: React.FC<Props> = ({
                 handleUpdateStatus={handleUpdateStatus}
                 title={item.assetCode ?? ""}
                 desc={item.assetDescription ?? ""}
-                chip={item.industry?.length ? item.industry.join(",") : "Not Defined"}
+                chip={
+                  item.industry?.length
+                    ? item.industry.join(",")
+                    : "Not Defined"
+                }
                 status={item.status ?? ""}
                 lastUpdated={item.updatedAt ?? ""}
                 tagItems={[
-                //   { label: "Tags", value: item.tags },
-                  { label: "Processes", value: item.relatedProcesses },
-                //   { label: "Assets", value: item.assets },
-                //   { label: "Threats", value: item.threats },
+                  { label: "Processes", value: item.relatedProcesses?.length === 0 ? "0" : item.relatedProcesses },
                 ]}
               />
             </div>
@@ -63,7 +69,14 @@ const AssetList: React.FC<Props> = ({
         )}
       </Stack>
 
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mt: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          mt: 2,
+        }}
+      >
         <TablePagination
           component="div"
           count={totalRows}

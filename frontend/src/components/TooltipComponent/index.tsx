@@ -9,8 +9,8 @@ interface TooltipComponentProps {
 
 const TooltipComponent: React.FC<TooltipComponentProps> = ({
   title,
-  width="14px",
-  height="14px"
+  width="16px",
+  height="16px"
 }: TooltipComponentProps) => {
   return (
     <Tooltip title={title} placement="top">

@@ -141,7 +141,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset Category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetCategory}
+                {assetData.assetCategory ? assetData.assetCategory : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -153,7 +153,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset Description
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetDescription}
+                {assetData.assetDescription ? assetData.assetDescription : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -165,7 +165,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset Owner
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.applicationOwner}
+                {assetData.applicationOwner ? assetData.applicationOwner : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -177,7 +177,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset IT Owner
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.applicationITOwner}
+                {assetData.applicationITOwner ? assetData.applicationITOwner : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -189,7 +189,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Third Party Management
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.isThirdPartyManagement ? "Yes" : "No"}
+                {assetData.isThirdPartyManagement === true ? "Yes" : assetData.isThirdPartyManagement === false ? "No" : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -206,7 +206,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                   color="text.primary"
                   fontWeight={500}
                 >
-                  {assetData.thirdPartyName}
+                  {assetData.thirdPartyName ? assetData.thirdPartyName : "-"}
                 </Typography>
               </Box>
             </Grid>
@@ -224,7 +224,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                   color="text.primary"
                   fontWeight={500}
                 >
-                  {assetData.thirdPartyLocation}
+                  {assetData.thirdPartyLocation ? assetData.thirdPartyLocation : "-"}
                 </Typography>
               </Box>
             </Grid>
@@ -237,7 +237,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Hosting
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hosting}
+                {assetData.hosting ? assetData.hosting : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -249,7 +249,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Hosting Facility
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hostingFacility}
+                {assetData.hostingFacility ? assetData.hostingFacility : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -261,7 +261,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Cloud Service Provider
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.cloudServiceProvider}
+                {assetData.cloudServiceProvider ? assetData.cloudServiceProvider : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -273,7 +273,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Geographic Location
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.geographicLocation}
+                {assetData.geographicLocation ? assetData.geographicLocation : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -285,7 +285,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Redundancy
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hasRedundancy ? "Yes" : "No"}
+                {assetData.hasRedundancy === true ? "Yes" : assetData.hasRedundancy === false ? "No" : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -297,7 +297,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Databases
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.databases}
+                {assetData.databases ? assetData.databases : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -309,7 +309,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Network Segmentation
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hasNetworkSegmentation ? "Yes" : "No"}
+                {assetData.hasNetworkSegmentation === true ? "Yes" : assetData.hasNetworkSegmentation === false ? "No" : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -321,7 +321,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Network Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.networkName}
+                {assetData.networkName ? assetData.networkName : "-" }
               </Typography>
             </Box>
           </Grid>
@@ -339,7 +339,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                       ?.map((processId) => {
                         return processes?.find(
                           (process) => process.id === processId
-                        )?.name;
+                        )?.processName;
                       })
                       .join(", ")
                   : "-"}
