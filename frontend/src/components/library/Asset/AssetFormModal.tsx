@@ -542,7 +542,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
               value={assetFormData.cloudServiceProvider}
-              multiple
+              // multiple
               label="Cloud Service Provider"
               displayEmpty
               onChange={(e) =>
@@ -570,7 +570,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                         textTransform: "capitalize",
                       }}
                     >
-                      {selected.join(", ")}
+                      {selected}
                     </Typography>
                   );
                 }

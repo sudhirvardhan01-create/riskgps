@@ -35,7 +35,7 @@ const AssetList: React.FC<Props> = ({
       <Stack spacing={2} sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}>
         {data && data.length > 0 ? (
           data.map((item) => (
-            <div key={item.id ?? item.asset_code ?? JSON.stringify(item)}>
+            <div key={item.id ?? item.assetCode ?? JSON.stringify(item)}>
               <LibraryCard
                 libraryData={item}
                 setSelectedLibraryData={setSelectedAsset}
@@ -43,23 +43,23 @@ const AssetList: React.FC<Props> = ({
                 setIsEditLibraryOpen={setIsEditOpen}
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
-                title={item.asset_code ?? ""}
+                title={item.assetCode ?? ""}
                 desc={item.assetDescription ?? ""}
                 chip={item.industry?.length ? item.industry.join(",") : "Not Defined"}
                 status={item.status ?? ""}
-                lastUpdated={item.lastUpdated ?? ""}
+                lastUpdated={item.updatedAt ?? ""}
                 tagItems={[
-                  { label: "Tags", value: item.tags },
-                  { label: "Processes", value: item.related_processes },
-                  { label: "Assets", value: item.assets },
-                  { label: "Threats", value: item.threats },
+                //   { label: "Tags", value: item.tags },
+                  { label: "Processes", value: item.relatedProcesses },
+                //   { label: "Assets", value: item.assets },
+                //   { label: "Threats", value: item.threats },
                 ]}
               />
             </div>
           ))
         ) : (
           // empty state could be enhanced
-          <div>No risk scenarios found</div>
+          <div>No assets found</div>
         )}
       </Stack>
 

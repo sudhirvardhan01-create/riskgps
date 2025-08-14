@@ -48,7 +48,7 @@ const SelectStyled = ({
         shrink
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography variant="body2" color="#121212" fontWeight={500}>
+          <Typography variant="body1" color="#121212" fontWeight={500}>
             {label}
           </Typography>
           {required && <Typography color="#FB2020">*</Typography>}

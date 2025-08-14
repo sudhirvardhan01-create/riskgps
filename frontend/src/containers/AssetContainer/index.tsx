@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Box } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import LibraryHeader from "@/components/Library/LibraryHeader";
-import RiskScenarioList from "@/components/Library/RiskScenarioList";
+import AssetList from "@/components/Library/Asset/AssetList";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import AssetFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
-import ViewAssetModal from "@/components/Library/RiskScenario/ViewRiskScenarioModalPopup";
+import AssetFormModal from "@/components/Library/Asset/AssetFormModal";
+import ViewAssetModal from "@/components/Library/Asset/ViewAssetModal";
 import { AssetForm, AssetAttributes } from "@/types/asset";
-import { RiskScenarioService } from "@/services/riskScenarioService";
+import { AssetService } from "@/services/assetService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
 
@@ -16,8 +16,9 @@ const initialAssetFormData: AssetForm = {
   assetName: "",
   assetCategory: "",
   assetDescription: "",
-  assetOwner: "",
-  assetITOwner: "",
+  applicationName: "",
+  applicationOwner: "",
+  applicationITOwner: "",
   isThirdPartyManagement: null,
   thirdPartyName: "",
   thirdPartyLocation: "",
@@ -25,9 +26,9 @@ const initialAssetFormData: AssetForm = {
   hostingFacility: "",
   cloudServiceProvider: [],
   geographicLocation: "",
-  isRedundancy: null,
+  hasRedundancy: null,
   databases: "",
-  isNetworkSegmentation: null,
+  hasNetworkSegmentation: null,
   networkName: "",
   attributes: [{ meta_data_key_id: null, values: [] }] as AssetAttributes[],
 };
@@ -51,13 +52,13 @@ const breadcrumbItems = [
   { label: "Assets" },
 ];
 
-export default function RiskScenarioContainer() {
+export default function AssetContainer() {
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [assetsData, setAssetsData] = useState<AssetForm[]>();
+  const [assetsData, setAssetsData] = useState<AssetForm[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
 
@@ -83,7 +84,7 @@ export default function RiskScenarioContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await RiskScenarioService.fetch(page, rowsPerPage);
+      const data = await AssetService.fetch(page);
       setAssetsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -96,7 +97,7 @@ export default function RiskScenarioContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage]);
+  }, [page]);
 
   useEffect(() => {
     loadList();
@@ -112,7 +113,7 @@ export default function RiskScenarioContainer() {
           fetchMetaDatas(),
         ]);
         setProcessesData(proc.data ?? []);
-        setMetaDatas(meta ?? []);
+        setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error(err);
         setToast({
@@ -130,7 +131,7 @@ export default function RiskScenarioContainer() {
   const handleCreate = async (status: string) => {
     try {
       const req = { ...assetFormData, status };
-      await RiskScenarioService.create(req);
+      await AssetService.create(req);
       setAssetFormData(initialAssetFormData);
       setIsAddOpen(false);
       setRefreshTrigger((p) => p + 1);
@@ -156,7 +157,7 @@ export default function RiskScenarioContainer() {
     try {
       if (!selectedAsset?.id) throw new Error("Invalid selection");
       const body = { ...selectedAsset, status };
-      await RiskScenarioService.update(selectedAsset.id as number, body);
+      await AssetService.update(selectedAsset.id as number, body);
       setIsEditOpen(false);
       setSelectedAsset(null);
       setRefreshTrigger((p) => p + 1);
@@ -178,7 +179,7 @@ export default function RiskScenarioContainer() {
   // Update status only
   const handleUpdateStatus = async (id: number, status: string) => {
     try {
-      await RiskScenarioService.updateStatus(id, status);
+      await AssetService.updateStatus(id, status);
       setRefreshTrigger((p) => p + 1);
       setToast({ open: true, message: "Status updated", severity: "success" });
     } catch (err) {
@@ -195,7 +196,7 @@ export default function RiskScenarioContainer() {
   const handleDelete = async () => {
     try {
       if (!selectedAsset?.id) throw new Error("Invalid selection");
-      await RiskScenarioService.delete(selectedAsset.id as number);
+      await AssetService.delete(selectedAsset.id as number);
       setIsDeleteConfirmOpen(false);
       setSelectedAsset(null);
       setRefreshTrigger((p) => p + 1);
@@ -235,6 +236,8 @@ export default function RiskScenarioContainer() {
     }),
     []
   );
+
+      console.log(metaDatas);
 
   return (
     <>
@@ -331,9 +334,9 @@ export default function RiskScenarioContainer() {
       {/* Page content */}
       <Box p={5}>
         <LibraryHeader {...headerProps} />
-        <RiskScenarioList
+        <AssetList
           loading={loading}
-          data={riskScenarioData}
+          data={assetsData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}

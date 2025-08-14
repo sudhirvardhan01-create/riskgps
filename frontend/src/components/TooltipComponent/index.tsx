@@ -9,11 +9,11 @@ interface TooltipComponentProps {
 
 const TooltipComponent: React.FC<TooltipComponentProps> = ({
   title,
-  width="12px",
-  height="12px"
+  width="14px",
+  height="14px"
 }: TooltipComponentProps) => {
   return (
-    <Tooltip title={title}>
+    <Tooltip title={title} placement="top">
       <IconButton sx={{ padding: 0, height: {height}, width: {width} }}>
         <InfoOutline sx={{ height: {height}, width: {width}, color: "#FF830F" }} />
       </IconButton>
