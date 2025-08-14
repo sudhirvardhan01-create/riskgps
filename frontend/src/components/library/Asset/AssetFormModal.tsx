@@ -101,14 +101,14 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   const addRelatedProcess = () => {
     if (
       newRelatedProcess &&
-      !assetFormData?.related_processes?.includes(newRelatedProcess)
+      !assetFormData?.relatedProcesses?.includes(newRelatedProcess)
     ) {
       //   setRelatedProcesses([...relatedProcesses, newRelatedProcess]);
 
       setAssetFormData({
         ...assetFormData,
-        related_processes: [
-          ...(assetFormData?.related_processes ?? []),
+        relatedProcesses: [
+          ...(assetFormData?.relatedProcesses ?? []),
           newRelatedProcess,
         ],
       });
@@ -119,7 +119,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   const removeRelatedProcess = (processToRemove: number) => {
     setAssetFormData({
       ...assetFormData,
-      related_processes: assetFormData?.related_processes?.filter(
+      relatedProcesses: assetFormData?.relatedProcesses?.filter(
         (process) => process !== processToRemove
       ),
     });
@@ -216,11 +216,11 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             <TextFieldStyled
               label="Asset Name"
               placeholder="Enter Asset Name"
-              value={assetFormData.assetName}
+              value={assetFormData.applicationName}
               required
               isTooltipRequired={true}
               tooltipTitle="Enter the Asset Name"
-              onChange={(e) => handleChange("assetName", e.target.value)}
+              onChange={(e) => handleChange("applicationName", e.target.value)}
             />
           </Grid>
 
@@ -367,8 +367,8 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             <TextFieldStyled
               label="Asset Owner"
               placeholder="Enter Asset Owner Name"
-              value={assetFormData.assetOwner}
-              onChange={(e) => handleChange("assetOwner", e.target.value)}
+              value={assetFormData.applicationOwner}
+              onChange={(e) => handleChange("applicationOwner", e.target.value)}
             />
           </Grid>
 
@@ -377,8 +377,8 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             <TextFieldStyled
               label="Asset IT Owner"
               placeholder="Enter Asset IT Owner Name"
-              value={assetFormData.assetITOwner}
-              onChange={(e) => handleChange("assetITOwner", e.target.value)}
+              value={assetFormData.applicationITOwner}
+              onChange={(e) => handleChange("applicationITOwner", e.target.value)}
             />
           </Grid>
 
@@ -610,9 +610,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 aria-labelledby="is-redundancy-radio-buttons-group"
                 name="isRedundancy"
                 row
-                value={assetFormData.isRedundancy}
+                value={assetFormData.hasRedundancy}
                 onChange={(e) => {
-                  handleChange("isRedundancy", e.target.value);
+                  handleChange("hasRedundancy", e.target.value);
                 }}
               >
                 <FormControlLabel
@@ -662,9 +662,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 aria-labelledby="is-network-segmentation-radio-buttons-group"
                 name="isNetworkSegmentation"
                 row
-                value={assetFormData.isNetworkSegmentation}
+                value={assetFormData.hasNetworkSegmentation}
                 onChange={(e) => {
-                  handleChange("isNetworkSegmentation", e.target.value);
+                  handleChange("hasNetworkSegmentation", e.target.value);
                 }}
               >
                 <FormControlLabel
@@ -770,12 +770,12 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               </Grid>
 
               {/* Display added related processes */}
-              {assetFormData?.related_processes &&
-                assetFormData?.related_processes?.length > 0 && (
+              {assetFormData?.relatedProcesses &&
+                assetFormData?.relatedProcesses?.length > 0 && (
                   <Box
                     sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}
                   >
-                    {assetFormData?.related_processes?.map((process, index) => (
+                    {assetFormData?.relatedProcesses?.map((process, index) => (
                       <Chip
                         key={index}
                         label={
