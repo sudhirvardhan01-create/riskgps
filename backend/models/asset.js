@@ -48,8 +48,10 @@ module.exports = (sequelize) => {
         allowNull: true 
       },
       cloud_service_provider: {
-        type: DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES), 
-        allowNull: true 
+        type: DataTypes.ARRAY(
+          DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES)
+        ),
+        allowNull: true
       },
       geographic_location: {
         type: DataTypes.STRING,
