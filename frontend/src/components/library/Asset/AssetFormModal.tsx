@@ -569,7 +569,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
               value={assetFormData.cloudServiceProvider}
-              // multiple
+              multiple
               label={labels.cloudServiceProvider}
               isTooltipRequired={true}
               tooltipTitle={tooltips.cloudServiceProvider}
@@ -599,7 +599,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                         textTransform: "capitalize",
                       }}
                     >
-                      {selected}
+                      {selected.join(", ")}
                     </Typography>
                   );
                 }
