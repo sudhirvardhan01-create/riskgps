@@ -68,7 +68,7 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       network_name: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.STRING,
         allowNull: true
       },
       asset_category: {

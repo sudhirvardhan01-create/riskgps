@@ -262,6 +262,8 @@ class AssetService {
                 throw new CustomError(Messages.LIBARY.MISSING_ATTRIBUTE_FIELD, HttpStatus.BAD_REQUEST);
             }
 
+            console.log("aaa");
+
             const metaData = await MetaData.findByPk(attr.meta_data_key_id, { transaction });
             if (!metaData) {
                 console.log("MetaData not found:", attr.meta_data_key_id);
@@ -269,8 +271,12 @@ class AssetService {
             }
 
             const supportedValues = metaData.supported_values;
+
+            console.log("BBBaaa");
+
             if (supportedValues?.length > 0 && !attr.values.every((v) => supportedValues.includes(v))) {
                 console.log("Unsupported values in attribute:", attr);
+                console.log("aaabb")
                 throw new CustomError(Messages.LIBARY.INVALID_ATTRIBUTE_VALUE, HttpStatus.BAD_REQUEST);
             }
 
