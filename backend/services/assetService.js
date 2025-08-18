@@ -163,7 +163,7 @@ class AssetService {
 
     static async updateAssetStatus(id, status) {
 
-        if (!STATUS_SUPPORTED_VALUES.includes(status)) {
+        if (!GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
             console.log("[updateRiskScenarioStatus] Invalid status:", id, status);
             throw new CustomError(Messages.RISK_SCENARIO.INVALID_STATUS, HttpStatus.BAD_REQUEST);
         }
@@ -199,9 +199,25 @@ class AssetService {
         throw new CustomError(Messages.ASSET.INVALID_HOSTING_FACILITY_VALUE, HttpStatus.BAD_REQUEST);
     } 
 
-    if (cloud_service_provider && !ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(cloud_service_provider)) {
-        throw new CustomError(Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER, HttpStatus.BAD_REQUEST);
-    } 
+    if (cloud_service_provider) {
+        if (!Array.isArray(cloud_service_provider)) {
+            throw new CustomError(
+            Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER,
+            HttpStatus.BAD_REQUEST
+            );
+        }
+
+        const isValid = cloud_service_provider.every((provider) =>
+            ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(provider)
+        );
+
+        if (!isValid) {
+            throw new CustomError(
+            Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER,
+            HttpStatus.BAD_REQUEST
+            );
+        }
+    }
 
     };
 
@@ -210,16 +226,16 @@ class AssetService {
             "application_name",
             "application_owner",
             "application_it_owner",
-            "third_party_management",
+            "is_third_party_management",
             "third_party_name",
             "third_party_location",
             "hosting",
             "hosting_facility",
             "cloud_service_provider",
             "geographic_location",
-            "redundancy",
+            "has_redundancy",
             "databases",
-            "network_segmentation",
+            "has_network_segmentation",
             "network_name",
             "asset_category",
             "asset_name",
@@ -262,6 +278,8 @@ class AssetService {
                 throw new CustomError(Messages.LIBARY.MISSING_ATTRIBUTE_FIELD, HttpStatus.BAD_REQUEST);
             }
 
+            console.log("aaa");
+
             const metaData = await MetaData.findByPk(attr.meta_data_key_id, { transaction });
             if (!metaData) {
                 console.log("MetaData not found:", attr.meta_data_key_id);
@@ -269,8 +287,12 @@ class AssetService {
             }
 
             const supportedValues = metaData.supported_values;
+
+            console.log("BBBaaa");
+
             if (supportedValues?.length > 0 && !attr.values.every((v) => supportedValues.includes(v))) {
                 console.log("Unsupported values in attribute:", attr);
+                console.log("aaabb")
                 throw new CustomError(Messages.LIBARY.INVALID_ATTRIBUTE_VALUE, HttpStatus.BAD_REQUEST);
             }
 

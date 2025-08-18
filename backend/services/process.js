@@ -15,8 +15,6 @@ const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
 // const { search } = require("../routes/process");
 
-
-
 class ProcessService {
     static async createProcess(data) {
         return await sequelize.transaction(async (t) => {

@@ -48,8 +48,10 @@ module.exports = (sequelize) => {
         allowNull: true 
       },
       cloud_service_provider: {
-        type: DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES), 
-        allowNull: true 
+        type: DataTypes.ARRAY(
+          DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES)
+        ),
+        allowNull: true
       },
       geographic_location: {
         type: DataTypes.STRING,
@@ -68,7 +70,7 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       network_name: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.STRING,
         allowNull: true
       },
       asset_category: {
