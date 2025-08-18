@@ -49,7 +49,7 @@ const AssetList: React.FC<Props> = ({
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
                 title={item.assetCode ?? ""}
-                desc={item.assetDescription ?? ""}
+                desc={item.applicationName ?? ""}
                 chip={
                   item.industry?.length
                     ? item.industry.join(",")
