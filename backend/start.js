@@ -1,10 +1,10 @@
-const app = require('./server');
-const db = require('./models');
+// const app = require('./server');
+// const db = require('./models');
 
-const port = 8000;
+// const port = 8000;
 
-db.sequelize.sync().then(() => {
-  app.listen(port, () => {
-    console.log("Server started on port " + port );
-  });
-});
+// db.sequelize.sync().then(() => {
+//   app.listen(port, () => {
+//     console.log("Server started on port " + port );
+//   });
+// });

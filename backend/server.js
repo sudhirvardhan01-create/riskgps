@@ -34,6 +34,14 @@ app.use('/auth', authRoutes);
 // app.use('/users', userRoutes);
 app.use(errorHandler);
 
-module.exports = app;
+const port = 8000;
+
+db.sequelize.sync().then(() => {
+  app.listen(port, () => {
+    console.log("Server started on port " + port );
+  });
+});
+
+// module.exports = app;
 
 
