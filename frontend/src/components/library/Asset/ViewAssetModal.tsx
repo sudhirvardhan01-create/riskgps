@@ -141,7 +141,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset Category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetCategory ? assetData.assetCategory : "-"}
+                {assetData.assetCategory ? assetData.assetCategory.join(", ") : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -261,7 +261,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Cloud Service Provider
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.cloudServiceProvider ? assetData.cloudServiceProvider : "-"}
+                {assetData.cloudServiceProvider ? assetData.cloudServiceProvider.join(", ") : "-"}
               </Typography>
             </Box>
           </Grid>

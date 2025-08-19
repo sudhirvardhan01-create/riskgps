@@ -13,7 +13,6 @@ import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
 
 const initialAssetFormData: AssetForm = {
-  assetName: "",
   assetCategory: [],
   assetDescription: "",
   applicationName: "",
@@ -30,14 +29,14 @@ const initialAssetFormData: AssetForm = {
   databases: "",
   hasNetworkSegmentation: null,
   networkName: "",
-  attributes: [{ meta_data_key_id: null, values: [] }] as AssetAttributes[],
+  attributes: [] as AssetAttributes[],
 };
 
 const sortItems = [
   { label: "Asset Code (Ascending)", value: "asset_code:asc" },
   { label: "Asset Code (Descending)", value: "asset_code:desc" },
-  { label: "Asset Name (Ascending)", value: "asset_name:asc" },
-  { label: "Asset Name (Descending)", value: "asset_name:desc" },
+  { label: "Asset Name (Ascending)", value: "application_name:asc" },
+  { label: "Asset Name (Descending)", value: "application_name:desc" },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
   { label: "Created (Oldest to Latest)", value: "created_at:asc" },
   { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },

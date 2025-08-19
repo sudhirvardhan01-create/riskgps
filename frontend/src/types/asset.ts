@@ -7,7 +7,7 @@ export interface AssetForm {
   id? : number;
   assetCode?: string;
   applicationName: string;
-  assetName?: string;
+  assetName?: string | null;
   assetCategory?: string[];
   assetDescription?: string;
   applicationOwner?: string;

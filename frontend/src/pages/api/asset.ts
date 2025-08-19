@@ -66,7 +66,6 @@ export const fetchAssets = async (
 //Function to create an asset
 export const createAsset = async (data: AssetForm) => {
   const assetData = {
-    asset_name: data.assetName,
     asset_category: data.assetCategory,
     asset_description: data.assetDescription,
     application_name: data.applicationName,
@@ -114,7 +113,6 @@ export const createAsset = async (data: AssetForm) => {
 //Function to update an asset
 export const updateAsset = async (id: number, data: AssetForm) => {
   const assetData = {
-    asset_name: data.assetName,
     asset_category: data.assetCategory,
     asset_description: data.assetDescription,
     application_name: data.applicationName,
