@@ -74,7 +74,9 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       asset_category: {
-        type: DataTypes.STRING,
+          type: DataTypes.ARRAY(
+          DataTypes.ENUM(...ASSETS.ASSET_CATEGORY)
+        ),
         allowNull: true
       },
       asset_name: {

@@ -4,48 +4,57 @@ module.exports = {
     STATUS_SUPPORTED_VALUES: ["draft", "published", "not_published"],
   },
   RISK_SCENARIO: {
-      RISK_SCENARIO_SORT_FIELDS: [
+    RISK_SCENARIO_SORT_FIELDS: [
+      "id",
       "created_at",
       "updated_at",
       "risk_scenario",
       "risk_description",
       "risk_statement",
-      "risk_code"
+      "risk_code",
     ],
   },
   PROCESS: {
     PROCESS_RELATIONSHIP_TYPES: ["follows", "precedes"],
     PROCESS_ALLOWED_SORT_FIELDS: [
+      "id",
       "created_at",
       "updated_at",
       "process_name",
       "process_description",
-      "process_code"
+      "process_code",
     ],
   },
   ASSETS: {
-    ASSET_ALLOWED_SORT_FILED: [
-    "created_at",
-    "updated_at",
-    "application_name",
-    "asset_code",
-    ],
-    HOSTING_SUPPORTED_VALUES: [
+    ASSET_CATEGORY: [
+      "Windows",
+      "MacOS",
+      "Linux",
+      "Office 365",
+      "Azure AD",
+      "Google Workspace",
       "SaaS",
-      "PaaS",
       "IaaS",
-      "On-Premise"
+      "Network Devices",
+      "Containers",
+      "Android",
+      "iOS",
+
     ],
-    HOSTING_FACILITY_SUPPORTED_VALUES: [
-      "Public Cloud",
-      "Private Cloud",   
-      "N/A"   
+    ASSET_ALLOWED_SORT_FILED: [
+      "id",
+      "created_at",
+      "updated_at",
+      "application_name",
+      "asset_code",
     ],
+    HOSTING_SUPPORTED_VALUES: ["SaaS", "PaaS", "IaaS", "On-Premise"],
+    HOSTING_FACILITY_SUPPORTED_VALUES: ["Public Cloud", "Private Cloud", "N/A"],
     CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES: [
       "AWS",
       "Azure",
       "Google Cloud Platform",
-      "Other"
-    ]
-  }
+      "Other",
+    ],
+  },
 };
