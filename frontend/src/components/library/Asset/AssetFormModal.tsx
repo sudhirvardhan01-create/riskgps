@@ -54,8 +54,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(assetFormData);
-  console.log(processes);
 
   const [isAssetThirdPartyManaged, setIsAssetThirdPartyManaged] =
     useState<boolean>(false);
@@ -236,12 +234,13 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
               required
+              multiple
               isTooltipRequired={true}
               tooltipTitle={tooltips.assetCategory}
               value={assetFormData.assetCategory}
               label={labels.assetCategory}
               displayEmpty
-              onChange={(e) => handleChange("assetCategory", e.target.value)}
+              onChange={(e) => handleChange("assetCategory", e.target.value as string[])}
               renderValue={(selected: any) => {
                 if (!selected) {
                   return (
@@ -261,19 +260,17 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                       variant="body1"
                       sx={{
                         color: "text.primary",
-                        textTransform: "capitalize",
                       }}
                     >
-                      {selected}
+                      {selected.join(", ")}
                     </Typography>
                   );
                 }
               }}
             >
-              <MenuItem value="text">Text</MenuItem>
-              <MenuItem value="select">Select</MenuItem>
-              <MenuItem value="multiselect">Multiselect</MenuItem>
-              <MenuItem value="number">Number</MenuItem>
+              {metaDatas?.find((item) => item.name === "Asset Category")?.supported_values?.map((item : string) => {
+                return (<MenuItem key={item} value={item}>{item}</MenuItem>)
+              })}
             </SelectStyled>
           </Grid>
 

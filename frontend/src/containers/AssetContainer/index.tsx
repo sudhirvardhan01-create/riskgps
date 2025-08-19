@@ -14,7 +14,7 @@ import { fetchProcesses } from "@/pages/api/process";
 
 const initialAssetFormData: AssetForm = {
   assetName: "",
-  assetCategory: "",
+  assetCategory: [],
   assetDescription: "",
   applicationName: "",
   applicationOwner: "",
