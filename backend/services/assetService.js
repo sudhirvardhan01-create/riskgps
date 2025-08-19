@@ -180,8 +180,14 @@ class AssetService {
     }
 
 
+    static downloadAssetCSV = () => {
+        const conn = sequelize.connectionManager.getConnection();
+    }
+
+
+
     static validateAssetData = (data) => {
-    const { application_name, status, hosting, hosting_facility, cloud_service_provider } = data;
+    const { application_name, status, hosting, hosting_facility, cloud_service_provider, asset_category } = data;
 
     if (!application_name) {
         throw new CustomError(Messages.ASSET.APPLICATION_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
@@ -200,23 +206,31 @@ class AssetService {
     } 
 
     if (cloud_service_provider) {
-        if (!Array.isArray(cloud_service_provider)) {
-            throw new CustomError(
-            Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER,
-            HttpStatus.BAD_REQUEST
-            );
-        }
-
-        const isValid = cloud_service_provider.every((provider) =>
-            ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(provider)
+      if (
+        !Array.isArray(cloud_service_provider) ||
+        !cloud_service_provider.every((p) =>
+          ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(p)
+        )
+      ) {
+        throw new CustomError(
+          Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER,
+          HttpStatus.BAD_REQUEST
         );
+      }
+    }
 
-        if (!isValid) {
-            throw new CustomError(
-            Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER,
-            HttpStatus.BAD_REQUEST
-            );
-        }
+    if (asset_category) {
+      if (
+        !Array.isArray(asset_category) ||
+        !asset_category.every((category) =>
+          ASSETS.ASSET_CATEGORY.includes(category)
+        )
+      ) {
+        throw new CustomError(
+          Messages.ASSET.INVALID_ASSET_CATEGORY,
+          HttpStatus.BAD_REQUEST
+        );
+      }
     }
 
     };
