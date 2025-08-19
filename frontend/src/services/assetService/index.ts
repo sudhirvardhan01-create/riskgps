@@ -7,7 +7,7 @@ import {
 } from "@/pages/api/asset";
 
 export const AssetService = {
-  fetch: (page: number) => fetchAssets(page),
+  fetch: (page: number, limit : number, searchPattern : string, sort : string) => fetchAssets(page, limit, searchPattern, sort),
   create: (body: any) => createAsset(body),
   update: (id: number, body: any) => updateAsset(id, body),
   delete: (id: number) => deleteAsset(id),

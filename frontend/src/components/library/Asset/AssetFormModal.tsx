@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -65,9 +65,19 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
     number | null
   >();
 
-  const handleChange = (field: keyof AssetForm, value: any) => {
-    setAssetFormData({ ...assetFormData, [field]: value });
-  };
+  const handleChange = useCallback(
+    (field: keyof AssetForm, value: any) => {
+      setAssetFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [setAssetFormData] // only depends on setter from props
+  );
+
+  useEffect(() => {
+    if (isAssetThirdPartyManaged === false) {
+      handleChange("thirdPartyName", "");
+      handleChange("thirdPartyLocation", "");
+    }
+  }, [isAssetThirdPartyManaged, handleChange]);
 
   const handleKeyValueChange = (
     index: number,
@@ -107,8 +117,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
       newRelatedProcess &&
       !assetFormData?.relatedProcesses?.includes(newRelatedProcess)
     ) {
-      //   setRelatedProcesses([...relatedProcesses, newRelatedProcess]);
-
       setAssetFormData({
         ...assetFormData,
         relatedProcesses: [
@@ -127,10 +135,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         (process) => process !== processToRemove
       ),
     });
-
-    // setRelatedProcesses(
-    //   relatedProcesses.filter((process) => process !== processToRemove)
-    // );
   };
 
   const getStatusComponent = () => {
@@ -227,87 +231,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               onChange={(e) => handleChange("applicationName", e.target.value)}
             />
           </Grid>
-
-          {/* Asset Category */}
-          {/* <Grid mt={1} size={{ xs: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel
-                shrink
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              >
-                Asset Category
-              </InputLabel>
-              <Select
-                value={assetFormData.assetCategory}
-                label="Asset Category"
-                displayEmpty
-                onChange={(e) => handleChange("assetCategory", e.target.value)}
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "#9e9e9e",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        Select Asset Category
-                      </Typography>
-                    );
-                  } else {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "text.primary",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {selected}
-                      </Typography>
-                    );
-                  }
-                }}
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  fontSize: "14px",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                }}
-              >
-                <MenuItem value="text">Text</MenuItem>
-                <MenuItem value="select">Select</MenuItem>
-                <MenuItem value="multiselect">Multiselect</MenuItem>
-                <MenuItem value="number">Number</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid> */}
 
           {/* Asset Category */}
           <Grid mt={1} size={{ xs: 6 }}>
@@ -416,14 +339,12 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 aria-labelledby="third-party-management-radio-buttons-group"
                 name="isThirdPartyManagement"
                 row
-                value={
-                  assetFormData.isThirdPartyManagement
-                    ? assetFormData.isThirdPartyManagement
-                    : null
-                }
+                value={assetFormData.isThirdPartyManagement}
                 onChange={(e) => {
                   handleChange("isThirdPartyManagement", e.target.value);
-                  setIsAssetThirdPartyManaged(e.target.value === "true");
+                  setIsAssetThirdPartyManaged(
+                    e.target.value === "true" ? true : false
+                  );
                 }}
               >
                 <FormControlLabel

@@ -34,12 +34,14 @@ const initialAssetFormData: AssetForm = {
 };
 
 const sortItems = [
-  { label: "Asset ID (Ascending)", value: "asset_asc" },
-  { label: "Asset ID (Descending)", value: "asset_desc" },
-  { label: "Created (Latest to Oldest)", value: "created_lto" },
-  { label: "Created (Oldest to Latest)", value: "created_otl" },
-  { label: "Updated (Latest to Oldest)", value: "updated_lto" },
-  { label: "Updated (Oldest to Latest)", value: "updated_otl" },
+  { label: "Asset Code (Ascending)", value: "asset_code:asc" },
+  { label: "Asset Code (Descending)", value: "asset_code:desc" },
+  { label: "Asset Name (Ascending)", value: "asset_name:asc" },
+  { label: "Asset Name (Descending)", value: "asset_name:desc" },
+  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
+  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
+  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
+  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
 ];
 
 const breadcrumbItems = [
@@ -58,6 +60,8 @@ export default function AssetContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [sort, setSort] = useState<string>('asset_code:asc');
+  const [searchPattern, setSearchPattern] = useState<string>();
   const [assetsData, setAssetsData] = useState<AssetForm[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
@@ -84,7 +88,7 @@ export default function AssetContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await AssetService.fetch(page);
+      const data = await AssetService.fetch(page, rowsPerPage, searchPattern as string, sort);
       setAssetsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -97,7 +101,7 @@ export default function AssetContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, rowsPerPage, searchPattern, sort]);
 
   useEffect(() => {
     loadList();
@@ -233,11 +237,13 @@ export default function AssetContainer() {
       addButtonText: "Add Asset",
       addAction: () => setIsAddOpen(true),
       sortItems,
+      searchPattern,
+      setSearchPattern,
+      sort,
+      setSort,
     }),
     []
   );
-
-      console.log(metaDatas);
 
   return (
     <>

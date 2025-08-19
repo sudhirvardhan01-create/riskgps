@@ -1,21 +1,19 @@
 import { AssetForm } from "@/types/asset";
 
-interface APIResponse {
-  data: AssetForm[];
-  page: number;
-  total: number;
-  totalPages: number;
-  limit: number;
-}
-
 //Function to fetch assets
 export const fetchAssets = async (
-  page: number
-  // limit: number
-): Promise<APIResponse> => {
+  page: number,
+  limit: number,
+  searchPattern?: string,
+  sort?: string
+) => {
+  const [sortBy, sortOrder] = (sort ?? '').split(':');
   const params = new URLSearchParams();
-  if (page) params.append("page", page.toString());
-  // if(limit) params.append("limit", limit.toString());
+  params.append("page", JSON.stringify(page));
+  params.append("limit", JSON.stringify(limit));
+  params.append("search", searchPattern ?? '');
+  params.append("sort_by", sortBy);
+  params.append("sort_order", sortOrder);
 
   const transformAssetData = (data: any[]): AssetForm[] => {
     return data.map((item) => ({
@@ -48,7 +46,7 @@ export const fetchAssets = async (
     }));
   };
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset?${params.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset?${params}`,
     {
       method: "GET",
       headers: {
@@ -183,6 +181,7 @@ export const updateAssetStatus = async (id: number, status: string) => {
     throw new Error("Failed to perforom the operation, Invalid arguments");
   }
   const reqBody = { status };
+  console.log(reqBody);
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/asset/update-status/${id}`,
