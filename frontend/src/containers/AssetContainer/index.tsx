@@ -11,6 +11,7 @@ import { AssetForm, AssetAttributes } from "@/types/asset";
 import { AssetService } from "@/services/assetService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
+import FileUpload from "@/components/FileUpload";
 
 const initialAssetFormData: AssetForm = {
   assetCategory: [],
@@ -82,6 +83,8 @@ export default function AssetContainer() {
   });
 
   const [assetFormData, setAssetFormData] = useState<AssetForm>(initialAssetFormData);
+
+  const [file, setFile] = useState<File | null>(null);
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -368,6 +371,8 @@ export default function AssetContainer() {
         }
         toastSeverity={toast.severity}
       />
+
+      <FileUpload open={true} onClose={() => console.log("Component closed")} onUpload={() => console.log("File Uploaded")} onDownload={() => console.log("File Downloaded")} onFileSelect={(file) => setFile(file)} file ={file} title="Upload Assets"/>
     </>
   );
 }
