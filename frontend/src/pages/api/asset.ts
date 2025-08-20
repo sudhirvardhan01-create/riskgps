@@ -59,7 +59,6 @@ export const fetchAssets = async (
   }
   const res = await response.json();
   if (res.data.data) res.data.data = transformAssetData(res.data.data);
-  console.log(res.data);
   return res.data;
 };
 
