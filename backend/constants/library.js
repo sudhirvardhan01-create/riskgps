@@ -28,7 +28,7 @@ module.exports = {
   ASSETS: {
     ASSET_CATEGORY: [
       "Windows",
-      "MacOS",
+      "macOS",
       "Linux",
       "Office 365",
       "Azure AD",

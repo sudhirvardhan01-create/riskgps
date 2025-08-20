@@ -42,9 +42,17 @@ router.get('/', async (req, res) => {
         const page = parseInt(req.query?.page) || 0;
         const sortBy = req.query.sort_by || 'created_at'
         const sortOrder = req.query.sort_order?.toUpperCase() || 'DESC'
-        console.log(sortBy, sortOrder)
+        const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+        const attrFilters = (req.query.attributes || "")
+          .split(";")
+          .map((expr) => {
+            if (!expr) return null;
+            const [metaDataKeyId, values] = expr.split(":");
+            return { metaDataKeyId, values: values.split(",") };
+          })
+          .filter(Boolean);
 
-        const processes = await ProcessService.getAllProcesses(page, limit, searchPattern, sortBy, sortOrder);
+        const processes = await ProcessService.getAllProcesses(page, limit, searchPattern, sortBy, sortOrder, statusFilter, attrFilters);
         res.status(HttpStatus.OK).json({
             data: processes,
             msg: Messages.PROCESS.FETCHED
@@ -73,6 +81,17 @@ router.get('/:id', async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.NOT_FOUND).json({
             error: err.message || Messages.PROCESS.NOT_FOUND
+        });
+    }
+});
+
+router.get("/download-processes", async (req, res) => {
+    try {
+        await ProcessService.downloadProcessCSV(res);
+    } catch (err) {
+        console.log(Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV
         });
     }
 });
@@ -138,6 +157,7 @@ router.delete('/:id', async (req, res) => {
             msg: Messages.PROCESS.DELETED
         });
     } catch (err) {
+        console.log(err || Messages.PROCESS.NOT_FOUND);
         res.status(HttpStatus.NOT_FOUND).json({
             error: err.message || Messages.PROCESS.NOT_FOUND
         });

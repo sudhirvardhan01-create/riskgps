@@ -53,7 +53,9 @@ module.exports = {
         METADATA_NOT_FOUND: 'MetaData not found for provided key.',
         PROCESS_NAME_REQUIRED: 'process_name is required.',
         INVALID_VALUE: 'Invalid Value for Status.',
-        FETCHED_BY_ID: 'Fetched process by ID successfully.'
+        FETCHED_BY_ID: 'Fetched process by ID successfully.',
+        FAILED_TO_DOWNLOAD_PROCESS_CSV:' Failed to download process CSV'
+
     },
     RISK_SCENARIO: {
         CREATED: 'Risk Scenario created successfully.',
@@ -72,6 +74,8 @@ module.exports = {
         NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
         DELETED: 'Risk Scenario deleted successfully.',
         STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+        FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV:' Failed to download risk scenario CSV'
+
     },
     ASSET: {
         NOT_FOUND: 'Asset not found.',
@@ -88,6 +92,7 @@ module.exports = {
         INVALID_HOSTING_FACILITY_VALUE: 'Invalid value for hosting facility in assets',
         INVALID_CLOUD_SERVICE_PROVIDER: 'Invalid value for cloud service provider',
         INVALID_ASSET_CATEGORY: 'Invalid value for asset category',
+        FAILED_TO_DOWNLOAD_ASSET_CSV:' Failed to download asset CSV'
         
     }
 };

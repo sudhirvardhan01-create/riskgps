@@ -6,7 +6,10 @@ const {
     MetaData,
     ProcessAttribute,
     RiskScenario,
+    Sequelize,
 } = require("../models");
+const { format } = require("@fast-csv/format");
+const QueryStream = require("pg-query-stream");
 
 const {GENERAL, PROCESS } = require("../constants/library");
 
@@ -37,11 +40,10 @@ class ProcessService {
         });
     }
 
-    static async getAllProcesses(page = 0, limit = 6, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
+    static async getAllProcesses(page = 0, limit = 6, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC', statusFilter = [], attrFilters = []) {
         console.log("Fetching all processes");
         
         const offset = page * limit;
-        let whereClause = {};
 
         if (!PROCESS.PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
             sortBy = 'created_at';
@@ -50,6 +52,8 @@ class ProcessService {
         if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
             sortOrder = 'ASC';
         }
+
+        const whereClause = this.handleProcessFilters(searchPattern, statusFilter, attrFilters);
 
         const includeRelations = [
             {
@@ -71,14 +75,6 @@ class ProcessService {
         },
       ];
 
-      if (searchPattern) {
-        whereClause = {
-          [Op.or]: [
-            { process_name: { [Op.iLike]: `%${searchPattern}%` } },
-            { process_description: { [Op.iLike]: `%${searchPattern}%` } },
-          ],
-        };
-      }
         const total = await Process.count({
             where: whereClause
         });
@@ -210,6 +206,35 @@ class ProcessService {
         return { message: Messages.PROCESS.DELETED };
     }
 
+    static async downloadProcessCSV(res) {
+        const connection = await sequelize.connectionManager.getConnection();
+
+        try {
+            const sql = `
+            SELECT *
+            FROM library_processes
+            ORDER BY created_at DESC
+            `;
+
+            const query = new QueryStream(sql);
+            const stream = connection.query(query);
+
+            res.setHeader("Content-disposition", "attachment; filename=processes.csv");
+            res.setHeader("Content-Type", "text/csv");
+
+            const csvStream = format({ headers: true });
+
+            stream.on("end", () => {
+            sequelize.connectionManager.releaseConnection(connection);
+            });
+
+            stream.pipe(csvStream).pipe(res);
+        } catch (err) {
+            sequelize.connectionManager.releaseConnection(connection);
+            throw new Error(err);
+        }
+    }
+
     static validateProcessData = (data) => {
     const { process_name, status } = data;
 
@@ -308,6 +333,46 @@ class ProcessService {
                 { transaction }
             );
         }
+    }
+    static handleProcessFilters(searchPattern = null, statusFilter = [], attrFilters = [] ) {
+        let conditions = [];
+
+        if (searchPattern) {
+            conditions.push({
+                [Op.or]: [
+                    { process_name: { [Op.iLike]: `%${searchPattern}%` } },
+                    { process_description: { [Op.iLike]: `%${searchPattern}%` } },
+                ],
+            });
+        }
+
+        if (statusFilter.length > 0) {
+            conditions.push({ status: { [Op.in]: statusFilter } });
+        }
+
+        if (attrFilters.length > 0) {
+            let subquery = "";
+
+            attrFilters.forEach((filter, idx) => {
+            const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
+            if (isNaN(metaDataKeyId)) {
+                throw new Error("Invalid metaDataKeyId");
+            }
+
+            const valuesArray = filter.values.map((v) => sequelize.escape(v)).join(",");
+
+            if (idx > 0) subquery += " INTERSECT ";
+            subquery += `
+                SELECT "process_id"
+                FROM library_attributes_process_mapping
+                WHERE "meta_data_key_id" = ${metaDataKeyId}
+                AND "values" && ARRAY[${valuesArray}]::varchar[]
+            `;
+            });
+
+            conditions.push({ id: { [Op.in]: Sequelize.literal(`(${subquery})`) } });
+        }
+        return conditions.length > 0 ? { [Op.and]: conditions } : {};
     }
     
 }

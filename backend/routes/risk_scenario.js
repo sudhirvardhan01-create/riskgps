@@ -41,8 +41,17 @@ router.get('/', async (req, res) => {
         const searchPattern = req.query.search || null;
         const sortBy = req.query.sort_by || 'created_at';
         const sortOrder = req.query.sort_order?.toUpperCase() || 'ASC';
-
-        const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit, searchPattern, sortBy, sortOrder);
+        const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+        const attrFilters = (req.query.attributes || "")
+          .split(";")
+          .map((expr) => {
+            if (!expr) return null;
+            const [metaDataKeyId, values] = expr.split(":");
+            return { metaDataKeyId, values: values.split(",") };
+          })
+          .filter(Boolean);
+        const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit, searchPattern, sortBy, sortOrder, statusFilter, attrFilters);
+        
         res.status(HttpStatus.OK).json({
             data: scenarios,
             msg: Messages.RISK_SCENARIO.FETCHED
@@ -50,6 +59,17 @@ router.get('/', async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
+});
+
+router.get("/download-riskscenarios", async (req, res) => {
+    try {
+        await RiskScenarioService.downloadRiskScenarioCSV(res);
+    } catch (err) {
+        console.log(Messages.RISK_SCENARIO.FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.RISK_SCENARIO.FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV
         });
     }
 });
