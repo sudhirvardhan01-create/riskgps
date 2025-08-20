@@ -10,6 +10,7 @@ import ViewProcessModal from "@/components/Library/Process/ViewProcessModal";
 import ProcessFormModal from "@/components/Library/Process/ProcessFormModal";
 import { ProcessService } from "@/services/processService";
 import ProcessList from "@/components/Library/ProcessList";
+import { Filter } from "@/types/filter";
 
 const initialProcessData: ProcessData = {
     processName: "",
@@ -58,6 +59,7 @@ export default function ProcessContainer() {
   const [searchPattern, setSearchPattern] = useState<string> ();
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
 
   const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(null);
 
@@ -76,8 +78,9 @@ export default function ProcessContainer() {
   // fetch list
   const loadList = useCallback(async () => {
     try {
+      console.log(filters)
       setLoading(true);
-      const data = await ProcessService.fetch(page, rowsPerPage, searchPattern as string, sort);
+      const data = await ProcessService.fetch(page, rowsPerPage, searchPattern as string, sort, filters);
       setProcessesData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -86,7 +89,7 @@ export default function ProcessContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, [page, rowsPerPage, searchPattern, sort, filters]);
 
   useEffect(() => {
     loadList();
@@ -187,7 +190,9 @@ export default function ProcessContainer() {
       setSearchPattern,
       sort,
       setSort,
-    }),[]
+      filters,
+      setFilters
+    }),[filters]
   );
 
   return (

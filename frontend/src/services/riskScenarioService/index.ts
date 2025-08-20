@@ -5,9 +5,10 @@ import {
   updateRiskScenario,
   updateRiskScenarioStatus,
 } from "@/pages/api/risk-scenario";
+import { Filter } from "@/types/filter";
 
 export const RiskScenarioService = {
-  fetch: (page: number, rowsPerPage: number, searchPattern?: string, sort?: string) => fetchRiskScenarios(page, rowsPerPage, searchPattern, sort),
+  fetch: (page: number, rowsPerPage: number, searchPattern?: string, sort?: string, filters?: Filter[]) => fetchRiskScenarios(page, rowsPerPage, searchPattern, sort, filters),
   create: (body: any) => createRiskScenario(body),
   update: (id: number, body: any) => updateRiskScenario(id, body),
   delete: (id: number) => deleteRiskScenario(id),

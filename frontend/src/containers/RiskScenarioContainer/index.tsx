@@ -11,6 +11,7 @@ import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario"
 import { RiskScenarioService } from "@/services/riskScenarioService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
+import { Filter } from "@/types/filter";
 
 const initialRiskData: RiskScenarioData = {
   riskScenario: "",
@@ -50,6 +51,7 @@ export default function RiskScenarioContainer() {
   const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
 
   const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
 
@@ -69,7 +71,7 @@ export default function RiskScenarioContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await RiskScenarioService.fetch(page, rowsPerPage, searchPattern, sort);
+      const data = await RiskScenarioService.fetch(page, rowsPerPage, searchPattern, sort, filters);
       setRiskScenarioData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -78,7 +80,7 @@ export default function RiskScenarioContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, [page, rowsPerPage, searchPattern, sort, filters]);
 
   useEffect(() => {
     loadList();
@@ -179,8 +181,10 @@ export default function RiskScenarioContainer() {
       setSearchPattern,
       sort,
       setSort,
+      filters,
+      setFilters
     }),
-    []
+    [filters]
   );
 
   return (

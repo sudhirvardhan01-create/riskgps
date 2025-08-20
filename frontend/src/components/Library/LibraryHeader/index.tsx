@@ -4,8 +4,9 @@ import {
   Box, Button, FormControl, InputAdornment, InputLabel,
   MenuItem, Select, Stack, TextField, Typography, useMediaQuery, useTheme
 } from "@mui/material";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import FilterComponent from "@/components/Library/FilterComponent";
+import { Filter } from "@/types/filter";
 
 
 interface Props {
@@ -22,9 +23,11 @@ interface Props {
   setSearchPattern?: (val: string) => void;
   sortValue?: string;
   setSort?: (val: string) => void;
+  filters: Filter[];
+  setFilters: Dispatch<SetStateAction<Filter[]>>;
 }
 
-const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAction, sortItems, isImportRequired = true, onImport, isExportRequired =true, onExport, searchPattern = "", setSearchPattern, sortValue, setSort }) => {
+const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAction, sortItems, isImportRequired = true, onImport, isExportRequired =true, onExport, searchPattern = "", setSearchPattern, sortValue, setSort, filters, setFilters }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isOpenFilter, setIsOpenFilter] = useState(false);
@@ -103,7 +106,7 @@ const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAct
         </Stack>
       </Box>
 
-      <FilterComponent items={["Published", "Draft", "Disabled"]} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)} />
+      <FilterComponent filters={filters} setFilters={setFilters} items={["Published", "Draft", "Not Published"]} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)} />
     </>
   );
 };

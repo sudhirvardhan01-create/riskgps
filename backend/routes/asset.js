@@ -41,11 +41,19 @@ router.get('/', async (req, res) => {
         const searchPattern = req.query.search || null;
         const limit = parseInt(req.query?.limit) || 6;
         const page = parseInt(req.query?.page) || 0;
-        const sortBy = req.query.sort_by || 'created_at'
-        const sortOrder = req.query.sort_order?.toUpperCase() || 'DESC'
-        console.log(sortBy, sortOrder)
+        const sortBy = req.query.sort_by || 'created_at';
+        const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+        const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+        const attrFilters = (req.query.attributes || "")
+          .split(";")
+          .map((expr) => {
+            if (!expr) return null;
+            const [metaDataKeyId, values] = expr.split(":");
+            return { metaDataKeyId, values: values.split(",") };
+          })
+          .filter(Boolean);
 
-        const processes = await AssetService.getAllAssets(page, limit, searchPattern, sortBy, sortOrder);
+        const processes = await AssetService.getAllAssets(page, limit, searchPattern, sortBy, sortOrder, statusFilter, attrFilters);
         res.status(HttpStatus.OK).json({
             data: processes,
             msg: Messages.ASSET.FETCHED
@@ -53,6 +61,18 @@ router.get('/', async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
+});
+
+
+router.get("/download-assets", async (req, res) => {
+    try {
+        await AssetService.downloadAssetCSV(res);
+    } catch (err) {
+        console.log(Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_CSV ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_CSV
         });
     }
 });
@@ -145,6 +165,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-
-// router.get("/download", )
 module.exports = router;

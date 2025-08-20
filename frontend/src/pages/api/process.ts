@@ -1,6 +1,8 @@
+import { Filter } from "@/types/filter";
 import { ProcessData, ProcessDependency } from "@/types/process";
+import { filter } from "d3";
 
-export const fetchProcesses = async (page: number, limit: number, searchPattern?: string, sort?: string) => {
+export const fetchProcesses = async (page: number, limit: number, searchPattern?: string, sort?: string, filters?: Filter[]) => {
   const [sortBy, sortOrder] = (sort ?? '').split(':');;
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
@@ -8,6 +10,15 @@ export const fetchProcesses = async (page: number, limit: number, searchPattern?
   params.append("search", searchPattern?? '');
   params.append("sort_by",sortBy);
   params.append("sort_order", sortOrder);
+
+  if (filter.length > 0) {
+    const statusFilter = filters?.find((f) => "status" in f);
+
+    if (statusFilter) {
+      const joinedStatusFilter = statusFilter.status.join(",");
+      params.append("status", joinedStatusFilter);
+    }
+  }
 
 
 const transformProcessData = (data: any[]): ProcessData[] => {
@@ -49,15 +60,13 @@ const transformProcessData = (data: any[]): ProcessData[] => {
       "Content-Type": "application/json",
     },
   });
-  console.log(response)
+
   if (!response.ok) {
     throw new Error("Failed to process data");
   }
   const res = await response.json();
   res.data.data = transformProcessData(res.data.data);
-  console.log(res.data.data);
-//   const a: { data?: any } = {};
-//   a.data = transformProcessData(respons);
+
   return res.data;
 }
 

@@ -4,13 +4,17 @@ const {
     Process,
     Asset,
     AssetAttribute,
-    AssetProcessMappings
+    AssetProcessMappings,
+    Sequelize
 } = require("../models");
 const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
 const {ASSETS, GENERAL } = require("../constants/library");
+const { format } = require("@fast-csv/format");
+const QueryStream = require("pg-query-stream");
+
 
 
 
@@ -37,10 +41,8 @@ class AssetService {
         });
     }
 
-    static async getAllAssets(page = 0, limit = 6,  searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
+    static async getAllAssets(page = 0, limit = 6,  searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC' , statusFilter = [], attrFilters = [] ) {
         const offset = page * limit;
-        let whereClause = {};
-        console.log(sortOrder)
 
         if (!ASSETS.ASSET_ALLOWED_SORT_FILED.includes(sortBy)) {
             sortBy = "created_at";
@@ -50,17 +52,7 @@ class AssetService {
             sortOrder = 'ASC';
         }
 
-        if (searchPattern) {
-          whereClause = {
-            [Op.or]: [
-              { application_name: { [Op.iLike]: `%${searchPattern}%` } },
-              { third_party_name: { [Op.iLike]: `%${searchPattern}%` } },
-              { cloud_service_provider: { [Op.iLike]: `%${searchPattern}%` } },
-              { geographic_location: { [Op.iLike]: `%${searchPattern}%` } },
-
-            ],
-          };
-        }
+        const whereClause = this.handleAssetFilters(searchPattern, statusFilter, attrFilters);
 
         const total = await Asset.count({
             where: whereClause
@@ -138,6 +130,7 @@ class AssetService {
             const updatedAsset = await asset.update(assetData, { transaction: t });
 
             await AssetAttribute.destroy({ where: { asset_id: id }, transaction: t });
+            
             await AssetProcessMappings.destroy({ where: { asset_id: id }, transaction: t });
 
             await this.handleAssetProcessMapping(id, data.related_processes ?? [], t);
@@ -180,13 +173,38 @@ class AssetService {
     }
 
 
-    static downloadAssetCSV = () => {
-        const conn = sequelize.connectionManager.getConnection();
+    static async downloadAssetCSV(res) {
+        const connection = await sequelize.connectionManager.getConnection();
+
+        try {
+            const sql = `
+            SELECT *
+            FROM library_assets
+            ORDER BY created_at DESC
+            `;
+
+            const query = new QueryStream(sql);
+            const stream = connection.query(query);
+
+            res.setHeader("Content-disposition", "attachment; filename=assets.csv");
+            res.setHeader("Content-Type", "text/csv");
+
+            const csvStream = format({ headers: true });
+
+            stream.on("end", () => {
+            sequelize.connectionManager.releaseConnection(connection);
+            });
+
+            stream.pipe(csvStream).pipe(res);
+        } catch (err) {
+            sequelize.connectionManager.releaseConnection(connection);
+            throw new Error(err);
+        }
     }
 
 
 
-    static validateAssetData = (data) => {
+    static validateAssetData(data) {
     const { application_name, status, hosting, hosting_facility, cloud_service_provider, asset_category } = data;
 
     if (!application_name) {
@@ -292,8 +310,6 @@ class AssetService {
                 throw new CustomError(Messages.LIBARY.MISSING_ATTRIBUTE_FIELD, HttpStatus.BAD_REQUEST);
             }
 
-            console.log("aaa");
-
             const metaData = await MetaData.findByPk(attr.meta_data_key_id, { transaction });
             if (!metaData) {
                 console.log("MetaData not found:", attr.meta_data_key_id);
@@ -301,8 +317,6 @@ class AssetService {
             }
 
             const supportedValues = metaData.supported_values;
-
-            console.log("BBBaaa");
 
             if (supportedValues?.length > 0 && !attr.values.every((v) => supportedValues.includes(v))) {
                 console.log("Unsupported values in attribute:", attr);
@@ -319,6 +333,48 @@ class AssetService {
                 { transaction }
             );
         }
+    }
+
+    static handleAssetFilters(searchPattern = null, statusFilter = [], attrFilters = [] ) {
+        let conditions = [];
+
+        if (searchPattern) {
+            conditions.push({
+            [Op.or]: [
+                { application_name: { [Op.iLike]: `%${searchPattern}%` } },
+                { third_party_name: { [Op.iLike]: `%${searchPattern}%` } },
+                { geographic_location: { [Op.iLike]: `%${searchPattern}%` } },
+            ],
+            });
+        }
+
+        if (statusFilter.length > 0) {
+            conditions.push({ status: { [Op.in]: statusFilter } });
+        }
+
+        if (attrFilters.length > 0) {
+            let subquery = "";
+
+            attrFilters.forEach((filter, idx) => {
+            const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
+            if (isNaN(metaDataKeyId)) {
+                throw new Error("Invalid metaDataKeyId");
+            }
+
+            const valuesArray = filter.values.map((v) => sequelize.escape(v)).join(",");
+
+            if (idx > 0) subquery += " INTERSECT ";
+            subquery += `
+                SELECT "asset_id"
+                FROM library_attributes_asset_mapping
+                WHERE "meta_data_key_id" = ${metaDataKeyId}
+                AND "values" && ARRAY[${valuesArray}]::varchar[]
+            `;
+            });
+
+            conditions.push({ id: { [Op.in]: Sequelize.literal(`(${subquery})`) } });
+        }
+        return conditions.length > 0 ? { [Op.and]: conditions } : {};
     }
 }
 

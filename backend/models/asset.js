@@ -51,7 +51,7 @@ module.exports = (sequelize) => {
         type: DataTypes.ARRAY(
           DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES)
         ),
-        allowNull: true
+        allowNull: false
       },
       geographic_location: {
         type: DataTypes.STRING,
@@ -75,9 +75,9 @@ module.exports = (sequelize) => {
       },
       asset_category: {
           type: DataTypes.ARRAY(
-          DataTypes.ENUM(...ASSETS.ASSET_CATEGORY)
+          DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
         ),
-        allowNull: true
+        allowNull: false,
       },
       asset_name: {
         unique: true,
