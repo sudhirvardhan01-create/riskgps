@@ -84,7 +84,9 @@ export default function AssetContainer() {
 
   const [assetFormData, setAssetFormData] = useState<AssetForm>(initialAssetFormData);
 
+  //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -239,6 +241,8 @@ export default function AssetContainer() {
       addButtonText: "Add Asset",
       addAction: () => setIsAddOpen(true),
       sortItems,
+      onImport: () => setIsFileUploadOpen(true),
+      onExport: () => console.log("Exported"),
       searchPattern,
       setSearchPattern,
       sort,
@@ -372,7 +376,7 @@ export default function AssetContainer() {
         toastSeverity={toast.severity}
       />
 
-      <FileUpload open={true} onClose={() => console.log("Component closed")} onUpload={() => console.log("File Uploaded")} onDownload={() => console.log("File Downloaded")} onFileSelect={(file) => setFile(file)} file ={file} title="Upload Assets"/>
+      <FileUpload open={isFileUploadOpen} onClose={() => setIsFileUploadOpen(false)} onUpload={() => console.log("File Uploaded")} onDownload={() => console.log("File Downloaded")} onFileSelect={(file) => setFile(file)} file ={file} title="Upload Assets"/>
     </>
   );
 }

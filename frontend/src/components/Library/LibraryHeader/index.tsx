@@ -14,13 +14,17 @@ interface Props {
   addAction: () => void;
   sortItems: { label: string; value: string }[];
   // optional controlled props
+  onImport?: () => void;
+  isImportRequired?: boolean,
+  onExport?: () => void;
+  isExportRequired?: boolean,
   searchPattern?: string;
   setSearchPattern?: (val: string) => void;
   sortValue?: string;
   setSort?: (val: string) => void;
 }
 
-const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAction, sortItems, searchPattern = "", setSearchPattern, sortValue, setSort }) => {
+const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAction, sortItems, isImportRequired = true, onImport, isExportRequired =true, onExport, searchPattern = "", setSearchPattern, sortValue, setSort }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isOpenFilter, setIsOpenFilter] = useState(false);
@@ -43,11 +47,24 @@ const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAct
         <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" spacing={2} sx={{ mb: 2 }}>
           <Breadcrumb items={breadcrumbItems} />
 
+
+          <Stack direction={"row"} gap={2}>
+          {isImportRequired && <Button onClick={onImport} variant="outlined" sx={{ textTransform: "none", borderRadius: 1 }}>
+            <Typography variant="body1" fontWeight={600}>
+              Import
+            </Typography>
+          </Button>}
+          {isExportRequired && <Button onClick={onExport} variant="outlined" sx={{ textTransform: "none", borderRadius: 1}}>
+            <Typography variant="body1" fontWeight={600}>
+              Export
+            </Typography>
+          </Button>}  
           <Button onClick={addAction} variant="contained" sx={{ backgroundColor: "primary.main", textTransform: "none", borderRadius: 1, "&:hover": { backgroundColor: "#001080" } }}>
             <Typography variant="body1" fontWeight={600}>
               {addButtonText}
             </Typography>
           </Button>
+          </Stack>
         </Stack>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} useFlexGap flexWrap="wrap" justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }}>
