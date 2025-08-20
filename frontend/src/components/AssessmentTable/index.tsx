@@ -37,10 +37,7 @@ const AssessmentTable: React.FC<Props> = ({ data, onMenuClick }) => {
   const columnTemplate = "42px 160px 260px 80px 80px 80px 130px 160px 20px";
 
   return (
-    <Box
-      sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
-      className="scroll-container"
-    >
+    <Box>
       <Box
         sx={{
           display: "grid",
@@ -50,7 +47,7 @@ const AssessmentTable: React.FC<Props> = ({ data, onMenuClick }) => {
           p: 2,
           alignItems: "center",
           gap: 2,
-          width: "fit-content",
+          width: "100%",
         }}
       >
         {[
@@ -94,7 +91,7 @@ const AssessmentTable: React.FC<Props> = ({ data, onMenuClick }) => {
               "&:hover": {
                 border: "1px solid #1976d2",
               },
-              width: "fit-content",
+              width: "100%",
               cursor: "pointer",
             }}
           >
