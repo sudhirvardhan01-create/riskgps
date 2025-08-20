@@ -251,6 +251,17 @@ export default function AssetContainer() {
     []
   );
 
+  const handleFormValidation = async () => {
+    try{
+      const res = await AssetService.fetch(0, 1, "Customer Database", "asset_code:asc");
+      console.log(res.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+    }
+  }
+  handleFormValidation();
+
   return (
     <>
       {/* View modal */}
