@@ -12,6 +12,7 @@ import { AssetService } from "@/services/assetService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
 import FileUpload from "@/components/FileUpload";
+import { Filter } from "@/types/filter";
 
 const initialAssetFormData: AssetForm = {
   assetCategory: [],
@@ -65,6 +66,7 @@ export default function AssetContainer() {
   const [assetsData, setAssetsData] = useState<AssetForm[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
 
    const [selectedAsset, setSelectedAsset] = useState<AssetForm | null>(null);
 
@@ -247,8 +249,10 @@ export default function AssetContainer() {
       setSearchPattern,
       sort,
       setSort,
+      filters,
+      setFilters
     }),
-    []
+    [filters]
   );
 
   const handleFormValidation = async () => {

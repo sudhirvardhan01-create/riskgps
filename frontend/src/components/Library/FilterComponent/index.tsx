@@ -34,9 +34,6 @@ interface FilterComponentProps {
 
 const FilterComponent: React.FC<FilterComponentProps> = ({ items, open, onClose, onClear, onApply, filters, setFilters }) => {
 
-React.useEffect(() => {
-  console.log("Filters changed:", filters);
-}, [filters]);
     const FormControlLabelStyled = styled(FormControlLabel)({
         '& .MuiFormControlLabel-label': {
             fontWeight: 400,  // or "bold"
@@ -45,7 +42,6 @@ React.useEffect(() => {
     });
 
 const handleStatusChange = (item: string, checked: boolean) => {
-    alert(checked)
   setFilters((prev: Filter[]) => {
     const mappedValue = STATUS_VALUE_MAP[item]; 
     const existing = prev.find((f) => f.status);
@@ -147,15 +143,9 @@ const handleStatusChange = (item: string, checked: boolean) => {
                         <FormGroup sx={{ paddingLeft: 1 }}>
                             {items.map((item, index) => { 
                                     const mappedValue = STATUS_VALUE_MAP[item];
-                                    console.log(mappedValue);
-                                    console.log(filters.length);
-                                    filters.map((fil)=>{
-                                        console.log(fil, typeof fil)
-                                    })
                                     const isChecked = filters.some(
-                                    (f) => f.status && f.status.includes("draft")
+                                    (f) => f.status && f.status.includes(mappedValue)
                                     );
-                                    console.log(isChecked)
                                 return (<FormControlLabelStyled key={index} control={<Checkbox checked={isChecked} onChange={(e) => handleStatusChange(item, e.target.checked)} size="small" />} label={item} />)})}
                         </FormGroup>
                     </Stack>
