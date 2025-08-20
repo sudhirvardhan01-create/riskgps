@@ -222,7 +222,30 @@ class ProcessService {
             res.setHeader("Content-disposition", "attachment; filename=processes.csv");
             res.setHeader("Content-Type", "text/csv");
 
-            const csvStream = format({ headers: true });
+            const csvStream = format({
+                headers: true,
+                transform: (row) => ({
+                    "Process ID": row.process_code,
+                    "Process Name": row.process_name,
+                    "Process Description": row.process_name,
+                    "Senior Executive Name": row.senior_executive__owner_name,
+                    "Senior Executive Email": row.senior_executive__owner_email,
+                    "Operations Owner Name": row.operations__owner_name,
+                    "Operations Owner Email": row.operations__owner_email,
+                    "Technology Owner Name": row.technology_owner_name,
+                    "Technology Owner Email": row.technology_owner_email,
+                    "Oraganizational Revenue Impact Percentage": row.organizational_revenue_impact_percentage,
+                    "Financial Materiality": row.financial_materiality,
+                    "Third Party Involvement": row.third_party_involvement,
+                    "Users": row.users_customers,
+                    "Regulatory and Compliance": row.regulatory_and_compliance,
+                    "Criticality Of Data Processed": row.criticality_of_data_processed,
+                    "Data Processes": row.data_processed,
+                    "Status": row.status,
+                    "Created At": row.created_at,
+                    "Updated At": row.updated_at,
+                }),
+            });
 
             stream.on("end", () => {
             sequelize.connectionManager.releaseConnection(connection);

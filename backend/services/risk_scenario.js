@@ -55,7 +55,7 @@ class RiskScenarioService {
         const total = await RiskScenario.count({
             where: whereClause
         });
-        
+
         const data = await RiskScenario.findAll({
             limit,
             offset,
@@ -183,7 +183,18 @@ class RiskScenarioService {
             res.setHeader("Content-disposition", "attachment; filename=risk_scenarios.csv");
             res.setHeader("Content-Type", "text/csv");
 
-            const csvStream = format({ headers: true });
+            const csvStream = format({
+                headers: true,
+                transform: (row) => ({
+                    "Risk Scenario ID": row.risk_code,
+                    "Risk Scenario": row.risk_scenario,
+                    "Risk Description": row.risk_description,
+                    "Risk Statement": row.risk_statement,
+                    "Status": row.status,
+                    "Created At": row.created_at,
+                    "Updated At": row.updated_at,
+                }),
+            });
 
             stream.on("end", () => {
             sequelize.connectionManager.releaseConnection(connection);
@@ -208,7 +219,6 @@ class RiskScenarioService {
             console.log("[createRiskScenario] Invalid status:", status);
             throw new CustomError(Messages.RISK_SCENARIO.INVALID_STATUS, HttpStatus.BAD_REQUEST);
         }
-
 
     }
 

@@ -64,6 +64,17 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get("/download-processes", async (req, res) => {
+    try {
+        await ProcessService.downloadProcessCSV(res);
+    } catch (err) {
+        console.log(Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV
+        });
+    }
+});
+
 /**
  * @route GET /process/:id
  * @description Get a process by ID
@@ -81,17 +92,6 @@ router.get('/:id', async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.NOT_FOUND).json({
             error: err.message || Messages.PROCESS.NOT_FOUND
-        });
-    }
-});
-
-router.get("/download-processes", async (req, res) => {
-    try {
-        await ProcessService.downloadProcessCSV(res);
-    } catch (err) {
-        console.log(Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV ,err);
-        res.status(HttpStatus.NOT_FOUND).json({
-            error: err.message || Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV
         });
     }
 });
