@@ -952,6 +952,8 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             onClick={() => {
               onSubmit("published");
             }}
+            disabled={assetFormData.applicationName === "" || assetFormData.assetCategory?.length === 0}
+            disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
               Publish
