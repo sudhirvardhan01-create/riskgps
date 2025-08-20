@@ -7,6 +7,8 @@ import { Checkbox, Chip, FormControl, FormControlLabel, FormGroup, IconButton, I
 import { Close } from '@mui/icons-material';
 import styled from '@emotion/styled';
 import { SelectChangeEvent } from '@mui/material/Select';
+import { Filter } from '@/types/filter';
+import { filter } from 'd3';
 
 
 const TAG_KEYS = ['Domain', 'Category'];
@@ -15,16 +17,27 @@ const TAG_VALUES: Record<'Domain' | 'Category', string[]> = {
     Category: ['NIST-CSF', 'COBIT', 'ISO-27001'],
 };
 
+const STATUS_VALUE_MAP: Record<string, string> = {
+  Draft: "draft",
+  Published: "published",
+  "Not Published": "not_published",
+};
+
 interface FilterComponentProps {
     items: string[];
     open: boolean;
     onClose: () => void;
     onClear: () => void;
     onApply: () => void;
+    filters: Filter[];
+    setFilters: React.Dispatch<React.SetStateAction<Filter[]>>;
 }
 
-const FilterComponent: React.FC<FilterComponentProps> = ({ items, open, onClose, onClear, onApply }) => {
+const FilterComponent: React.FC<FilterComponentProps> = ({ items, open, onClose, onClear, onApply, filters, setFilters }) => {
 
+React.useEffect(() => {
+  console.log("Filters changed:", filters);
+}, [filters]);
     const FormControlLabelStyled = styled(FormControlLabel)({
         '& .MuiFormControlLabel-label': {
             fontWeight: 400,  // or "bold"
@@ -32,40 +45,77 @@ const FilterComponent: React.FC<FilterComponentProps> = ({ items, open, onClose,
         },
     });
 
-    const [selectedKey, setSelectedKey] = useState<keyof typeof TAG_VALUES | ''>('');
-    const [selectedValue, setSelectedValue] = useState('');
-    const [tags, setTags] = useState<{ key: string; value: string }[]>([]);
+const handleStatusChange = (item: string, checked: boolean) => {
+    alert(checked)
+  setFilters((prev: Filter[]) => {
+    const mappedValue = STATUS_VALUE_MAP[item]; 
+    const existing = prev.find((f) => f.status);
 
-    const handleAddTag = () => {
-        if (selectedKey && selectedValue) {
-            setTags([...tags, { key: selectedKey, value: selectedValue }]);
-            setSelectedKey('');
-            setSelectedValue('');
+    if (checked) {
+      if (existing) {
+        return prev.map((f) =>
+          f.status
+            ? { ...f, status: [...new Set([...f.status, mappedValue])] }
+            : f
+        );
+      } else {
+        // No status filter yet, add new one
+        return [...prev, { status: [mappedValue] }];
+      }
+    } else {
+      if (existing) {
+        // Remove value
+        const updated = existing.status.filter((s) => s !== mappedValue);
+
+        if (updated.length > 0) {
+          return prev.map((f) =>
+            f.status ? { ...f, status: updated } : f
+          );
+        } else {
+          // If nothing left, remove the whole status filter
+          return prev.filter((f) => !f.status);
         }
-    };
+      }
+      return prev;
+    }
+  });
+};
 
-    const handleValueChange = (event: SelectChangeEvent<string>) => {
-        const value = event.target.value;
 
-        if (selectedKey && value) {
-            const tag = { key: selectedKey, value };
+    // const [selectedKey, setSelectedKey] = useState<keyof typeof TAG_VALUES | ''>('');
+    // const [selectedValue, setSelectedValue] = useState('');
+    // const [tags, setTags] = useState<{ key: string; value: string }[]>([]);
 
-            const alreadyExists = tags.some(
-                (t) => t.key === tag.key && t.value === tag.value
-            );
+    // const handleAddTag = () => {
+    //     if (selectedKey && selectedValue) {
+    //         setTags([...tags, { key: selectedKey, value: selectedValue }]);
+    //         setSelectedKey('');
+    //         setSelectedValue('');
+    //     }
+    // };
 
-            if (!alreadyExists) {
-                setTags((prev) => [...prev, tag]);
-            }
+    // const handleValueChange = (event: SelectChangeEvent<string>) => {
+    //     const value = event.target.value;
 
-            setSelectedKey('');
-            setSelectedValue('');
-        }
-    };
+    //     if (selectedKey && value) {
+    //         const tag = { key: selectedKey, value };
 
-    const handleRemoveTag = (index: number) => {
-        setTags(tags.filter((_, i) => i !== index));
-    };
+    //         const alreadyExists = tags.some(
+    //             (t) => t.key === tag.key && t.value === tag.value
+    //         );
+
+    //         if (!alreadyExists) {
+    //             setTags((prev) => [...prev, tag]);
+    //         }
+
+    //         setSelectedKey('');
+    //         setSelectedValue('');
+    //     }
+    // };
+
+    // const handleRemoveTag = (index: number) => {
+    //     setTags(tags.filter((_, i) => i !== index));
+    // };
 
     return (
         <>
@@ -85,11 +135,22 @@ const FilterComponent: React.FC<FilterComponentProps> = ({ items, open, onClose,
                             Status
                         </Typography>
                         <FormGroup sx={{ paddingLeft: 1 }}>
-                            {items.map((item, index) => (<FormControlLabelStyled key={index} control={<Checkbox size="small" />} label={item} />))}
+                            {items.map((item, index) => { 
+                                    const mappedValue = STATUS_VALUE_MAP[item];
+                                    console.log(mappedValue);
+                                    console.log(filter.length);
+                                    filters.map((fil)=>{
+                                        console.log(fil, typeof fil)
+                                    })
+                                    const isChecked = filters.some(
+                                    (f) => f.status && f.status.includes("draft")
+                                    );
+                                    console.log(isChecked)
+                                return (<FormControlLabelStyled key={index} control={<Checkbox checked={isChecked} onChange={(e) => handleStatusChange(item, e.target.checked)} size="small" />} label={item} />)})}
                         </FormGroup>
                     </Stack>
 
-                    <Stack bgcolor='#F3F8FF' mx={2} borderRadius={2} p={2} direction="column" spacing={1}>
+                    {/* <Stack bgcolor='#F3F8FF' mx={2} borderRadius={2} p={2} direction="column" spacing={1}>
                         <Typography variant='h6' sx={{ color: '#191919', fontWeight: 500, fontSize: '16px' }}>
                             Tags
                         </Typography>
@@ -150,7 +211,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({ items, open, onClose,
                                 />
                             ))}
                         </Box>
-                    </Stack>
+                    </Stack> */}
                     <Box sx={{ position: 'absolute', bottom: 0, borderTop: '1px solid #E8E8E8', height: '72px', width: 480 }}>
                         <Stack direction="row" spacing={2} mx={3} my={2} justifyContent="center" alignItems="center">
                             <Button

@@ -1,3 +1,4 @@
+import { Filter } from "@/types/filter";
 import { RiskScenarioData } from "@/types/risk-scenario";
 
 interface APIResponse {
@@ -23,7 +24,7 @@ export const fetchRiskScenarioById = async (id: number) => {
   return res.data;
 }
 
-export const fetchRiskScenarios = async (page: number, limit: number, searchPattern?: string, sort?: string):Promise<APIResponse> => {
+export const fetchRiskScenarios = async (page: number, limit: number, searchPattern?: string, sort?: string, filters?: Filter[]):Promise<APIResponse> => {
   const [sortBy, sortOrder] = (sort?? '').split(":");
   const params = new URLSearchParams();
   if (page) params.append("page", page.toString());
@@ -31,6 +32,15 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
   params.append("sort_by",sortBy);
   params.append("sort_order", sortOrder);
   params.append("search", searchPattern?? "");
+
+  if (filters && filters.length > 0) {
+    const statusFilter = filters?.find((f) => "status" in f);
+
+    if (statusFilter) {
+      const joinedStatusFilter = statusFilter.status.join(",");
+      params.append("status", joinedStatusFilter);
+    }
+  }
 
   const transformRiskData = (data: any[]): RiskScenarioData[] => {
   return data.map((item) => ({

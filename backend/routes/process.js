@@ -43,6 +43,7 @@ router.get('/', async (req, res) => {
         const sortBy = req.query.sort_by || 'created_at'
         const sortOrder = req.query.sort_order?.toUpperCase() || 'DESC'
         const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+        console.log(statusFilter)
         const attrFilters = (req.query.attributes || "")
           .split(";")
           .map((expr) => {
