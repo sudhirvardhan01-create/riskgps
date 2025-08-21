@@ -304,7 +304,7 @@ class ProcessService {
         throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
     }
 
-    if (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
+    if (!status || ( status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
         throw new CustomError(Messages.PROCESS.INVALID_VALUE, HttpStatus.BAD_REQUEST);
     }
     };
@@ -329,7 +329,9 @@ class ProcessService {
             "status",
         ];
 
-        return Object.fromEntries(fields.map((key) => [key, data[key]]));
+        return Object.fromEntries(
+            fields.map((key) => [key, data[key] === "" ? null : data[key]])
+        );
     }
 
     static async handleProcessDependencies(sourceProcessId, dependencies, transaction) {
