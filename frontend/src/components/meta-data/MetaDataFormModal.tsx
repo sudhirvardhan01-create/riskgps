@@ -10,15 +10,15 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  FormControl,
   Grid,
   IconButton,
-  InputLabel,
   MenuItem,
-  Select,
-  TextField,
   Typography,
 } from "@mui/material";
+import TextFieldStyled from "../TextFieldStyled";
+import { labels } from "@/utils/labels";
+import { tooltips } from "@/utils/tooltips";
+import SelectStyled from "../SelectStyled";
 
 export const appliesToOptions = [
   { value: "all", label: "All" },
@@ -125,114 +125,28 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
         <Grid container spacing={5}>
           {/* Key */}
           <Grid mt={1} size={{ xs: 12 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Key"
+            <TextFieldStyled
+              label={labels.key}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.key}
               placeholder="Enter key name"
               value={formData.name}
               required
-              variant="outlined"
               onChange={(e) => handleFieldChange("name", e.target.value)}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "16px",
-                    color: "#484848",
-                    "&::placeholder": {
-                      color: "#9E9FA5",
-                      opacity: 1,
-                    },
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
 
           {/* Value field */}
           <Grid size={{ xs: 12 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Add a value"
+            <TextFieldStyled
+              label={labels.metadataValue}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.metadataValue}
               placeholder="Enter value and return to add"
               value={inputValue}
+              required
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleAddChip}
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "16px",
-                    color: "#484848",
-                    "&::placeholder": {
-                      color: "#9E9FA5",
-                      opacity: 1,
-                    },
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
             <Box
               display="flex"
@@ -245,7 +159,12 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
                   key={idx}
                   label={val}
                   onDelete={() => handleRemoveChip(val)}
-                  deleteIcon={<Close fontSize="small" sx={{height: "16px", width: "16px"}}/>}
+                  deleteIcon={
+                    <Close
+                      fontSize="small"
+                      sx={{ height: "16px", width: "16px" }}
+                    />
+                  }
                   sx={{
                     borderRadius: "2px",
                     border: "0.5px solid #04139A",
@@ -263,172 +182,95 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
 
           {/* Input Type */}
           <Grid size={{ xs: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel
-                shrink
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              >
-                Input Type
-              </InputLabel>
-              <Select
-                value={formData.input_type}
-                label="Input Type"
-                displayEmpty
-                onChange={(e) =>
-                  handleFieldChange("input_type", e.target.value)
+            <SelectStyled
+              value={formData.input_type}
+              label={labels.inputType}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.inputType}
+              displayEmpty
+              onChange={(e) => handleFieldChange("input_type", e.target.value)}
+              renderValue={(selected: any) => {
+                if (!selected) {
+                  return (
+                    <Typography variant="body1" sx={{ color: "#9E9FA5" }}>
+                      Select Input Type
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected}
+                    </Typography>
+                  );
                 }
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography variant="body1" sx={{ color: "#9E9FA5" }}>
-                        Select Input Type
-                      </Typography>
-                    );
-                  } else {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "text.primary",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {selected}
-                      </Typography>
-                    );
-                  }
-                }}
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  fontSize: "14px",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                }}
-              >
-                <MenuItem value="text">Text</MenuItem>
-                <MenuItem value="select">Select</MenuItem>
-                <MenuItem value="multiselect">Multiselect</MenuItem>
-                <MenuItem value="number">Number</MenuItem>
-              </Select>
-            </FormControl>
+              }}
+            >
+              <MenuItem value="text">Text</MenuItem>
+              <MenuItem value="select">Select</MenuItem>
+              <MenuItem value="multiselect">Multiselect</MenuItem>
+              <MenuItem value="number">Number</MenuItem>
+            </SelectStyled>
           </Grid>
 
           {/* Applies To */}
           <Grid size={{ xs: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel
-                shrink
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#121212",
-                  "&.Mui-focused": {
-                    color: "#121212",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              >
-                Applies To
-              </InputLabel>
-              <Select
-                value={formData.applies_to}
-                label="Applies To"
-                multiple
-                displayEmpty
-                onChange={(e) => {
-                  const selectedValues = e.target.value as string[];
+            <SelectStyled
+              sx={{ height: "52px" }}
+              value={formData.applies_to}
+              label={labels.appliesTo}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.appliesTo}
+              multiple
+              displayEmpty
+              onChange={(e) => {
+                const selectedValues = e.target.value as string[];
 
-                  let newValue: string[];
+                let newValue: string[];
 
-                  if (
-                    selectedValues.includes("all") ||
-                    (!selectedValues.includes("all") &&
-                      selectedValues.length === appliesToOptions.length - 1)
-                  ) {
-                    newValue = ["all"];
+                if (
+                  selectedValues.includes("all") ||
+                  (!selectedValues.includes("all") &&
+                    selectedValues.length === appliesToOptions.length - 1)
+                ) {
+                  newValue = ["all"];
+                }
+                // If anything else is selected (excluding all)
+                else {
+                  newValue = selectedValues.filter((v) => v !== "all");
+                }
+                handleFieldChange("applies_to", newValue);
+              }}
+              renderValue={(selected) => (
+                <Typography variant="body1" sx={{ color: "text.primary" }}>
+                  {(selected as string[])
+                    .map(
+                      (val) =>
+                        appliesToOptions.find((option) => option.value === val)
+                          ?.label || val
+                    )
+                    .join(", ")}
+                </Typography>
+              )}
+            >
+              {appliesToOptions.map((option) => (
+                <MenuItem
+                  key={option.value}
+                  value={option.value}
+                  disabled={
+                    option.value !== "all" &&
+                    formData.applies_to?.includes("all")
                   }
-                  // If anything else is selected (excluding all)
-                  else {
-                    newValue = selectedValues.filter((v) => v !== "all");
-                  }
-                  handleFieldChange("applies_to", newValue);
-                }}
-                renderValue={(selected) => (
-                  <Typography variant="body1" sx={{ color: "text.primary" }}>
-                    {(selected as string[])
-                      .map(
-                        (val) =>
-                          appliesToOptions.find(
-                            (option) => option.value === val
-                          )?.label || val
-                      )
-                      .join(", ")}
-                  </Typography>
-                )}
-                sx={{
-                  height: "52px",
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  fontSize: "14px",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                }}
-              >
-                {appliesToOptions.map((option) => (
-                  <MenuItem
-                    key={option.value}
-                    value={option.value}
-                    disabled={
-                      option.value !== "all" &&
-                      formData.applies_to?.includes("all")
-                    }
-                  >
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                >
+                  {option.label}
+                </MenuItem>
+              ))}
+            </SelectStyled>
           </Grid>
         </Grid>
       </DialogContent>
