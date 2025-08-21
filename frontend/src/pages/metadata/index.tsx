@@ -37,14 +37,11 @@ const Index = () => {
   const [isAddMetaDataModalOpen, setIsAddMetaDataModalOpen] = useState(false);
   const [isEditMetaDataModalOpen, setIsEditMetaDataModalOpen] = useState(false);
   const [isEditConfirmPopupOpen, setIsEditConfirmPopupOpen] = useState(false);
-  const [
-    isAddEditDeleteMDSuccessToastOpen,
-    setIsAddEditDeleteMDSuccessToastOpen,
-  ] = useState(false);
-  const [
-    addEditDeleteMDSuccessToastMessage,
-    setAddEditDeleteMDSuccessToastMessage,
-  ] = useState("");
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "info"
+  });
   const [
     isDeleteMetaDataConfirmPopupOpen,
     setIsDeleteMetaDataConfirmPopupOpen,
@@ -81,16 +78,21 @@ const Index = () => {
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsDeleteMetaDataConfirmPopupOpen(false);
-        setIsAddEditDeleteMDSuccessToastOpen(true);
-        setAddEditDeleteMDSuccessToastMessage(
-          `${selectedMetaData.name} deleted`
-        );
+        setToast({
+          open: true,
+          message: `${selectedMetaData.name} deleted`,
+          severity: "success"
+        });
       } else {
         throw new Error("Invalid ID");
       }
     } catch (err) {
       console.log("Something went wrong", err);
-      alert("Failed to Delete");
+      setToast({
+          open: true,
+          message: `Error : Failed to delete metadata`,
+          severity: "error"
+        });
     }
   };
 
@@ -109,12 +111,18 @@ const Index = () => {
       });
       setRefreshTrigger((prev) => prev + 1);
       setIsAddMetaDataModalOpen(false);
-      setIsAddEditDeleteMDSuccessToastOpen(true);
-      setAddEditDeleteMDSuccessToastMessage(
-        `${reqBody.name} has been added successfully.`
-      );
+      setToast({
+          open: true,
+          message: `${reqBody.name} has been added successfully.`,
+          severity: "success"
+        });
     } catch (err) {
       console.log("Something went wrong", err);
+      setToast({
+          open: true,
+          message: `Error : Failed to create metadata`,
+          severity: "error"
+        });
     }
   };
 
@@ -128,15 +136,21 @@ const Index = () => {
         setRefreshTrigger((prev) => prev + 1);
         setIsEditMetaDataModalOpen(false);
         setSelectedMetaData(null);
-        setIsAddEditDeleteMDSuccessToastOpen(true);
-        setAddEditDeleteMDSuccessToastMessage(
-          `Changes have been saved successfully.`
-        );
+        setToast({
+          open: true,
+          message: `Changes have been saved successfully.`,
+          severity: "success"
+        });
       } else {
         alert("Invalid Operation");
       }
     } catch (err) {
       console.log("Something went wrong", err);
+      setToast({
+          open: true,
+          message: `Error : Failed to update metadata`,
+          severity: "error"
+        });
     }
   };
 
@@ -226,13 +240,13 @@ const Index = () => {
       )}
 
       <ToastComponent
-        open={isAddEditDeleteMDSuccessToastOpen}
-        onClose={() => setIsAddEditDeleteMDSuccessToastOpen(false)}
-        message={addEditDeleteMDSuccessToastMessage}
+        open={toast.open}
+        onClose={() => setToast((toast) => ({...toast, open : false}))}
+        message={toast.message}
         toastBorder="1px solid #147A50"
         toastColor="#147A50"
         toastBackgroundColor="#DDF5EB"
-        toastSeverity="success"
+        toastSeverity={toast.severity}
       />
 
       {/* Landing Page code*/}
