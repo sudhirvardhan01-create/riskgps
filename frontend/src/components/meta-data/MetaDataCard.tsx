@@ -34,7 +34,7 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
       }}
     >
       {/* Key */}
-      <Stack spacing={0.5} flex={1} onClick={onClick} marginTop={-1}>
+      <Stack spacing={0.5} flex={1} onClick={onClick} sx={{ alignSelf: "stretch" }}>
         <Typography variant="body2" color="#91939A" fontWeight={550}>
           Key
         </Typography>
