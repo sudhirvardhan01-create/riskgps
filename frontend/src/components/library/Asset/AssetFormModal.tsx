@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -29,6 +29,9 @@ import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
+import { tooltips } from "@/utils/tooltips";
+import TooltipComponent from "@/components/TooltipComponent";
+import { labels } from "@/utils/labels";
 
 interface AssetFormModalProps {
   operation: "create" | "edit";
@@ -51,8 +54,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(assetFormData);
-
   const [isAssetThirdPartyManaged, setIsAssetThirdPartyManaged] =
     useState<boolean>(false);
 
@@ -61,9 +62,34 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
     number | null
   >();
 
-  const handleChange = (field: keyof AssetForm, value: any) => {
-    setAssetFormData({ ...assetFormData, [field]: value });
-  };
+  const assetCategoryItems = [
+    "Windows",
+    "macOS",
+    "Linux",
+    "Office 365",
+    "Azure AD",
+    "Google Workspace",
+    "SaaS",
+    "IaaS",
+    "Network Devices",
+    "Containers",
+    "Android",
+    "iOS",
+  ];
+
+  const handleChange = useCallback(
+    (field: keyof AssetForm, value: any) => {
+      setAssetFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [setAssetFormData] // only depends on setter from props
+  );
+
+  useEffect(() => {
+    if (isAssetThirdPartyManaged === false) {
+      handleChange("thirdPartyName", "");
+      handleChange("thirdPartyLocation", "");
+    }
+  }, [isAssetThirdPartyManaged, handleChange]);
 
   const handleKeyValueChange = (
     index: number,
@@ -101,14 +127,12 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   const addRelatedProcess = () => {
     if (
       newRelatedProcess &&
-      !assetFormData?.related_processes?.includes(newRelatedProcess)
+      !assetFormData?.relatedProcesses?.includes(newRelatedProcess)
     ) {
-      //   setRelatedProcesses([...relatedProcesses, newRelatedProcess]);
-
       setAssetFormData({
         ...assetFormData,
-        related_processes: [
-          ...(assetFormData?.related_processes ?? []),
+        relatedProcesses: [
+          ...(assetFormData?.relatedProcesses ?? []),
           newRelatedProcess,
         ],
       });
@@ -119,14 +143,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   const removeRelatedProcess = (processToRemove: number) => {
     setAssetFormData({
       ...assetFormData,
-      related_processes: assetFormData?.related_processes?.filter(
+      relatedProcesses: assetFormData?.relatedProcesses?.filter(
         (process) => process !== processToRemove
       ),
     });
-
-    // setRelatedProcesses(
-    //   relatedProcesses.filter((process) => process !== processToRemove)
-    // );
   };
 
   const getStatusComponent = () => {
@@ -198,7 +218,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             <Typography variant="h5" fontWeight={550} color="#121212">
               {operation === "create"
                 ? "Add Asset"
-                : `Edit Asset A-${assetFormData.id}`}
+                : `Edit Asset ${assetFormData.assetCode}`}
             </Typography>
             {operation === "edit" ? getStatusComponent() : null}
           </Stack>
@@ -214,102 +234,29 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Asset Name */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label="Asset Name"
+              label={labels.assetName}
               placeholder="Enter Asset Name"
-              value={assetFormData.assetName}
+              value={assetFormData.applicationName}
               required
-              onChange={(e) => handleChange("assetName", e.target.value)}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.assetName}
+              onChange={(e) => handleChange("applicationName", e.target.value)}
             />
           </Grid>
 
           {/* Asset Category */}
-          {/* <Grid mt={1} size={{ xs: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel
-                shrink
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                }}
-              >
-                Asset Category
-              </InputLabel>
-              <Select
-                value={assetFormData.assetCategory}
-                label="Asset Category"
-                displayEmpty
-                onChange={(e) => handleChange("assetCategory", e.target.value)}
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "#9e9e9e",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        Select Asset Category
-                      </Typography>
-                    );
-                  } else {
-                    return (
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          color: "text.primary",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {selected}
-                      </Typography>
-                    );
-                  }
-                }}
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  fontSize: "14px",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                }}
-              >
-                <MenuItem value="text">Text</MenuItem>
-                <MenuItem value="select">Select</MenuItem>
-                <MenuItem value="multiselect">Multiselect</MenuItem>
-                <MenuItem value="number">Number</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid> */}
-
-          {/* Asset Category */}
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
+              required
+              multiple
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.assetCategory}
               value={assetFormData.assetCategory}
-              label="Asset Category"
+              label={labels.assetCategory}
               displayEmpty
-              onChange={(e) => handleChange("assetCategory", e.target.value)}
+              onChange={(e) =>
+                handleChange("assetCategory", e.target.value as string[])
+              }
               renderValue={(selected: any) => {
                 if (!selected) {
                   return (
@@ -329,26 +276,43 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                       variant="body1"
                       sx={{
                         color: "text.primary",
-                        textTransform: "capitalize",
                       }}
                     >
-                      {selected}
+                      {selected.join(", ")}
                     </Typography>
                   );
                 }
               }}
             >
-              <MenuItem value="text">Text</MenuItem>
-              <MenuItem value="select">Select</MenuItem>
-              <MenuItem value="multiselect">Multiselect</MenuItem>
-              <MenuItem value="number">Number</MenuItem>
+              {metaDatas?.find((item) => item.name === "Asset Category")
+                ?.supported_values &&
+              metaDatas?.find((item) => item.name === "Asset Category")
+                ?.supported_values?.length > 0
+                ? metaDatas
+                    ?.find((item) => item.name === "Asset Category")
+                    ?.supported_values?.map((item: string) => {
+                      return (
+                        <MenuItem key={item} value={item}>
+                          {item}
+                        </MenuItem>
+                      );
+                    })
+                : assetCategoryItems.map((item) => {
+                    return (
+                      <MenuItem key={item} value={item}>
+                        {item}
+                      </MenuItem>
+                    );
+                  })}
             </SelectStyled>
           </Grid>
 
           {/* Asset Description */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
-              label="Asset Description"
+              label={labels.assetDescription}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.assetDescription}
               placeholder="Enter Asset Description"
               value={assetFormData.assetDescription}
               multiline
@@ -360,20 +324,26 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Asset Owner */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label="Asset Owner"
+              label={labels.assetOwner}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.assetOwner}
               placeholder="Enter Asset Owner Name"
-              value={assetFormData.assetOwner}
-              onChange={(e) => handleChange("assetOwner", e.target.value)}
+              value={assetFormData.applicationOwner}
+              onChange={(e) => handleChange("applicationOwner", e.target.value)}
             />
           </Grid>
 
           {/* Asset IT Owner */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label="Asset IT Owner"
+              label={labels.assetITOwner}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.assetITOwner}
               placeholder="Enter Asset IT Owner Name"
-              value={assetFormData.assetITOwner}
-              onChange={(e) => handleChange("assetITOwner", e.target.value)}
+              value={assetFormData.applicationITOwner}
+              onChange={(e) =>
+                handleChange("applicationITOwner", e.target.value)
+              }
             />
           </Grid>
 
@@ -384,22 +354,27 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 component="legend"
                 id="third-party-management-radio-buttons-group"
               >
-                <Typography variant="body2" color="#121212">
-                  Third Party Management
-                </Typography>
+                <Box display={"flex"} gap={0.5}>
+                  <Typography variant="body2" color="#121212">
+                    {labels.thirdPartyManagement}
+                  </Typography>
+                  <TooltipComponent
+                    title={tooltips.thirdPartyManagement}
+                    width={"12px"}
+                    height={"12px"}
+                  />
+                </Box>
               </FormLabel>
               <RadioGroup
                 aria-labelledby="third-party-management-radio-buttons-group"
                 name="isThirdPartyManagement"
                 row
-                value={
-                  assetFormData.isThirdPartyManagement
-                    ? assetFormData.isThirdPartyManagement
-                    : null
-                }
+                value={assetFormData.isThirdPartyManagement}
                 onChange={(e) => {
                   handleChange("isThirdPartyManagement", e.target.value);
-                  setIsAssetThirdPartyManaged(e.target.value === "true");
+                  setIsAssetThirdPartyManaged(
+                    e.target.value === "true" ? true : false
+                  );
                 }}
               >
                 <FormControlLabel
@@ -428,7 +403,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {isAssetThirdPartyManaged && (
             <Grid mt={1} size={{ xs: 6 }}>
               <TextFieldStyled
-                label="Third Party Name"
+                label={labels.thirdPartyName}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.thirdPartyName}
                 placeholder="Enter Third Party Name"
                 value={assetFormData.thirdPartyName}
                 onChange={(e) => handleChange("thirdPartyName", e.target.value)}
@@ -440,7 +417,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {isAssetThirdPartyManaged && (
             <Grid mt={1} size={{ xs: 6 }}>
               <TextFieldStyled
-                label="Third Party Location"
+                label={labels.thirdPartyLocation}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.thirdPartyLocation}
                 placeholder="Enter Third Party Location"
                 value={assetFormData.thirdPartyLocation}
                 onChange={(e) =>
@@ -454,7 +433,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
               value={assetFormData.hosting}
-              label="Hosting"
+              label={labels.hosting}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.hosting}
               displayEmpty
               onChange={(e) => handleChange("hosting", e.target.value)}
               renderValue={(selected: any) => {
@@ -485,10 +466,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 }
               }}
             >
-              <MenuItem value="saas">SaaS</MenuItem>
-              <MenuItem value="paas">PaaS</MenuItem>
-              <MenuItem value="iaas">IaaS</MenuItem>
-              <MenuItem value="on-prem">On-Prem</MenuItem>
+              <MenuItem value="SaaS">SaaS</MenuItem>
+              <MenuItem value="PaaS">PaaS</MenuItem>
+              <MenuItem value="IaaS">IaaS</MenuItem>
+              <MenuItem value="On-Premise">On-Prem</MenuItem>
             </SelectStyled>
           </Grid>
 
@@ -496,7 +477,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
               value={assetFormData.hostingFacility}
-              label="Hosting Facility"
+              label={labels.hostingFacility}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.hostingFacility}
               displayEmpty
               onChange={(e) => handleChange("hostingFacility", e.target.value)}
               renderValue={(selected: any) => {
@@ -527,9 +510,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 }
               }}
             >
-              <MenuItem value="public cloud">Public Cloud</MenuItem>
-              <MenuItem value="private cloud">Private Cloud</MenuItem>
-              <MenuItem value="n/a">N/A</MenuItem>
+              <MenuItem value="Public Cloud">Public Cloud</MenuItem>
+              <MenuItem value="Private Cloud">Private Cloud</MenuItem>
+              <MenuItem value="N/A">N/A</MenuItem>
             </SelectStyled>
           </Grid>
 
@@ -538,7 +521,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             <SelectStyled
               value={assetFormData.cloudServiceProvider}
               multiple
-              label="Cloud Service Provider"
+              label={labels.cloudServiceProvider}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.cloudServiceProvider}
               displayEmpty
               onChange={(e) =>
                 handleChange("cloudServiceProvider", e.target.value as string[])
@@ -573,7 +558,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             >
               <MenuItem value="AWS">AWS</MenuItem>
               <MenuItem value="Azure">Azure</MenuItem>
-              <MenuItem value="GCP">GCP</MenuItem>
+              <MenuItem value="Google Cloud Platform">GCP</MenuItem>
               <MenuItem value="Other">Other</MenuItem>
             </SelectStyled>
           </Grid>
@@ -581,7 +566,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Geographic Location */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label="Geographic Location"
+              label={labels.geographicLocation}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.geographicLocation}
               placeholder="Enter Geographic Location"
               value={assetFormData.geographicLocation}
               onChange={(e) =>
@@ -597,17 +584,24 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 component="legend"
                 id="is-redundancy-radio-buttons-group"
               >
-                <Typography variant="body2" color="#121212">
-                  Redundancy
-                </Typography>
+                <Box display={"flex"} gap={0.5}>
+                  <Typography variant="body2" color="#121212">
+                    {labels.redundancy}
+                  </Typography>
+                  <TooltipComponent
+                    title={tooltips.redundancy}
+                    width={"12px"}
+                    height={"12px"}
+                  />
+                </Box>
               </FormLabel>
               <RadioGroup
                 aria-labelledby="is-redundancy-radio-buttons-group"
                 name="isRedundancy"
                 row
-                value={assetFormData.isRedundancy}
+                value={assetFormData.hasRedundancy}
                 onChange={(e) => {
-                  handleChange("isRedundancy", e.target.value);
+                  handleChange("hasRedundancy", e.target.value);
                 }}
               >
                 <FormControlLabel
@@ -635,7 +629,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Databases */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label="Databases"
+              label={labels.databases}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.databases}
               placeholder="Enter Databases"
               value={assetFormData.databases}
               onChange={(e) => handleChange("databases", e.target.value)}
@@ -649,17 +645,24 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 component="legend"
                 id="is-network-segmentation-radio-buttons-group"
               >
-                <Typography variant="body2" color="#121212">
-                  Network Segmentation
-                </Typography>
+                <Box display={"flex"} gap={0.5}>
+                  <Typography variant="body2" color="#121212">
+                    {labels.networkSegmentation}
+                  </Typography>
+                  <TooltipComponent
+                    title={tooltips.networkSegmentation}
+                    width={"12px"}
+                    height={"12px"}
+                  />
+                </Box>
               </FormLabel>
               <RadioGroup
                 aria-labelledby="is-network-segmentation-radio-buttons-group"
                 name="isNetworkSegmentation"
                 row
-                value={assetFormData.isNetworkSegmentation}
+                value={assetFormData.hasNetworkSegmentation}
                 onChange={(e) => {
-                  handleChange("isNetworkSegmentation", e.target.value);
+                  handleChange("hasNetworkSegmentation", e.target.value);
                 }}
               >
                 <FormControlLabel
@@ -687,7 +690,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/* Network Name */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label="Network Name"
+              label={labels.networkName}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.networkName}
               placeholder="Enter Network Name"
               value={assetFormData.networkName}
               onChange={(e) => handleChange("networkName", e.target.value)}
@@ -713,7 +718,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 <Grid size={{ xs: 10.5 }}>
                   <SelectStyled
                     value={newRelatedProcess}
-                    label="Select Related Process"
+                    label={labels.relatedProcesses}
+                    isTooltipRequired={true}
+                    tooltipTitle={tooltips.relatedProcesses}
                     displayEmpty
                     onChange={(e) =>
                       setNewRelatedProcess(e.target.value as number)
@@ -732,12 +739,12 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                         );
                       }
                       return processes.find((item) => item.id === selected)
-                        ?.name;
+                        ?.processName;
                     }}
                   >
                     {processes.map((process, index) => (
                       <MenuItem key={index} value={process.id}>
-                        {process.name}
+                        {process.processName}
                       </MenuItem>
                     ))}
                   </SelectStyled>
@@ -765,16 +772,17 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               </Grid>
 
               {/* Display added related processes */}
-              {assetFormData?.related_processes &&
-                assetFormData?.related_processes?.length > 0 && (
+              {assetFormData?.relatedProcesses &&
+                assetFormData?.relatedProcesses?.length > 0 && (
                   <Box
                     sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}
                   >
-                    {assetFormData?.related_processes?.map((process, index) => (
+                    {assetFormData?.relatedProcesses?.map((process, index) => (
                       <Chip
                         key={index}
                         label={
-                          processes.find((item) => item.id === process)?.name
+                          processes.find((item) => item.id === process)
+                            ?.processName
                         }
                         onDelete={() => removeRelatedProcess(process)}
                         sx={{
@@ -811,7 +819,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 <Grid size={{ xs: 5.5 }}>
                   <SelectStyled
                     value={kv.meta_data_key_id}
-                    label="Key"
+                    label={labels.key}
+                    isTooltipRequired={true}
+                    tooltipTitle={tooltips.key}
                     displayEmpty
                     onChange={(e) =>
                       handleKeyValueChange(
@@ -863,7 +873,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                   <SelectStyled
                     multiple
                     value={kv.values || []}
-                    label="Value"
+                    label={labels.value}
+                    isTooltipRequired={true}
+                    tooltipTitle={tooltips.value}
                     displayEmpty
                     onChange={(e) =>
                       handleKeyValueChange(
@@ -942,11 +954,18 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         }}
       >
         <Button
-          sx={{ width: 113, height: 40, border: '1px solid #CD0303', borderRadius: 1 }}
+          sx={{
+            width: 113,
+            height: 40,
+            border: "1px solid #CD0303",
+            borderRadius: 1,
+          }}
           variant="outlined"
           onClick={onClose}
         >
-          <Typography variant="body1" color="#CD0303" fontWeight={500}>Cancel</Typography>
+          <Typography variant="body1" color="#CD0303" fontWeight={500}>
+            Cancel
+          </Typography>
         </Button>
         <Box display={"flex"} gap={3}>
           <Button
@@ -956,7 +975,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             sx={{ width: 161, height: 40, borderRadius: 1 }}
             variant="outlined"
           >
-            <Typography variant="body1" color="#04139A" fontWeight={500}>Save as Draft</Typography>
+            <Typography variant="body1" color="#04139A" fontWeight={500}>
+              Save as Draft
+            </Typography>
           </Button>
           <Button
             sx={{ width: 132, height: 40, borderRadius: 1 }}
@@ -964,8 +985,15 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             onClick={() => {
               onSubmit("published");
             }}
+            disabled={
+              assetFormData.applicationName === "" ||
+              assetFormData.assetCategory?.length === 0
+            }
+            disableRipple
           >
-            <Typography variant="body1" color="#F4F4F4" fontWeight={600}>Publish</Typography>
+            <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
+              Publish
+            </Typography>
           </Button>
         </Box>
       </DialogActions>

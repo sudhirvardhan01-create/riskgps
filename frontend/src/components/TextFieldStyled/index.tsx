@@ -1,35 +1,60 @@
-import { styled, TextField, TextFieldProps, InputLabelProps } from "@mui/material";
+import {
+  styled,
+  TextField,
+  TextFieldProps,
+  FormControl,
+  InputLabel,
+  Typography,
+  Box,
+} from "@mui/material";
+import TooltipComponent from "../TooltipComponent";
 
-const TextFieldStyled = styled((props: TextFieldProps) => {
-  const { label, required, slotProps, ...rest } = props;
+type TextFieldStyledProps = Omit<TextFieldProps, "label"> & {
+  label: string;
+  required?: boolean;
+  tooltipTitle?: string;
+  isTooltipRequired?: boolean;
+};
 
-  return (
-    <TextField
-      {...rest}
-      fullWidth
-      variant="outlined"
-      label={label}
-      required={required}
-      slotProps={{
-        ...slotProps,
-        inputLabel: {
-          ...(typeof slotProps?.inputLabel === "object" ? slotProps.inputLabel : {}),
-          shrink: true,
-          sx: {
-            ...(typeof slotProps?.inputLabel === "object" &&
-            "sx" in slotProps.inputLabel &&
-            typeof slotProps.inputLabel.sx === "object"
-              ? slotProps.inputLabel.sx
-              : {}),
-            "& .MuiFormLabel-asterisk": {
-              color: "#FB2020", // Red asterisk
+const TextFieldStyled = styled(
+  ({
+    label,
+    required = false,
+    tooltipTitle,
+    isTooltipRequired = false,
+    ...rest
+  }: TextFieldStyledProps) => {
+    return (
+      <FormControl fullWidth variant="outlined">
+        <InputLabel
+          sx={{
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "#121212",
+            backgroundColor: "#fff",
+            px: "4px",
+            "&.Mui-focused": {
+              color: "#121212",
             },
-          } as InputLabelProps["sx"],
-        },
-      }}
-    />
-  );
-})<TextFieldProps>(({ multiline }) => ({
+            "& .MuiFormLabel-asterisk": {
+              color: "#FB2020",
+            },
+          }}
+          shrink
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Typography variant="body1" color="#121212" fontWeight={500}>
+              {label}
+            </Typography>
+            {required && <Typography color="#FB2020">*</Typography>}
+            {isTooltipRequired && <TooltipComponent title={tooltipTitle} />}
+          </Box>
+        </InputLabel>
+        <TextField {...rest}/>
+      </FormControl>
+    );
+  }
+)<TextFieldProps>(({ multiline }) => ({
   "& .MuiOutlinedInput-root": {
     height: multiline ? "auto" : "52px", // Conditional height
     borderRadius: "8px",
@@ -78,3 +103,4 @@ const TextFieldStyled = styled((props: TextFieldProps) => {
 }));
 
 export default TextFieldStyled;
+

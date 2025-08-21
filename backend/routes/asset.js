@@ -66,9 +66,9 @@ router.get('/', async (req, res) => {
 });
 
 
-router.get("/download-assets", async (req, res) => {
+router.get("/export-assets", async (req, res) => {
     try {
-        await AssetService.downloadAssetCSV(res);
+        await AssetService.exportAssetCSV(res);
     } catch (err) {
         console.log(Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_CSV ,err);
         res.status(HttpStatus.NOT_FOUND).json({

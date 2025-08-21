@@ -1,23 +1,19 @@
 import { AssetForm } from "@/types/asset";
 import { Filter } from "@/types/filter";
 
-interface APIResponse {
-  data: AssetForm[];
-  page: number;
-  total: number;
-  totalPages: number;
-}
-
 //Function to fetch assets
 export const fetchAssets = async (
   page: number,
   limit: number,
   searchPattern?: string, sort?: string, statusFilter?: string[], attributesFilter?: Filter[]
-): Promise<APIResponse> => {
-  const [sortBy, sortOrder] = (sort ?? '').split(':');;
+) => {
+  const [sortBy, sortOrder] = (sort ?? '').split(':');
   const params = new URLSearchParams();
-  if(page) params.append("page", page.toString());
-  if(limit) params.append("limit", limit.toString());
+  params.append("page", JSON.stringify(page));
+  params.append("limit", JSON.stringify(limit));
+  params.append("search", searchPattern ?? '');
+  params.append("sort_by", sortBy);
+  params.append("sort_order", sortOrder);
 
   const transformAssetData = (data: any[]): AssetForm[] => {
     params.append("search", searchPattern?? '');
@@ -41,12 +37,13 @@ export const fetchAssets = async (
     }
     return data.map((item) => ({
       id: item.id,
-      asset_code: item.asset_code,
+      assetCode: item.asset_code,
+      applicationName: item.application_name,
       assetName: item.asset_name,
       assetCategory: item.asset_category,
       assetDescription: item.asset_description,
-      assetOwner: item.asset_owner,
-      assetITOwner: item.asset_it_owner,
+      applicationOwner: item.application_owner,
+      applicationITOwner: item.application_it_owner,
       isThirdPartyManagement: item.is_third_party_management,
       thirdPartyName: item.third_party_name,
       thirdPartyLocation: item.third_party_location,
@@ -54,21 +51,21 @@ export const fetchAssets = async (
       hostingFacility: item.hosting_facility,
       cloudServiceProvider: item.cloud_service_provider,
       geographicLocation: item.geographic_location,
-      isRedundancy: item.is_redundancy,
+      hasRedundancy: item.has_redundancy,
       databases: item.databases,
-      isNetworkSegmentation: item.is_network_segmentation,
+      hasNetworkSegmentation: item.has_network_segmentation,
       networkName: item.network_name,
-      related_processes: item.related_processes,
+      relatedProcesses: item.related_processes,
       attributes: item.attributes,
-      lastUpdated: item.updated_at,
+      updatedAt: item.updated_at,
       createdAt: item.created_at,
       status: item.status,
+      industry: item.industry,
+      domain: item.domain,
     }));
   };
   const response = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_API_URL
-    }/library/asset?${params.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset?${params}`,
     {
       method: "GET",
       headers: {
@@ -81,32 +78,33 @@ export const fetchAssets = async (
   }
   const res = await response.json();
   if (res.data.data) res.data.data = transformAssetData(res.data.data);
-  console.log(res.data);
   return res.data;
 };
 
 //Function to create an asset
 export const createAsset = async (data: AssetForm) => {
   const assetData = {
-    "asset_name": data.assetName,
-    "asset_category": data.assetCategory,
-    "asset_description": data.assetDescription,
-    "asset_owner": data.assetOwner,
-    "asset_it_owner": data.assetITOwner,
-    "is_third_party_management": data.isThirdPartyManagement,
-    "third_party_name": data.thirdPartyName,
-    "third_party_location": data.thirdPartyLocation,
-    "hosting": data.hosting,
-    "hosting_facility": data.hostingFacility,
-    "cloud_service_provider": data.cloudServiceProvider,
-    "geographic_location": data.geographicLocation,
-    "is_redundancy": data.isRedundancy,
-    "databases": data.databases,
-    "is_network_segmentation": data.isNetworkSegmentation,
-    "network_name": data.networkName,
-    "status": data.status,
-    "related_processes": data.related_processes,
-    "attributes": data.attributes,
+    asset_category: data.assetCategory,
+    asset_description: data.assetDescription,
+    application_name: data.applicationName,
+    application_owner: data.applicationOwner,
+    application_it_owner: data.applicationITOwner,
+    is_third_party_management: data.isThirdPartyManagement,
+    third_party_name: data.thirdPartyName,
+    third_party_location: data.thirdPartyLocation,
+    hosting: data.hosting,
+    hosting_facility: data.hostingFacility,
+    cloud_service_provider: data.cloudServiceProvider,
+    geographic_location: data.geographicLocation,
+    has_redundancy: data.hasRedundancy,
+    databases: data.databases,
+    has_network_segmentation: data.hasNetworkSegmentation,
+    network_name: data.networkName,
+    status: data.status,
+    related_processes: data.relatedProcesses,
+    attributes: data.attributes,
+    industry: data.industry,
+    domain: data.domain,
   };
   console.log(assetData);
   const response = await fetch(
@@ -131,30 +129,29 @@ export const createAsset = async (data: AssetForm) => {
 };
 
 //Function to update an asset
-export const updateAsset = async (
-  id: number,
-  data: AssetForm
-) => {
+export const updateAsset = async (id: number, data: AssetForm) => {
   const assetData = {
-    "asset_name": data.assetName,
-    "asset_category": data.assetCategory,
-    "asset_description": data.assetDescription,
-    "asset_owner": data.assetOwner,
-    "asset_it_owner": data.assetITOwner,
-    "is_third_party_management": data.isThirdPartyManagement,
-    "third_party_name": data.thirdPartyName,
-    "third_party_location": data.thirdPartyLocation,
-    "hosting": data.hosting,
-    "hosting_facility": data.hostingFacility,
-    "cloud_service_provider": data.cloudServiceProvider,
-    "geographic_location": data.geographicLocation,
-    "is_redundancy": data.isRedundancy,
-    "databases": data.databases,
-    "is_network_segmentation": data.isNetworkSegmentation,
-    "network_name": data.networkName,
-    "status": data.status,
-    "related_processes": data.related_processes,
-    "attributes": data.attributes,
+    asset_category: data.assetCategory,
+    asset_description: data.assetDescription,
+    application_name: data.applicationName,
+    application_owner: data.applicationOwner,
+    application_it_owner: data.applicationITOwner,
+    is_third_party_management: data.isThirdPartyManagement,
+    third_party_name: data.thirdPartyName,
+    third_party_location: data.thirdPartyLocation,
+    hosting: data.hosting,
+    hosting_facility: data.hostingFacility,
+    cloud_service_provider: data.cloudServiceProvider,
+    geographic_location: data.geographicLocation,
+    has_redundancy: data.hasRedundancy,
+    databases: data.databases,
+    has_network_segmentation: data.hasNetworkSegmentation,
+    network_name: data.networkName,
+    status: data.status,
+    related_processes: data.relatedProcesses,
+    attributes: data.attributes,
+    industry: data.industry,
+    domain: data.domain,
   };
 
   const response = await fetch(
@@ -200,6 +197,7 @@ export const updateAssetStatus = async (id: number, status: string) => {
     throw new Error("Failed to perforom the operation, Invalid arguments");
   }
   const reqBody = { status };
+  console.log(reqBody);
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/asset/update-status/${id}`,

@@ -63,9 +63,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get("/download-riskscenarios", async (req, res) => {
+router.get("/export-riskscenarios", async (req, res) => {
     try {
-        await RiskScenarioService.downloadRiskScenarioCSV(res);
+        await RiskScenarioService.exportRiskScenariosCSV(res);
     } catch (err) {
         console.log(Messages.RISK_SCENARIO.FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV ,err);
         res.status(HttpStatus.NOT_FOUND).json({

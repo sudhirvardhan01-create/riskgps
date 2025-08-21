@@ -167,7 +167,7 @@ class RiskScenarioService {
         return { message: Messages.RISK_SCENARIO.STATUS_UPDATED };
     }
 
-    static async downloadRiskScenarioCSV(res) {
+    static async exportRiskScenariosCSV(res) {
         const connection = await sequelize.connectionManager.getConnection();
 
         try {

@@ -16,7 +16,7 @@ const {GENERAL, PROCESS } = require("../constants/library");
 const CustomError = require("../utils/CustomError");
 const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
-
+// const { search } = require("../routes/process");
 
 class ProcessService {
     static async createProcess(data) {
@@ -206,7 +206,7 @@ class ProcessService {
         return { message: Messages.PROCESS.DELETED };
     }
 
-    static async exportProcessCSV(res) {
+    static async exportProcessesCSV(res) {
         const connection = await sequelize.connectionManager.getConnection();
 
         try {

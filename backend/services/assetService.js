@@ -173,7 +173,7 @@ class AssetService {
     }
 
 
-    static async downloadAssetCSV(res) {
+    static async exportAssetCSV(res) {
         const connection = await sequelize.connectionManager.getConnection();
 
         try {

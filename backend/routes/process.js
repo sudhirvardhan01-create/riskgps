@@ -99,9 +99,9 @@ router.post("/import-process", upload.single("file"), async (req, res) => {
     }
 })
 
-router.get("/export-process", async (req, res) => {
+router.get("/export-processes", async (req, res) => {
     try {
-        await ProcessService.exportProcessCSV(res);
+        await ProcessService.exportProcessesCSV(res);
     } catch (err) {
         console.log(Messages.PROCESS.FAILED_TO_EXPORT_PROCESS_CSV ,err);
         res.status(HttpStatus.NOT_FOUND).json({
