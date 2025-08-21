@@ -3,6 +3,21 @@ const router = express.Router();
 const ProcessService = require("../services/process");
 const Messages = require('../constants/messages');
 const HttpStatus = require('../constants/httpStatusCodes');
+const multer = require("multer");
+
+
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only CSV files are allowed"));
+    }
+  },
+});
+
 
 /**
  * @route POST /process
@@ -65,13 +80,32 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get("/download-processes", async (req, res) => {
+router.post("/import-process", upload.single("file"), async (req, res) => {
     try {
-        await ProcessService.downloadProcessCSV(res);
+        if (!req.file) {
+            throw new Error("File is required!")
+        }
+        const filePath = req.file.path;
+        const insertedRowCount = await ProcessService.importProcessesFromCSV(filePath);
+        res.status(HttpStatus.OK).json({
+            data: insertedRowCount,
+            msg: Messages.PROCESS.IMPORTED_SUCCESSFULLY
+        });
     } catch (err) {
-        console.log(Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV ,err);
+        console.log("Failed to upload process", err || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV);
+        res.status(HttpStatus.BAD_REQUEST).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV
+        });
+    }
+})
+
+router.get("/export-process", async (req, res) => {
+    try {
+        await ProcessService.exportProcessCSV(res);
+    } catch (err) {
+        console.log(Messages.PROCESS.FAILED_TO_EXPORT_PROCESS_CSV ,err);
         res.status(HttpStatus.NOT_FOUND).json({
-            error: err.message || Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_CSV
+            error: err.message || Messages.PROCESS.FAILED_TO_EXPORT_PROCESS_CSV
         });
     }
 });

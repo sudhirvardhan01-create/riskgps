@@ -43,7 +43,10 @@ module.exports = {
         CREATED: 'Process created successfully.',
         UPDATED: 'Process updated successfully.',
         DELETED: 'Process deleted successfully.',
+        FETCHED: 'Fetched all process successfully.',
         STATUS_UPDATED: 'Process status updated successfully.',
+        IMPORTED_SUCCESSFULLY: "Process imported successfully",
+        EXPORTED_SUCCESSFULLY: "Process exported successfully",
         INVALID_STATUS: 'Invalid status provided.',
         INVALID_RELATIONSHIP_TYPE: 'Invalid relationship type for process dependency.',
         MISSING_TARGET_ID: 'Missing or invalid target_process_id.',
@@ -54,7 +57,8 @@ module.exports = {
         PROCESS_NAME_REQUIRED: 'process_name is required.',
         INVALID_VALUE: 'Invalid Value for Status.',
         FETCHED_BY_ID: 'Fetched process by ID successfully.',
-        FAILED_TO_DOWNLOAD_PROCESS_CSV:' Failed to download process CSV'
+        FAILED_TO_IMPORT_PROCESS_CSV:' Failed to import process CSV',
+        FAILED_TO_EXPORT_PROCESS_CSV:' Failed to export process CSV'
 
     },
     RISK_SCENARIO: {

@@ -206,7 +206,7 @@ class ProcessService {
         return { message: Messages.PROCESS.DELETED };
     }
 
-    static async downloadProcessCSV(res) {
+    static async exportProcessCSV(res) {
         const connection = await sequelize.connectionManager.getConnection();
 
         try {
@@ -257,6 +257,45 @@ class ProcessService {
             throw new Error(err);
         }
     }
+
+    static async importProcessesFromCSV (filePath) {
+    return new Promise((resolve, reject) => {
+        const rows = [];
+
+        fs.createReadStream(filePath)
+        .pipe(parse({ headers: true }))
+        .on("error", (error) => reject(error))
+        .on("data", (row) => {
+            rows.push({
+            process_name: row["Process Name"],
+            process_description: row["Process Description"],
+            senior_executive__owner_name: row["Senior Executive Name"],
+            senior_executive__owner_email: row["Senior Executive Email"],
+            operations__owner_name: row["Operations Owner Name"],
+            operations__owner_email: row["Operations Owner Email"],
+            technology_owner_name: row["Technology Owner Name"],
+            technology_owner_email: row["Technology Owner Email"],
+            organizational_revenue_impact_percentage: row["Oraganizational Revenue Impact Percentage"],
+            financial_materiality: row["Financial Materiality"],
+            third_party_involvement: row["Third Party Involvement"],
+            users_customers: row["Users"],
+            regulatory_and_compliance: row["Regulatory and Compliance"],
+            criticality_of_data_processed: row["Criticality Of Data Processed"],
+            data_processed: row["Data Processes"],
+            status: "published"
+            });
+        })
+        .on("end", async () => {
+            try {
+            await Process.bulkCreate(rows, { ignoreDuplicates: true });
+            fs.unlinkSync(filePath); 
+            resolve(rows.length);
+            } catch (err) {
+            reject(err);
+            }
+        });
+    });
+    };
 
     static validateProcessData = (data) => {
     const { process_name, status } = data;
