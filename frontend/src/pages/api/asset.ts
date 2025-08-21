@@ -5,19 +5,22 @@ import { Filter } from "@/types/filter";
 export const fetchAssets = async (
   page: number,
   limit: number,
-  searchPattern?: string, sort?: string, statusFilter?: string[], attributesFilter?: Filter[]
+  searchPattern?: string,
+  sort?: string,
+  statusFilter?: string[],
+  attributesFilter?: Filter[]
 ) => {
-  const [sortBy, sortOrder] = (sort ?? '').split(':');
+  const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
   params.append("limit", JSON.stringify(limit));
-  params.append("search", searchPattern ?? '');
+  params.append("search", searchPattern ?? "");
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
 
   const transformAssetData = (data: any[]): AssetForm[] => {
-    params.append("search", searchPattern?? '');
-    params.append("sort_by",sortBy);
+    params.append("search", searchPattern ?? "");
+    params.append("sort_by", sortBy);
     params.append("sort_order", sortOrder);
 
     if (statusFilter && statusFilter?.length > 0) {
@@ -33,7 +36,7 @@ export const fetchAssets = async (
         })
         .join(";");
 
-        params.append("attributes", paramString);
+      params.append("attributes", paramString);
     }
     return data.map((item) => ({
       id: item.id,
@@ -215,4 +218,21 @@ export const updateAssetStatus = async (id: number, status: string) => {
   const res = await response.json();
   console.log(res);
   return res.data;
+};
+
+//Function to export the assets
+export const exportAssets = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/export-assets`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if(!response.ok){
+    throw new Error("Failed to export the assets");
+  }
+  return response; 
 };

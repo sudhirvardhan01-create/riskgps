@@ -67,6 +67,7 @@ export default function AssetContainer() {
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
    const [selectedAsset, setSelectedAsset] = useState<AssetForm | null>(null);
 
@@ -240,25 +241,29 @@ export default function AssetContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
+      metaDatas,
       addButtonText: "Add Asset",
       addAction: () => setIsAddOpen(true),
       sortItems,
       onImport: () => setIsFileUploadOpen(true),
-      onExport: () => console.log("Exported"),
+      onExport: () => handleExportAssets(),
       searchPattern,
       setSearchPattern,
       sort,
       setSort,
+      statusFilters,
+      setStatusFilters,
       filters,
       setFilters
     }),
     [filters]
   );
 
+  //Function for Form Validation
   const handleFormValidation = async (status: string) => {
     try{
-      const res = await AssetService.fetch(0, 1, assetFormData.applicationName, "asset_code:asc");
-      if(res.data?.length > 0 && res.data[0].applicationName === assetFormData.applicationName){
+      const res = await AssetService.fetch(0, 1, assetFormData.applicationName.trim(), "asset_code:asc");
+      if(res.data?.length > 0 && res.data[0].applicationName === assetFormData.applicationName.trim()){
       setToast({
         open: true,
         message: `Asset Name already exists`,
@@ -275,6 +280,25 @@ export default function AssetContainer() {
         severity: "error",
       });
     } 
+  }
+
+  //Function to export the assets
+  const handleExportAssets = async () => {
+    try {
+      await AssetService.export();
+      setToast({
+        open: true,
+        message: `Assets exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the assets",
+        severity: "error",
+      });
+    }
   }
 
   return (

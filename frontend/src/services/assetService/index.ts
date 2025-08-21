@@ -4,6 +4,7 @@ import {
   fetchAssets,
   updateAsset,
   updateAssetStatus,
+  exportAssets
 } from "@/pages/api/asset";
 
 export const AssetService = {
@@ -12,4 +13,5 @@ export const AssetService = {
   update: (id: number, body: any) => updateAsset(id, body),
   delete: (id: number) => deleteAsset(id),
   updateStatus: (id: number, status: string) => updateAssetStatus(id, status),
+  export: () => exportAssets()
 };
