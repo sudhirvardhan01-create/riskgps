@@ -54,7 +54,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-
   const [isAssetThirdPartyManaged, setIsAssetThirdPartyManaged] =
     useState<boolean>(false);
 
@@ -62,6 +61,21 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<
     number | null
   >();
+
+  const assetCategoryItems = [
+    "Windows",
+    "macOS",
+    "Linux",
+    "Office 365",
+    "Azure AD",
+    "Google Workspace",
+    "SaaS",
+    "IaaS",
+    "Network Devices",
+    "Containers",
+    "Android",
+    "iOS",
+  ];
 
   const handleChange = useCallback(
     (field: keyof AssetForm, value: any) => {
@@ -240,7 +254,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               value={assetFormData.assetCategory}
               label={labels.assetCategory}
               displayEmpty
-              onChange={(e) => handleChange("assetCategory", e.target.value as string[])}
+              onChange={(e) =>
+                handleChange("assetCategory", e.target.value as string[])
+              }
               renderValue={(selected: any) => {
                 if (!selected) {
                   return (
@@ -268,9 +284,26 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 }
               }}
             >
-              {metaDatas?.find((item) => item.name === "Asset Category")?.supported_values?.map((item : string) => {
-                return (<MenuItem key={item} value={item}>{item}</MenuItem>)
-              })}
+              {metaDatas?.find((item) => item.name === "Asset Category")
+                ?.supported_values &&
+              metaDatas?.find((item) => item.name === "Asset Category")
+                ?.supported_values?.length > 0
+                ? metaDatas
+                    ?.find((item) => item.name === "Asset Category")
+                    ?.supported_values?.map((item: string) => {
+                      return (
+                        <MenuItem key={item} value={item}>
+                          {item}
+                        </MenuItem>
+                      );
+                    })
+                : assetCategoryItems.map((item) => {
+                    return (
+                      <MenuItem key={item} value={item}>
+                        {item}
+                      </MenuItem>
+                    );
+                  })}
             </SelectStyled>
           </Grid>
 
@@ -952,7 +985,10 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
             onClick={() => {
               onSubmit("published");
             }}
-            disabled={assetFormData.applicationName === "" || assetFormData.assetCategory?.length === 0}
+            disabled={
+              assetFormData.applicationName === "" ||
+              assetFormData.assetCategory?.length === 0
+            }
             disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>

@@ -255,16 +255,27 @@ export default function AssetContainer() {
     [filters]
   );
 
-  const handleFormValidation = async () => {
+  const handleFormValidation = async (status: string) => {
     try{
-      const res = await AssetService.fetch(0, 1, "Customer Database", "asset_code:asc");
-      console.log(res.data);
+      const res = await AssetService.fetch(0, 1, assetFormData.applicationName, "asset_code:asc");
+      if(res.data?.length > 0 && res.data[0].applicationName === assetFormData.applicationName){
+      setToast({
+        open: true,
+        message: `Asset Name already exists`,
+        severity: "error",
+      });
+      }else{
+        handleCreate(status)
+      }
     } catch (error) {
       console.error(error);
-    } finally {
-    }
+      setToast({
+        open: true,
+        message: "Failed to create asset",
+        severity: "error",
+      });
+    } 
   }
-  handleFormValidation();
 
   return (
     <>
@@ -292,7 +303,8 @@ export default function AssetContainer() {
           setAssetFormData={setAssetFormData}
           processes={processesData}
           metaDatas={metaDatas}
-          onSubmit={handleCreate}
+          onSubmit={handleFormValidation}
+          // onSubmit={handleCreate}
           onClose={() => {
             setIsAddConfirmOpen(true);
           }}
