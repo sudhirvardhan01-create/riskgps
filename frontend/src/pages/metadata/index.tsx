@@ -15,12 +15,7 @@ import {
 import MetaDataCard from "@/components/meta-data/MetaDataCard";
 import React, { useState, useEffect } from "react";
 import { FilterAltOutlined, Search } from "@mui/icons-material";
-import {
-  fetchMetaDatas,
-  deleteMetaData,
-  createMetaData,
-  updateMetaData,
-} from "../api/meta-data";
+import { MetaDataService } from "@/services/metaDataService";
 import { MetaData } from "@/types/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastComponent from "@/components/ToastComponent";
@@ -67,7 +62,7 @@ const Index = () => {
     const getMetaDatas = async () => {
       try {
         setLoading(true);
-        const [meta] = await Promise.all([fetchMetaDatas()]);
+        const [meta] = await Promise.all([MetaDataService.fetch()]);
         setMetaDatas(meta.data ?? []);
       } catch (error) {
         console.error("Error while fetching metadata:", error);
@@ -82,7 +77,7 @@ const Index = () => {
   const handleDeleteMetaData = async () => {
     try {
       if (selectedMetaData?.id) {
-        const res = await deleteMetaData(selectedMetaData?.id as number);
+        const res = await MetaDataService.delete(selectedMetaData?.id as number);
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsDeleteMetaDataConfirmPopupOpen(false);
@@ -103,7 +98,7 @@ const Index = () => {
   const handleCreateMetaData = async () => {
     try {
       const reqBody = formData;
-      const res = await createMetaData(reqBody);
+      const res = await MetaDataService.create(reqBody);
       console.log(res);
       setFormData({
         name: "",
@@ -128,7 +123,7 @@ const Index = () => {
     try {
       if (selectedMetaData?.id) {
         const reqBody = selectedMetaData;
-        const res = await updateMetaData(reqBody.id as number, reqBody);
+        const res = await MetaDataService.update(reqBody.id as number, reqBody);
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsEditMetaDataModalOpen(false);
