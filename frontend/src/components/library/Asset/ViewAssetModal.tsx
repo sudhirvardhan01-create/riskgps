@@ -261,7 +261,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Cloud Service Provider
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.cloudServiceProvider ? assetData.cloudServiceProvider.join(", ") : "-"}
+                {assetData.cloudServiceProvider && assetData.cloudServiceProvider?.length > 0 ? assetData.cloudServiceProvider.join(", ") : "-"}
               </Typography>
             </Box>
           </Grid>
