@@ -52,6 +52,7 @@ export default function RiskScenarioContainer() {
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
   const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
 
@@ -71,7 +72,7 @@ export default function RiskScenarioContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await RiskScenarioService.fetch(page, rowsPerPage, searchPattern, sort, filters);
+      const data = await RiskScenarioService.fetch(page, rowsPerPage, searchPattern, sort, statusFilters, filters);
       setRiskScenarioData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -80,7 +81,7 @@ export default function RiskScenarioContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort, filters]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
@@ -174,6 +175,7 @@ export default function RiskScenarioContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
+      metaDatas,
       addButtonText: "Add Risk Scenario",
       addAction: () => setIsAddOpen(true),
       sortItems,
@@ -181,6 +183,8 @@ export default function RiskScenarioContainer() {
       setSearchPattern,
       sort,
       setSort,
+      statusFilters,
+      setStatusFilters,
       filters,
       setFilters
     }),

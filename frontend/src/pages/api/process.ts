@@ -1,8 +1,7 @@
 import { Filter } from "@/types/filter";
 import { ProcessData, ProcessDependency } from "@/types/process";
-import { filter } from "d3";
 
-export const fetchProcesses = async (page: number, limit: number, searchPattern?: string, sort?: string, filters?: Filter[]) => {
+export const fetchProcesses = async (page: number, limit: number, searchPattern?: string, sort?: string, statusFilter?: string[], attributesFilter?: Filter[]) => {
   const [sortBy, sortOrder] = (sort ?? '').split(':');;
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
@@ -11,13 +10,20 @@ export const fetchProcesses = async (page: number, limit: number, searchPattern?
   params.append("sort_by",sortBy);
   params.append("sort_order", sortOrder);
 
-  if (filter.length > 0) {
-    const statusFilter = filters?.find((f) => "status" in f);
+  if (statusFilter && statusFilter?.length > 0) {
+    const joinedStatusFilter = statusFilter.join(",");
+    params.append("status", joinedStatusFilter);
+  }
 
-    if (statusFilter) {
-      const joinedStatusFilter = statusFilter.status.join(",");
-      params.append("status", joinedStatusFilter);
-    }
+  if (attributesFilter && attributesFilter?.length) {
+    const paramString = attributesFilter
+      .map((obj) => {
+        const [key, values] = Object.entries(obj)[0]; // each object has one key
+        return `${key}:${values.join(",")}`;
+      })
+      .join(";");
+
+      params.append("attributes", paramString);
   }
 
 

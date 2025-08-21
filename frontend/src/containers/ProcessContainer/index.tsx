@@ -59,6 +59,7 @@ export default function ProcessContainer() {
   const [searchPattern, setSearchPattern] = useState<string> ();
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
 
   const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(null);
@@ -80,7 +81,7 @@ export default function ProcessContainer() {
     try {
       console.log(filters)
       setLoading(true);
-      const data = await ProcessService.fetch(page, rowsPerPage, searchPattern as string, sort, filters);
+      const data = await ProcessService.fetch(page, rowsPerPage, searchPattern as string, sort, statusFilters, filters);
       setProcessesData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -89,7 +90,7 @@ export default function ProcessContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort, filters]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
@@ -102,6 +103,7 @@ export default function ProcessContainer() {
         setLoading(true);
         const [meta] = await Promise.all([fetchMetaDatas()]);
         setMetaDatas(meta.data ?? []);
+        console.log(meta.data)
       } catch (err) {
         console.error(err);
         setToast({ open: true, message: "Failed to fetch supporting data", severity: "error" });
@@ -183,6 +185,7 @@ export default function ProcessContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
+      metaDatas,
       addButtonText: "Add Process",
       addAction: () => setIsAddOpen(true),
       sortItems,
@@ -190,9 +193,11 @@ export default function ProcessContainer() {
       setSearchPattern,
       sort,
       setSort,
+      statusFilters,
+      setStatusFilters,
       filters,
       setFilters
-    }),[filters]
+    }),[statusFilters, filters, metaDatas]
   );
 
   return (
@@ -292,7 +297,7 @@ export default function ProcessContainer() {
 
       {/* Page content */}
       <Box p={5}>
-        <LibraryHeader {...headerProps} />
+        {<LibraryHeader {...headerProps} /> }
         <ProcessList
           loading={loading}
           data={processesData}
