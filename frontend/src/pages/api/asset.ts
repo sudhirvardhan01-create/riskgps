@@ -221,18 +221,29 @@ export const updateAssetStatus = async (id: number, status: string) => {
 };
 
 //Function to export the assets
-export const exportAssets = async () => {
+export const exportAssets = async (endpoint: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/export-assets`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset${endpoint}`,
     {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
+        Accept: "application/octet-stream",
       },
     }
   );
-  if(!response.ok){
-    throw new Error("Failed to export the assets");
+  if (!response.ok) {
+    throw new Error("Failed to export.");
   }
-  return response; 
+  const blob = await response.blob();
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "assets.csv";
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
 };

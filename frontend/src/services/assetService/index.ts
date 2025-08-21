@@ -13,5 +13,5 @@ export const AssetService = {
   update: (id: number, body: any) => updateAsset(id, body),
   delete: (id: number) => deleteAsset(id),
   updateStatus: (id: number, status: string) => updateAssetStatus(id, status),
-  export: () => exportAssets()
+  export: (endpoint : string) => exportAssets(endpoint)
 };

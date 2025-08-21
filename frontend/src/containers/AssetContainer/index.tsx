@@ -285,7 +285,7 @@ export default function AssetContainer() {
   //Function to export the assets
   const handleExportAssets = async () => {
     try {
-      await AssetService.export();
+      await AssetService.export("/export-assets");
       setToast({
         open: true,
         message: `Assets exported successfully`,
