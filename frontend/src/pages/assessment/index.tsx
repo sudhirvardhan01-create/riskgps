@@ -22,27 +22,7 @@ interface Assessment {
   };
 }
 
-const AssessmentDashboard = () => {
-  const [tabValue, setTabValue] = useState(0);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedAssessment, setSelectedAssessment] = useState<string | null>(
-    null
-  );
-
-  const handleMenuClick = (
-    event: React.MouseEvent<HTMLElement>,
-    runId: string
-  ) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedAssessment(runId);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedAssessment(null);
-  };
-
-  const mockData: Assessment[] = [
+const mockData: Assessment[] = [
     {
       runId: "6299",
       org: "ABC Company",
@@ -104,6 +84,46 @@ const AssessmentDashboard = () => {
     { label: "Closed", value: 3 },
   ];
 
+const AssessmentDashboard = () => {
+  const [tabValue, setTabValue] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedAssessment, setSelectedAssessment] = useState<string | null>(
+    null
+  );
+  const [assessmentStatusFilter, setAssessmentStatusFilter] = useState(mockData)
+
+  const handleMenuClick = (
+    event: React.MouseEvent<HTMLElement>,
+    runId: string
+  ) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedAssessment(runId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedAssessment(null);
+  };
+
+  const handleStatusFilter = (ind: number) => {
+    setTabValue(ind)
+
+    switch(ind){
+      case 0: 
+        setAssessmentStatusFilter(mockData)
+        break;
+      case 1: 
+        setAssessmentStatusFilter(mockData.filter(item => item.status.progress < 100))
+        break;
+      case 2:
+        setAssessmentStatusFilter(mockData.filter(item => item.status.progress == 100 && !item.status.closed))
+        break;
+      case 3:
+        setAssessmentStatusFilter(mockData.filter(item => item.status.closed))
+        break;
+    }
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" color="#121212" fontWeight={600} mb={3}>
@@ -123,7 +143,7 @@ const AssessmentDashboard = () => {
               key={index}
               size="medium"
               variant="outlined"
-              onClick={() => setTabValue(index)}
+              onClick={() => handleStatusFilter(index)}
               sx={{
                 mr: 1,
                 borderRadius: 1,
@@ -170,7 +190,7 @@ const AssessmentDashboard = () => {
         </Box>
       </Box>
 
-      <AssessmentTable data={mockData} onMenuClick={handleMenuClick} />
+      <AssessmentTable data={assessmentStatusFilter} onMenuClick={handleMenuClick} />
 
       <Menu
         anchorEl={anchorEl}

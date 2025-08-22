@@ -65,6 +65,7 @@ const SideBar = () => {
               justifyContent: "center",
               color: "white",
               cursor: "pointer",
+              width: "90%",
               textAlign: "center",
               backgroundColor: isActive ? ACTIVE_BG : "transparent",
               transition: "background-color 150ms ease",
