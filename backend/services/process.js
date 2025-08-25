@@ -206,6 +206,41 @@ class ProcessService {
         return { message: Messages.PROCESS.DELETED };
     }
 
+    static async downloadProcessTemplateFile(res) {
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=process_template.csv"
+        );
+
+        const csvStream = format({ headers: true });
+        csvStream.pipe(res);
+
+        // Row 1: Clarifications / Instructions
+        csvStream.write({
+            "Process Name": "Enter application name (text)",
+            "Process Description": "Person/Dept responsible",
+            "Senior Executive Name": "Senior Executive Name",
+            "Senior Executive Email": "Senior Executive Email",
+            "Operations Owner Name": "If Yes above, enter vendor name",
+            "Operations Owner Email": "Vendor location (e.g., USA)",
+            "Technology Owner Name": "Technology Owner Name",
+            "Technology Owner Email": "Technology Owner Email",
+            "Oraganizational Revenue Impact Percentage": "Oraganizational Revenue Impact Percentage",
+            "Financial Materiality": "Financial Materiality",
+            "Third Party Involvement": "Yes / No",
+            "Users": "Users",
+            "Regulatory and Compliance": "regulations",
+            "Criticality Of Data Processed": "Criticality Of Data Processed",
+            "Data Processes": "Application / Database / Server / Other",
+            "Asset Description": "Short description of the asset",
+            
+        });
+
+        csvStream.end();
+    }
+
     static async exportProcessesCSV(res) {
         const connection = await sequelize.connectionManager.getConnection();
 
