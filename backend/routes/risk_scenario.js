@@ -3,6 +3,7 @@ const RiskScenarioService = require('../services/risk_scenario');
 const Messages = require('../constants/messages');
 const HttpStatus = require('../constants/httpStatusCodes');
 const router = express.Router();
+const multer = require("multer");
 
 
 const upload = multer({
