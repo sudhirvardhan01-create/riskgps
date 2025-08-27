@@ -34,36 +34,34 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     return (
         <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth slotProps={{
             paper: {
-                sx: { borderRadius: 2, border: '1px solid #E7E7E7'}
+                sx: { borderRadius: 2, border: '1px solid #E7E7E7', paddingTop: 2, paddingX: 1}
             }
         }}>
-            <IconButton onClick={onClose} size="small" sx={{ position: 'absolute', top: 4, right: 4, color: 'primary.main' }}>
+            <IconButton onClick={onClose} size="small" sx={{ position: 'absolute', top: 16, right: 16, color: 'primary.main', padding: 0 }}>
                 <CloseIcon fontSize="small" />
             </IconButton>
             <DialogTitle sx={{ textAlign: "center", mb: 0, pb: 1 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#484848' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
                     {title}
                 </Typography>
             </DialogTitle>
 
             <DialogContent>
-                <Typography variant="body2" sx={{ color: "#91939A", textAlign: 'center', fontWeight: 400 }}>{description}</Typography>
+                <Typography variant="body2" sx={{ color: "#91939A", textAlign: 'center', fontWeight: 500 }}>{description}</Typography>
             </DialogContent>
 
-            <DialogActions sx={{ display: 'flex', justifyContent: "center", pb: 3, gap: 3, alignItems: 'center' }}>
+            <DialogActions sx={{ display: 'flex', justifyContent: "center", pb: 3, gap: 3, alignItems: 'center', pt: 1.5 }}>
                 <Button
                     onClick={onClose}
                     variant="outlined"
                     sx={{
-                        color: "primary.main",
                         borderRadius: 1,
                         border: "1px solid #04139A",
                         px: 3,
-                        fontWeight: 400,
                         textTransform: "none",
                     }}
                 >
-                    {cancelText}
+                    <Typography variant="body1" color="primary.main" fontWeight={500}>{cancelText}</Typography>
                 </Button>
 
                 <Button
@@ -72,9 +70,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                     sx={{
                         backgroundColor: confirmColor,
                         borderRadius: 1,
-                        color: "#F4F4F4",
                         px: 3,
-                        fontWeight: 600,
                         textTransform: "none",
                         ml: '0 !important',
                         "&:hover": {
@@ -83,7 +79,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                         },
                     }}
                 >
-                    {confirmText}
+                    <Typography variant="body1" color="#F4F4F4" fontWeight={600}>{confirmText}</Typography>
                 </Button>
             </DialogActions>
         </Dialog>

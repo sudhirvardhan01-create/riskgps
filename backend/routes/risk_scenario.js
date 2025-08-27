@@ -38,7 +38,20 @@ router.get('/', async (req, res) => {
     try {
         const limit = parseInt(req.query?.limit) || 6;
         const page = parseInt(req.query?.page) || 0;
-        const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit);
+        const searchPattern = req.query.search || null;
+        const sortBy = req.query.sort_by || 'created_at';
+        const sortOrder = req.query.sort_order?.toUpperCase() || 'ASC';
+        const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+        const attrFilters = (req.query.attributes || "")
+          .split(";")
+          .map((expr) => {
+            if (!expr) return null;
+            const [metaDataKeyId, values] = expr.split(":");
+            return { metaDataKeyId, values: values.split(",") };
+          })
+          .filter(Boolean);
+        const scenarios = await RiskScenarioService.getAllRiskScenarios(page, limit, searchPattern, sortBy, sortOrder, statusFilter, attrFilters);
+        
         res.status(HttpStatus.OK).json({
             data: scenarios,
             msg: Messages.RISK_SCENARIO.FETCHED
@@ -46,6 +59,17 @@ router.get('/', async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
+});
+
+router.get("/export-riskscenarios", async (req, res) => {
+    try {
+        await RiskScenarioService.exportRiskScenariosCSV(res);
+    } catch (err) {
+        console.log(Messages.RISK_SCENARIO.FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.RISK_SCENARIO.FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV
         });
     }
 });

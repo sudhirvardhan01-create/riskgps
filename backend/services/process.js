@@ -6,19 +6,22 @@ const {
     MetaData,
     ProcessAttribute,
     RiskScenario,
+    Sequelize,
 } = require("../models");
+const { format } = require("@fast-csv/format");
+const QueryStream = require("pg-query-stream");
 
-const { STATUS_SUPPORTED_VALUES, PROCESS_RELATIONSHIP_TYPES } = require("../constants/library");
-const { validateProcessData } = require("../utils/process");
+const {GENERAL, PROCESS } = require("../constants/library");
+
 const CustomError = require("../utils/CustomError");
 const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
-
+// const { search } = require("../routes/process");
 
 class ProcessService {
     static async createProcess(data) {
         return await sequelize.transaction(async (t) => {
-            validateProcessData(data);
+            this.validateProcessData(data);
 
             const processData = this.handleProcessDataColumnMapping(data);
             console.log("Creating process with data:", processData);
@@ -37,18 +40,20 @@ class ProcessService {
         });
     }
 
-    static async getAllProcesses(page = 0, limit = 6, filters = {}) {
+    static async getAllProcesses(page = 0, limit = 6, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC', statusFilter = [], attrFilters = []) {
+        console.log("Fetching all processes");
+        
         const offset = page * limit;
-        const total = await Process.count();
-        const whereClause = {};
 
-        if (filters.name) {
-            whereClause.process_name = {
-                [Op.iLike]: `%${filters.name}%`,
-            };
+        if (!PROCESS.PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
+            sortBy = 'created_at';
         }
 
-        console.log("Fetching all processes");
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
+            sortOrder = 'ASC';
+        }
+
+        const whereClause = this.handleProcessFilters(searchPattern, statusFilter, attrFilters);
 
         const includeRelations = [
             {
@@ -70,10 +75,15 @@ class ProcessService {
         },
       ];
 
+        const total = await Process.count({
+            where: whereClause
+        });
+
         const data = await Process.findAll({
-            ...(limit > 0 ? { limit, offset } : {}),
-            order: [["created_at", "DESC"]],
-            include: includeRelations,
+          ...(limit > 0 ? { limit, offset } : {}),
+          where: whereClause,
+          order: [[sortBy, sortOrder]],
+          include: includeRelations,
         });
 
         let processes = data.map((s) => s.toJSON());
@@ -146,7 +156,7 @@ class ProcessService {
                 throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
             }
 
-            validateProcessData(data);
+            this.validateProcessData(data);
 
             const processData = this.handleProcessDataColumnMapping(data);
             await process.update(processData, { transaction: t });
@@ -167,7 +177,7 @@ class ProcessService {
     }
 
     static async updateProcessStatus(id, status) {
-        if (!STATUS_SUPPORTED_VALUES.includes(status)) {
+        if (!GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
             console.log("[updateProcessStatus] Invalid status:", status);
             throw new CustomError(Messages.PROCESS.INVALID_STATUS, HttpStatus.BAD_REQUEST);
         }
@@ -196,6 +206,109 @@ class ProcessService {
         return { message: Messages.PROCESS.DELETED };
     }
 
+    static async exportProcessesCSV(res) {
+        const connection = await sequelize.connectionManager.getConnection();
+
+        try {
+            const sql = `
+            SELECT *
+            FROM library_processes
+            ORDER BY created_at DESC
+            `;
+
+            const query = new QueryStream(sql);
+            const stream = connection.query(query);
+
+            res.setHeader("Content-disposition", "attachment; filename=processes.csv");
+            res.setHeader("Content-Type", "text/csv");
+
+            const csvStream = format({
+                headers: true,
+                transform: (row) => ({
+                    "Process ID": row.process_code,
+                    "Process Name": row.process_name,
+                    "Process Description": row.process_name,
+                    "Senior Executive Name": row.senior_executive__owner_name,
+                    "Senior Executive Email": row.senior_executive__owner_email,
+                    "Operations Owner Name": row.operations__owner_name,
+                    "Operations Owner Email": row.operations__owner_email,
+                    "Technology Owner Name": row.technology_owner_name,
+                    "Technology Owner Email": row.technology_owner_email,
+                    "Oraganizational Revenue Impact Percentage": row.organizational_revenue_impact_percentage,
+                    "Financial Materiality": row.financial_materiality,
+                    "Third Party Involvement": row.third_party_involvement,
+                    "Users": row.users_customers,
+                    "Regulatory and Compliance": row.regulatory_and_compliance,
+                    "Criticality Of Data Processed": row.criticality_of_data_processed,
+                    "Data Processes": row.data_processed,
+                    "Status": row.status,
+                    "Created At": row.created_at,
+                    "Updated At": row.updated_at,
+                }),
+            });
+
+            stream.on("end", () => {
+            sequelize.connectionManager.releaseConnection(connection);
+            });
+
+            stream.pipe(csvStream).pipe(res);
+        } catch (err) {
+            sequelize.connectionManager.releaseConnection(connection);
+            throw new Error(err);
+        }
+    }
+
+    static async importProcessesFromCSV (filePath) {
+    return new Promise((resolve, reject) => {
+        const rows = [];
+
+        fs.createReadStream(filePath)
+        .pipe(parse({ headers: true }))
+        .on("error", (error) => reject(error))
+        .on("data", (row) => {
+            rows.push({
+            process_name: row["Process Name"],
+            process_description: row["Process Description"],
+            senior_executive__owner_name: row["Senior Executive Name"],
+            senior_executive__owner_email: row["Senior Executive Email"],
+            operations__owner_name: row["Operations Owner Name"],
+            operations__owner_email: row["Operations Owner Email"],
+            technology_owner_name: row["Technology Owner Name"],
+            technology_owner_email: row["Technology Owner Email"],
+            organizational_revenue_impact_percentage: row["Oraganizational Revenue Impact Percentage"],
+            financial_materiality: row["Financial Materiality"],
+            third_party_involvement: row["Third Party Involvement"],
+            users_customers: row["Users"],
+            regulatory_and_compliance: row["Regulatory and Compliance"],
+            criticality_of_data_processed: row["Criticality Of Data Processed"],
+            data_processed: row["Data Processes"],
+            status: "published"
+            });
+        })
+        .on("end", async () => {
+            try {
+            await Process.bulkCreate(rows, { ignoreDuplicates: true });
+            fs.unlinkSync(filePath); 
+            resolve(rows.length);
+            } catch (err) {
+            reject(err);
+            }
+        });
+    });
+    };
+
+    static validateProcessData = (data) => {
+    const { process_name, status } = data;
+
+    if (!process_name) {
+        throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
+    }
+
+    if (!status || ( status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
+        throw new CustomError(Messages.PROCESS.INVALID_VALUE, HttpStatus.BAD_REQUEST);
+    }
+    };
+
     static handleProcessDataColumnMapping(data) {
         const fields = [
             "process_name",
@@ -216,14 +329,16 @@ class ProcessService {
             "status",
         ];
 
-        return Object.fromEntries(fields.map((key) => [key, data[key]]));
+        return Object.fromEntries(
+            fields.map((key) => [key, data[key] === "" ? null : data[key]])
+        );
     }
 
     static async handleProcessDependencies(sourceProcessId, dependencies, transaction) {
         for (const dependency of dependencies) {
             if (
                 !dependency.relationship_type ||
-                !PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
+                !PROCESS.PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
             ) {
                 console.log("Invalid relationship type in dependency:", dependency);
                 throw new CustomError(Messages.PROCESS.INVALID_RELATIONSHIP_TYPE, HttpStatus.BAD_REQUEST);
@@ -283,6 +398,47 @@ class ProcessService {
             );
         }
     }
+    static handleProcessFilters(searchPattern = null, statusFilter = [], attrFilters = [] ) {
+        let conditions = [];
+
+        if (searchPattern) {
+            conditions.push({
+                [Op.or]: [
+                    { process_name: { [Op.iLike]: `%${searchPattern}%` } },
+                    { process_description: { [Op.iLike]: `%${searchPattern}%` } },
+                ],
+            });
+        }
+
+        if (statusFilter.length > 0) {
+            conditions.push({ status: { [Op.in]: statusFilter } });
+        }
+
+        if (attrFilters.length > 0) {
+            let subquery = "";
+
+            attrFilters.forEach((filter, idx) => {
+            const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
+            if (isNaN(metaDataKeyId)) {
+                throw new Error("Invalid metaDataKeyId");
+            }
+
+            const valuesArray = filter.values.map((v) => sequelize.escape(v)).join(",");
+
+            if (idx > 0) subquery += " INTERSECT ";
+            subquery += `
+                SELECT "process_id"
+                FROM library_attributes_process_mapping
+                WHERE "meta_data_key_id" = ${metaDataKeyId}
+                AND "values" && ARRAY[${valuesArray}]::varchar[]
+            `;
+            });
+
+            conditions.push({ id: { [Op.in]: Sequelize.literal(`(${subquery})`) } });
+        }
+        return conditions.length > 0 ? { [Op.and]: conditions } : {};
+    }
+    
 }
 
 module.exports = ProcessService;

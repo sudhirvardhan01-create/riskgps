@@ -1,3 +1,4 @@
+import { Filter } from "@/types/filter";
 import { RiskScenarioData } from "@/types/risk-scenario";
 
 interface APIResponse {
@@ -23,10 +24,30 @@ export const fetchRiskScenarioById = async (id: number) => {
   return res.data;
 }
 
-export const fetchRiskScenarios = async (page: number, limit: number):Promise<APIResponse> => {
+export const fetchRiskScenarios = async (page: number, limit: number, searchPattern?: string, sort?: string, statusFilter?: string[], attributesFilter?: Filter[]):Promise<APIResponse> => {
+  const [sortBy, sortOrder] = (sort?? '').split(":");
   const params = new URLSearchParams();
   if (page) params.append("page", page.toString());
   if (limit) params.append("limit", limit.toString());
+  params.append("sort_by",sortBy);
+  params.append("sort_order", sortOrder);
+  params.append("search", searchPattern?? "");
+
+  if (statusFilter && statusFilter?.length > 0) {
+    const joinedStatusFilter = statusFilter.join(",");
+    params.append("status", joinedStatusFilter);
+  }
+
+  if (attributesFilter && attributesFilter?.length) {
+    const paramString = attributesFilter
+      .map((obj) => {
+        const [key, values] = Object.entries(obj)[0]; // each object has one key
+        return `${key}:${values.join(",")}`;
+      })
+      .join(";");
+
+      params.append("attributes", paramString);
+  }
 
   const transformRiskData = (data: any[]): RiskScenarioData[] => {
   return data.map((item) => ({

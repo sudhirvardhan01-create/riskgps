@@ -141,7 +141,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                 color="text.primary"
                 sx={{ textTransform: "capitalize" }}
               >
-                {metaData.input_type}
+                {metaData.input_type ? metaData.input_type : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -155,13 +155,13 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
                 Applies To
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {metaData.applies_to
+                { metaData.applies_to && metaData.applies_to?.length > 0 ? metaData.applies_to
                   ?.map((item) => {
                     return appliesToOptions?.find(
                       (option) => option.value === item
                     )?.label;
                   })
-                  .join(", ")}
+                  .join(", ") : "-"}
               </Typography>
             </Box>
           </Grid>

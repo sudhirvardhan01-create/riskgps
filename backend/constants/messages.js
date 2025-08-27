@@ -20,7 +20,14 @@ module.exports = {
         SERVER_ERROR: 'Something went wrong. Please try again later.',
         BAD_REQUEST: 'Bad request.',
         INVALID_INPUT: 'Invalid input.',
-        REQUIRED_FIELD_MISSING: 'Required field is missing'
+        REQUIRED_FIELD_MISSING: 'Required field is missing',
+    },
+    LIBARY: {
+        INVALID_STATUS_VALUE: 'Invalid value for status',
+        MISSING_ATTRIBUTE_FIELD: 'Each attribute must have meta_data_key_id and values.',
+        METADATA_NOT_FOUND: 'MetaData not found for provided key.',
+        INVALID_ATTRIBUTE_VALUE: 'Invalid value for one or more attributes.',
+
     },
     META_DATA: {
         NOT_FOUND: 'Meta data not found.',
@@ -36,7 +43,10 @@ module.exports = {
         CREATED: 'Process created successfully.',
         UPDATED: 'Process updated successfully.',
         DELETED: 'Process deleted successfully.',
+        FETCHED: 'Fetched all process successfully.',
         STATUS_UPDATED: 'Process status updated successfully.',
+        IMPORTED_SUCCESSFULLY: "Process imported successfully",
+        EXPORTED_SUCCESSFULLY: "Process exported successfully",
         INVALID_STATUS: 'Invalid status provided.',
         INVALID_RELATIONSHIP_TYPE: 'Invalid relationship type for process dependency.',
         MISSING_TARGET_ID: 'Missing or invalid target_process_id.',
@@ -46,7 +56,10 @@ module.exports = {
         METADATA_NOT_FOUND: 'MetaData not found for provided key.',
         PROCESS_NAME_REQUIRED: 'process_name is required.',
         INVALID_VALUE: 'Invalid Value for Status.',
-        FETCHED_BY_ID: 'Fetched process by ID successfully.'
+        FETCHED_BY_ID: 'Fetched process by ID successfully.',
+        FAILED_TO_IMPORT_PROCESS_CSV:' Failed to import process CSV',
+        FAILED_TO_EXPORT_PROCESS_CSV:' Failed to export process CSV'
+
     },
     RISK_SCENARIO: {
         CREATED: 'Risk Scenario created successfully.',
@@ -65,11 +78,25 @@ module.exports = {
         NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
         DELETED: 'Risk Scenario deleted successfully.',
         STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+        FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV:' Failed to download risk scenario CSV'
+
     },
     ASSET: {
+        NOT_FOUND: 'Asset not found.',
         CREATED: 'Asset created successfully.',
-        OBTAINED: 'Asset(s) retrieved successfully.',
         UPDATED: 'Asset updated successfully.',
-        DELETED: 'Asset deleted successfully.'
+        DELETED: 'Asset deleted successfully.',
+        FETCHED: 'Fetched all assets successfully.',
+        FETCHED_BY_ID: 'Fetched asset by ID successfully.',
+        APPLICATION_NAME_REQUIRED: 'Application name is required in asset data',
+        INVALID_PROCESS_MAPPING: 'Invalid Process Asset Mapping',
+        NOT_FOUND: (id) => `Asset not found for ID: ${id}`,
+        STATUS_UPDATED: 'Asset Scenario status updated successfully.',
+        INVALID_HOSTING_VALUE: 'Invalid value for hosting in assets',
+        INVALID_HOSTING_FACILITY_VALUE: 'Invalid value for hosting facility in assets',
+        INVALID_CLOUD_SERVICE_PROVIDER: 'Invalid value for cloud service provider',
+        INVALID_ASSET_CATEGORY: 'Invalid value for asset category',
+        FAILED_TO_DOWNLOAD_ASSET_CSV:' Failed to download asset CSV'
+        
     }
 };

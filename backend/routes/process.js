@@ -3,6 +3,21 @@ const router = express.Router();
 const ProcessService = require("../services/process");
 const Messages = require('../constants/messages');
 const HttpStatus = require('../constants/httpStatusCodes');
+const multer = require("multer");
+
+
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only CSV files are allowed"));
+    }
+  },
+});
+
 
 /**
  * @route POST /process
@@ -37,11 +52,23 @@ router.post('/', async (req, res) => {
  */
 router.get('/', async (req, res) => {
     try {
-        const filters = { name: req.query.name };
+        const searchPattern = req.query.search || null;
         const limit = parseInt(req.query?.limit) || 6;
         const page = parseInt(req.query?.page) || 0;
+        const sortBy = req.query.sort_by || 'created_at'
+        const sortOrder = req.query.sort_order?.toUpperCase() || 'DESC'
+        const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+        console.log(statusFilter)
+        const attrFilters = (req.query.attributes || "")
+          .split(";")
+          .map((expr) => {
+            if (!expr) return null;
+            const [metaDataKeyId, values] = expr.split(":");
+            return { metaDataKeyId, values: values.split(",") };
+          })
+          .filter(Boolean);
 
-        const processes = await ProcessService.getAllProcesses(page, limit, filters);
+        const processes = await ProcessService.getAllProcesses(page, limit, searchPattern, sortBy, sortOrder, statusFilter, attrFilters);
         res.status(HttpStatus.OK).json({
             data: processes,
             msg: Messages.PROCESS.FETCHED
@@ -49,6 +76,36 @@ router.get('/', async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
+});
+
+router.post("/import-process", upload.single("file"), async (req, res) => {
+    try {
+        if (!req.file) {
+            throw new Error("File is required!")
+        }
+        const filePath = req.file.path;
+        const insertedRowCount = await ProcessService.importProcessesFromCSV(filePath);
+        res.status(HttpStatus.OK).json({
+            data: insertedRowCount,
+            msg: Messages.PROCESS.IMPORTED_SUCCESSFULLY
+        });
+    } catch (err) {
+        console.log("Failed to upload process", err || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV);
+        res.status(HttpStatus.BAD_REQUEST).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV
+        });
+    }
+})
+
+router.get("/export-processes", async (req, res) => {
+    try {
+        await ProcessService.exportProcessesCSV(res);
+    } catch (err) {
+        console.log(Messages.PROCESS.FAILED_TO_EXPORT_PROCESS_CSV ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_EXPORT_PROCESS_CSV
         });
     }
 });
@@ -135,6 +192,7 @@ router.delete('/:id', async (req, res) => {
             msg: Messages.PROCESS.DELETED
         });
     } catch (err) {
+        console.log(err || Messages.PROCESS.NOT_FOUND);
         res.status(HttpStatus.NOT_FOUND).json({
             error: err.message || Messages.PROCESS.NOT_FOUND
         });

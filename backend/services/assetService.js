@@ -1,56 +1,46 @@
 const {
-    RiskScenario,
-    RiskScenarioAttribute,
-    MetaData,
-    sequelize,
-    Process,
-    ProcessRiskScenarioMappings,
-    Sequelize,
+  MetaData,
+  sequelize,
+  Process,
+  Asset,
+  AssetAttribute,
+  AssetProcessMappings,
+  Sequelize,
 } = require("../models");
 const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
-const { RISK_SCENARIO, GENERAL } = require("../constants/library");
+const { ASSETS, GENERAL } = require("../constants/library");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
 
-
-class RiskScenarioService {
-  static async createRiskScenario(data) {
+class AssetService {
+  static async createAsset(data) {
     return await sequelize.transaction(async (t) => {
-      console.log("[create risk scenario] request received", data);
+      console.log("[createAsset] Creating asset", data);
 
-      this.validateRiskScenarioData(data);
+      this.validateAssetData(data);
 
-      const riskScenarioData = this.handleRiskScenarioColumnMapping(data);
+      const assetData = this.handleAssetDataColumnMapping(data);
 
-      console.log(
-        "[createRiskScenario], risk scenario mapped values",
-        riskScenarioData
-      );
+      console.log("[createAsset], asset creation mapped values", assetData);
 
-      const scenario = await RiskScenario.create(riskScenarioData, {
-        transaction: t,
-      });
+      const asset = await Asset.create(assetData, { transaction: t });
 
-      await this.handleRiskScenarioProcessMapping(
-        scenario.id,
+      await this.handleAssetProcessMapping(
+        asset.id,
         data.related_processes ?? [],
         t
       );
 
-      await this.handleRiskScenarioAttributes(
-        scenario.id,
-        data.attributes ?? [],
-        t
-      );
+      await this.handleAssetAttributes(asset.id, data.attributes ?? [], t);
 
-      return scenario;
+      return asset;
     });
   }
 
-  static async getAllRiskScenarios(
+  static async getAllAssets(
     page = 0,
     limit = 6,
     searchPattern = null,
@@ -61,7 +51,7 @@ class RiskScenarioService {
   ) {
     const offset = page * limit;
 
-    if (!RISK_SCENARIO.RISK_SCENARIO_SORT_FIELDS.includes(sortBy)) {
+    if (!ASSETS.ASSET_ALLOWED_SORT_FILED.includes(sortBy)) {
       sortBy = "created_at";
     }
 
@@ -69,24 +59,23 @@ class RiskScenarioService {
       sortOrder = "ASC";
     }
 
-    const whereClause = this.handleRiskScenarioFilters(
+    const whereClause = this.handleAssetFilters(
       searchPattern,
       statusFilter,
       attrFilters
     );
 
-    const total = await RiskScenario.count({
+    const total = await Asset.count({
       where: whereClause,
     });
-
-    const data = await RiskScenario.findAll({
+    const data = await Asset.findAll({
       limit,
       offset,
       order: [[sortBy, sortOrder]],
       where: whereClause,
       include: [
         {
-          model: RiskScenarioAttribute,
+          model: AssetAttribute,
           as: "attributes",
           include: [{ model: MetaData, as: "metaData" }],
         },
@@ -94,25 +83,25 @@ class RiskScenarioService {
       ],
     });
 
-    const scenarios = data.map((s) => {
-      const scenario = s.toJSON();
-      scenario.industry = scenario.attributes
+    const assets = data.map((s) => {
+      const asset = s.toJSON();
+      asset.industry = asset.attributes
         ?.filter((a) => a.metaData?.name?.toLowerCase() === "industry")
         ?.flatMap((a) => a.values);
-      scenario.domain = scenario.attributes
+      asset.domain = asset.attributes
         ?.filter((a) => a.metaData?.name?.toLowerCase() === "domain")
         ?.flatMap((a) => a.values);
-      scenario.attributes = scenario.attributes.map((a) => ({
+      asset.attributes = asset.attributes.map((a) => ({
         meta_data_key_id: a.meta_data_key_id,
         values: a.values,
       }));
-      scenario.related_processes = scenario.processes.map((p) => p.id);
-      delete scenario.processes;
-      return scenario;
+      asset.related_processes = asset.processes.map((p) => p.id);
+      delete asset.processes;
+      return asset;
     });
 
     return {
-      data: scenarios,
+      data: assets,
       total,
       page,
       limit,
@@ -120,91 +109,76 @@ class RiskScenarioService {
     };
   }
 
-  static async getRiskScenarioById(id) {
-    const scenario = await RiskScenario.findByPk(id, {
+  static async getAssetById(id) {
+    const asset = await Asset.findByPk(id, {
       include: [
         {
-          model: RiskScenarioAttribute,
+          model: AssetAttribute,
           as: "attributes",
           include: [{ model: MetaData, as: "metaData" }],
         },
       ],
     });
+    console.log(asset);
 
-    if (!scenario) {
-      throw new CustomError(
-        Messages.RISK_SCENARIO.NOT_FOUND(id),
-        HttpStatus.NOT_FOUND
-      );
+    if (!asset) {
+      console.log("Asset not found with id", id);
+      throw new CustomError(Messages.ASSET.NOT_FOUND(id), HttpStatus.NOT_FOUND);
     }
 
-    return scenario;
+    return asset;
   }
 
-  static async updateRiskScenario(id, data) {
-    return await sequelize.transaction(async (t) => {
-      const scenario = await RiskScenario.findByPk(id, { transaction: t });
+  static async updateAsset(id, data) {
+    console.log("request received for updating asset", data);
 
-      if (!scenario) {
+    this.validateAssetData(data);
+
+    return await sequelize.transaction(async (t) => {
+      const asset = await Asset.findByPk(id, { transaction: t });
+
+      if (!asset) {
         throw new CustomError(
-          Messages.RISK_SCENARIO.NOT_FOUND(id),
+          Messages.ASSET.NOT_FOUND(id),
           HttpStatus.NOT_FOUND
         );
       }
 
-      this.validateRiskScenarioData(data);
+      this.validateAssetData(data);
 
-      const riskScenarioData = this.handleRiskScenarioColumnMapping(data);
+      const assetData = this.handleAssetDataColumnMapping(data);
 
-      const updatedRiskScenario = await scenario.update(riskScenarioData, {
+      const updatedAsset = await asset.update(assetData, { transaction: t });
+
+      await AssetAttribute.destroy({ where: { asset_id: id }, transaction: t });
+
+      await AssetProcessMappings.destroy({
+        where: { asset_id: id },
         transaction: t,
       });
 
-      await ProcessRiskScenarioMappings.destroy({
-        where: { risk_scenario_id: id },
-        transaction: t,
-      });
+      await this.handleAssetProcessMapping(id, data.related_processes ?? [], t);
 
-      await RiskScenarioAttribute.destroy({
-        where: { risk_scenario_id: id },
-        transaction: t,
-      });
+      await this.handleAssetAttributes(id, data.attributes ?? [], t);
 
-      await this.handleRiskScenarioProcessMapping(
-        scenario.id,
-        data.related_processes ?? [],
-        t
-      );
-
-      await this.handleRiskScenarioAttributes(
-        scenario.id,
-        data.attributes ?? [],
-        t
-      );
-
-      return updatedRiskScenario;
+      return updatedAsset;
     });
   }
 
-  static async deleteRiskScenarioById(id) {
-    const riskScenario = await RiskScenario.findByPk(id);
+  static async deleteAssetById(id) {
+    const asset = await Asset.findByPk(id);
 
-    if (!riskScenario) {
-      console.log("[deleteRiskScenario] Not found:", id);
-      throw new CustomError(
-        Messages.RISK_SCENARIO.NOT_FOUND(id),
-        HttpStatus.NOT_FOUND
-      );
+    if (!asset) {
+      console.log("[deleteAssetById] Not found:", id);
+      throw new CustomError(Messages.ASSET.NOT_FOUND(id), HttpStatus.NOT_FOUND);
     }
 
-    await riskScenario.destroy();
-    return { message: Messages.RISK_SCENARIO.DELETED };
+    await asset.destroy();
+    return { message: Messages.ASSET.DELETED };
   }
 
-  static async updateRiskScenarioStatus(id, status) {
-    const allowed_status_values = ["published", "not_published", "draft"];
-
-    if (!allowed_status_values.includes(status)) {
+  static async updateAssetStatus(id, status) {
+    if (!GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
       console.log("[updateRiskScenarioStatus] Invalid status:", id, status);
       throw new CustomError(
         Messages.RISK_SCENARIO.INVALID_STATUS,
@@ -212,21 +186,18 @@ class RiskScenarioService {
       );
     }
 
-    const [updatedRowsCount] = await RiskScenario.update(
+    const [updatedRowsCount] = await Asset.update(
       { status },
       { where: { id } }
     );
 
     if (updatedRowsCount === 0) {
-      console.log("[updateRiskScenarioStatus] Not found:", id);
-      throw new CustomError(
-        Messages.RISK_SCENARIO.NOT_FOUND(id),
-        HttpStatus.NOT_FOUND
-      );
+      console.log("[updateAssetStatus] Not found:", id);
+      throw new CustomError(Messages.ASSET.NOT_FOUND(id), HttpStatus.NOT_FOUND);
     }
 
-    console.log("[updateRiskScenarioStatus] Updated:", id, status);
-    return { message: Messages.RISK_SCENARIO.STATUS_UPDATED };
+    console.log("[updateAssetStatus] Updated:", id, status);
+    return { message: Messages.ASSET.STATUS_UPDATED };
   }
 
   static async importRiskScenariosFromCSV(filePath) {
@@ -256,37 +227,23 @@ class RiskScenarioService {
     });
   }
 
-  static async exportRiskScenariosCSV(res) {
+  static async exportAssetsCSV(res) {
     const connection = await sequelize.connectionManager.getConnection();
 
     try {
       const sql = `
             SELECT *
-            FROM library_risk_scenarios
+            FROM library_assets
             ORDER BY created_at DESC
             `;
 
       const query = new QueryStream(sql);
       const stream = connection.query(query);
 
-      res.setHeader(
-        "Content-disposition",
-        "attachment; filename=risk_scenarios.csv"
-      );
+      res.setHeader("Content-disposition", "attachment; filename=assets.csv");
       res.setHeader("Content-Type", "text/csv");
 
-      const csvStream = format({
-        headers: true,
-        transform: (row) => ({
-          "Risk Scenario ID": row.risk_code,
-          "Risk Scenario": row.risk_scenario,
-          "Risk Description": row.risk_description,
-          "Risk Statement": row.risk_statement,
-          Status: row.status,
-          "Created At": row.created_at,
-          "Updated At": row.updated_at,
-        }),
-      });
+      const csvStream = format({ headers: true });
 
       stream.on("end", () => {
         sequelize.connectionManager.releaseConnection(connection);
@@ -299,68 +256,130 @@ class RiskScenarioService {
     }
   }
 
-  static validateRiskScenarioData(data) {
-    const { risk_scenario, status } = data;
+  static validateAssetData(data) {
+    const {
+      application_name,
+      status,
+      hosting,
+      hosting_facility,
+      cloud_service_provider,
+      asset_category,
+    } = data;
 
-    if (!risk_scenario) {
-      console.log("[createRiskScenario] Missing risk_scenario");
+    if (!application_name) {
       throw new CustomError(
-        Messages.RISK_SCENARIO.REQUIRED,
+        Messages.ASSET.APPLICATION_NAME_REQUIRED,
         HttpStatus.BAD_REQUEST
       );
     }
 
     if (!status || ( status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
-      console.log("[createRiskScenario] Invalid status:", status);
       throw new CustomError(
-        Messages.RISK_SCENARIO.INVALID_STATUS,
+        Messages.LIBARY.INVALID_STATUS_VALUE,
         HttpStatus.BAD_REQUEST
       );
     }
+
+    if (hosting && !ASSETS.HOSTING_SUPPORTED_VALUES.includes(hosting)) {
+      throw new CustomError(
+        Messages.ASSET.INVALID_HOSTING_VALUE,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    if (
+      hosting_facility &&
+      !ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.includes(hosting_facility)
+    ) {
+      throw new CustomError(
+        Messages.ASSET.INVALID_HOSTING_FACILITY_VALUE,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    if (cloud_service_provider) {
+      if (
+        !Array.isArray(cloud_service_provider) ||
+        !cloud_service_provider.every((p) =>
+          ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(p)
+        )
+      ) {
+        throw new CustomError(
+          Messages.ASSET.INVALID_CLOUD_SERVICE_PROVIDER,
+          HttpStatus.BAD_REQUEST
+        );
+      }
+    }
+
+    if (asset_category) {
+      if (
+        !Array.isArray(asset_category) ||
+        !asset_category.every((category) =>
+          ASSETS.ASSET_CATEGORY.includes(category)
+        )
+      ) {
+        throw new CustomError(
+          Messages.ASSET.INVALID_ASSET_CATEGORY,
+          HttpStatus.BAD_REQUEST
+        );
+      }
+    }
   }
 
-  static handleRiskScenarioColumnMapping(data) {
+  static handleAssetDataColumnMapping(data) {
     const fields = [
-      "risk_scenario",
-      "risk_description",
-      "risk_statement",
+      "application_name",
+      "application_owner",
+      "application_it_owner",
+      "is_third_party_management",
+      "third_party_name",
+      "third_party_location",
+      "hosting",
+      "hosting_facility",
+      "cloud_service_provider",
+      "geographic_location",
+      "has_redundancy",
+      "databases",
+      "has_network_segmentation",
+      "network_name",
+      "asset_category",
+      "asset_name",
+      "asset_description",
       "status",
-      "risk_field_1",
-      "risk_field_2",
     ];
 
-      return Object.fromEntries(
-          fields.map((key) => [key, data[key] === "" ? null : data[key]])
-      );
+    return Object.fromEntries(
+    fields.map((key) => [key, data[key] === '' ? null : data[key]])
+    );
   }
 
-  static async handleRiskScenarioProcessMapping(
-    riskScenarioId,
+  static async handleAssetProcessMapping(
+    assetId,
     relatedProcesses,
     transaction
   ) {
     if (Array.isArray(relatedProcesses)) {
       for (const process of relatedProcesses) {
         if (typeof process !== "number" || process < 0) {
-          console.log("[RiskScenario] Invalid related process:", process);
+          console.log("[createAsset] Invalid related process:", process);
           throw new CustomError(
-            Messages.RISK_SCENARIO.INVALID_PROCESS_MAPPING,
+            Messages.ASSET.INVALID_PROCESS_MAPPING,
             HttpStatus.BAD_REQUEST
           );
         }
 
         const processData = await Process.findByPk(process);
         if (!processData) {
-          console.log("[RiskScenario] Related process not found:", process);
+          console.log("[createAsset] Related process not found:", process);
           throw new CustomError(
-            Messages.RISK_SCENARIO.INVALID_PROCESS_MAPPING,
+            Messages.ASSET.INVALID_PROCESS_MAPPING,
             HttpStatus.NOT_FOUND
           );
         }
 
-        await ProcessRiskScenarioMappings.create(
+        await AssetProcessMappings.create(
           {
-            risk_scenario_id: riskScenarioId,
+            asset_id: assetId,
             process_id: process,
           },
           { transaction }
@@ -369,11 +388,7 @@ class RiskScenarioService {
     }
   }
 
-  static async handleRiskScenarioAttributes(
-    riskScenarioId,
-    attributes,
-    transaction
-  ) {
+  static async handleAssetAttributes(assetId, attributes, transaction) {
     for (const attr of attributes) {
       if (!attr.meta_data_key_id || !attr.values) {
         console.log("Missing meta_data_key_id or values:", attr);
@@ -408,9 +423,9 @@ class RiskScenarioService {
         );
       }
 
-      await RiskScenarioAttribute.create(
+      await AssetAttribute.create(
         {
-          risk_scenario_id: riskScenarioId,
+          asset_id: assetId,
           meta_data_key_id: attr.meta_data_key_id,
           values: attr.values,
         },
@@ -419,7 +434,7 @@ class RiskScenarioService {
     }
   }
 
-  static handleRiskScenarioFilters(
+  static handleAssetFilters(
     searchPattern = null,
     statusFilter = [],
     attrFilters = []
@@ -429,9 +444,9 @@ class RiskScenarioService {
     if (searchPattern) {
       conditions.push({
         [Op.or]: [
-          { risk_scenario: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_description: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_statement: { [Op.iLike]: `%${searchPattern}%` } },
+          { application_name: { [Op.iLike]: `%${searchPattern}%` } },
+          { third_party_name: { [Op.iLike]: `%${searchPattern}%` } },
+          { geographic_location: { [Op.iLike]: `%${searchPattern}%` } },
         ],
       });
     }
@@ -455,8 +470,8 @@ class RiskScenarioService {
 
         if (idx > 0) subquery += " INTERSECT ";
         subquery += `
-                SELECT "risk_scenario_id"
-                FROM library_attributes_risk_scenario_mapping
+                SELECT "asset_id"
+                FROM library_attributes_asset_mapping
                 WHERE "meta_data_key_id" = ${metaDataKeyId}
                 AND "values" && ARRAY[${valuesArray}]::varchar[]
             `;
@@ -468,4 +483,4 @@ class RiskScenarioService {
   }
 }
 
-module.exports = RiskScenarioService;
+module.exports = AssetService;

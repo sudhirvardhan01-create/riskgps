@@ -45,7 +45,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(metaDatas)
+  console.log(processes);
   // State for related processes
   const [relatedProcesses, setRelatedProcesses] = React.useState<number[]>([]);
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<number | null>();
@@ -129,6 +129,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
       </DialogTitle>
 
       <DialogContent sx={{ pt: 2 }}>
+  
         <Grid container spacing={2} ml={5}>
           {/* Existing form fields */}
           <Grid mt={1} size={{ xs: 11 }}>
@@ -715,6 +716,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
           <Button
             sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
             variant="contained"
+            type="submit"
             onClick={() => {
               onSubmit("published");
             }}

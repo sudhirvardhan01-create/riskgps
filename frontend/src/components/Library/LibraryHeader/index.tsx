@@ -4,37 +4,47 @@ import {
   Box, Button, FormControl, InputAdornment, InputLabel,
   MenuItem, Select, Stack, TextField, Typography, useMediaQuery, useTheme
 } from "@mui/material";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import FilterComponent from "@/components/Library/FilterComponent";
+import { Filter } from "@/types/filter";
 
 
 interface Props {
   breadcrumbItems: any[];
+  metaDatas:any[];
   addButtonText: string;
   addAction: () => void;
   sortItems: { label: string; value: string }[];
-  // optional controlled props (for future extension)
-  searchValue?: string;
-  onSearchChange?: (val: string) => void;
+  // optional controlled props
+  onImport?: () => void;
+  isImportRequired?: boolean,
+  onExport?: () => void;
+  isExportRequired?: boolean,
+  searchPattern?: string;
+  setSearchPattern?: (val: string) => void;
   sortValue?: string;
-  onSortChange?: (val: string) => void;
+  setSort?: (val: string) => void;
+  statusFilters: string[];
+  setStatusFilters: Dispatch<SetStateAction<string[]>>
+  filters: Filter[];
+  setFilters: Dispatch<SetStateAction<Filter[]>>;
 }
 
-const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAction, sortItems, searchValue = "", onSearchChange, sortValue, onSortChange }) => {
+const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, metaDatas, addButtonText, addAction, sortItems, isImportRequired = true, onImport, isExportRequired =true, onExport, searchPattern = "", setSearchPattern, sortValue, setSort, statusFilters, setStatusFilters, filters, setFilters }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isOpenFilter, setIsOpenFilter] = useState(false);
-  const [localSearch, setLocalSearch] = useState(searchValue);
+  const [localSearch, setLocalSearch] = useState(searchPattern);
   const [localSort, setLocalSort] = useState(sortValue ?? sortItems[0]?.value ?? "");
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearch(e.target.value);
-    onSearchChange?.(e.target.value);
+    setSearchPattern?.(e.target.value);
   };
 
   const handleSortChange = (event: any) => {
     setLocalSort(event.target.value);
-    onSortChange?.(event.target.value);
+    setSort?.(event.target.value);
   };
 
   return (
@@ -43,11 +53,24 @@ const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAct
         <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" spacing={2} sx={{ mb: 2 }}>
           <Breadcrumb items={breadcrumbItems} />
 
+
+          <Stack direction={"row"} gap={2}>
+          {isImportRequired && <Button onClick={onImport} variant="outlined" sx={{ textTransform: "none", borderRadius: 1 }}>
+            <Typography variant="body1" fontWeight={600}>
+              Import
+            </Typography>
+          </Button>}
+          {isExportRequired && <Button onClick={onExport} variant="outlined" sx={{ textTransform: "none", borderRadius: 1}}>
+            <Typography variant="body1" fontWeight={600}>
+              Export
+            </Typography>
+          </Button>}  
           <Button onClick={addAction} variant="contained" sx={{ backgroundColor: "primary.main", textTransform: "none", borderRadius: 1, "&:hover": { backgroundColor: "#001080" } }}>
             <Typography variant="body1" fontWeight={600}>
               {addButtonText}
             </Typography>
           </Button>
+          </Stack>
         </Stack>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} useFlexGap flexWrap="wrap" justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }}>
@@ -86,7 +109,7 @@ const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, addButtonText, addAct
         </Stack>
       </Box>
 
-      <FilterComponent items={["Published", "Draft", "Disabled"]} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)} />
+      <FilterComponent metaDatas={metaDatas} statusFilters={statusFilters} setStatusFilters={setStatusFilters} filters={filters} setFilters={setFilters} items={["Published", "Draft", "Not Published"]} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)} />
     </>
   );
 };

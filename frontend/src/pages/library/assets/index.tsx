@@ -1,5 +1,8 @@
-function AssetLibraryPage() {
-  return <div>Asset Library</div>;
+import withAuth from "@/hoc/withAuth";
+import AssetContainer from "@/containers/AssetContainer";
+
+function AssetsPage() {
+  return <AssetContainer />;
 }
 
-export default AssetLibraryPage;
+export default withAuth(AssetsPage);

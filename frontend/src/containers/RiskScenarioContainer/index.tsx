@@ -11,6 +11,7 @@ import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario"
 import { RiskScenarioService } from "@/services/riskScenarioService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
+import { Filter } from "@/types/filter";
 
 const initialRiskData: RiskScenarioData = {
   riskScenario: "",
@@ -22,12 +23,15 @@ const initialRiskData: RiskScenarioData = {
 };
 
 const sortItems = [
-  { label: "Risk ID (Ascending)", value: "risk_asc" },
-  { label: "Risk ID (Descending)", value: "risk_desc" },
-  { label: "Created (Latest to Oldest)", value: "created_lto" },
-  { label: "Created (Oldest to Latest)", value: "created_otl" },
-  { label: "Updated (Latest to Oldest)", value: "updated_lto" },
-  { label: "Updated (Oldest to Latest)", value: "updated_otl" },
+  { label: "Risk ID (Ascending)", value: "id:asc" },
+  { label: "Risk ID (Descending)", value: "id:desc" },
+  { label: "Risk Name (Ascending)", value: "risk_scenario:asc" },
+  { label: "Risk Name (Descending)", value: "risk_scenario:desc" },
+
+  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
+  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
+  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
+  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
 ];
 
 const breadcrumbItems = [
@@ -42,9 +46,13 @@ export default function RiskScenarioContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [sort, setSort] = useState<string>('id:asc');
+  const [searchPattern, setSearchPattern] = useState<string> ();
   const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
   const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
 
@@ -64,7 +72,7 @@ export default function RiskScenarioContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await RiskScenarioService.fetch(page, rowsPerPage);
+      const data = await RiskScenarioService.fetch(page, rowsPerPage, searchPattern, sort, statusFilters, filters);
       setRiskScenarioData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -73,7 +81,7 @@ export default function RiskScenarioContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
@@ -167,11 +175,20 @@ export default function RiskScenarioContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
+      metaDatas,
       addButtonText: "Add Risk Scenario",
       addAction: () => setIsAddOpen(true),
       sortItems,
+      searchPattern,
+      setSearchPattern,
+      sort,
+      setSort,
+      statusFilters,
+      setStatusFilters,
+      filters,
+      setFilters
     }),
-    []
+    [filters]
   );
 
   return (
