@@ -57,4 +57,12 @@ module.exports = {
       "Other",
     ],
   },
+  META_DATA: {
+    META_DATA_ALLOWED_SORT_FIELDS: [
+      "id",
+      "created_at",
+      "updated_at",
+      "name",
+    ]
+  }
 };
