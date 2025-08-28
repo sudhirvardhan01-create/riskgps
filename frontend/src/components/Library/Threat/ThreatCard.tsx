@@ -1,8 +1,11 @@
 import { Box, Chip, Typography, Stack, FormControlLabel } from "@mui/material";
-import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from "@mui/icons-material";
+import {
+  DeleteOutlineOutlined,
+  DoneOutlined,
+  EditOutlined,
+} from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
-
 
 interface TagItem {
   label: string;
@@ -18,7 +21,7 @@ interface ThreatCardProps {
   handleUpdateStatus: (id: number, status: string) => void;
   threatTechniqueID: string;
   mitrePlatform?: string;
-  threatTechniqueName: string;  
+  threatTechniqueName: string;
   status: string;
   lastUpdated?: string | Date;
   tagItems: TagItem[];
@@ -46,7 +49,9 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
             <ToggleSwitch
               sx={{ m: 1 }}
               onChange={(e) => {
-                const updatedStatus = e.target.checked ? "published" : "not_published";
+                const updatedStatus = e.target.checked
+                  ? "published"
+                  : "not_published";
                 handleUpdateStatus(threatData.id as number, updatedStatus);
               }}
               checked={status === "published"}
@@ -90,8 +95,9 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
     },
   ];
 
-  const formattedDate =
-    lastUpdated ? new Date(lastUpdated as string | Date).toISOString().split("T")[0] : "";
+  const formattedDate = lastUpdated
+    ? new Date(lastUpdated as string | Date).toISOString().split("T")[0]
+    : "";
 
   return (
     <Box
@@ -106,15 +112,33 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
       }}
     >
       {/* Header */}
-      <Box sx={{ px: 3, py: 1, backgroundColor: "#F3F8FF", borderRadius: "8px 8px 0 0" }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap">
+      <Box
+        sx={{
+          px: 3,
+          py: 1,
+          backgroundColor: "#F3F8FF",
+          borderRadius: "8px 8px 0 0",
+        }}
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          flexWrap="wrap"
+        >
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography variant="body1" color={"text.primary"}>
               {threatTechniqueID}
             </Typography>
             <Chip
               label={
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Typography variant="body2" color="#91939A">
                     {"MITRE Platform:"}
                   </Typography>
@@ -126,7 +150,11 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
               }
               variant="outlined"
               size="small"
-              sx={{ borderRadius: 0.5, border: "1px solid #DDDDDD", height: 24 }}
+              sx={{
+                borderRadius: 0.5,
+                border: "1px solid #DDDDDD",
+                height: 24,
+              }}
             />
           </Stack>
 
@@ -134,7 +162,9 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
             <Typography variant="body2" color="textSecondary">
               Last Updated: {formattedDate}
             </Typography>
-            <Box sx={{ width: 96, mx: "24px !important" }}>{getStatusComponent()}</Box>
+            <Box sx={{ width: 96, mx: "24px !important" }}>
+              {getStatusComponent()}
+            </Box>
             <MenuItemComponent items={dialogData} />
           </Stack>
         </Stack>
@@ -156,10 +186,33 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
         <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center" }}>
           {tagItems.map((item, index) => (
             <>
-              <Typography variant="body2" color="text.primary">
-                {item.value} &nbsp; {item.label}
-              </Typography>
-              {index !== tagItems.length - 1 && <Typography color="#D9D9D9" sx={{ ml: 1.5 }}>•</Typography>}
+              <Chip
+                key={index}
+                label={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="#91939A">
+                      {item.label}
+                    </Typography>
+                    &nbsp;
+                    <Typography variant="body2" color="text.primary">
+                      {item.value}
+                    </Typography>
+                  </Box>
+                }
+                variant="outlined"
+                size="small"
+                sx={{
+                  borderRadius: 0.5,
+                  border: "1px solid #DDDDDD",
+                  height: 24,
+                }}
+              />
             </>
           ))}
         </Box>
