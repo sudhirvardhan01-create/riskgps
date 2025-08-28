@@ -11,7 +11,7 @@ import FileUpload from "@/components/FileUpload";
 import { Filter } from "@/types/filter";
 import ThreatList from "@/components/Library/Threat/ThreatList";
 import { ThreatForm } from "@/types/threat";
-import { fetchThreats } from "@/pages/api/threat";
+import { ThreatService } from "@/services/threatService";
 
 const initialThreatFormData: ThreatForm = {
     platforms: [],
@@ -88,7 +88,7 @@ export default function ThreatContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchThreats(
+      const data = await ThreatService.fetch(
         page,
         rowsPerPage,
         searchPattern as string,
@@ -242,7 +242,7 @@ export default function ThreatContainer() {
       addAction: () => setIsAddOpen(true),
       sortItems,
       onImport: () => setIsFileUploadOpen(true),
-      onExport: () => console.log("Exported"),
+      onExport: () => handleExportThreats(),
       searchPattern,
       setSearchPattern,
       sort,
@@ -286,24 +286,24 @@ export default function ThreatContainer() {
 //     }
 //   };
 
-  //Function to export the assets
-//   const handleExportAssets = async () => {
-//     try {
-//       await AssetService.export("/export-assets");
-//       setToast({
-//         open: true,
-//         message: `Assets exported successfully`,
-//         severity: "success",
-//       });
-//     } catch (error) {
-//       console.error(error);
-//       setToast({
-//         open: true,
-//         message: "Error: unable to export the assets",
-//         severity: "error",
-//       });
-//     }
-//   };
+  //Function to export the threats
+  const handleExportThreats = async () => {
+    try {
+      await ThreatService.export("/export-threats");
+      setToast({
+        open: true,
+        message: `Threats exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the threats",
+        severity: "error",
+      });
+    }
+  };
 
 
   const mitreData = [
