@@ -11,6 +11,7 @@ import FileUpload from "@/components/FileUpload";
 import { Filter } from "@/types/filter";
 import ThreatList from "@/components/Library/Threat/ThreatList";
 import { ThreatForm } from "@/types/threat";
+import { fetchThreats } from "@/pages/api/threat";
 
 const initialThreatFormData: ThreatForm = {
     platforms: [],
@@ -53,7 +54,7 @@ export default function ThreatContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>("asset_code:asc");
+  const [sort, setSort] = useState<string>("id:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
   const [threatsData, setThreatsData] = useState<ThreatForm[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
@@ -84,32 +85,34 @@ export default function ThreatContainer() {
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   // fetch list
-//   const loadList = useCallback(async () => {
-//     try {
-//       setLoading(true);
-//       const data = await AssetService.fetch(
-//         page,
-//         rowsPerPage,
-//         searchPattern as string,
-//         sort
-//       );
-//       setAssetsData(data?.data ?? []);
-//       setTotalRows(data?.total ?? 0);
-//     } catch (err) {
-//       console.error(err);
-//       setToast({
-//         open: true,
-//         message: "Failed to fetch assets",
-//         severity: "error",
-//       });
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, [page, rowsPerPage, searchPattern, sort]);
+  const loadList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await fetchThreats(
+        page,
+        rowsPerPage,
+        searchPattern as string,
+        sort
+      );
+      setThreatsData(data?.data ?? []);
+      setTotalRows(data?.total ?? 0);
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to fetch threats",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [page, rowsPerPage, searchPattern, sort]);
 
-//   useEffect(() => {
-//     loadList();
-//   }, [loadList, refreshTrigger]);
+  useEffect(() => {
+    loadList();
+  }, [loadList, refreshTrigger]);
+
+  console.log(threatsData);
 
   // fetch metadata
   useEffect(() => {

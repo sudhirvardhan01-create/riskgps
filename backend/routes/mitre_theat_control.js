@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
 });
 
 
-router.get("/download-mitre-controls-import-template-file", async (req, res) => {
+router.get("/download-mitre-threats-controls-import-template-file", async (req, res) => {
     try {
         await MitreThreatControlService.downloadMitreThreatControlImportTemplateFile(res);
     } catch (err) {
@@ -66,7 +66,7 @@ router.get("/download-mitre-controls-import-template-file", async (req, res) => 
     }
 });
 
-router.post("/import-assets", upload.single("file"), async (req, res) => {
+router.post("/import-threats", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
             throw new Error("File is required!")
@@ -85,7 +85,7 @@ router.post("/import-assets", upload.single("file"), async (req, res) => {
     }
 })
 
-router.get("/export-assets", async (req, res) => {
+router.get("/export-threats", async (req, res) => {
     try {
         await MitreThreatControlService.exportMitreThreatControlCSV(res);
     } catch (err) {
