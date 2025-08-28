@@ -13,40 +13,36 @@ import {
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
-import { AssetForm } from "@/types/asset";
+import { ThreatForm } from "@/types/threat";
 
 interface ViewThreatModalProps {
   open: boolean;
-  processes: any[];
-  metaDatas: any[];
-  assetData: AssetForm;
-  setIsEditAssetOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedAsset: React.Dispatch<React.SetStateAction<AssetForm | null>>;
+  threatData: ThreatForm;
+  setIsEditThreatOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedThreat: React.Dispatch<React.SetStateAction<ThreatForm | null>>;
   onClose: () => void;
 }
 const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
   open,
-  processes,
-  metaDatas,
-  assetData,
-  setIsEditAssetOpen,
-  setSelectedAsset,
+  threatData,
+  setIsEditThreatOpen,
+  setSelectedThreat,
   onClose,
 }: ViewThreatModalProps) => {
   const getStatusComponent = () => {
     if (
-      assetData.status === "published" ||
-      assetData.status === "not_published"
+      threatData.status === "published" ||
+      threatData.status === "not_published"
     ) {
       return (
         <FormControlLabel
           control={
             <ToggleSwitch
               color="success"
-              checked={assetData.status === "published"}
+              checked={threatData.status === "published"}
             />
           }
-          label={assetData.status === "published" ? "Enabled" : "Disabled"}
+          label={threatData.status === "published" ? "Enabled" : "Disabled"}
           sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
         />
       );
@@ -92,7 +88,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
             gap={2}
           >
             <Typography variant="h5" color="#121212" fontWeight={550}>
-              Asset {assetData.assetCode}
+              Threat Technique {threatData.mitreTechniqueId}
             </Typography>
             {getStatusComponent()}
           </Stack>
@@ -106,8 +102,8 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
             <IconButton
               sx={{ padding: 0 }}
               onClick={() => {
-                setSelectedAsset(assetData);
-                setIsEditAssetOpen(true);
+                setSelectedThreat(threatData);
+                setIsEditThreatOpen(true);
               }}
             >
               <EditOutlined sx={{ color: "primary.main" }} />
@@ -122,252 +118,130 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
 
       <DialogContent sx={{ paddingBottom: 0 }}>
         <Grid container spacing={3}>
-          {/* Asset Name */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Asset Name
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.applicationName}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Asset Category */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Asset Category
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetCategory ? assetData.assetCategory.join(", ") : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Asset Description */}
+          {/* MITRE Platform */}
           <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Asset Description
+                MITRE Platform
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetDescription ? assetData.assetDescription : "-"}
+                {threatData.platforms.join(", ")}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Asset Owner */}
+          {/* MITRE Technique Name */}
           <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Asset Owner
+                MITRE Technique Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.applicationOwner ? assetData.applicationOwner : "-"}
+                {threatData.mitreTechniqueName ? threatData.mitreTechniqueName : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Asset IT Owner */}
+          {/* CIA Mapping */}
           <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Asset IT Owner
+                CIA Mapping
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.applicationITOwner ? assetData.applicationITOwner : "-"}
+                {threatData.ciaMapping ? threatData.ciaMapping.join(", ") : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Third Party Management */}
+          {/* Sub Technique ID */}
           <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Third Party Management
+                Sub Technique ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.isThirdPartyManagement === true ? "Yes" : assetData.isThirdPartyManagement === false ? "No" : "-"}
+                {threatData.subTechniqueId ? threatData.subTechniqueId : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Third Party Name */}
-          {assetData.isThirdPartyManagement && (
+          {/* Sub Technique Name */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                Sub Technique Name
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.subTechniqueName ? threatData.subTechniqueName : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* MITRE Control ID */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                MITRE Control ID
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.mitreControlId ? threatData.mitreControlId : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* MITRE Control Name */}
             <Grid size={{ xs: 6 }}>
               <Box display={"flex"} flexDirection={"column"} gap={0.5}>
                 <Typography variant="body2" color="#91939A" fontWeight={550}>
-                  Third Party Name
+                  MITRE Control Name
                 </Typography>
                 <Typography
                   variant="body1"
                   color="text.primary"
                   fontWeight={500}
                 >
-                  {assetData.thirdPartyName ? assetData.thirdPartyName : "-"}
+                  {threatData.mitreControlName ? threatData.mitreControlName : "-"}
                 </Typography>
               </Box>
             </Grid>
-          )}
 
-          {/* Third Party Location */}
-          {assetData.isThirdPartyManagement && (
-            <Grid size={{ xs: 6 }}>
-              <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-                <Typography variant="body2" color="#91939A" fontWeight={550}>
-                  Third Party Location
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.primary"
-                  fontWeight={500}
-                >
-                  {assetData.thirdPartyLocation ? assetData.thirdPartyLocation : "-"}
-                </Typography>
-              </Box>
-            </Grid>
-          )}
-
-          {/* Hosting */}
+          {/* MITRE Control Type */}
           <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Hosting
+                MITRE Control Type
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hosting ? assetData.hosting : "-"}
+                {threatData.mitreControlType ? threatData.mitreControlType : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Hosting Facility */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Hosting Facility
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hostingFacility ? assetData.hostingFacility : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Cloud Service Provider */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Cloud Service Provider
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.cloudServiceProvider && assetData.cloudServiceProvider?.length > 0 ? assetData.cloudServiceProvider.join(", ") : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Geographic Location */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Geographic Location
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.geographicLocation ? assetData.geographicLocation : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Redundancy */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Redundancy
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hasRedundancy === true ? "Yes" : assetData.hasRedundancy === false ? "No" : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Databases */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Databases
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.databases ? assetData.databases : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Network Segmentation */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Network Segmentation
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.hasNetworkSegmentation === true ? "Yes" : assetData.hasNetworkSegmentation === false ? "No" : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Network Name */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Network Name
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.networkName ? assetData.networkName : "-" }
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Related Processes */}
+          {/* MITRE Control Description */}
           <Grid size={{ xs: 12 }}>
-            <Box>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Process
+                MITRE Control Description
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData?.relatedProcesses &&
-                assetData?.relatedProcesses?.length > 0
-                  ? assetData?.relatedProcesses
-                      ?.map((processId) => {
-                        return processes?.find(
-                          (process) => process.id === processId
-                        )?.processName;
-                      })
-                      .join(", ")
-                  : "-"}
+                {threatData.mitreControlDescription ? threatData.mitreControlDescription : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Metadata */}
-          {assetData?.attributes?.map((item, index) => (
-            <Grid key={index} size={{ xs: 6 }}>
-              <Box>
-                <Typography variant="body2" color="#91939A" fontWeight={550}>
-                  {
-                    metaDatas?.find(
-                      (metaData) => metaData.id === item.meta_data_key_id
-                    )?.label
-                  }
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.primary"
-                  fontWeight={500}
-                >
-                  {item.values.join(", ")}
-                </Typography>
-              </Box>
-            </Grid>
-          ))}
+          {/* BluOcean Control Description */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                BluOcean Control Description
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.bluOceanControlDescription ? threatData.bluOceanControlDescription : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
         </Grid>
       </DialogContent>
 

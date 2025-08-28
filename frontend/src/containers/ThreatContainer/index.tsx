@@ -27,8 +27,8 @@ const initialThreatFormData: ThreatForm = {
 };
 
 const sortItems = [
-  { label: "MITRE Technique ID (Ascending)", value: "mitreTechniqueId:asc" },
-  { label: "MITRE Technique ID (Descending)", value: "mitreTechniqueId:desc" },
+  { label: "ID (Ascending)", value: "id:asc" },
+  { label: "ID (Descending)", value: "id:desc" },
   { label: "MITRE Technique Name (Ascending)", value: "mitreTechniqueName:asc" },
   { label: "MITRE Technique Name (Descending)", value: "mitreTechniqueName:desc" },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
@@ -383,19 +383,17 @@ export default function ThreatContainer() {
   return (
     <>
       {/* View modal */}
-      {/* {selectedAsset && isViewOpen && (
-        <ViewAssetModal
-          assetData={selectedAsset}
-          setIsEditAssetOpen={setIsEditOpen}
-          setSelectedAsset={setSelectedAsset}
-          processes={processesData}
-          metaDatas={metaDatas}
+      {selectedThreat && isViewOpen && (
+        <ViewThreatModal
+          threatData={selectedThreat}
+          setIsEditThreatOpen={setIsEditOpen}
+          setSelectedThreat={setSelectedThreat}
           open={isViewOpen}
           onClose={() => {
             setIsViewOpen(false);
           }}
         />
-      )} */}
+      )}
 
       {/* Add form */}
       {/* {isAddOpen && (
