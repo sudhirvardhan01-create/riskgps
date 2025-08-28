@@ -59,3 +59,32 @@ export const exportThreats = async (endpoint: string) => {
   a.remove();
   window.URL.revokeObjectURL(url);
 };
+
+
+//Function to download the threats template
+export const downloadThreatsTemplate = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/download-mitre-threats-controls-import-template-file`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/octet-stream",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to download template.");
+  }
+  const blob = await response.blob();
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "threats-template.csv";
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};

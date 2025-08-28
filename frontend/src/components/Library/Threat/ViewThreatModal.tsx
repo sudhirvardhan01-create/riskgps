@@ -231,7 +231,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
           </Grid>
 
           {/* BluOcean Control Description */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 BluOcean Control Description

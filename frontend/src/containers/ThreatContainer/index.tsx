@@ -305,6 +305,25 @@ export default function ThreatContainer() {
     }
   };
 
+  //Function to download the threats template
+  const handleDownloadThreatsTemplate = async () => {
+    try {
+      await ThreatService.download();
+      setToast({
+        open: true,
+        message: `Threats template downloaded successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to download the threats template",
+        severity: "error",
+      });
+    }
+  };
+
 
   const mitreData = [
   {
@@ -511,10 +530,10 @@ export default function ThreatContainer() {
         open={isFileUploadOpen}
         onClose={() => setIsFileUploadOpen(false)}
         onUpload={() => console.log("File Uploaded")}
-        onDownload={() => console.log("File Downloaded")}
+        onDownload={() => handleDownloadThreatsTemplate()}
         onFileSelect={(file) => setFile(file)}
         file={file}
-        title="Upload Assets"
+        title="Upload Threats"
       />
     </>
   );
