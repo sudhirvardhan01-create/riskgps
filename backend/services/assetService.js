@@ -202,36 +202,36 @@ class AssetService {
 
     static async downloadAssetTemplateFile(res) {
 
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader(
-        "Content-Disposition",
-        "attachment; filename=asset_template.csv"
-    );
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader(
+          "Content-Disposition",
+          "attachment; filename=asset_template.csv"
+      );
 
-    const csvStream = format({ headers: true });
-    csvStream.pipe(res);
+      const csvStream = format({ headers: true });
+      csvStream.pipe(res);
 
-    // Row 1: Clarifications / Instructions
-    csvStream.write({
-        "Application Name": "Enter application name (text)",
-        "Application Owner": "Person/Dept responsible",
-        "Application IT Owner": "IT owner name",
-        "Is Third Party Management": "Yes / No",
-        "Third Party Name": "If Yes above, enter vendor name",
-        "Third Party Location": "Vendor location (e.g., USA)",
-        "Hosting": ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
-        "Hosting Facility": ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
-        "Cloud Service Provider": ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
-        "Geographic Location": "Primary location (e.g., US-East, EU-West)",
-        "Has Redundancy": "Yes / No",
-        "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
-        "Has Network Segmentations": "Yes / No",
-        "Network Name": "Network identifier (if applicable)",
-        "Asset Category": "Application / Database / Server / Other",
-        "Asset Description": "Short description of the asset",
-    });
+      // Row 1: Clarifications / Instructions
+      csvStream.write({
+          "Application Name": "Enter application name (text)",
+          "Application Owner": "Person/Dept responsible",
+          "Application IT Owner": "IT owner name",
+          "Is Third Party Management": "Yes / No",
+          "Third Party Name": "If Yes above, enter vendor name",
+          "Third Party Location": "Vendor location (e.g., USA)",
+          "Hosting": ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
+          "Hosting Facility": ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
+          "Cloud Service Provider": ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
+          "Geographic Location": "Primary location (e.g., US-East, EU-West)",
+          "Has Redundancy": "Yes / No",
+          "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
+          "Has Network Segmentations": "Yes / No",
+          "Network Name": "Network identifier (if applicable)",
+          "Asset Category": "Application / Database / Server / Other",
+          "Asset Description": "Short description of the asset",
+      });
 
-    csvStream.end();
+      csvStream.end();
     }
 
 

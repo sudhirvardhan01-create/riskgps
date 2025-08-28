@@ -79,6 +79,17 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get("/dowmload-process-import-template-file", async (req, res) => {
+    try {
+        await ProcessService.downloadProcessTemplateFile(res);
+    } catch (err) {
+        console.log(Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_TEMPLATE_FILE ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_TEMPLATE_FILE
+        });
+    }
+});
+
 router.post("/import-process", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {

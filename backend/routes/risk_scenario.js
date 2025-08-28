@@ -78,6 +78,17 @@ router.get('/', async (req, res) => {
 });
 
 
+router.get("/dowmload-risk-scenario-import-template-file", async (req, res) => {
+    try {
+        await RiskScenarioService(res);
+    } catch (err) {
+        console.log(Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE
+        });
+    }
+});
+
 router.post("/import-risk-scenarios", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {

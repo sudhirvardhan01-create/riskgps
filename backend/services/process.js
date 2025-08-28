@@ -28,11 +28,12 @@ class ProcessService {
 
             const newProcess = await Process.create(processData, { transaction: t });
 
-            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
-                await this.handleProcessDependencies(newProcess.id, data.process_dependency, t);
-            }
+            // if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+            //     await this.handleProcessDependencies(newProcess.id, data.process_dependency, t);
+            // }
 
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+                console.log(data.attributes);
                 await this.handleProcessAttributes(newProcess.id, data.attributes, t);
             }
 
@@ -116,9 +117,12 @@ class ProcessService {
             if (p?.targetRelationships?.length > 0) {
                 p.process_dependency.push(
                     ...p.targetRelationships.map((val) => ({
-                        source_process_id: val.target_process_id,
-                        target_process_id: val.source_process_id,
-                        relationship_type: val.relationship_type === "follows" ? "precedes" : "follows",
+                        source_process_id: val.source_process_id,
+                        target_process_id: val.target_process_id,
+                        relationship_type: val.relationship_type,
+                        // source_process_id: val.target_process_id,
+                        // target_process_id: val.source_process_id,
+                        // relationship_type: val.relationship_type === "follows" ? "precedes" : "follows",
                     }))
                 );
             }
@@ -164,11 +168,12 @@ class ProcessService {
             await ProcessAttribute.destroy({ where: { process_id: id }, transaction: t });
             await ProcessRelationship.destroy({ where: { source_process_id: id }, transaction: t });
 
-            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
-                await this.handleProcessDependencies(id, data.process_dependency, t);
-            }
-
+            // if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+            //     await this.handleProcessDependencies(id, data.process_dependency, t);
+            // }
+            console.log(data.attributes, "LOGGING ATTR");
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+                console.log(data.attributes);
                 await this.handleProcessAttributes(id, data.attributes, t);
             }
 
@@ -223,8 +228,8 @@ class ProcessService {
             "Process Description": "Person/Dept responsible",
             "Senior Executive Name": "Senior Executive Name",
             "Senior Executive Email": "Senior Executive Email",
-            "Operations Owner Name": "If Yes above, enter vendor name",
-            "Operations Owner Email": "Vendor location (e.g., USA)",
+            "Operations Owner Name": "Operation Owner Name",
+            "Operations Owner Email": "Operation Owner Email",
             "Technology Owner Name": "Technology Owner Name",
             "Technology Owner Email": "Technology Owner Email",
             "Oraganizational Revenue Impact Percentage": "Oraganizational Revenue Impact Percentage",

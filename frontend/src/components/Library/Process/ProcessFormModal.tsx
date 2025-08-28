@@ -1110,7 +1110,8 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                     label={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <Typography variant="body2" component="span" sx={{ fontWeight: 500 }}>
-                        {processes.find(item => item.id === relation.targetProcessId)?.processName}
+                        {processData.id ? relation.sourceProcessId === processData.id &&  processes.find(item => item.id === relation.targetProcessId)?.processName : processes.find(item => item.id === relation.targetProcessId)?.processName }
+                        {processData.id ? relation.targetProcessId === processData.id &&  processes.find(item => item.id === relation.sourceProcessId)?.processName : processes.find(item => item.id === relation.targetProcessId)?.processName }
                         </Typography>
                         <Typography variant="body2" component="span" sx={{ 
                         color: '#666', 
