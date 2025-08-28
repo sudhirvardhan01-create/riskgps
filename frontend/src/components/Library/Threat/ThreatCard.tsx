@@ -23,7 +23,7 @@ interface ThreatCardProps {
   mitrePlatform?: string;
   threatTechniqueName: string;
   status: string;
-  lastUpdated?: string | Date;
+  ciaMapping?: string[];
   tagItems: TagItem[];
 }
 
@@ -38,7 +38,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
   threatTechniqueName,
   mitrePlatform = "Not Defined",
   status,
-  lastUpdated,
+  ciaMapping,
   tagItems,
 }) => {
   const getStatusComponent = () => {
@@ -94,10 +94,6 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
       icon: <DeleteOutlineOutlined fontSize="small" />,
     },
   ];
-
-  const formattedDate = lastUpdated
-    ? new Date(lastUpdated as string | Date).toISOString().split("T")[0]
-    : "";
 
   return (
     <Box
@@ -160,7 +156,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
 
           <Stack direction="row" alignItems="center" spacing={0}>
             <Typography variant="body2" color="textSecondary">
-              Last Updated: {formattedDate}
+              CIA Mapping: {ciaMapping?.join(", ")}
             </Typography>
             <Box sx={{ width: 96, mx: "24px !important" }}>
               {getStatusComponent()}
@@ -183,7 +179,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
         </Typography>
 
         {/* Meta Info */}
-        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center" }}>
+        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center", mt: 1, mb: 1.5, gap: 2 }}>
           {tagItems.map((item, index) => (
             <>
               <Chip
@@ -197,7 +193,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
                     }}
                   >
                     <Typography variant="body2" color="#91939A">
-                      {item.label}
+                      {item.label}:
                     </Typography>
                     &nbsp;
                     <Typography variant="body2" color="text.primary">
@@ -205,12 +201,11 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
                     </Typography>
                   </Box>
                 }
-                variant="outlined"
                 size="small"
                 sx={{
                   borderRadius: 0.5,
-                  border: "1px solid #DDDDDD",
                   height: 24,
+                  backgroundColor: "#FFF9C7"
                 }}
               />
             </>

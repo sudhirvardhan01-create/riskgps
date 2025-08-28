@@ -1,10 +1,10 @@
 import { Box, Stack, TablePagination } from "@mui/material";
-import LibraryCard from "@/components/Library/LibraryCard";
-import { AssetForm } from "@/types/asset";
+import { ThreatForm } from "@/types/threat";
+import ThreatCard from "./ThreatCard";
 
 interface Props {
   loading: boolean;
-  data: AssetForm[];
+  data: ThreatForm[];
   totalRows: number;
   page: number;
   rowsPerPage: number;
@@ -12,7 +12,7 @@ interface Props {
   onRowsPerPageChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  setSelectedThreat: React.Dispatch<React.SetStateAction<AssetForm | null>>;
+  setSelectedThreat: React.Dispatch<React.SetStateAction<ThreatForm | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -34,38 +34,39 @@ const ThreatList: React.FC<Props> = ({
 }) => {
   return (
     <>
+    <Box display={"flex"} flexDirection={"column"} sx={{ maxHeight: "calc(100vh - 290px)" }}>
       <Stack
         spacing={2}
-        sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
+        sx={{ overflow: "auto" }}
       >
         {data && data.length > 0 ? (
           data.map((item) => (
-            <div key={item.id ?? item.assetCode ?? JSON.stringify(item)}>
-              <LibraryCard
-                libraryData={item}
-                setSelectedLibraryData={setSelectedThreat}
-                setIsViewLibraryOpen={setIsViewOpen}
-                setIsEditLibraryOpen={setIsEditOpen}
+            <div key={item.id ?? JSON.stringify(item)}>
+              <ThreatCard
+                threatData={item}
+                setSelectedThreatData={setSelectedThreat}
+                setIsViewThreatOpen={setIsViewOpen}
+                setIsEditThreatOpen={setIsEditOpen}
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
-                title={item.assetCode ?? ""}
-                desc={item.applicationName ?? ""}
-                chip={
-                  item.industry?.length
-                    ? item.industry.join(",")
-                    : "Not Defined"
+                threatTechniqueID={item.mitreTechniqueId ?? ""}
+                mitrePlatform={item.platforms.join(", ") ?? ""}
+                threatTechniqueName={
+                  item.mitreTechniqueName ?? ""
                 }
                 status={item.status ?? ""}
-                lastUpdated={item.updatedAt ?? ""}
+                ciaMapping={item.ciaMapping}
                 tagItems={[
-                  { label: "Processes", value: item.relatedProcesses?.length === 0 ? "0" : item.relatedProcesses },
+                  { label: "MITRE Control ID", value: item.mitreControlId },
+                  { label: "MITRE Control Name", value: item.mitreControlName },
+                  { label: "MITRE Control Type", value: item.mitreControlType },
                 ]}
               />
             </div>
           ))
         ) : (
           // empty state could be enhanced
-          <div>No assets found</div>
+          <div>No threats found</div>
         )}
       </Stack>
 
@@ -74,7 +75,7 @@ const ThreatList: React.FC<Props> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          mt: 2,
+          mb: -2
         }}
       >
         <TablePagination
@@ -86,7 +87,7 @@ const ThreatList: React.FC<Props> = ({
           onRowsPerPageChange={onRowsPerPageChange}
           rowsPerPageOptions={[2, 6, 12, 18, 24, 30]}
         />
-      </Box>
+      </Box></Box>
     </>
   );
 };
