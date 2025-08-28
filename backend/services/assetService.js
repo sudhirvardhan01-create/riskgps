@@ -14,6 +14,8 @@ const Messages = require("../constants/messages");
 const { ASSETS, GENERAL } = require("../constants/library");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
+const fs = require("fs");
+const { parse } = require("fast-csv");
 
 class AssetService {
   static async createAsset(data) {
@@ -219,15 +221,15 @@ class AssetService {
           "Is Third Party Management": "Yes / No",
           "Third Party Name": "If Yes above, enter vendor name",
           "Third Party Location": "Vendor location (e.g., USA)",
-          "Hosting": ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
-          "Hosting Facility": ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
-          "Cloud Service Provider": ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
+          "Hosting": "Supported Value from the List" + ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
+          "Hosting Facility": "Supported Value from the List" + ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
+          "Cloud Service Provider": "Values separated by comma" + ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
           "Geographic Location": "Primary location (e.g., US-East, EU-West)",
           "Has Redundancy": "Yes / No",
           "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
           "Has Network Segmentations": "Yes / No",
           "Network Name": "Network identifier (if applicable)",
-          "Asset Category": "Application / Database / Server / Other",
+          "Asset Category": "Values separated by comma" + ASSETS.ASSET_CATEGORY.join(","),
           "Asset Description": "Short description of the asset",
       });
 
@@ -260,9 +262,19 @@ class AssetService {
     }
 
     function parseCloudServiceProvider(value) {
-      if (!value) return null; 
-      const v = value.trim();
-      return ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(v) ? v : null;
+            if (!value) return [];
+            return value
+                .split(",") // split by comma
+                .map((v) => v.trim()) // remove whitespace
+                .filter((v) => ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(v));
+    }
+
+    function parseAssetCategory(value) {
+            if (!value) return [];
+            return value
+                .split(",") // split by comma
+                .map((v) => v.trim()) // remove whitespace
+                .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
     }
 
     return new Promise((resolve, reject) => {
@@ -287,7 +299,7 @@ class AssetService {
             databases: row["Databases"],
             has_network_segmentation: parseBoolean(row["Has Network Segmentations"]),
             network_name: row["Network Name"],
-            asset_category: row["Asset Category"],
+            asset_category: parseAssetCategory(row["Asset Category"]),
             asset_description: row["Asset Description"],
             status: "published",
           });

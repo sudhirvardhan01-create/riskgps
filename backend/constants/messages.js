@@ -107,5 +107,20 @@ module.exports = {
         FAILED_TO_IMPORT_ASSET_CSV:' Failed to import asset CSV',
         FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE: "Failed to download asset template file"
         
+    },
+    MITRE_THREAT_CONTROL: {
+        CREATED: 'Mitre ThreatControl Record created successfully.',
+        UPDATED: 'Mitre ThreatControl Record updated successfully.',
+        DELETED: 'Mitre ThreatControl Record deleted successfully.',
+        FETCHED: 'Fetched all Mitre ThreatControl Record successfully.',
+        FETCHED_BY_ID: 'Fetched Mitre ThreatControl Record by ID successfully.',
+        IMPORTED_SUCCESSFULLY: "Mitre ThreatControl imported successfully",
+        NOT_FOUND: 'Mitre threat control record not found.',
+        INVALID_PlATFORMS: "Invalid value for platforms",
+        INVALID_CIA_MAPPING: "Invalid CIA Mapping",
+        FAILED_TO_EXPORT_CSV:' Failed to download Mitre ThreatControl Record CSV',
+        FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
+        FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
+
     }
 };

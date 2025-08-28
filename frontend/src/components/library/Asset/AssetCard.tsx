@@ -94,12 +94,12 @@ const AssetCard: React.FC<AssetCardProps> = ({
           flexWrap="wrap"
         >
           <Stack direction="row" spacing={1} alignItems="center">
-            <Typography fontWeight={600}>{assetData.asset_code}</Typography>
+            <Typography fontWeight={600}>{assetData.assetCode}</Typography>
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={0}>
             <Typography variant="body2" color="textSecondary">
-              Last Updated: {new Date(assetData.lastUpdated as Date).toISOString().split('T')[0]}
+              Last Updated: {new Date(assetData.updatedAt as Date).toISOString().split('T')[0]}
             </Typography>
             <Box sx={{ width: '200px', mx: '24px !important' }}>
               {getStatusComponent()}

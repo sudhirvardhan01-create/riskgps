@@ -14,6 +14,8 @@ const Messages = require("../constants/messages");
 const { RISK_SCENARIO, GENERAL } = require("../constants/library");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
+const fs = require("fs");
+const { parse } = require("fast-csv");
 
 
 class RiskScenarioService {
