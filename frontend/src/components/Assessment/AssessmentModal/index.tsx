@@ -19,6 +19,9 @@ import {
     ListSubheader,
     MenuItem,
 } from "@mui/material";
+import TextFieldStyled from "../../TextFieldStyled";
+import { useAssessment } from "@/context/AssessmentContext";
+import { useRouter } from "next/router";
 
 interface Organisation {
     id: string;
@@ -34,38 +37,45 @@ interface BusinessUnit {
 interface StartAssessmentModalProps {
     open: boolean;
     onClose: () => void;
-    onSubmit: (orgId: string, buId: string) => void;
 }
 
 const organisations: Organisation[] = [
-    { id: "org1", name: "ABC Organisation" },
-    { id: "org2", name: "DEF Organisation" },
-    { id: "org3", name: "GHI Organisation" },
-    { id: "org4", name: "JKL Organisation" },
-    { id: "org5", name: "MNO Organisation" },
+    { id: "org1", name: "Blue Ocean" },
+    { id: "org2", name: "Deloitte" }
 ];
 
 const businessUnits: BusinessUnit[] = [
-    { id: "bu1", name: "Finance", orgId: "org1" },
-    { id: "bu2", name: "HR", orgId: "org1" },
+    { id: "bu1", name: "Retail Banking", orgId: "org1" },
+    { id: "bu2", name: "Loan Services", orgId: "org1" },
     { id: "bu3", name: "IT", orgId: "org2" },
-    { id: "bu4", name: "Marketing", orgId: "org3" },
+    { id: "bu4", name: "Marketing", orgId: "org2" },
 ];
 
 const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
     open,
     onClose,
-    onSubmit,
 }) => {
+    const {
+        assessmentName,
+        setAssessmentName,
+        assessmentDescription,
+        setAssessmentDescription,
+        selectedOrg,
+        setSelectedOrg,
+        selectedBU,
+        setSelectedBU,
+        submitAssessment
+    } = useAssessment();
+
+    const router = useRouter()
+
     const [orgSearch, setOrgSearch] = useState("");
     const [buSearch, setBuSearch] = useState("");
 
-    const [selectedOrg, setSelectedOrg] = useState<string>("");
-    const [selectedBU, setSelectedBU] = useState<string>("");
-
     const handleSubmit = () => {
         if (selectedOrg && selectedBU) {
-            onSubmit(selectedOrg, selectedBU);
+            // submitAssessment();
+            router.push("/assessment/assessmentProcess")
             onClose();
         }
     };
@@ -93,6 +103,23 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                     Select Organisation and Business Unit
                 </Typography>
 
+                <TextFieldStyled
+                    label="Assessment Name"
+                    required
+                    size="small"
+                    sx={{ mb: 4 }}
+                    value={assessmentName}
+                    onChange={(e) => setAssessmentName(e.target.value)}
+                />
+                <TextFieldStyled
+                    label="Assessment Description"
+                    required
+                    size="small"
+                    sx={{ mb: 4 }}
+                    value={assessmentDescription}
+                    onChange={(e) => setAssessmentDescription(e.target.value)}
+                />
+
                 <Grid container spacing={4} sx={{ height: "100%", display: "flex", alignItems: "baseline" }}>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
                         {/* Organisation Dropdown */}
@@ -104,6 +131,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                                 setSelectedOrg(e.target.value);
                                 setSelectedBU("");
                             }}
+                            size="small"
                             renderValue={(val) =>
                                 val
                                     ? organisations.find((o) => o.id === val)?.name
@@ -134,10 +162,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                         <Select
                             fullWidth
                             displayEmpty
-                            sx={{ mt: 2 }}
                             value={selectedBU}
                             disabled={!selectedOrg}
                             onChange={(e) => setSelectedBU(e.target.value)}
+                            size="small"
                             renderValue={(val) =>
                                 val
                                     ? businessUnits.find((b) => b.id === val)?.name

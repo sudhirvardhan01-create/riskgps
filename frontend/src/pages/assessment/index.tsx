@@ -1,5 +1,5 @@
-import AssessmentModal from "@/components/AssessmentModal";
-import AssessmentTable from "@/components/AssessmentTable";
+import AssessmentModal from "@/components/Assessment/AssessmentModal";
+import AssessmentTable from "@/components/Assessment/AssessmentTable";
 import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { Box, Button, Menu, MenuItem, Typography } from "@mui/material";
 import React, { useState } from "react";
@@ -126,11 +126,6 @@ const AssessmentDashboard = () => {
     }
   }
 
-  const handleSubmit = (orgId: string, buId: string) => {
-    console.log("Selected Organisation:", orgId);
-    console.log("Selected Business Unit:", buId);
-  };
-
   return (
     <>
       <Box sx={{ p: 3 }}>
@@ -215,7 +210,6 @@ const AssessmentDashboard = () => {
       <AssessmentModal
         open={open}
         onClose={() => setOpen(false)}
-        onSubmit={handleSubmit}
       />
     </>
   );
