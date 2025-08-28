@@ -70,7 +70,7 @@ const ThreatList: React.FC<Props> = ({
         )}
       </Stack>
 
-      <Box
+      {data.length >= 6 && <Box
         sx={{
           display: "flex",
           alignItems: "center",
@@ -85,9 +85,9 @@ const ThreatList: React.FC<Props> = ({
           onPageChange={onPageChange}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={onRowsPerPageChange}
-          rowsPerPageOptions={[2, 6, 12, 18, 24, 30]}
+          rowsPerPageOptions={[6, 12, 18, 24, 30]}
         />
-      </Box></Box>
+      </Box>}</Box>
     </>
   );
 };
