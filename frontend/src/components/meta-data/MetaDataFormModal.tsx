@@ -309,6 +309,8 @@ const MetaDataFormModal: React.FC<MetaDataFormModalProps> = ({
             }}
             variant="contained"
             onClick={onSubmit}
+            disabled = {formData.name === "" || formData.supported_values?.length === 0}
+            disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
               {operation === "create" ? "Add" : "Save"}
