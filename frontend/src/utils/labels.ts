@@ -4,6 +4,11 @@ export const labels = {
     key: "Key",
     value: "Value",
 
+    //Metadata
+    metadataValue: "Add a value",
+    inputType: "Input Type",
+    appliesTo: "Applies To",
+
     //Risk Scenario 
     riskScenario: "Risk Scenario",
     riskStatement: "Risk Statement",

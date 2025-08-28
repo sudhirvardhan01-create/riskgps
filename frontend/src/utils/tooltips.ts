@@ -4,6 +4,11 @@ export const tooltips = {
     key: "Select the Key",
     value: "Select the Value",
 
+    //Metadata
+    metadataValue: "Enter the value and click return to add",
+    inputType: "Select the input type",
+    appliesTo: "Select the library modules for which the above metadata is applicable",
+
     //Risk Scenario 
     riskScenario: "Enter the Risk Scenario",
     riskStatement: "Enter the Risk Statement",

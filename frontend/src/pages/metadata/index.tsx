@@ -15,12 +15,7 @@ import {
 import MetaDataCard from "@/components/meta-data/MetaDataCard";
 import React, { useState, useEffect } from "react";
 import { FilterAltOutlined, Search } from "@mui/icons-material";
-import {
-  fetchMetaDatas,
-  deleteMetaData,
-  createMetaData,
-  updateMetaData,
-} from "../api/meta-data";
+import { MetaDataService } from "@/services/metaDataService";
 import { MetaData } from "@/types/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastComponent from "@/components/ToastComponent";
@@ -42,14 +37,11 @@ const Index = () => {
   const [isAddMetaDataModalOpen, setIsAddMetaDataModalOpen] = useState(false);
   const [isEditMetaDataModalOpen, setIsEditMetaDataModalOpen] = useState(false);
   const [isEditConfirmPopupOpen, setIsEditConfirmPopupOpen] = useState(false);
-  const [
-    isAddEditDeleteMDSuccessToastOpen,
-    setIsAddEditDeleteMDSuccessToastOpen,
-  ] = useState(false);
-  const [
-    addEditDeleteMDSuccessToastMessage,
-    setAddEditDeleteMDSuccessToastMessage,
-  ] = useState("");
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "info"
+  });
   const [
     isDeleteMetaDataConfirmPopupOpen,
     setIsDeleteMetaDataConfirmPopupOpen,
@@ -67,7 +59,7 @@ const Index = () => {
     const getMetaDatas = async () => {
       try {
         setLoading(true);
-        const [meta] = await Promise.all([fetchMetaDatas()]);
+        const [meta] = await Promise.all([MetaDataService.fetch()]);
         setMetaDatas(meta.data ?? []);
       } catch (error) {
         console.error("Error while fetching metadata:", error);
@@ -82,20 +74,25 @@ const Index = () => {
   const handleDeleteMetaData = async () => {
     try {
       if (selectedMetaData?.id) {
-        const res = await deleteMetaData(selectedMetaData?.id as number);
+        const res = await MetaDataService.delete(selectedMetaData?.id as number);
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsDeleteMetaDataConfirmPopupOpen(false);
-        setIsAddEditDeleteMDSuccessToastOpen(true);
-        setAddEditDeleteMDSuccessToastMessage(
-          `${selectedMetaData.name} deleted`
-        );
+        setToast({
+          open: true,
+          message: `${selectedMetaData.name} deleted`,
+          severity: "success"
+        });
       } else {
         throw new Error("Invalid ID");
       }
     } catch (err) {
       console.log("Something went wrong", err);
-      alert("Failed to Delete");
+      setToast({
+          open: true,
+          message: `Error : Failed to delete metadata`,
+          severity: "error"
+        });
     }
   };
 
@@ -103,7 +100,7 @@ const Index = () => {
   const handleCreateMetaData = async () => {
     try {
       const reqBody = formData;
-      const res = await createMetaData(reqBody);
+      const res = await MetaDataService.create(reqBody);
       console.log(res);
       setFormData({
         name: "",
@@ -114,12 +111,18 @@ const Index = () => {
       });
       setRefreshTrigger((prev) => prev + 1);
       setIsAddMetaDataModalOpen(false);
-      setIsAddEditDeleteMDSuccessToastOpen(true);
-      setAddEditDeleteMDSuccessToastMessage(
-        `${reqBody.name} has been added successfully.`
-      );
+      setToast({
+          open: true,
+          message: `${reqBody.name} has been added successfully.`,
+          severity: "success"
+        });
     } catch (err) {
       console.log("Something went wrong", err);
+      setToast({
+          open: true,
+          message: `Error : Failed to create metadata`,
+          severity: "error"
+        });
     }
   };
 
@@ -128,20 +131,26 @@ const Index = () => {
     try {
       if (selectedMetaData?.id) {
         const reqBody = selectedMetaData;
-        const res = await updateMetaData(reqBody.id as number, reqBody);
+        const res = await MetaDataService.update(reqBody.id as number, reqBody);
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsEditMetaDataModalOpen(false);
         setSelectedMetaData(null);
-        setIsAddEditDeleteMDSuccessToastOpen(true);
-        setAddEditDeleteMDSuccessToastMessage(
-          `Changes have been saved successfully.`
-        );
+        setToast({
+          open: true,
+          message: `Changes have been saved successfully.`,
+          severity: "success"
+        });
       } else {
         alert("Invalid Operation");
       }
     } catch (err) {
       console.log("Something went wrong", err);
+      setToast({
+          open: true,
+          message: `Error : Failed to update metadata`,
+          severity: "error"
+        });
     }
   };
 
@@ -231,13 +240,13 @@ const Index = () => {
       )}
 
       <ToastComponent
-        open={isAddEditDeleteMDSuccessToastOpen}
-        onClose={() => setIsAddEditDeleteMDSuccessToastOpen(false)}
-        message={addEditDeleteMDSuccessToastMessage}
+        open={toast.open}
+        onClose={() => setToast((toast) => ({...toast, open : false}))}
+        message={toast.message}
         toastBorder="1px solid #147A50"
         toastColor="#147A50"
         toastBackgroundColor="#DDF5EB"
-        toastSeverity="success"
+        toastSeverity={toast.severity}
       />
 
       {/* Landing Page code*/}
