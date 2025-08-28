@@ -2,6 +2,7 @@ module.exports = {
   GENERAL: {
     ALLOWED_SORT_ORDER: ["ASC", "DESC"],
     STATUS_SUPPORTED_VALUES: ["draft", "published", "not_published"],
+    CIA_MAPPING_VALUES: ["C", "I", "A"]
   },
   RISK_SCENARIO: {
     RISK_SCENARIO_SORT_FIELDS: [
@@ -57,4 +58,20 @@ module.exports = {
       "Other",
     ],
   },
+  META_DATA: {
+    META_DATA_ALLOWED_SORT_FIELDS: [
+      "id",
+      "created_at",
+      "updated_at",
+      "name",
+    ]
+  },
+  MITRE_THREAT_CONTROL: {
+    ALLOWED_SORT_FILED: [
+      "id",
+      "created_at",
+      "updated_at",
+      "mitreTechniqueName",
+    ],
+  }
 };

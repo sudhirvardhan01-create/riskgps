@@ -3,6 +3,20 @@ const RiskScenarioService = require('../services/risk_scenario');
 const Messages = require('../constants/messages');
 const HttpStatus = require('../constants/httpStatusCodes');
 const router = express.Router();
+const multer = require("multer");
+
+
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only CSV files are allowed"));
+    }
+  },
+});
 
 /**
  * @route POST /risk-scenario
@@ -63,7 +77,37 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get("/export-riskscenarios", async (req, res) => {
+
+router.get("/dowmload-risk-scenario-import-template-file", async (req, res) => {
+    try {
+        await RiskScenarioService(res);
+    } catch (err) {
+        console.log(Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE
+        });
+    }
+});
+
+router.post("/import-risk-scenarios", upload.single("file"), async (req, res) => {
+    try {
+        if (!req.file) {
+            throw new Error("File is required!")
+        }
+        const filePath = req.file.path;
+        const insertedRowCount = await RiskScenarioService.importRiskScenariosFromCSV(filePath);
+        res.status(HttpStatus.OK).json({
+            data: insertedRowCount,
+            msg: Messages.RISK_SCENARIO.IMPORTED_SUCCESSFULLY
+        });
+    } catch (err) {
+        console.log("Failed to upload process", err || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV);
+        res.status(HttpStatus.BAD_REQUEST).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV
+        });
+    }
+})
+router.get("/export-risk-scenarios", async (req, res) => {
     try {
         await RiskScenarioService.exportRiskScenariosCSV(res);
     } catch (err) {

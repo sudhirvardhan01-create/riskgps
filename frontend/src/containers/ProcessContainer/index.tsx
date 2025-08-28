@@ -130,6 +130,7 @@ export default function ProcessContainer() {
 
   // Update
   const handleUpdate = async (status: string) => {
+    console.log(selectedProcess?.attributes)
     try {
       if (!selectedProcess?.id) throw new Error("Invalid selection");
       const body = { ...selectedProcess, status };

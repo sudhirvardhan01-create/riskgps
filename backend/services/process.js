@@ -10,6 +10,8 @@ const {
 } = require("../models");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
+const fs = require("fs");
+const { parse } = require("fast-csv");
 
 const {GENERAL, PROCESS } = require("../constants/library");
 
@@ -28,11 +30,12 @@ class ProcessService {
 
             const newProcess = await Process.create(processData, { transaction: t });
 
-            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
-                await this.handleProcessDependencies(newProcess.id, data.process_dependency, t);
-            }
+            // if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+            //     await this.handleProcessDependencies(newProcess.id, data.process_dependency, t);
+            // }
 
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+                console.log(data.attributes);
                 await this.handleProcessAttributes(newProcess.id, data.attributes, t);
             }
 
@@ -116,9 +119,12 @@ class ProcessService {
             if (p?.targetRelationships?.length > 0) {
                 p.process_dependency.push(
                     ...p.targetRelationships.map((val) => ({
-                        source_process_id: val.target_process_id,
-                        target_process_id: val.source_process_id,
-                        relationship_type: val.relationship_type === "follows" ? "precedes" : "follows",
+                        source_process_id: val.source_process_id,
+                        target_process_id: val.target_process_id,
+                        relationship_type: val.relationship_type,
+                        // source_process_id: val.target_process_id,
+                        // target_process_id: val.source_process_id,
+                        // relationship_type: val.relationship_type === "follows" ? "precedes" : "follows",
                     }))
                 );
             }
@@ -164,11 +170,12 @@ class ProcessService {
             await ProcessAttribute.destroy({ where: { process_id: id }, transaction: t });
             await ProcessRelationship.destroy({ where: { source_process_id: id }, transaction: t });
 
-            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
-                await this.handleProcessDependencies(id, data.process_dependency, t);
-            }
-
+            // if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+            //     await this.handleProcessDependencies(id, data.process_dependency, t);
+            // }
+            console.log(data.attributes, "LOGGING ATTR");
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+                console.log(data.attributes);
                 await this.handleProcessAttributes(id, data.attributes, t);
             }
 
@@ -204,6 +211,41 @@ class ProcessService {
         await process.destroy();
         console.log("Process deleted successfully:", id);
         return { message: Messages.PROCESS.DELETED };
+    }
+
+    static async downloadProcessTemplateFile(res) {
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=process_template.csv"
+        );
+
+        const csvStream = format({ headers: true });
+        csvStream.pipe(res);
+
+        // Row 1: Clarifications / Instructions
+        csvStream.write({
+            "Process Name": "Enter application name (text)",
+            "Process Description": "Person/Dept responsible",
+            "Senior Executive Name": "Senior Executive Name",
+            "Senior Executive Email": "Senior Executive Email",
+            "Operations Owner Name": "Operation Owner Name",
+            "Operations Owner Email": "Operation Owner Email",
+            "Technology Owner Name": "Technology Owner Name",
+            "Technology Owner Email": "Technology Owner Email",
+            "Oraganizational Revenue Impact Percentage": "Oraganizational Revenue Impact Percentage",
+            "Financial Materiality": "Financial Materiality",
+            "Third Party Involvement": "Yes / No",
+            "Users": "Users",
+            "Regulatory and Compliance": "regulations",
+            "Criticality Of Data Processed": "Criticality Of Data Processed",
+            "Data Processes": "Application / Database / Server / Other",
+            "Asset Description": "Short description of the asset",
+            
+        });
+
+        csvStream.end();
     }
 
     static async exportProcessesCSV(res) {

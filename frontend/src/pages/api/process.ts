@@ -46,7 +46,7 @@ const transformProcessData = (data: any[]): ProcessData[] => {
     requlatoryAndCompliance: item.regulatory_and_compliance,
     criticalityOfDataProcessed: item.criticality_of_data_processed,
     dataProcessed: item.data_processed,
-  
+    attributes: item.attributes,
     processDependency: Array.isArray(item.process_dependency)
       ? item.process_dependency.map((dep: any) => ({
           sourceProcessId: dep.source_process_id,
@@ -96,6 +96,7 @@ export const createProcess = async (data: ProcessData) => {
       "criticality_of_data_processed": data.criticalityOfDataProcessed,
       "data_processed": data.dataProcessed,
       "status": data.status,
+      "attributes": data.attributes || [],
       "process_dependency" : Array.isArray(data.processDependency)
       ? data.processDependency.map((dep: ProcessDependency) => ({
           target_process_id: dep.targetProcessId,
@@ -149,6 +150,7 @@ export const updateProcess = async (id: number, data: ProcessData) => {
       "criticality_of_data_processed": data.criticalityOfDataProcessed,
       "data_processed": data.dataProcessed,
       "status": data.status,
+      "attributes": data.attributes || [],
       "process_dependency" : Array.isArray(data.processDependency)
       ? data.processDependency.map((dep: ProcessDependency) => ({
           target_process_id: dep.targetProcessId,

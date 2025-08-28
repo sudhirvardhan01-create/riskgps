@@ -58,7 +58,9 @@ module.exports = {
         INVALID_VALUE: 'Invalid Value for Status.',
         FETCHED_BY_ID: 'Fetched process by ID successfully.',
         FAILED_TO_IMPORT_PROCESS_CSV:' Failed to import process CSV',
-        FAILED_TO_EXPORT_PROCESS_CSV:' Failed to export process CSV'
+        FAILED_TO_EXPORT_PROCESS_CSV:' Failed to export process CSV',
+        FAILED_TO_DOWNLOAD_PROCESS_TEMPLATE_FILE: "Failed to download process template file"
+
 
     },
     RISK_SCENARIO: {
@@ -68,6 +70,7 @@ module.exports = {
         FETCHED: 'Fetched all risk scenarios successfully.',
         FETCHED_BY_ID: 'Fetched risk scenario by ID successfully.',
         STATUS_UPDATED: 'Risk Scenario status updated successfully.',
+        IMPORTED_SUCCESSFULLY: "Risk Scenario imported successfully",
         NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
         REQUIRED: 'risk_scenario is required.',
         INVALID_STATUS: 'Invalid value for status.',
@@ -78,7 +81,10 @@ module.exports = {
         NOT_FOUND: (id) => `Risk Scenario not found for ID: ${id}`,
         DELETED: 'Risk Scenario deleted successfully.',
         STATUS_UPDATED: 'Risk Scenario status updated successfully.',
-        FAILED_TO_DOWNLOAD_RISK_SCENARIO_CSV:' Failed to download risk scenario CSV'
+        FAILED_TO_EXPORT_RISK_SCENARIO_CSV:' Failed to download risk scenario CSV',
+        FAILED_TO_IMPORT_RISK_SCENARIO_CSV:' Failed to import risk scenario CSV',
+        FAILED_TO_DOWNLOAD_RISK_SCENARIO_TEMPLATE_FILE: "Failed to download risk scenario template file"
+
 
     },
     ASSET: {
@@ -92,11 +98,29 @@ module.exports = {
         INVALID_PROCESS_MAPPING: 'Invalid Process Asset Mapping',
         NOT_FOUND: (id) => `Asset not found for ID: ${id}`,
         STATUS_UPDATED: 'Asset Scenario status updated successfully.',
+        IMPORTED_SUCCESSFULLY: "Assets imported successfully",
         INVALID_HOSTING_VALUE: 'Invalid value for hosting in assets',
         INVALID_HOSTING_FACILITY_VALUE: 'Invalid value for hosting facility in assets',
         INVALID_CLOUD_SERVICE_PROVIDER: 'Invalid value for cloud service provider',
         INVALID_ASSET_CATEGORY: 'Invalid value for asset category',
-        FAILED_TO_DOWNLOAD_ASSET_CSV:' Failed to download asset CSV'
+        FAILED_TO_EXPORT_ASSET_CSV:' Failed to download asset CSV',
+        FAILED_TO_IMPORT_ASSET_CSV:' Failed to import asset CSV',
+        FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE: "Failed to download asset template file"
         
+    },
+    MITRE_THREAT_CONTROL: {
+        CREATED: 'Mitre ThreatControl Record created successfully.',
+        UPDATED: 'Mitre ThreatControl Record updated successfully.',
+        DELETED: 'Mitre ThreatControl Record deleted successfully.',
+        FETCHED: 'Fetched all Mitre ThreatControl Record successfully.',
+        FETCHED_BY_ID: 'Fetched Mitre ThreatControl Record by ID successfully.',
+        IMPORTED_SUCCESSFULLY: "Mitre ThreatControl imported successfully",
+        NOT_FOUND: 'Mitre threat control record not found.',
+        INVALID_PlATFORMS: "Invalid value for platforms",
+        INVALID_CIA_MAPPING: "Invalid CIA Mapping",
+        FAILED_TO_EXPORT_CSV:' Failed to download Mitre ThreatControl Record CSV',
+        FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
+        FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
+
     }
 };

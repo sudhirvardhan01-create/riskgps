@@ -1,9 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const ProcessService = require("../services/process");
 const Messages = require('../constants/messages');
 const HttpStatus = require('../constants/httpStatusCodes');
 const AssetService = require('../services/assetService');
+const multer = require("multer");
+
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only CSV files are allowed"));
+    }
+  },
+});
 
 /**
  * @route POST /asset
@@ -65,6 +77,36 @@ router.get('/', async (req, res) => {
     }
 });
 
+
+router.get("/dowmload-asset-import-template-file", async (req, res) => {
+    try {
+        await AssetService.downloadAssetTemplateFile(res);
+    } catch (err) {
+        console.log(Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE
+        });
+    }
+});
+
+router.post("/import-assets", upload.single("file"), async (req, res) => {
+    try {
+        if (!req.file) {
+            throw new Error("File is required!")
+        }
+        const filePath = req.file.path;
+        const insertedRowCount = await AssetService.importAssetFromCSV(filePath);
+        res.status(HttpStatus.OK).json({
+            data: insertedRowCount,
+            msg: Messages.ASSET.IMPORTED_SUCCESSFULLY
+        });
+    } catch (err) {
+        console.log("Failed to upload process", err || Messages.ASSET.FAILED_TO_IMPORT_ASSET_CSV);
+        res.status(HttpStatus.BAD_REQUEST).json({
+            error: err.message || Messages.ASSET.FAILED_TO_IMPORT_ASSET_CSV
+        });
+    }
+})
 
 router.get("/export-assets", async (req, res) => {
     try {

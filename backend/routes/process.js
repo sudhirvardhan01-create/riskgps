@@ -58,7 +58,6 @@ router.get('/', async (req, res) => {
         const sortBy = req.query.sort_by || 'created_at'
         const sortOrder = req.query.sort_order?.toUpperCase() || 'DESC'
         const statusFilter = req.query.status ? req.query.status?.split(",") : [];
-        console.log(statusFilter)
         const attrFilters = (req.query.attributes || "")
           .split(";")
           .map((expr) => {
@@ -76,6 +75,17 @@ router.get('/', async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
+});
+
+router.get("/dowmload-process-import-template-file", async (req, res) => {
+    try {
+        await ProcessService.downloadProcessTemplateFile(res);
+    } catch (err) {
+        console.log(Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_TEMPLATE_FILE ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_TEMPLATE_FILE
         });
     }
 });

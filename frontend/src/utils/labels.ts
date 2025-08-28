@@ -1,6 +1,6 @@
 export const labels = {
     //Generic
-    relatedProcesses: "Select Related Process",
+    relatedProcesses: "Select Related Process (optional)",
     key: "Key",
     value: "Value",
 

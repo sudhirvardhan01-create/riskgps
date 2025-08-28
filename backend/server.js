@@ -8,6 +8,7 @@ const assetRoutes = require("./routes/asset")
 const db = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const errorHandler = require('./middleware/errorHandler');
+const mitreThreatsControlRoutes = require("./routes/mitre_theat_control")
 
 const cors = require('cors');
 app.use(express.json());
@@ -24,8 +25,12 @@ app.get("/api/health", (req, res) => {
  * Library Routes 
  */
 app.use("/library/process", processRoutes);
+
 app.use("/library/risk-scenario", riskScenarioRoutes);
+
 app.use("/library/meta-data", metaDataRoutes);
+
+app.use("/library/mitre-threats-controls", mitreThreatsControlRoutes);
 
 app.use("/library/asset", assetRoutes);
 

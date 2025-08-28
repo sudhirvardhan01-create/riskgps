@@ -1,0 +1,3 @@
+Platforms,Mitre Technique Id,Mitre Technique Name,CIA Mapping,SubTechnique ID,SubTechnique Name,Mitre Control ID,Mitre Control Name,Mitre Control Type,Mitre Control Description,BluOcean Control Description
+Windows,id1,tech 1,C,tech 1,tech 1,tech 1,tech 1,tech 1,tech 1,tech 1
+"Windows,macOS",id1,tech 1,"C,I",tech 1,tech 1,tech 1,tech 1,tech 1,tech 1,tech 1
