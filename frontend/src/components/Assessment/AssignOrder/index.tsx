@@ -80,6 +80,7 @@ export default function AssignOrder({ processes, onOrderChange }: AssignOrderPro
                   borderLeft: "4px solid #04139A",
                   boxShadow: "0px 2px 4px rgba(0,0,0,0.08)",
                   maxWidth: 680,
+                  height: 48
                 }}
               >
                 <Typography sx={{ fontWeight: 500, color: "#484848" }}>

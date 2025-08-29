@@ -19,6 +19,7 @@ export default function ProcessCard({ label, checked, onChange }: ProcessCardPro
         borderLeft: "4px solid #04139A",
         boxShadow: "0px 2px 4px rgba(0,0,0,0.08)",
         transition: "all 0.2s ease",
+        height: 48,
         cursor: "pointer",
         "&:hover": {
           boxShadow: "0px 4px 8px rgba(0,0,0,0.12)",

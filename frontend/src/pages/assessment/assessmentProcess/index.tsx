@@ -62,24 +62,26 @@ export default function BUProcessMappingPage() {
   const [activeTab, setActiveTab] = useState(0);   // inner tab (StepIndicator)
 
   const organisations: Organisation[] = [
-    { id: "org1", name: "Blue Ocean" },
-    { id: "org2", name: "Deloitte" },
-  ];
+    { id: "org1", name: "BluOcean" },
+    { id: "org2", name: "CDW" },
+    { id: "org3", name: "Affirm" }
+];
 
-  const businessUnits: BusinessUnit[] = [
+const businessUnits: BusinessUnit[] = [
     { id: "bu1", name: "Retail Banking", orgId: "org1" },
     { id: "bu2", name: "Loan Services", orgId: "org1" },
-    { id: "bu3", name: "IT", orgId: "org2" },
-    { id: "bu4", name: "Marketing", orgId: "org2" },
-  ];
+    { id: "bu3", name: "Retail Banking", orgId: "org2" },
+    { id: "bu4", name: "Loan Services", orgId: "org2" },
+];
 
   const processes: ProcessUnit[] = [
-    { id: "process1", name: "Electronic Banking", buId: "bu1" },
-    { id: "process2", name: "ACH", buId: "bu1" },
-    { id: "process3", name: "Wire Transfer", buId: "bu1" },
-    { id: "process4", name: "ATM Management", buId: "bu1" },
-    { id: "process5", name: "Fraud Monitoring", buId: "bu1" },
-    { id: "process6", name: "KYC", buId: "bu2" },
+    { id: "process1", name: "Electronic Banking", buId: "bu3" },
+    { id: "process2", name: "ACH", buId: "bu3" },
+    { id: "process3", name: "Wire Transfer", buId: "bu3" },
+    { id: "process4", name: "ATM Management", buId: "bu3" },
+    { id: "process5", name: "Fraud Monitoring", buId: "bu3" },
+    { id: "process6", name: "KYC", buId: "bu4" },
+    { id: "process7", name: "Loan Organisations", buId: "bu4" },
   ];
 
   // Navigation

@@ -26,15 +26,15 @@ interface Assessment {
 const mockData: Assessment[] = [
   {
     runId: "1001",
-    org: "Blue Ocean",
-    industry: "Healthcare",
+    org: "BluOcean",
+    industry: "Financial Services",
     name: "Retail Banking - Aug 23",
     description: "Assessment to check the threats and controls",
     startDate: "10/08/2024",
     lastActivity: "10/08/2024",
     endDate: "-",
     lastModifiedBy: {
-      name: "Karan Gautam",
+      name: "Harsh Kansal",
       avatar: "/path/to/avatar",
     },
     status: {
@@ -43,8 +43,8 @@ const mockData: Assessment[] = [
   },
   {
     runId: "1002",
-    org: "Blue Ocean",
-    industry: "Healthcare",
+    org: "BluOcean",
+    industry: "Financial Services",
     name: "Retail Banking - Mar 23",
     description: "Assessment to check the threats and controls",
     startDate: "10/03/2024",
@@ -60,8 +60,8 @@ const mockData: Assessment[] = [
   },
   {
     runId: "1003",
-    org: "Blue Ocean",
-    industry: "Healthcare",
+    org: "BluOcean",
+    industry: "Financial Services",
     name: "Retail Banking - Aug 25",
     description: "Assessment to check the threats and controls",
     startDate: "10/08/2025",

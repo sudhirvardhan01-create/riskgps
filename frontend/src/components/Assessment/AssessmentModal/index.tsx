@@ -42,15 +42,16 @@ interface StartAssessmentModalProps {
 }
 
 const organisations: Organisation[] = [
-    { id: "org1", name: "Blue Ocean" },
-    { id: "org2", name: "Deloitte" }
+    { id: "org1", name: "BluOcean" },
+    { id: "org2", name: "CDW" },
+    { id: "org3", name: "Affirm" }
 ];
 
 const businessUnits: BusinessUnit[] = [
     { id: "bu1", name: "Retail Banking", orgId: "org1" },
     { id: "bu2", name: "Loan Services", orgId: "org1" },
-    { id: "bu3", name: "IT", orgId: "org2" },
-    { id: "bu4", name: "Marketing", orgId: "org2" },
+    { id: "bu3", name: "Retail Banking", orgId: "org2" },
+    { id: "bu4", name: "Loan Services", orgId: "org2" },
 ];
 
 const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
