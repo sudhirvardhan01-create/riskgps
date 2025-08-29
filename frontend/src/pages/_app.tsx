@@ -8,6 +8,7 @@ import { CssBaseline, Grid } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
 import { AuthProvider } from "@/context/AuthContext";
+import { AssessmentProvider } from "@/context/AssessmentContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <AuthProvider>
+      <AssessmentProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Grid container sx={{ height: "100vh" }}>
@@ -22,10 +24,11 @@ export default function App({ Component, pageProps }: AppProps) {
           <Grid size={11}>
             {!isLoginPage && <Header />}
             <Component {...pageProps} />
-            {!isLoginPage && <Footer />}
+            {/* {!isLoginPage && <Footer />} */}
           </Grid>
         </Grid>
       </ThemeProvider>
+      </AssessmentProvider>
     </AuthProvider>
   );
 }
