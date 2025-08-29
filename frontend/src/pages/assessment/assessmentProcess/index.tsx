@@ -78,7 +78,8 @@ export default function BUProcessMappingPage() {
     { id: "process2", name: "ACH", buId: "bu1" },
     { id: "process3", name: "Wire Transfer", buId: "bu1" },
     { id: "process4", name: "ATM Management", buId: "bu1" },
-    { id: "process5", name: "KYC", buId: "bu2" },
+    { id: "process5", name: "Fraud Monitoring", buId: "bu1" },
+    { id: "process6", name: "KYC", buId: "bu2" },
   ];
 
   // Navigation
