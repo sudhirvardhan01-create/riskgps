@@ -27,7 +27,8 @@ export const downloadTemplateFile = async (libraryModule: string) => {
     a.remove();
     window.URL.revokeObjectURL(url);
 };
-//Function to export the assets
+
+//Function to export
 export const exportLibraryDataCSV = async (libraryModule: string) => {
     if (!libraryModule || libraryModule.length < 1) {
         throw new Error("No Library Module Selected.");
@@ -58,7 +59,7 @@ export const exportLibraryDataCSV = async (libraryModule: string) => {
     window.URL.revokeObjectURL(url);
 };
 
-//Function to export the assets
+//Function to import
 export const importLibraryDataCSV = async (libraryModule: string, file: File): Promise<any> => {
 
     if (!libraryModule || libraryModule.length < 1) {
