@@ -44,13 +44,7 @@ class MitreThreatControlService {
 
         const whereClause = this.handleMitreThreatControlFilters(searchPattern);
 
-        const total = await MitreThreatControl.count({
-            where: whereClause,
-        });
-
         const data = await MitreThreatControl.findAll({
-            limit,
-            offset,
             order: [[sortBy, sortOrder]],
             where: whereClause,
         });
@@ -84,13 +78,20 @@ class MitreThreatControlService {
             return acc;
             }, {})
         );
+        const total = grouped.length;
+        const totalPages = Math.ceil(total / limit);
+
+        // slice based on zero-indexed page
+        const start = page * limit;
+        const end = start + limit;
+        const paginatedData = grouped.slice(start, end);
  
         return {
-            data: grouped,
+            data: paginatedData,
             total,
             page,
             limit,
-            totalPages: Math.ceil(total / limit),
+            totalPages,
         };
     }
 
@@ -295,7 +296,6 @@ class MitreThreatControlService {
                 [Op.or]: [
                     { mitreTechniqueName: { [Op.iLike]: `%${searchPattern}%` } },
                     { subTechniqueName: { [Op.iLike]: `%${searchPattern}%` } },
-                    { mitreControlName: { [Op.iLike]: `%${searchPattern}%` } },
                 ],
             });
         }
