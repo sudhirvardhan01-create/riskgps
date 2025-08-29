@@ -324,6 +324,29 @@ export default function ThreatContainer() {
     }
   };
 
+  //Function to import the threats
+  const handleImportThreats = async (file : File) => {
+    if (!file) {
+      alert("Please select a file first!");
+      return;
+    }
+    try {
+      await ThreatService.import(file);
+      setToast({
+        open: true,
+        message: `Threats imported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to import the threats",
+        severity: "error",
+      });
+    }
+  };
+
 
   const mitreData = [
   {
@@ -526,15 +549,15 @@ export default function ThreatContainer() {
         toastSeverity={toast.severity}
       />
 
-      <FileUpload
+      {/* <FileUpload
         open={isFileUploadOpen}
         onClose={() => setIsFileUploadOpen(false)}
-        onUpload={() => console.log("File Uploaded")}
+        onUpload={(file) => handleImportThreats(file)}
         onDownload={() => handleDownloadThreatsTemplate()}
         onFileSelect={(file) => setFile(file)}
         file={file}
         title="Upload Threats"
-      />
+      /> */}
     </>
   );
 }

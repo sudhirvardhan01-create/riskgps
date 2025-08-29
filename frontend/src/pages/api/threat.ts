@@ -1,11 +1,9 @@
-
-
 //Function to fetch threats
 export const fetchThreats = async (
   page: number,
   limit: number,
   searchPattern?: string,
-  sort?: string,
+  sort?: string
 ) => {
   const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
@@ -30,7 +28,6 @@ export const fetchThreats = async (
   const res = await response.json();
   return res.data;
 };
-
 
 //Function to export the threats
 export const exportThreats = async (endpoint: string) => {
@@ -60,7 +57,6 @@ export const exportThreats = async (endpoint: string) => {
   window.URL.revokeObjectURL(url);
 };
 
-
 //Function to download the threats template
 export const downloadThreatsTemplate = async () => {
   const response = await fetch(
@@ -87,4 +83,24 @@ export const downloadThreatsTemplate = async () => {
 
   a.remove();
   window.URL.revokeObjectURL(url);
+};
+
+//Function to import the threats
+export const importThreats = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/import-threats`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("File upload failed");
+  }
+
+  return await response.json();
 };
