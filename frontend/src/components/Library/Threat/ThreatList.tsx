@@ -80,7 +80,7 @@ const ThreatList: React.FC<Props> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            mb: -2,
+            mb: -0.5,
           }}
         >
           <TablePagination
