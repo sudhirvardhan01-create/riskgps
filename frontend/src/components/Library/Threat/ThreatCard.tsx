@@ -7,11 +7,6 @@ import {
 import MenuItemComponent from "@/components/MenuItemComponent";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 
-interface TagItem {
-  label: string;
-  value: any;
-}
-
 interface ThreatCardProps {
   threatData: any;
   setSelectedThreatData: React.Dispatch<React.SetStateAction<any>>;
@@ -24,7 +19,7 @@ interface ThreatCardProps {
   threatTechniqueName: string;
   status: string;
   ciaMapping?: string[];
-  tagItems: TagItem[];
+  lastUpdated?: string | Date;
 }
 
 const ThreatCard: React.FC<ThreatCardProps> = ({
@@ -39,7 +34,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
   mitrePlatform = "Not Defined",
   status,
   ciaMapping,
-  tagItems,
+  lastUpdated,
 }) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
@@ -94,6 +89,9 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
       icon: <DeleteOutlineOutlined fontSize="small" />,
     },
   ];
+
+  const formattedDate =
+    lastUpdated ? new Date(lastUpdated as string | Date).toISOString().split("T")[0] : "";
 
   return (
     <Box
@@ -156,7 +154,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
 
           <Stack direction="row" alignItems="center" spacing={0}>
             <Typography variant="body2" color="textSecondary">
-              CIA Mapping: {ciaMapping?.join(", ")}
+              Last Updated: {formattedDate}
             </Typography>
             <Box sx={{ width: 96, mx: "24px !important" }}>
               {getStatusComponent()}
@@ -179,11 +177,8 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
         </Typography>
 
         {/* Meta Info */}
-        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center", mt: 1, mb: 1.5, gap: 2 }}>
-          {tagItems.map((item, index) => (
-            <>
+        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center", mt: 1, mb: 1.5, gap: 1.25 }}>
               <Chip
-                key={index}
                 label={
                   <Box
                     sx={{
@@ -193,11 +188,11 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
                     }}
                   >
                     <Typography variant="body2" color="#91939A">
-                      {item.label}:
+                      CIA Mapping:
                     </Typography>
                     &nbsp;
                     <Typography variant="body2" color="text.primary">
-                      {item.value}
+                      {ciaMapping}
                     </Typography>
                   </Box>
                 }
@@ -208,8 +203,10 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
                   backgroundColor: "#FFF9C7"
                 }}
               />
-            </>
-          ))}
+              <Typography color="#D9D9D9">•</Typography>
+                    <Typography variant="body2" color="text.primary">
+                      {threatData.controls?.length} Controls
+                    </Typography>
         </Box>
       </Box>
     </Box>

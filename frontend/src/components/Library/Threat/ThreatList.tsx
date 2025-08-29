@@ -55,17 +55,7 @@ const ThreatList: React.FC<Props> = ({
                   threatTechniqueName={item.mitreTechniqueName ?? ""}
                   status={item.status ?? ""}
                   ciaMapping={item.ciaMapping}
-                  tagItems={[
-                    { label: "MITRE Control ID", value: item.mitreControlId },
-                    {
-                      label: "MITRE Control Name",
-                      value: item.mitreControlName,
-                    },
-                    {
-                      label: "MITRE Control Type",
-                      value: item.mitreControlType,
-                    },
-                  ]}
+                  lastUpdated={item.updated_at}
                 />
               </div>
             ))

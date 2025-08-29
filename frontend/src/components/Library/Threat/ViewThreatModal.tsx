@@ -179,7 +179,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
           </Grid>
 
           {/* MITRE Control ID */}
-          <Grid size={{ xs: 6 }}>
+          {/* <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 MITRE Control ID
@@ -188,10 +188,10 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 {threatData.mitreControlId ? threatData.mitreControlId : "-"}
               </Typography>
             </Box>
-          </Grid>
+          </Grid> */}
 
           {/* MITRE Control Name */}
-            <Grid size={{ xs: 6 }}>
+            {/* <Grid size={{ xs: 6 }}>
               <Box display={"flex"} flexDirection={"column"} gap={0.5}>
                 <Typography variant="body2" color="#91939A" fontWeight={550}>
                   MITRE Control Name
@@ -204,10 +204,10 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                   {threatData.mitreControlName ? threatData.mitreControlName : "-"}
                 </Typography>
               </Box>
-            </Grid>
+            </Grid> */}
 
           {/* MITRE Control Type */}
-          <Grid size={{ xs: 6 }}>
+          {/* <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 MITRE Control Type
@@ -216,10 +216,10 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 {threatData.mitreControlType ? threatData.mitreControlType : "-"}
               </Typography>
             </Box>
-          </Grid>
+          </Grid> */}
 
           {/* MITRE Control Description */}
-          <Grid size={{ xs: 12 }}>
+          {/* <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 MITRE Control Description
@@ -228,10 +228,10 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 {threatData.mitreControlDescription ? threatData.mitreControlDescription : "-"}
               </Typography>
             </Box>
-          </Grid>
+          </Grid> */}
 
           {/* BluOcean Control Description */}
-          <Grid size={{ xs: 12 }}>
+          {/* <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 BluOcean Control Description
@@ -240,7 +240,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 {threatData.bluOceanControlDescription ? threatData.bluOceanControlDescription : "-"}
               </Typography>
             </Box>
-          </Grid>
+          </Grid> */}
 
         </Grid>
       </DialogContent>
