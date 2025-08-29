@@ -95,7 +95,6 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
     );
   }).filter(Boolean); 
 
-  console.log(relatedChips?.length)
   return (
     <Typography variant="body2" fontWeight={500}>
       {relatedChips && relatedChips.length > 0 ? (
@@ -139,7 +138,9 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
 
           <Box display={"flex"}
             alignItems={"center"}
-            justifyContent={"space-between"}>
+            justifyContent={"space-between"}
+            gap={3}>
+              
             <IconButton 
               sx={{ padding: 0 }}
               onClick={() => {

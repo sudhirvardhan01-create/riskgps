@@ -232,7 +232,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.processName}
               placeholder="Enter Process Name"
               value={processData.processName}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.processName}
               onChange={(e) => handleChange("processName", e.target.value)}
@@ -245,7 +244,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.processDescription}
               placeholder="Enter Process Description"
               value={processData.processDescription}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.processDescription}
               onChange={(e) =>
@@ -260,7 +258,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.seniorExecutiveName}
               placeholder="Senior Executive Owner Name"
               value={processData.seniorExecutiveOwnerName}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.seniorExecutiveName}
               onChange={(e) =>
@@ -273,7 +270,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.seniorExecutiveEmail}
               placeholder="Senior Executive Owner Email"
               value={processData.seniorExecutiveOwnerEmail}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.seniorExecutiveEmail}
               onChange={(e) =>
@@ -287,7 +283,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.operationsOwnerName}
               placeholder="Operations Owner Name"
               value={processData.operationsOwnerName}
-              required
+      
               isTooltipRequired={true}
               tooltipTitle={tooltips.operationsOwnerName}
               onChange={(e) =>
@@ -301,7 +297,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.operationsOwnerEmail}
               placeholder="Operations Owner Email"
               value={processData.operationsOwnerEmail}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.operationsOwnerEmail}
               onChange={(e) =>
@@ -315,7 +310,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.technologyOwnerName}
               placeholder="Technology Owner Name"
               value={processData.technologyOwnerName}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.technologyOwnerName}
               onChange={(e) =>
@@ -329,7 +323,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.technologyOwnerEmail}
               placeholder="Technology Owner Email"
               value={processData.technologyOwnerEmail}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.technologyOwnerEmail}
               onChange={(e) =>
@@ -343,7 +336,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.organizationalRevenueImpactPercentage}
               placeholder="Organizational Revenue Impact Percentage"
               value={processData.organizationalRevenueImpactPercentage}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.organizationalRevenueImpactPercentage}
               onChange={(e) =>
@@ -456,7 +448,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.regulatoryAndCompliance}
               placeholder="Regulatory and Compliance"
               value={processData.requlatoryAndCompliance}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.regulatoryAndCompliance}
               onChange={(e) =>
@@ -470,7 +461,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.criticalityOfDataProcessed}
               placeholder="Criticality of Data Processed"
               value={processData.criticalityOfDataProcessed}
-              required
               isTooltipRequired={true}
               tooltipTitle={tooltips.criticalityOfDataProcessed}
               onChange={(e) =>
@@ -1023,8 +1013,8 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
           </Grid>
         </Grid>
       </DialogContent>
-      <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-        <Divider sx={{ width: "90%" }} />
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+        <Divider sx={{ width: "100%" }} />
       </Box>
       <DialogActions
         sx={{ px: 3, py: 2, display: "flex", justifyContent: "space-between" }}

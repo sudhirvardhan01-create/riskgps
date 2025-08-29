@@ -202,79 +202,79 @@ class AssetService {
     return { message: Messages.ASSET.STATUS_UPDATED };
   }
 
-    static async downloadAssetTemplateFile(res) {
+  static async downloadAssetTemplateFile(res) {
 
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader(
-          "Content-Disposition",
-          "attachment; filename=asset_template.csv"
-      );
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=asset_template.csv"
+    );
 
-      const csvStream = format({ headers: true });
-      csvStream.pipe(res);
+    const csvStream = format({ headers: true });
+    csvStream.pipe(res);
 
-      // Row 1: Clarifications / Instructions
-      csvStream.write({
-          "Application Name": "Enter application name (text)",
-          "Application Owner": "Person/Dept responsible",
-          "Application IT Owner": "IT owner name",
-          "Is Third Party Management": "Yes / No",
-          "Third Party Name": "If Yes above, enter vendor name",
-          "Third Party Location": "Vendor location (e.g., USA)",
-          "Hosting": "Supported Value from the List" + ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
-          "Hosting Facility": "Supported Value from the List" + ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
-          "Cloud Service Provider": "Values separated by comma" + ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
-          "Geographic Location": "Primary location (e.g., US-East, EU-West)",
-          "Has Redundancy": "Yes / No",
-          "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
-          "Has Network Segmentations": "Yes / No",
-          "Network Name": "Network identifier (if applicable)",
-          "Asset Category": "Values separated by comma" + ASSETS.ASSET_CATEGORY.join(","),
-          "Asset Description": "Short description of the asset",
-      });
+    // Row 1: Clarifications / Instructions
+    csvStream.write({
+      "Application Name": "Enter application name (text)",
+      "Application Owner": "Person/Dept responsible",
+      "Application IT Owner": "IT owner name",
+      "Is Third Party Management": "Yes / No",
+      "Third Party Name": "If Yes above, enter vendor name",
+      "Third Party Location": "Vendor location (e.g., USA)",
+      "Hosting": "Supported Value from the List " + ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
+      "Hosting Facility": "Supported Value from the List " + ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
+      "Cloud Service Provider": "Values separated by comma " + ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
+      "Geographic Location": "Primary location (e.g., US-East, EU-West)",
+      "Has Redundancy": "Yes / No",
+      "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
+      "Has Network Segmentations": "Yes / No",
+      "Network Name": "Network identifier (if applicable)",
+      "Asset Category": "Values separated by comma " + ASSETS.ASSET_CATEGORY.join(","),
+      "Asset Description": "Short description of the asset",
+    });
 
-      csvStream.end();
-    }
+    csvStream.end();
+  }
 
 
   static async importAssetFromCSV(filePath) {
 
     function parseBoolean(value) {
-        if (!value) return null; // catch empty string or undefined
-        const v = value.toString().trim().toLowerCase();
-        return ["yes", "true", "1"].includes(v)
+      if (!value) return null; // catch empty string or undefined
+      const v = value.toString().trim().toLowerCase();
+      return ["yes", "true", "1"].includes(v)
         ? true
         : ["no", "false", "0"].includes(v)
-        ? false
-        : null; // invalid case
+          ? false
+          : null; // invalid case
     }
 
     function parseHosting(value) {
-      if (!value) return null; 
+      if (!value) return null;
       const v = value.trim();
       return ASSETS.HOSTING_SUPPORTED_VALUES.includes(v) ? v : null;
     }
 
     function parseHostingFacility(value) {
-      if (!value) return null; 
+      if (!value) return null;
       const v = value.trim();
       return ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.includes(v) ? v : null;
     }
 
     function parseCloudServiceProvider(value) {
-            if (!value) return [];
-            return value
-                .split(",") // split by comma
-                .map((v) => v.trim()) // remove whitespace
-                .filter((v) => ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(v));
+      if (!value) return [];
+      return value
+        .split(",") // split by comma
+        .map((v) => v.trim()) // remove whitespace
+        .filter((v) => ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(v));
     }
 
     function parseAssetCategory(value) {
-            if (!value) return [];
-            return value
-                .split(",") // split by comma
-                .map((v) => v.trim()) // remove whitespace
-                .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
+      if (!value) return [];
+      return value
+        .split(",") // split by comma
+        .map((v) => v.trim()) // remove whitespace
+        .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
     }
 
     return new Promise((resolve, reject) => {
@@ -307,6 +307,11 @@ class AssetService {
         .on("end", async () => {
           try {
             await Asset.bulkCreate(rows, { ignoreDuplicates: true });
+            await sequelize.query(`
+                        UPDATE "library_assets"
+                        SET asset_code = '#A-' || LPAD(id::text, 5, '0')
+                        WHERE asset_code IS NULL;
+                        `);
             fs.unlinkSync(filePath);
             resolve(rows.length);
           } catch (err) {
