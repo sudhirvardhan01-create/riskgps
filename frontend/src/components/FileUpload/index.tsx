@@ -213,6 +213,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
             </Typography>
           </Button>
           <Button
+            disabled = {!file}
+            disableRipple
             sx={{
               width: 110,
               height: 40,

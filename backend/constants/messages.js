@@ -50,6 +50,7 @@ module.exports = {
         INVALID_STATUS: 'Invalid status provided.',
         INVALID_RELATIONSHIP_TYPE: 'Invalid relationship type for process dependency.',
         MISSING_TARGET_ID: 'Missing or invalid target_process_id.',
+        SOURCE_NOT_FOUND: 'Source process not found for dependency.',
         TARGET_NOT_FOUND: 'Target process not found for dependency.',
         MISSING_ATTRIBUTE_FIELD: 'Each attribute must have meta_data_key_id and values.',
         INVALID_ATTRIBUTE_VALUE: 'Invalid value for one or more attributes.',

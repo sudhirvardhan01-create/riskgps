@@ -85,7 +85,7 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       asset_description: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true
       },    
 

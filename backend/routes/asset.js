@@ -64,7 +64,7 @@ router.get('/', async (req, res) => {
             return { metaDataKeyId, values: values.split(",") };
           })
           .filter(Boolean);
-
+        console.log(attrFilters, "FIl")
         const processes = await AssetService.getAllAssets(page, limit, searchPattern, sortBy, sortOrder, statusFilter, attrFilters);
         res.status(HttpStatus.OK).json({
             data: processes,
@@ -78,7 +78,7 @@ router.get('/', async (req, res) => {
 });
 
 
-router.get("/dowmload-asset-import-template-file", async (req, res) => {
+router.get("/download-template-file", async (req, res) => {
     try {
         await AssetService.downloadAssetTemplateFile(res);
     } catch (err) {
@@ -89,7 +89,7 @@ router.get("/dowmload-asset-import-template-file", async (req, res) => {
     }
 });
 
-router.post("/import-assets", upload.single("file"), async (req, res) => {
+router.post("/import", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
             throw new Error("File is required!")
@@ -108,7 +108,7 @@ router.post("/import-assets", upload.single("file"), async (req, res) => {
     }
 })
 
-router.get("/export-assets", async (req, res) => {
+router.get("/export", async (req, res) => {
     try {
         await AssetService.exportAssetsCSV(res);
     } catch (err) {

@@ -13,7 +13,7 @@ const QueryStream = require("pg-query-stream");
 const fs = require("fs");
 const { parse } = require("fast-csv");
 
-const {GENERAL, PROCESS } = require("../constants/library");
+const { GENERAL, PROCESS } = require("../constants/library");
 
 const CustomError = require("../utils/CustomError");
 const Messages = require("../constants/messages");
@@ -30,9 +30,9 @@ class ProcessService {
 
             const newProcess = await Process.create(processData, { transaction: t });
 
-            // if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
-            //     await this.handleProcessDependencies(newProcess.id, data.process_dependency, t);
-            // }
+            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+                await this.handleProcessDependencies("create", newProcess.id, data.process_dependency, t);
+            }
 
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
                 console.log(data.attributes);
@@ -45,7 +45,7 @@ class ProcessService {
 
     static async getAllProcesses(page = 0, limit = 6, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC', statusFilter = [], attrFilters = []) {
         console.log("Fetching all processes");
-        
+
         const offset = page * limit;
 
         if (!PROCESS.PROCESS_ALLOWED_SORT_FIELDS.includes(sortBy)) {
@@ -64,29 +64,29 @@ class ProcessService {
                 as: "attributes",
                 include: [{ model: MetaData, as: "metaData" }],
             },
-        {
-          model: RiskScenario,
-          as: "riskScenarios",
-        },
-        { 
-          model: ProcessRelationship, 
-          as: "sourceRelationships" 
-        },
-        { 
-          model: ProcessRelationship, 
-          as: "targetRelationships" 
-        },
-      ];
+            {
+                model: RiskScenario,
+                as: "riskScenarios",
+            },
+            {
+                model: ProcessRelationship,
+                as: "sourceRelationships"
+            },
+            {
+                model: ProcessRelationship,
+                as: "targetRelationships"
+            },
+        ];
 
         const total = await Process.count({
             where: whereClause
         });
 
         const data = await Process.findAll({
-          ...(limit > 0 ? { limit, offset } : {}),
-          where: whereClause,
-          order: [[sortBy, sortOrder]],
-          include: includeRelations,
+            ...(limit > 0 ? { limit, offset } : {}),
+            where: whereClause,
+            order: [[sortBy, sortOrder]],
+            include: includeRelations,
         });
 
         let processes = data.map((s) => s.toJSON());
@@ -122,9 +122,6 @@ class ProcessService {
                         source_process_id: val.source_process_id,
                         target_process_id: val.target_process_id,
                         relationship_type: val.relationship_type,
-                        // source_process_id: val.target_process_id,
-                        // target_process_id: val.source_process_id,
-                        // relationship_type: val.relationship_type === "follows" ? "precedes" : "follows",
                     }))
                 );
             }
@@ -168,11 +165,18 @@ class ProcessService {
             await process.update(processData, { transaction: t });
 
             await ProcessAttribute.destroy({ where: { process_id: id }, transaction: t });
-            await ProcessRelationship.destroy({ where: { source_process_id: id }, transaction: t });
-
-            // if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
-            //     await this.handleProcessDependencies(id, data.process_dependency, t);
-            // }
+            await ProcessRelationship.destroy({
+                where: {
+                    [Op.or]: [
+                        { source_process_id: id },
+                        { target_process_id: id }
+                    ]
+                },
+                transaction: t
+            });
+            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+                await this.handleProcessDependencies("update", id, data.process_dependency, t);
+            }
             console.log(data.attributes, "LOGGING ATTR");
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
                 console.log(data.attributes);
@@ -234,15 +238,13 @@ class ProcessService {
             "Operations Owner Email": "Operation Owner Email",
             "Technology Owner Name": "Technology Owner Name",
             "Technology Owner Email": "Technology Owner Email",
-            "Oraganizational Revenue Impact Percentage": "Oraganizational Revenue Impact Percentage",
-            "Financial Materiality": "Financial Materiality",
+            "Oraganizational Revenue Impact Percentage": "Oraganizational Revenue Impact Percentage in number eg: 20",
+            "Financial Materiality": "Yes / No",
             "Third Party Involvement": "Yes / No",
-            "Users": "Users",
+            "Users": "Users Type Internal Users / External Users / Third Party Users",
             "Regulatory and Compliance": "regulations",
             "Criticality Of Data Processed": "Criticality Of Data Processed",
-            "Data Processes": "Application / Database / Server / Other",
-            "Asset Description": "Short description of the asset",
-            
+            "Data Processed": "List of values separated by Comma from" + GENERAL.DATA_TYPES.join(","),
         });
 
         csvStream.end();
@@ -261,7 +263,7 @@ class ProcessService {
             const query = new QueryStream(sql);
             const stream = connection.query(query);
 
-            res.setHeader("Content-disposition", "attachment; filename=processes.csv");
+            res.setHeader("Content-disposition", "attachment; filename=processes_export.csv");
             res.setHeader("Content-Type", "text/csv");
 
             const csvStream = format({
@@ -282,7 +284,7 @@ class ProcessService {
                     "Users": row.users_customers,
                     "Regulatory and Compliance": row.regulatory_and_compliance,
                     "Criticality Of Data Processed": row.criticality_of_data_processed,
-                    "Data Processes": row.data_processed,
+                    "Data Processed": (row.data_processed ?? []).join(","),
                     "Status": row.status,
                     "Created At": row.created_at,
                     "Updated At": row.updated_at,
@@ -290,7 +292,7 @@ class ProcessService {
             });
 
             stream.on("end", () => {
-            sequelize.connectionManager.releaseConnection(connection);
+                sequelize.connectionManager.releaseConnection(connection);
             });
 
             stream.pipe(csvStream).pipe(res);
@@ -300,55 +302,73 @@ class ProcessService {
         }
     }
 
-    static async importProcessesFromCSV (filePath) {
-    return new Promise((resolve, reject) => {
-        const rows = [];
+    static async importProcessesFromCSV(filePath) {
+        function parseBoolean(value) {
+            if (!value) return null; // catch empty string or undefined
+            const v = value.toString().trim().toLowerCase();
+            return ["yes", "true", "1"].includes(v)
+                ? true
+                : ["no", "false", "0"].includes(v)
+                    ? false
+                    : null; // invalid case
+        }
 
-        fs.createReadStream(filePath)
-        .pipe(parse({ headers: true }))
-        .on("error", (error) => reject(error))
-        .on("data", (row) => {
-            rows.push({
-            process_name: row["Process Name"],
-            process_description: row["Process Description"],
-            senior_executive__owner_name: row["Senior Executive Name"],
-            senior_executive__owner_email: row["Senior Executive Email"],
-            operations__owner_name: row["Operations Owner Name"],
-            operations__owner_email: row["Operations Owner Email"],
-            technology_owner_name: row["Technology Owner Name"],
-            technology_owner_email: row["Technology Owner Email"],
-            organizational_revenue_impact_percentage: row["Oraganizational Revenue Impact Percentage"],
-            financial_materiality: row["Financial Materiality"],
-            third_party_involvement: row["Third Party Involvement"],
-            users_customers: row["Users"],
-            regulatory_and_compliance: row["Regulatory and Compliance"],
-            criticality_of_data_processed: row["Criticality Of Data Processed"],
-            data_processed: row["Data Processes"],
-            status: "published"
-            });
-        })
-        .on("end", async () => {
-            try {
-            await Process.bulkCreate(rows, { ignoreDuplicates: true });
-            fs.unlinkSync(filePath); 
-            resolve(rows.length);
-            } catch (err) {
-            reject(err);
-            }
+        function parseDataProcessed(value) {
+            if (!value) return [];
+            return value
+                .split(",") 
+                .map((v) => v.trim()) 
+                .filter((v) => GENERAL.DATA_TYPES.includes(v));
+        }
+
+        return new Promise((resolve, reject) => {
+            const rows = [];
+
+            fs.createReadStream(filePath)
+                .pipe(parse({ headers: true }))
+                .on("error", (error) => reject(error))
+                .on("data", (row) => {
+                    rows.push({
+                        process_name: row["Process Name"],
+                        process_description: row["Process Description"],
+                        senior_executive__owner_name: row["Senior Executive Name"],
+                        senior_executive__owner_email: row["Senior Executive Email"],
+                        operations__owner_name: row["Operations Owner Name"],
+                        operations__owner_email: row["Operations Owner Email"],
+                        technology_owner_name: row["Technology Owner Name"],
+                        technology_owner_email: row["Technology Owner Email"],
+                        organizational_revenue_impact_percentage: parseFloat(row["Oraganizational Revenue Impact Percentage"]),
+                        financial_materiality: parseBoolean(row["Financial Materiality"]),
+                        third_party_involvement: parseBoolean(row["Third Party Involvement"]),
+                        users_customers: row["Users"],
+                        regulatory_and_compliance: row["Regulatory and Compliance"],
+                        criticality_of_data_processed: row["Criticality Of Data Processed"],
+                        data_processed: parseDataProcessed(row["Data Processes"]),
+                        status: "published"
+                    });
+                })
+                .on("end", async () => {
+                    try {
+                        await Process.bulkCreate(rows, { ignoreDuplicates: true });
+                        fs.unlinkSync(filePath);
+                        resolve(rows.length);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
         });
-    });
     };
 
     static validateProcessData = (data) => {
-    const { process_name, status } = data;
+        const { process_name, status } = data;
 
-    if (!process_name) {
-        throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
-    }
+        if (!process_name) {
+            throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
+        }
 
-    if (!status || ( status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
-        throw new CustomError(Messages.PROCESS.INVALID_VALUE, HttpStatus.BAD_REQUEST);
-    }
+        if (!status || (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
+            throw new CustomError(Messages.PROCESS.INVALID_VALUE, HttpStatus.BAD_REQUEST);
+        }
     };
 
     static handleProcessDataColumnMapping(data) {
@@ -376,8 +396,9 @@ class ProcessService {
         );
     }
 
-    static async handleProcessDependencies(sourceProcessId, dependencies, transaction) {
+    static async handleProcessDependencies(operationType = "create", sourceProcessId, dependencies, transaction) {
         for (const dependency of dependencies) {
+            console.log(dependency, "DEPE")
             if (
                 !dependency.relationship_type ||
                 !PROCESS.PROCESS_RELATIONSHIP_TYPES.includes(dependency.relationship_type)
@@ -394,15 +415,25 @@ class ProcessService {
                 throw new CustomError(Messages.PROCESS.MISSING_TARGET_ID, HttpStatus.BAD_REQUEST);
             }
 
+            if (operationType == "update") {
+                console.log(dependency.source_process_id)
+                const sourceProcess = await Process.findByPk(dependency.source_process_id);
+                if (!sourceProcess) {
+                    console.log("Source process not found:", dependency.source_process_id);
+                    throw new CustomError(Messages.PROCESS.SOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                }
+            } else {
+                dependency.source_process_id = sourceProcessId;
+            }
             const targetProcess = await Process.findByPk(dependency.target_process_id);
             if (!targetProcess) {
                 console.log("Target process not found:", dependency.target_process_id);
                 throw new CustomError(Messages.PROCESS.TARGET_NOT_FOUND, HttpStatus.NOT_FOUND);
             }
 
-            await ProcessRelationship.create(
+            await ProcessRelationship.upsert(
                 {
-                    source_process_id: sourceProcessId,
+                    source_process_id: dependency.source_process_id,
                     target_process_id: dependency.target_process_id,
                     relationship_type: dependency.relationship_type,
                 },
@@ -440,7 +471,7 @@ class ProcessService {
             );
         }
     }
-    static handleProcessFilters(searchPattern = null, statusFilter = [], attrFilters = [] ) {
+    static handleProcessFilters(searchPattern = null, statusFilter = [], attrFilters = []) {
         let conditions = [];
 
         if (searchPattern) {
@@ -460,15 +491,15 @@ class ProcessService {
             let subquery = "";
 
             attrFilters.forEach((filter, idx) => {
-            const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
-            if (isNaN(metaDataKeyId)) {
-                throw new Error("Invalid metaDataKeyId");
-            }
+                const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
+                if (isNaN(metaDataKeyId)) {
+                    throw new Error("Invalid metaDataKeyId");
+                }
 
-            const valuesArray = filter.values.map((v) => sequelize.escape(v)).join(",");
+                const valuesArray = filter.values.map((v) => sequelize.escape(v)).join(",");
 
-            if (idx > 0) subquery += " INTERSECT ";
-            subquery += `
+                if (idx > 0) subquery += " INTERSECT ";
+                subquery += `
                 SELECT "process_id"
                 FROM library_attributes_process_mapping
                 WHERE "meta_data_key_id" = ${metaDataKeyId}
@@ -480,7 +511,7 @@ class ProcessService {
         }
         return conditions.length > 0 ? { [Op.and]: conditions } : {};
     }
-    
+
 }
 
 module.exports = ProcessService;

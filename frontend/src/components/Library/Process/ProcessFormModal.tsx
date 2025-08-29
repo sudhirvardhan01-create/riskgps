@@ -17,13 +17,26 @@ import {
   Divider,
   Autocomplete,
   Chip,
+  Stack,
+  FormControlLabel,
+  FormLabel,
+  RadioGroup,
+  Radio,
 } from "@mui/material";
-import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
 import {
-  RiskScenarioAttributes,
-  RiskScenarioData,
-} from "@/types/risk-scenario";
-import { ProcessData } from "@/types/process";
+  Add,
+  Close,
+  DeleteOutlineOutlined,
+  DoneOutlined,
+} from "@mui/icons-material";
+
+import { ProcessAttributes, ProcessData } from "@/types/process";
+import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
+import TextFieldStyled from "@/components/TextFieldStyled";
+import { tooltips } from "@/utils/tooltips";
+import { labels } from "@/utils/labels";
+import SelectStyled from "@/components/SelectStyled";
+import TooltipComponent from "@/components/TooltipComponent";
 
 interface ProcessFormModalProps {
   operation: "create" | "edit";
@@ -46,13 +59,13 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(metaDatas)
+  console.log(metaDatas);
   console.log(processes);
 
-
-  const [newDependentProcess,setNewDependentProcess] = React.useState<{
-    dependendProcessId:number | null,
-    relationType: string | null,
+  const [newDependentProcess, setNewDependentProcess] = React.useState<{
+    sourceProcessId: number | null;
+    targetProcessId: number | null;
+    relationType: string | null;
   }>();
 
   const handleChange = (field: keyof ProcessData, value: string) => {
@@ -61,7 +74,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
   const handleKeyValueChange = (
     index: number,
-    field: keyof RiskScenarioAttributes,
+    field: keyof ProcessAttributes,
     value: number | string[]
   ) => {
     const updatedKeyValues = [...(processData.attributes ?? [])];
@@ -94,824 +107,461 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
   // Related Process handling functions
   const addRelatedProcess = () => {
     if (newDependentProcess) {
-      setProcessData({...processData,
-        processDependency: [...processData?.processDependency ?? [] , {targetProcessId: newDependentProcess.dependendProcessId as number, relationshipType: newDependentProcess.relationType as string}]
-      })
+      setProcessData({
+        ...processData,
+        processDependency: [
+          ...(processData?.processDependency ?? []),
+          {
+            sourceProcessId: newDependentProcess.sourceProcessId as number,
+            targetProcessId: newDependentProcess.targetProcessId as number,
+            relationshipType: newDependentProcess.relationType as string,
+          },
+        ],
+      });
     }
     setNewDependentProcess({
-        dependendProcessId: null,
-        relationType: null
-    })
-  };
-
-  const removeRelatedProcess = (processToRemove: number) => {
-    setProcessData({
-      ...processData,
-      processDependency: processData?.processDependency?.filter((process) => process.targetProcessId !== processToRemove)
+      sourceProcessId: null,
+      targetProcessId: null,
+      relationType: null,
     });
   };
 
+  const removeRelatedProcess = (
+    sourceProcessToRemove: number | null,
+    targetProcessToRemove: number
+  ) => {
+    setProcessData({
+      ...processData,
+      processDependency: processData?.processDependency?.filter(
+        (process) =>
+          !(
+            process.sourceProcessId === sourceProcessToRemove &&
+            process.targetProcessId === targetProcessToRemove
+          )
+      ),
+    });
+  };
+
+  const getStatusComponent = () => {
+    if (
+      processData.status === "published" ||
+      processData.status === "not_published"
+    ) {
+      return (
+        <FormControlLabel
+          control={
+            <ToggleSwitch
+              color="success"
+              checked={processData.status === "published"}
+            />
+          }
+          label={processData.status === "published" ? "Enabled" : "Disabled"}
+          sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
+        />
+      );
+    }
+    return (
+      <Chip
+        icon={<DoneOutlined />}
+        label="Draft"
+        variant="outlined"
+        size="small"
+        color="primary"
+        sx={{
+          fontWeight: 550,
+          borderRadius: 1,
+          color: "primary.main",
+          width: "96px",
+          "& .MuiChip-icon": {
+            marginRight: "1px",
+          },
+        }}
+      />
+    );
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      slotProps={{ paper: { sx: { borderRadius: 2, padding: 5 } } }}
+    >
       <DialogTitle
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          paddingY: 0,
+          paddingX: 0,
+          marginBottom: 5,
         }}
       >
-        {operation === "create" && (
-          <Typography variant="h5" fontWeight={550}>
-            Add Process
-          </Typography>
-        )}
+        <Stack
+          display={"flex"}
+          direction={"row"}
+          alignItems={"center"}
+          justifyContent={"space-between"}
+        >
+          <Stack
+            display={"flex"}
+            direction="row"
+            justifyContent={"center"}
+            alignItems={"center"}
+            gap={2}
+          >
+            <Typography variant="h5" fontWeight={550} color="#121212">
+              {operation === "create"
+                ? "Add Process"
+                : `Edit Process ${processData.processCode}`}
+            </Typography>
+            {operation === "edit" ? getStatusComponent() : null}
+          </Stack>
 
-        {operation === "edit" && (
-          <Typography variant="h5" fontWeight={550}>
-            Edit Process BP - {processData.processCode}
-          </Typography>
-        )}
-        <IconButton onClick={onClose}>
-          <Close />
-        </IconButton>
+          <IconButton onClick={onClose} sx={{ padding: 0 }}>
+            <Close sx={{ color: "primary.main" }} />
+          </IconButton>
+        </Stack>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2 }}>
-        <Grid container spacing={2} ml={5}>
+      <DialogContent sx={{ padding: 0 }}>
+        <Grid container spacing={4}>
           {/* Process Name */}
-          <Grid mt={1} size={{ xs: 11 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Process Name"
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.processName}
               placeholder="Enter Process Name"
               value={processData.processName}
               required
-              variant="outlined"
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.processName}
               onChange={(e) => handleChange("processName", e.target.value)}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
 
           {/* Process Description field */}
-          <Grid mt={1} size={{ xs: 11 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Process Description"
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.processDescription}
               placeholder="Enter Process Description"
               value={processData.processDescription}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.processDescription}
               onChange={(e) =>
                 handleChange("processDescription", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
-            />
-          </Grid>
-
-          <Grid mt={1} size={{ xs: 11 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Users"
-              placeholder="Users"
-              value={processData.users}
-              onChange={(e) =>
-                handleChange("users", e.target.value)
-              }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
 
           {/* senior executire owner and email */}
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Senior Executive Owner Name"
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.seniorExecutiveName}
               placeholder="Senior Executive Owner Name"
               value={processData.seniorExecutiveOwnerName}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.seniorExecutiveName}
               onChange={(e) =>
                 handleChange("seniorExecutiveOwnerName", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Senior Executive Owner Email"
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.seniorExecutiveEmail}
               placeholder="Senior Executive Owner Email"
               value={processData.seniorExecutiveOwnerEmail}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.seniorExecutiveEmail}
               onChange={(e) =>
                 handleChange("seniorExecutiveOwnerEmail", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Operations Owner Name"
+
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.operationsOwnerName}
               placeholder="Operations Owner Name"
               value={processData.operationsOwnerName}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.operationsOwnerName}
               onChange={(e) =>
                 handleChange("operationsOwnerName", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Operations Owner Email"
+
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.operationsOwnerEmail}
               placeholder="Operations Owner Email"
               value={processData.operationsOwnerEmail}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.operationsOwnerEmail}
               onChange={(e) =>
                 handleChange("operationsOwnerEmail", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Technology Owner Name"
+
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.technologyOwnerName}
               placeholder="Technology Owner Name"
               value={processData.technologyOwnerName}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.technologyOwnerName}
               onChange={(e) =>
                 handleChange("technologyOwnerName", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Technology Owner Email"
+
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.technologyOwnerEmail}
               placeholder="Technology Owner Email"
               value={processData.technologyOwnerEmail}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.technologyOwnerEmail}
               onChange={(e) =>
                 handleChange("technologyOwnerEmail", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Organizational Revenue Impact Percentage"
+
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.organizationalRevenueImpactPercentage}
               placeholder="Organizational Revenue Impact Percentage"
               value={processData.organizationalRevenueImpactPercentage}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.organizationalRevenueImpactPercentage}
               onChange={(e) =>
                 handleChange(
                   "organizationalRevenueImpactPercentage",
                   e.target.value
                 )
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-          {/* <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Financial Materiality"
-              placeholder="Financial Materiality"
-              value={processData.financialMateriality}
-              onChange={(e) =>
-                handleChange("financialMateriality", e.target.value)
-              }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
-            />
-          </Grid> */}
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Third Party Involvement"
-              placeholder="Third Party Involvement"
-              value={processData.thirdPartyInvolvement}
-              onChange={(e) =>
-                handleChange("thirdPartyInvolvement", e.target.value)
-              }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
-            />
+
+          <Grid pl={1.5} size={{ xs: 6 }}>
+            <FormControl component="fieldset" sx={{ width: "100%" }}>
+              <FormLabel
+                component="legend"
+                id="is-thirdPartyInvolvement-radio-buttons-group"
+              >
+                <Box display={"flex"} gap={0.5}>
+                  <Typography variant="body2" color="#121212">
+                    {labels.thirdPartyInvolvement}
+                  </Typography>
+                  <TooltipComponent
+                    title={tooltips.thirdPartyInvolvement}
+                    width={"12px"}
+                    height={"12px"}
+                  />
+                </Box>
+              </FormLabel>
+              <RadioGroup
+                aria-labelledby="is-thirdPartyInvolvement-radio-buttons-group"
+                name={labels.thirdPartyInvolvement}
+                row
+                value={processData.thirdPartyInvolvement}
+                onChange={(e) => {
+                  handleChange("thirdPartyInvolvement", e.target.value);
+                }}
+              >
+                <FormControlLabel
+                  value={true}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      Yes
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  value={false}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      No
+                    </Typography>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
           </Grid>
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Regulatory and Compliance"
+
+          <Grid pl={1.5} size={{ xs: 6 }}>
+            <FormControl component="fieldset" sx={{ width: "100%" }}>
+              <FormLabel
+                component="legend"
+                id="is-redundancy-radio-buttons-group"
+              >
+                <Box display={"flex"} gap={0.5}>
+                  <Typography variant="body2" color="#121212">
+                    {labels.financialMateriality}
+                  </Typography>
+                  <TooltipComponent
+                    title={tooltips.financialMateriality}
+                    width={"12px"}
+                    height={"12px"}
+                  />
+                </Box>
+              </FormLabel>
+              <RadioGroup
+                aria-labelledby="is-redundancy-radio-buttons-group"
+                name="isRedundancy"
+                row
+                value={processData.financialMateriality}
+                onChange={(e) => {
+                  handleChange("financialMateriality", e.target.value);
+                }}
+              >
+                <FormControlLabel
+                  value={true}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      Yes
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  value={false}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" color="text.primary">
+                      No
+                    </Typography>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.regulatoryAndCompliance}
               placeholder="Regulatory and Compliance"
               value={processData.requlatoryAndCompliance}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.regulatoryAndCompliance}
               onChange={(e) =>
                 handleChange("requlatoryAndCompliance", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
-
           {/* Criticality of Data Processed */}
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Criticality of Data Processed"
+          <Grid mt={1} size={{ xs: 6 }}>
+            <TextFieldStyled /// text
+              label={labels.criticalityOfDataProcessed}
               placeholder="Criticality of Data Processed"
               value={processData.criticalityOfDataProcessed}
+              required
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.criticalityOfDataProcessed}
               onChange={(e) =>
                 handleChange("criticalityOfDataProcessed", e.target.value)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
-              }}
             />
           </Grid>
 
-          <Grid mt={1} size={{ xs: 5.5 }}>
-            <TextField
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              fullWidth
-              label="Data Processed"
-              placeholder="Data Processed"
-              value={processData.dataProcessed}
+          <Grid mt={1} size={{ xs: 6 }}>
+            <SelectStyled
+              multiple
+              value={processData.dataProcessed || []}
+              label={labels.dataProcessed}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.dataProcessed}
+              displayEmpty
               onChange={(e) =>
-                handleChange("dataProcessed", e.target.value)
+                handleChange("dataProcessed", e.target.value as string)
               }
-              required
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  backgroundColor: "#ffffff",
-                  "& fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#cecfd2",
-                    borderWidth: "1.5px",
-                  },
-                  "& input": {
-                    padding: "14px 16px",
-                    fontSize: "14px",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#000000",
-                  "&.Mui-focused": {
-                    color: "#000000",
-                  },
-                  "&.MuiInputLabel-shrink": {
-                    transform: "translate(14px, -9px) scale(0.75)",
-                  },
-                },
+              renderValue={(selected: any) => {
+                if (!selected || selected.length === 0) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Data Processed
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected.join(", ")}
+                    </Typography>
+                  );
+                }
               }}
-            />
+            >
+              <MenuItem value="PHI">PHI</MenuItem>
+              <MenuItem value="PII">PII</MenuItem>
+              <MenuItem value="PCI">PCI</MenuItem>
+            </SelectStyled>
+          </Grid>
+
+          <Grid mt={1} size={{ xs: 6 }}>
+            <SelectStyled
+              value={processData.users}
+              label={labels.users}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.users}
+              displayEmpty
+              onChange={(e) => handleChange("users", e.target.value as string)}
+              renderValue={(selected: any) => {
+                if (!selected) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Users
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected}
+                    </Typography>
+                  );
+                }
+              }}
+            >
+              <MenuItem value="SaaS">Internal Users</MenuItem>
+              <MenuItem value="PaaS">Public Users</MenuItem>
+              <MenuItem value="IaaS">Third Party Users</MenuItem>
+            </SelectStyled>
           </Grid>
 
           {/* RELATED PROCESS SECTION */}
@@ -934,14 +584,17 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 <Grid size={{ xs: 5 }}>
                   <Autocomplete
                     value={
-                      processes.find((item) => item.id === newDependentProcess?.dependendProcessId) ||
-                      null
+                      processes.find(
+                        (item) =>
+                          item.id === newDependentProcess?.sourceProcessId
+                      ) || null
                     }
                     onChange={(event, newValue) => {
                       setNewDependentProcess({
-                        dependendProcessId:newValue?.id as number,
-                        relationType: null
-                      })
+                        sourceProcessId: processData.id ?? null,
+                        targetProcessId: newValue?.id as number,
+                        relationType: null,
+                      });
                     }}
                     options={processes}
                     getOptionLabel={(option) => option.processName}
@@ -1030,18 +683,20 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                       label="Relationship Type"
                       displayEmpty
                       onChange={(e) => {
-                        setNewDependentProcess(prev => {
-                            if (!prev || prev.dependendProcessId === null) {
-                            alert("Process ID is required before setting relation type.");
+                        setNewDependentProcess((prev) => {
+                          if (!prev || prev.targetProcessId === null) {
+                            alert(
+                              "Process ID is required before setting relation type."
+                            );
                             return prev;
-                            }
+                          }
 
-                            return {
+                          return {
                             ...prev,
-                            relationType: e.target.value
-                            };
+                            relationType: e.target.value,
+                          };
                         });
-                        }}
+                      }}
                       renderValue={(selected) => {
                         if (!selected) {
                           return (
@@ -1085,7 +740,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                   <Button
                     variant="contained"
                     onClick={addRelatedProcess}
-                    // disabled={!newRelatedProcess || !relationshipType}
                     sx={{
                       backgroundColor: "main.color",
                       "&:hover": {
@@ -1102,47 +756,81 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               </Grid>
 
               {/* Display added related processes */}
-              {processData?.processDependency && processData?.processDependency?.length > 0 && (
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
-                {processData?.processDependency?.map((relation, index) => (
-                <Chip
-                    key={index}
-                    label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Typography variant="body2" component="span" sx={{ fontWeight: 500 }}>
-                        {processData.id ? relation.sourceProcessId === processData.id &&  processes.find(item => item.id === relation.targetProcessId)?.processName : processes.find(item => item.id === relation.targetProcessId)?.processName }
-                        {processData.id ? relation.targetProcessId === processData.id &&  processes.find(item => item.id === relation.sourceProcessId)?.processName : processes.find(item => item.id === relation.targetProcessId)?.processName }
-                        </Typography>
-                        <Typography variant="body2" component="span" sx={{ 
-                        color: '#666', 
-                        fontSize: '0.75rem',
-                        fontStyle: 'italic' 
-                        }}>
-                        ({relation.relationshipType?.replace('_', ' ')})
-                        </Typography>
-                    </Box>
-                    }
-                    onDelete={() => removeRelatedProcess(relation.targetProcessId as number)}
-                    sx={{
-                    backgroundColor: "#e8f5e8",
-                    color: "#2e7d32",
-                    height: 'auto',
-                    minHeight: '32px',
-                    "& .MuiChip-label": {
-                        padding: "6px 12px",
-                        whiteSpace: 'normal',
-                        wordBreak: 'break-word'
-                    },
-                    "& .MuiChip-deleteIcon": {
-                        color: "#2e7d32",
-                        "&:hover": {
-                        color: "#cd0303",
-                        },
-                    },
-                    }}
-                />
-                ))}
-            </Box>
+              {processData?.processDependency &&
+                processData?.processDependency?.length > 0 && (
+                  <Box
+                    sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}
+                  >
+                    {processData?.processDependency?.map((relation, index) => { 
+                      let process = null;
+                      let relationType = null;
+                      let key = null;
+                      if (relation.targetProcessId === processData.id) {
+                            key = relation.sourceProcessId;
+                            process = processes?.find((p) => p.id === relation.sourceProcessId);
+                            relationType = relation.relationshipType === "follows" ? "precedes" : "follows";
+                      } else {
+                            key = relation.targetProcessId;
+                            process = processes?.find((p) => p.id === relation.targetProcessId);
+                            relationType = relation.relationshipType;
+                      }
+                      return (
+                      <Chip
+                        key={key}
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Typography
+                              variant="body2"
+                              component="span"
+                              sx={{ fontWeight: 500 }}
+                            >
+                              {process?.processName}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              component="span"
+                              sx={{
+                                color: "#666",
+                                fontSize: "0.75rem",
+                                fontStyle: "italic",
+                              }}
+                            >
+                              ({relationType?.replace("_", " ")})
+                            </Typography>
+                          </Box>
+                        }
+                        onDelete={() =>
+                          removeRelatedProcess(
+                            relation.sourceProcessId ?? null,
+                            relation.targetProcessId as number
+                          )
+                        }
+                        sx={{
+                          backgroundColor: "#e8f5e8",
+                          color: "#2e7d32",
+                          height: "auto",
+                          minHeight: "32px",
+                          "& .MuiChip-label": {
+                            padding: "6px 12px",
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                          },
+                          "& .MuiChip-deleteIcon": {
+                            color: "#2e7d32",
+                            "&:hover": {
+                              color: "#cd0303",
+                            },
+                          },
+                        }}
+                      />
+                    )})}
+                  </Box>
                 )}
             </Box>
           </Grid>
@@ -1359,6 +1047,11 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
           <Button
             sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
             variant="contained"
+              disabled={
+              processData.processName === "" ||
+              processData.processDescription === ""
+            }
+            disableRipple
             onClick={() => {
               onSubmit("published");
             }}

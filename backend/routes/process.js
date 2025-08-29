@@ -79,7 +79,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get("/dowmload-process-import-template-file", async (req, res) => {
+router.get("/download-template-file", async (req, res) => {
     try {
         await ProcessService.downloadProcessTemplateFile(res);
     } catch (err) {
@@ -90,7 +90,7 @@ router.get("/dowmload-process-import-template-file", async (req, res) => {
     }
 });
 
-router.post("/import-process", upload.single("file"), async (req, res) => {
+router.post("/import", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
             throw new Error("File is required!")
@@ -109,7 +109,7 @@ router.post("/import-process", upload.single("file"), async (req, res) => {
     }
 })
 
-router.get("/export-processes", async (req, res) => {
+router.get("/export", async (req, res) => {
     try {
         await ProcessService.exportProcessesCSV(res);
     } catch (err) {

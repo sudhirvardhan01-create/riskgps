@@ -235,7 +235,7 @@ class RiskScenarioService {
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
       "Content-Disposition",
-      "attachment; filename=process_template.csv"
+      "attachment; filename=risk_scenario_import_template.csv"
     );
 
     const csvStream = format({ headers: true });
@@ -294,7 +294,7 @@ class RiskScenarioService {
 
       res.setHeader(
         "Content-disposition",
-        "attachment; filename=risk_scenarios.csv"
+        "attachment; filename=risk_scenarios_export.csv"
       );
       res.setHeader("Content-Type", "text/csv");
 
