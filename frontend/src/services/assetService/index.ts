@@ -4,7 +4,9 @@ import {
   fetchAssets,
   updateAsset,
   updateAssetStatus,
-  exportAssets
+  exportAssets,
+  importAssets,
+  downloadAssetTemplateFile
 } from "@/pages/api/asset";
 import { Filter } from "@/types/filter";
 
@@ -14,5 +16,7 @@ export const AssetService = {
   update: (id: number, body: any) => updateAsset(id, body),
   delete: (id: number) => deleteAsset(id),
   updateStatus: (id: number, status: string) => updateAssetStatus(id, status),
-  export: (endpoint : string) => exportAssets(endpoint)
+  dowloadTemplateFile: () => downloadAssetTemplateFile(),
+  export: (endpoint : string) => exportAssets(endpoint),
+  import: (file: File) => importAssets(file)
 };

@@ -11,6 +11,7 @@ import ProcessFormModal from "@/components/Library/Process/ProcessFormModal";
 import { ProcessService } from "@/services/processService";
 import ProcessList from "@/components/Library/ProcessList";
 import { Filter } from "@/types/filter";
+import { FileService } from "@/services/fileService";
 
 const initialProcessData: ProcessData = {
     processName: "",
@@ -73,6 +74,10 @@ export default function ProcessContainer() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" });
+
+    //Related to Import/Export
+  const [file, setFile] = useState<File | null>(null);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<ProcessData>(initialProcessData);
 
@@ -182,7 +187,66 @@ export default function ProcessContainer() {
     setPage(0);
   };
 
+     //Function to export the assets
+    const handleExportProcess = async () => {
+      try {
+        await FileService.exportLibraryDataCSV("process");
+        setToast({
+          open: true,
+          message: `process exported successfully`,
+          severity: "success",
+        });
+      } catch (error) {
+        console.error(error);
+        setToast({
+          open: true,
+          message: "Error: unable to export the process",
+          severity: "error",
+        });
+      }
+    }
+  
+      //Function to import the process
+    const handleImportProcess = async () => {
+      try {
+        if (!file) {
+          throw new Error("File not found")
+        }
+        await FileService.importLibraryDataCSV("process", file as File);
+        setIsFileUploadOpen(false);
+        setToast({
+          open: true,
+          message: `process Imported successfully`,
+          severity: "success",
+        });
+      } catch (error) {
+        console.error(error);
+        setToast({
+          open: true,
+          message: "Error: unable to download the import process from file",
+          severity: "error",
+        });
+      }
+    }
 
+  //Function to download the process template file
+  const handledownloadProcessTemplateFile = async () => {
+    try {
+      await FileService.dowloadCSVTemplate("process");
+      setToast({
+        open: true,
+        message: `process template file downloaded successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to download the process template file",
+        severity: "error",
+      });
+    }
+  }
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
@@ -191,6 +255,16 @@ export default function ProcessContainer() {
       addButtonText: "Add Process",
       addAction: () => setIsAddOpen(true),
       sortItems,
+      fileUploadTitle: "Import Processes",
+      file,
+      setFile,
+      isFileUploadOpen,
+      setIsFileUploadOpen,
+      handleImport: handleImportProcess,
+      handledownloadTemplateFile: handledownloadProcessTemplateFile,
+      onImport: () => setIsFileUploadOpen(true),
+      isImportRequired: true,
+      onExport: () => handleExportProcess(),
       searchPattern,
       setSearchPattern,
       sort,
@@ -199,7 +273,7 @@ export default function ProcessContainer() {
       setStatusFilters,
       filters,
       setFilters
-    }),[statusFilters, filters, metaDatas]
+    }),[statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
   return (
@@ -325,6 +399,7 @@ export default function ProcessContainer() {
         toastBackgroundColor={toast.severity === "success" ? "#DDF5EB" : undefined}
         toastSeverity={toast.severity}
       />
+      
     </>
   );
 }

@@ -217,6 +217,33 @@ export const updateAssetStatus = async (id: number, status: string) => {
   return res.data;
 };
 
+
+export const downloadAssetTemplateFile = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/download-template-file`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/octet-stream",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to export.");
+  }
+  const blob = await response.blob();
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "assets.csv";
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
 //Function to export the assets
 export const exportAssets = async (endpoint: string) => {
   const response = await fetch(
@@ -243,4 +270,30 @@ export const exportAssets = async (endpoint: string) => {
 
   a.remove();
   window.URL.revokeObjectURL(url);
+};
+
+//Function to export the assets
+export const importAssets = async (file: File): Promise<any> => {
+  if (!file) {
+    throw new Error("No file selected.");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file); 
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/import`, 
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to import.");
+  }
+
+  const response = await res.json();
+  console.log(response)
+  return response; 
 };

@@ -11,8 +11,8 @@ import { AssetForm, AssetAttributes } from "@/types/asset";
 import { AssetService } from "@/services/assetService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
-import FileUpload from "@/components/FileUpload";
 import { Filter } from "@/types/filter";
+import { FileService } from "@/services/fileService";
 
 const initialAssetFormData: AssetForm = {
   assetCategory: [],
@@ -238,6 +238,66 @@ export default function AssetContainer() {
     setPage(0);
   };
 
+    //Function to export the assets
+  const handleExportAssets = async () => {
+    try {
+      await FileService.exportLibraryDataCSV("asset");
+      setToast({
+        open: true,
+        message: `Assets exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the assets",
+        severity: "error",
+      });
+    }
+  }
+
+    //Function to import the assets
+  const handleImportAssets = async () => {
+    try {
+      if (!file) {
+        throw new Error("File not found")
+      }
+      await FileService.importLibraryDataCSV("asset", file as File);
+      setIsFileUploadOpen(false);
+      setToast({
+        open: true,
+        message: `Assets Imported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to download the import assets from file",
+        severity: "error",
+      });
+    }
+  }
+
+    //Function to download the assets template file
+  const handledownloadAssetsTemplateFile = async () => {
+    try {
+      await FileService.dowloadCSVTemplate("asset");
+      setToast({
+        open: true,
+        message: `Assets template file downloaded successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to download the assets template file",
+        severity: "error",
+      });
+    }
+  }
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
@@ -246,9 +306,18 @@ export default function AssetContainer() {
       addButtonText: "Add Asset",
       addAction: () => setIsAddOpen(true),
       sortItems,
+      fileUploadTitle: "Import Assets",
+      file,
+      setFile,
+      isFileUploadOpen,
+      setIsFileUploadOpen,
+      handleImport: handleImportAssets,
+      handledownloadTemplateFile: handledownloadAssetsTemplateFile,
       onImport: () => setIsFileUploadOpen(true),
+      isImportRequired: true,
       onExport: () => handleExportAssets(),
       searchPattern,
+      isExportRequired: true,
       setSearchPattern,
       sort,
       setSort,
@@ -257,7 +326,7 @@ export default function AssetContainer() {
       filters,
       setFilters
     }),
-    [statusFilters, filters, metaDatas]
+    [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
   //Function for Form Validation
@@ -283,24 +352,6 @@ export default function AssetContainer() {
     } 
   }
 
-  //Function to export the assets
-  const handleExportAssets = async () => {
-    try {
-      await AssetService.export("/export-assets");
-      setToast({
-        open: true,
-        message: `Assets exported successfully`,
-        severity: "success",
-      });
-    } catch (error) {
-      console.error(error);
-      setToast({
-        open: true,
-        message: "Error: unable to export the assets",
-        severity: "error",
-      });
-    }
-  }
 
   return (
     <>
@@ -428,7 +479,7 @@ export default function AssetContainer() {
         toastSeverity={toast.severity}
       />
 
-      <FileUpload open={isFileUploadOpen} onClose={() => setIsFileUploadOpen(false)} onUpload={() => console.log("File Uploaded")} onDownload={() => console.log("File Downloaded")} onFileSelect={(file) => setFile(file)} file ={file} title="Upload Assets"/>
+      {/* <FileUpload open={isFileUploadOpen} onClose={() => setIsFileUploadOpen(false)} onUpload={handleImportAssets} onDownload={handledownloadAssetsTemplateFile} onFileSelect={(file) => setFile(file)} file ={file} title="Upload Assets"/> */}
     </>
   );
 }
