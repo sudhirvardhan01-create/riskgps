@@ -153,6 +153,7 @@ export const updateProcess = async (id: number, data: ProcessData) => {
       "attributes": data.attributes || [],
       "process_dependency" : Array.isArray(data.processDependency)
       ? data.processDependency.map((dep: ProcessDependency) => ({
+          source_process_id: dep.sourceProcessId,
           target_process_id: dep.targetProcessId,
           relationship_type: dep.relationshipType,
         }))

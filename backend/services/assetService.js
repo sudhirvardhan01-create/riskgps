@@ -306,7 +306,7 @@ class AssetService {
         })
         .on("end", async () => {
           try {
-            await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
+            await Asset.bulkCreate(rows, { ignoreDuplicates: true });
             fs.unlinkSync(filePath);
             resolve(rows.length);
           } catch (err) {
@@ -344,13 +344,13 @@ class AssetService {
           "Third Party Location": row.third_party_location,
           "Hosting": row.hosting,
           "Hosting Facility": row.hosting_facility,
-          "Cloud Service Provider": row.cloud_service_provider,
+          "Cloud Service Provider": (row.cloud_service_provider ?? []).join(","),
           "Geographic Location": row.geographic_location,
           "Has Redundancy": row.has_redundancy,
           "Databases": row.databases,
           "Has Network Segmentations": row.has_network_segmentation,
           "Network Name": row.network_name,
-          "Asset Category": row.asset_category,
+          "Asset Category": (row.asset_category ?? []).join(","),
           "Asset Description": row.asset_description,
           "Status": row.status,
           "Created At": row.created_at,

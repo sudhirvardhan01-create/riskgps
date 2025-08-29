@@ -23,11 +23,11 @@ const initialProcessData: ProcessData = {
     technologyOwnerEmail: "",
     organizationalRevenueImpactPercentage: 0,
     financialMateriality: false,
-    thirdPartyInvolvement: "",
+    thirdPartyInvolvement: false,
     users: "",
     requlatoryAndCompliance: "",
     criticalityOfDataProcessed: "",
-    dataProcessed: "",
+    dataProcessed: [],
     processDependency: [],
     status: "",
   }
@@ -117,6 +117,7 @@ export default function ProcessContainer() {
   const handleCreate = async (status: string) => {
     try {
       const req = { ...formData, status };
+      console.log(req);
       await  ProcessService.create(req);
       setFormData(initialProcessData);
       setIsAddOpen(false);
@@ -130,7 +131,7 @@ export default function ProcessContainer() {
 
   // Update
   const handleUpdate = async (status: string) => {
-    console.log(selectedProcess?.attributes)
+    console.log(selectedProcess)
     try {
       if (!selectedProcess?.id) throw new Error("Invalid selection");
       const body = { ...selectedProcess, status };

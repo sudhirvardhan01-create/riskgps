@@ -2,7 +2,8 @@ module.exports = {
   GENERAL: {
     ALLOWED_SORT_ORDER: ["ASC", "DESC"],
     STATUS_SUPPORTED_VALUES: ["draft", "published", "not_published"],
-    CIA_MAPPING_VALUES: ["C", "I", "A"]
+    CIA_MAPPING_VALUES: ["C", "I", "A"],
+    DATA_TYPES: ["PHI", "PII", "PCI"]
   },
   RISK_SCENARIO: {
     RISK_SCENARIO_SORT_FIELDS: [

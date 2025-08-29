@@ -18,26 +18,23 @@ export const fetchAssets = async (
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
 
+  if (statusFilter && statusFilter?.length > 0) {
+    const joinedStatusFilter = statusFilter.join(",");
+    params.append("status", joinedStatusFilter);
+  }
+
+  if (attributesFilter && attributesFilter?.length) {
+    const paramString = attributesFilter
+      .map((obj) => {
+        const [key, values] = Object.entries(obj)[0]; // each object has one key
+        return `${key}:${values.join(",")}`;
+      })
+      .join(";");
+
+    params.append("attributes", paramString);
+  }
   const transformAssetData = (data: any[]): AssetForm[] => {
-    params.append("search", searchPattern ?? "");
-    params.append("sort_by", sortBy);
-    params.append("sort_order", sortOrder);
 
-    if (statusFilter && statusFilter?.length > 0) {
-      const joinedStatusFilter = statusFilter.join(",");
-      params.append("status", joinedStatusFilter);
-    }
-
-    if (attributesFilter && attributesFilter?.length) {
-      const paramString = attributesFilter
-        .map((obj) => {
-          const [key, values] = Object.entries(obj)[0]; // each object has one key
-          return `${key}:${values.join(",")}`;
-        })
-        .join(";");
-
-      params.append("attributes", paramString);
-    }
     return data.map((item) => ({
       id: item.id,
       assetCode: item.asset_code,

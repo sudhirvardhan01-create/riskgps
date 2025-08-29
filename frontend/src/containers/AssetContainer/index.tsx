@@ -94,8 +94,9 @@ export default function AssetContainer() {
   // fetch list
   const loadList = useCallback(async () => {
     try {
+      console.log(filters,"Aaa");
       setLoading(true);
-      const data = await AssetService.fetch(page, rowsPerPage, searchPattern as string, sort);
+      const data = await AssetService.fetch(page, rowsPerPage, searchPattern as string, sort, statusFilters, filters);
       setAssetsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -108,7 +109,7 @@ export default function AssetContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
@@ -256,7 +257,7 @@ export default function AssetContainer() {
       filters,
       setFilters
     }),
-    [filters]
+    [statusFilters, filters, metaDatas]
   );
 
   //Function for Form Validation
