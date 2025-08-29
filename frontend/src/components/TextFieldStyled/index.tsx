@@ -2,10 +2,8 @@ import {
   styled,
   TextField,
   TextFieldProps,
-  FormControl,
-  InputLabel,
-  Typography,
   Box,
+  Typography,
 } from "@mui/material";
 import TooltipComponent from "../TooltipComponent";
 
@@ -25,55 +23,73 @@ const TextFieldStyled = styled(
     ...rest
   }: TextFieldStyledProps) => {
     return (
-      <FormControl fullWidth variant="outlined">
-        <InputLabel
-          sx={{
-            fontSize: "14px",
-            fontWeight: 500,
-            color: "#121212",
-            backgroundColor: "#fff",
-            px: "4px",
-            "&.Mui-focused": {
-              color: "#121212",
-            },
-            "& .MuiFormLabel-asterisk": {
-              color: "#FB2020",
-            },
-          }}
-          shrink
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography variant="body1" color="#121212" fontWeight={500}>
-              {label}
-            </Typography>
-            {required && <Typography color="#FB2020">*</Typography>}
-            {isTooltipRequired && <TooltipComponent title={tooltipTitle} />}
+      <TextField
+        {...rest}
+        fullWidth
+        variant="outlined"
+        label={
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              flexWrap: "wrap",
+              width: "100%",
+              pointerEvents: "none", // allows input focus through
+              gap: 0.5,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5 }}>
+              <Typography
+                variant="body1"
+                fontWeight={500}
+                color="#121212"
+                component="span"
+              >
+                {label}
+              </Typography>
+              {required && (
+                <Typography color="#FB2020" component="span">
+                  *
+                </Typography>
+              )}
+            </Box>
+            {isTooltipRequired && tooltipTitle && (
+              <Box sx={{ marginLeft: "auto" }}>
+                <TooltipComponent
+                  title={tooltipTitle}
+                  width="16px"
+                  height="16px"
+                />
+              </Box>
+            )}
           </Box>
-        </InputLabel>
-        <TextField {...rest}/>
-      </FormControl>
+        }
+        InputLabelProps={{
+          shrink: rest.value ? true : undefined, // keeps floating label smooth
+        }}
+      />
     );
   }
 )<TextFieldProps>(({ multiline }) => ({
   "& .MuiOutlinedInput-root": {
-    height: multiline ? "auto" : "52px", // Conditional height
-    borderRadius: "8px",
+    height: multiline ? "auto" : 52,
+    borderRadius: 8,
     backgroundColor: "#ffffff",
     "& fieldset": {
       borderColor: "#cecfd2",
-      borderWidth: "1px",
+      borderWidth: 1,
     },
     "&:hover fieldset": {
       borderColor: "#cecfd2",
-      borderWidth: "1.5px",
+      borderWidth: 1.5,
     },
     "&.Mui-focused fieldset": {
       borderColor: "#cecfd2",
-      borderWidth: "1.5px",
+      borderWidth: 1.5,
     },
     "& input": {
       padding: "14px 16px",
-      fontSize: "16px",
+      fontSize: 16,
       color: "#484848",
       "&::placeholder": {
         color: "#9E9FA5",
@@ -81,7 +97,7 @@ const TextFieldStyled = styled(
       },
     },
     "& textarea": {
-      fontSize: "16px",
+      fontSize: 16,
       color: "#484848",
       "&::placeholder": {
         color: "#9E9FA5",
@@ -90,17 +106,11 @@ const TextFieldStyled = styled(
     },
   },
   "& .MuiInputLabel-root": {
-    fontSize: "14px",
+    fontSize: 14,
     fontWeight: 500,
     color: "#121212",
-    "&.Mui-focused": {
-      color: "#121212",
-    },
-    "&.MuiInputLabel-shrink": {
-      transform: "translate(14px, -9px) scale(0.75)",
-    },
+    transformOrigin: "top left",
   },
 }));
 
 export default TextFieldStyled;
-
