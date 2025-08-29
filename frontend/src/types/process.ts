@@ -22,11 +22,11 @@ export interface ProcessData {
     technologyOwnerEmail?: string,
     organizationalRevenueImpactPercentage?: number  // this is not used in any calculations and the value ranges from 1-100
     financialMateriality?: boolean
-    thirdPartyInvolvement?: string,
+    thirdPartyInvolvement?: boolean,
     users?: string,
     requlatoryAndCompliance?: string,
     criticalityOfDataProcessed?: string,
-    dataProcessed?: string,
+    dataProcessed?: string[],
     processDependency?: ProcessDependency[],
     status?: string,
     attributes?: ProcessAttributes[],

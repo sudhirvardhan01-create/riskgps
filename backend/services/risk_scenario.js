@@ -1,11 +1,11 @@
 const {
-    RiskScenario,
-    RiskScenarioAttribute,
-    MetaData,
-    sequelize,
-    Process,
-    ProcessRiskScenarioMappings,
-    Sequelize,
+  RiskScenario,
+  RiskScenarioAttribute,
+  MetaData,
+  sequelize,
+  Process,
+  ProcessRiskScenarioMappings,
+  Sequelize,
 } = require("../models");
 const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
@@ -14,6 +14,8 @@ const Messages = require("../constants/messages");
 const { RISK_SCENARIO, GENERAL } = require("../constants/library");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
+const fs = require("fs");
+const { parse } = require("fast-csv");
 
 
 class RiskScenarioService {
@@ -228,6 +230,27 @@ class RiskScenarioService {
     console.log("[updateRiskScenarioStatus] Updated:", id, status);
     return { message: Messages.RISK_SCENARIO.STATUS_UPDATED };
   }
+  static async downloadRiskScenarioTemplateFile(res) {
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=risk_scenario_import_template.csv"
+    );
+
+    const csvStream = format({ headers: true });
+    csvStream.pipe(res);
+
+    // Row 1: Clarifications / Instructions
+    csvStream.write({
+      "Risk Scenario": "Risk Scenario (Text)",
+      "Risk Description": "Risk Scenario Description (Text)",
+      "Risk Statement": "Risk Scenario Statement (Text)",
+
+    });
+
+    csvStream.end();
+  }
 
   static async importRiskScenariosFromCSV(filePath) {
     return new Promise((resolve, reject) => {
@@ -247,6 +270,11 @@ class RiskScenarioService {
         .on("end", async () => {
           try {
             await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
+            await sequelize.query(`
+                        UPDATE "library_risk_scenarios"
+                        SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
+                        WHERE risk_code IS NULL;
+                        `);
             fs.unlinkSync(filePath);
             resolve(rows.length);
           } catch (err) {
@@ -271,7 +299,7 @@ class RiskScenarioService {
 
       res.setHeader(
         "Content-disposition",
-        "attachment; filename=risk_scenarios.csv"
+        "attachment; filename=risk_scenarios_export.csv"
       );
       res.setHeader("Content-Type", "text/csv");
 
@@ -282,7 +310,7 @@ class RiskScenarioService {
           "Risk Scenario": row.risk_scenario,
           "Risk Description": row.risk_description,
           "Risk Statement": row.risk_statement,
-          Status: row.status,
+          "Status": row.status,
           "Created At": row.created_at,
           "Updated At": row.updated_at,
         }),
@@ -310,7 +338,7 @@ class RiskScenarioService {
       );
     }
 
-    if (!status || ( status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
+    if (!status || (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
       console.log("[createRiskScenario] Invalid status:", status);
       throw new CustomError(
         Messages.RISK_SCENARIO.INVALID_STATUS,
@@ -329,9 +357,9 @@ class RiskScenarioService {
       "risk_field_2",
     ];
 
-      return Object.fromEntries(
-          fields.map((key) => [key, data[key] === "" ? null : data[key]])
-      );
+    return Object.fromEntries(
+      fields.map((key) => [key, data[key] === "" ? null : data[key]])
+    );
   }
 
   static async handleRiskScenarioProcessMapping(

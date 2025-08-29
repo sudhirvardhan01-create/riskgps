@@ -13,44 +13,36 @@ import {
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
-import { RiskScenarioData } from "@/types/risk-scenario";
+import { ThreatForm } from "@/types/threat";
 
-interface ViewRiskScenarioModalProps {
+interface ViewThreatModalProps {
   open: boolean;
-  processes: any[];
-  metaDatas: any[];
-  riskScenarioData: RiskScenarioData;
-  setIsEditRiskScenarioOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedRiskScenario: React.Dispatch<
-    React.SetStateAction<RiskScenarioData | null>
-  >;
+  threatData: ThreatForm;
+  setIsEditThreatOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedThreat: React.Dispatch<React.SetStateAction<ThreatForm | null>>;
   onClose: () => void;
 }
-const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
+const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
   open,
-  processes,
-  metaDatas,
-  riskScenarioData,
-  setIsEditRiskScenarioOpen,
-  setSelectedRiskScenario,
+  threatData,
+  setIsEditThreatOpen,
+  setSelectedThreat,
   onClose,
-}: ViewRiskScenarioModalProps) => {
+}: ViewThreatModalProps) => {
   const getStatusComponent = () => {
     if (
-      riskScenarioData.status === "published" ||
-      riskScenarioData.status === "not_published"
+      threatData.status === "published" ||
+      threatData.status === "not_published"
     ) {
       return (
         <FormControlLabel
           control={
             <ToggleSwitch
               color="success"
-              checked={riskScenarioData.status === "published"}
+              checked={threatData.status === "published"}
             />
           }
-          label={
-            riskScenarioData.status === "published" ? "Enabled" : "Disabled"
-          }
+          label={threatData.status === "published" ? "Enabled" : "Disabled"}
           sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
         />
       );
@@ -62,15 +54,9 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
         variant="outlined"
         size="small"
         color="primary"
-        sx={{
-          fontWeight: 550,
-          borderRadius: 1,
-          color: "primary.main",
-          width: "96px",
-          "& .MuiChip-icon": {
-            marginRight: "1px",
-          },
-        }}
+        sx={{ fontWeight: 550, borderRadius: 1, color:"primary.main", width: "96px", "& .MuiChip-icon": {
+          marginRight: "1px"
+        }}}
       />
     );
   };
@@ -102,7 +88,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
             gap={2}
           >
             <Typography variant="h5" color="#121212" fontWeight={550}>
-              Risk Scenario {riskScenarioData.risk_code}
+              Threat Technique {threatData.mitreTechniqueId}
             </Typography>
             {getStatusComponent()}
           </Stack>
@@ -116,8 +102,8 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
             <IconButton
               sx={{ padding: 0 }}
               onClick={() => {
-                setSelectedRiskScenario(riskScenarioData);
-                setIsEditRiskScenarioOpen(true);
+                setSelectedThreat(threatData);
+                setIsEditThreatOpen(true);
               }}
             >
               <EditOutlined sx={{ color: "primary.main" }} />
@@ -130,115 +116,136 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
         <Divider sx={{ mt: 3, mb: 1 }}></Divider>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ paddingBottom: 0 }}>
         <Grid container spacing={3}>
-          {/* Risk Scenario */}
+          {/* MITRE Platform */}
           <Grid size={{ xs: 12 }}>
-            <Box>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Risk Scenario
+                MITRE Platform
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {riskScenarioData.riskScenario}
+                {threatData.platforms.join(", ")}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Risk Statement */}
-          <Grid size={{ xs: 12 }}>
-            <Box>
+          {/* MITRE Technique Name */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Risk Statement
+                MITRE Technique Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {riskScenarioData.riskStatement
-                  ? riskScenarioData.riskStatement
-                  : "-"}
+                {threatData.mitreTechniqueName ? threatData.mitreTechniqueName : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Risk Description */}
-          <Grid size={{ xs: 12 }}>
-            <Box>
+          {/* CIA Mapping */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Risk Description
+                CIA Mapping
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {riskScenarioData.riskDescription
-                  ? riskScenarioData.riskDescription
-                  : "-"}
+                {threatData.ciaMapping ? threatData.ciaMapping.join(", ") : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Risk Field 1 */}
-          {/* <Grid size={{ xs: 6 }}>
-            <Box>
+          {/* Sub Technique ID */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Risk Field 1
+                Sub Technique ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {riskScenarioData.riskField1
-                  ? riskScenarioData.riskField1
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid> */}
-
-          {/* Risk Field 2 */}
-          {/* <Grid size={{ xs: 6 }}>
-            <Box>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Risk Field 2
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {riskScenarioData.riskField2
-                  ? riskScenarioData.riskField2
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid> */}
-          <Grid size={{ xs: 12 }}>
-            <Box>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                Process
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {riskScenarioData?.related_processes &&
-                riskScenarioData?.related_processes?.length > 0
-                  ? riskScenarioData?.related_processes
-                      ?.map((processId) => {
-                        return processes?.find(
-                          (process) => process.id === processId
-                        )?.processName;
-                      })
-                      .join(", ")
-                  : "-"}
+                {threatData.subTechniqueId ? threatData.subTechniqueId : "-"}
               </Typography>
             </Box>
           </Grid>
-          {riskScenarioData?.attributes?.map((item, index) => (
-            <Grid key={index} size={{ xs: 6 }}>
-              <Box>
+
+          {/* Sub Technique Name */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                Sub Technique Name
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.subTechniqueName ? threatData.subTechniqueName : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* MITRE Control ID */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                MITRE Control ID
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.mitreControlId ? threatData.mitreControlId : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* MITRE Control Name */}
+            <Grid size={{ xs: 6 }}>
+              <Box display={"flex"} flexDirection={"column"} gap={0.5}>
                 <Typography variant="body2" color="#91939A" fontWeight={550}>
-                  {
-                    metaDatas?.find(
-                      (metaData) => metaData.id === item.meta_data_key_id
-                    )?.label
-                  }
+                  MITRE Control Name
                 </Typography>
                 <Typography
                   variant="body1"
                   color="text.primary"
                   fontWeight={500}
                 >
-                  {item.values.join(", ")}
+                  {threatData.mitreControlName ? threatData.mitreControlName : "-"}
                 </Typography>
               </Box>
             </Grid>
-          ))}
+
+          {/* MITRE Control Type */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                MITRE Control Type
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.mitreControlType ? threatData.mitreControlType : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* MITRE Control Description */}
+          <Grid size={{ xs: 12 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                MITRE Control Description
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.mitreControlDescription ? threatData.mitreControlDescription : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* BluOcean Control Description */}
+          <Grid size={{ xs: 12 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                BluOcean Control Description
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.bluOceanControlDescription ? threatData.bluOceanControlDescription : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
         </Grid>
+      </DialogContent>
+
+      <DialogContent sx={{ paddingTop: 3, paddingBottom: 4.5 }}>
         <Grid
           container
           spacing={3}
@@ -246,8 +253,6 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
             backgroundColor: "#E7E7E84D",
             p: "9px 16px",
             borderRadius: 1,
-            mt: 3,
-            mb: 0.5,
           }}
         >
           <Grid size={{ xs: 4 }}>
@@ -266,7 +271,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan 2024
+                2 Jan, 2024
               </Typography>
             </Box>
           </Grid>
@@ -276,7 +281,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan 2024
+                8 Jan, 2024
               </Typography>
             </Box>
           </Grid>
@@ -286,4 +291,4 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
   );
 };
 
-export default ViewRiskScenarioModal;
+export default ViewThreatModal;

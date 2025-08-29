@@ -233,7 +233,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         <Grid container spacing={4}>
           {/* Asset Name */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled /// text 
+            <TextFieldStyled
               label={labels.assetName}
               placeholder="Enter Asset Name"
               value={assetFormData.applicationName}
@@ -246,7 +246,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
 
           {/* Asset Category */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <SelectStyled /// this is select
+            <SelectStyled
               required
               multiple
               isTooltipRequired={true}
@@ -364,9 +364,8 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                     height={"12px"}
                   />
                 </Box>
-              </FormLabel> 
-              
-              <RadioGroup 
+              </FormLabel>
+              <RadioGroup
                 aria-labelledby="third-party-management-radio-buttons-group"
                 name="isThirdPartyManagement"
                 row

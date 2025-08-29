@@ -2,43 +2,42 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Box } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import LibraryHeader from "@/components/Library/LibraryHeader";
-import AssetList from "@/components/Library/Asset/AssetList";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import AssetFormModal from "@/components/Library/Asset/AssetFormModal";
-import ViewAssetModal from "@/components/Library/Asset/ViewAssetModal";
-import { AssetForm, AssetAttributes } from "@/types/asset";
-import { AssetService } from "@/services/assetService";
+import ThreatFormModal from "@/components/Library/Threat/ThreatFormModal";
+import ViewThreatModal from "@/components/Library/Threat/ViewThreatModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { fetchProcesses } from "@/pages/api/process";
 import { Filter } from "@/types/filter";
+import ThreatList from "@/components/Library/Threat/ThreatList";
+import { ThreatForm } from "@/types/threat";
+import { ThreatService } from "@/services/threatService";
 import { FileService } from "@/services/fileService";
 
-const initialAssetFormData: AssetForm = {
-  assetCategory: [],
-  assetDescription: "",
-  applicationName: "",
-  applicationOwner: "",
-  applicationITOwner: "",
-  isThirdPartyManagement: null,
-  thirdPartyName: "",
-  thirdPartyLocation: "",
-  hosting: "",
-  hostingFacility: "",
-  cloudServiceProvider: [],
-  geographicLocation: "",
-  hasRedundancy: null,
-  databases: "",
-  hasNetworkSegmentation: null,
-  networkName: "",
-  attributes: [] as AssetAttributes[],
+const initialThreatFormData: ThreatForm = {
+  platforms: [],
+  mitreTechniqueId: "",
+  mitreTechniqueName: "",
+  ciaMapping: [],
+  subTechniqueId: "",
+  subTechniqueName: "",
+  mitreControlId: "",
+  mitreControlName: "",
+  mitreControlType: "",
+  mitreControlDescription: "",
+  bluOceanControlDescription: "",
 };
 
 const sortItems = [
-  { label: "Asset Code (Ascending)", value: "asset_code:asc" },
-  { label: "Asset Code (Descending)", value: "asset_code:desc" },
-  { label: "Asset Name (Ascending)", value: "application_name:asc" },
-  { label: "Asset Name (Descending)", value: "application_name:desc" },
+  { label: "ID (Ascending)", value: "id:asc" },
+  { label: "ID (Descending)", value: "id:desc" },
+  {
+    label: "MITRE Technique Name (Ascending)",
+    value: "mitreTechniqueName:asc",
+  },
+  {
+    label: "MITRE Technique Name (Descending)",
+    value: "mitreTechniqueName:desc",
+  },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
   { label: "Created (Oldest to Latest)", value: "created_at:asc" },
   { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
@@ -52,24 +51,23 @@ const breadcrumbItems = [
     onClick: () => (window.location.href = "/library"),
     icon: <ArrowBack fontSize="small" />,
   },
-  { label: "Assets" },
+  { label: "Threats" },
 ];
 
-export default function AssetContainer() {
+export default function ThreatContainer() {
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>('asset_code:asc');
+  const [sort, setSort] = useState<string>("id:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
-  const [assetsData, setAssetsData] = useState<AssetForm[]>([]);
-  const [processesData, setProcessesData] = useState<any[]>([]);
+  const [threatsData, setThreatsData] = useState<ThreatForm[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
-   const [selectedAsset, setSelectedAsset] = useState<AssetForm | null>(null);
+  const [selectedThreat, setSelectedThreat] = useState<ThreatForm | null>(null);
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -85,7 +83,7 @@ export default function AssetContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [assetFormData, setAssetFormData] = useState<AssetForm>(initialAssetFormData);
+  const [formData, setFormData] = useState<ThreatForm>(initialThreatFormData);
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
@@ -94,37 +92,39 @@ export default function AssetContainer() {
   // fetch list
   const loadList = useCallback(async () => {
     try {
-      console.log(filters,"Aaa");
       setLoading(true);
-      const data = await AssetService.fetch(page, rowsPerPage, searchPattern as string, sort, statusFilters, filters);
-      setAssetsData(data?.data ?? []);
+      const data = await ThreatService.fetch(
+        page,
+        rowsPerPage,
+        searchPattern as string,
+        sort
+      );
+      setThreatsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
       setToast({
         open: true,
-        message: "Failed to fetch assets",
+        message: "Failed to fetch threats",
         severity: "error",
       });
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
+  }, [page, rowsPerPage, searchPattern, sort]);
 
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
 
-  // fetch processes & meta
+  console.log(threatsData);
+
+  // fetch metadata
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-        const [proc, meta] = await Promise.all([
-          fetchProcesses(0, 0),
-          fetchMetaDatas(),
-        ]);
-        setProcessesData(proc.data ?? []);
+        const meta = await fetchMetaDatas();
         setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error(err);
@@ -140,92 +140,92 @@ export default function AssetContainer() {
   }, []);
 
   // Create
-  const handleCreate = async (status: string) => {
-    try {
-      const req = { ...assetFormData, status };
-      await AssetService.create(req);
-      setAssetFormData(initialAssetFormData);
-      setIsAddOpen(false);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: `Success! Asset ${
-          status === "published" ? "published" : "saved as draft"
-        }`,
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to create asset",
-        severity: "error",
-      });
-    }
-  };
+  //   const handleCreate = async (status: string) => {
+  //     try {
+  //       const req = { ...assetFormData, status };
+  //       await AssetService.create(req);
+  //       setAssetFormData(initialAssetFormData);
+  //       setIsAddOpen(false);
+  //       setRefreshTrigger((p) => p + 1);
+  //       setToast({
+  //         open: true,
+  //         message: `Success! Asset ${
+  //           status === "published" ? "published" : "saved as draft"
+  //         }`,
+  //         severity: "success",
+  //       });
+  //     } catch (err) {
+  //       console.error(err);
+  //       setToast({
+  //         open: true,
+  //         message: "Failed to create asset",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   // Update
-  const handleUpdate = async (status: string) => {
-    try {
-      if (!selectedAsset?.id) throw new Error("Invalid selection");
-      const body = { ...selectedAsset, status };
-      await AssetService.update(selectedAsset.id as number, body);
-      setIsEditOpen(false);
-      setSelectedAsset(null);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: "Asset updated",
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to update asset",
-        severity: "error",
-      });
-    }
-  };
+  //   const handleUpdate = async (status: string) => {
+  //     try {
+  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
+  //       const body = { ...selectedAsset, status };
+  //       await AssetService.update(selectedAsset.id as number, body);
+  //       setIsEditOpen(false);
+  //       setSelectedAsset(null);
+  //       setRefreshTrigger((p) => p + 1);
+  //       setToast({
+  //         open: true,
+  //         message: "Asset updated",
+  //         severity: "success",
+  //       });
+  //     } catch (err) {
+  //       console.error(err);
+  //       setToast({
+  //         open: true,
+  //         message: "Failed to update asset",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   // Update status only
-  const handleUpdateStatus = async (id: number, status: string) => {
-    try {
-      await AssetService.updateStatus(id, status);
-      setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: "Status updated", severity: "success" });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to update status",
-        severity: "error",
-      });
-    }
-  };
+  //   const handleUpdateStatus = async (id: number, status: string) => {
+  //     try {
+  //       await AssetService.updateStatus(id, status);
+  //       setRefreshTrigger((p) => p + 1);
+  //       setToast({ open: true, message: "Status updated", severity: "success" });
+  //     } catch (err) {
+  //       console.error(err);
+  //       setToast({
+  //         open: true,
+  //         message: "Failed to update status",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   // Delete
-  const handleDelete = async () => {
-    try {
-      if (!selectedAsset?.id) throw new Error("Invalid selection");
-      await AssetService.delete(selectedAsset.id as number);
-      setIsDeleteConfirmOpen(false);
-      setSelectedAsset(null);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: `Deleted ${selectedAsset?.assetCode}`,
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to delete asset",
-        severity: "error",
-      });
-    }
-  };
+  //   const handleDelete = async () => {
+  //     try {
+  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
+  //       await AssetService.delete(selectedAsset.id as number);
+  //       setIsDeleteConfirmOpen(false);
+  //       setSelectedAsset(null);
+  //       setRefreshTrigger((p) => p + 1);
+  //       setToast({
+  //         open: true,
+  //         message: `Deleted ${selectedAsset?.assetCode}`,
+  //         severity: "success",
+  //       });
+  //     } catch (err) {
+  //       console.error(err);
+  //       setToast({
+  //         open: true,
+  //         message: "Failed to delete asset",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -238,131 +238,140 @@ export default function AssetContainer() {
     setPage(0);
   };
 
-    //Function to export the assets
-  const handleExportAssets = async () => {
+  //Function to export the threats
+  const handleExportThreats = async () => {
     try {
-      await FileService.exportLibraryDataCSV("asset");
+      await FileService.exportLibraryDataCSV("mitre-threats-controls");
       setToast({
         open: true,
-        message: `Assets exported successfully`,
+        message: `Threats exported successfully`,
         severity: "success",
       });
     } catch (error) {
       console.error(error);
       setToast({
         open: true,
-        message: "Error: unable to export the assets",
+        message: "Error: unable to export the threats",
         severity: "error",
       });
     }
-  }
+  };
 
-    //Function to import the assets
-  const handleImportAssets = async () => {
+  //Function to import the threats
+  const handleImportThreats = async () => {
     try {
       if (!file) {
-        throw new Error("File not found")
+        throw new Error("File not found");
       }
-      await FileService.importLibraryDataCSV("asset", file as File);
+      await FileService.importLibraryDataCSV(
+        "mitre-threats-controls",
+        file as File
+      );
       setIsFileUploadOpen(false);
       setToast({
         open: true,
-        message: `Assets Imported successfully`,
+        message: `Threats Imported successfully`,
         severity: "success",
       });
     } catch (error) {
       console.error(error);
       setToast({
         open: true,
-        message: "Error: unable to download the import assets from file",
+        message: "Error: unable to download the threats from file",
         severity: "error",
       });
     }
-  }
+  };
 
-    //Function to download the assets template file
-  const handledownloadAssetsTemplateFile = async () => {
+  //Function to download the threats template file
+  const handledownloadThreatsTemplateFile = async () => {
     try {
-      await FileService.dowloadCSVTemplate("asset");
+      await FileService.dowloadCSVTemplate("mitre-threats-controls");
       setToast({
         open: true,
-        message: `Assets template file downloaded successfully`,
+        message: `Threats template file downloaded successfully`,
         severity: "success",
       });
     } catch (error) {
       console.error(error);
       setToast({
         open: true,
-        message: "Error: unable to download the assets template file",
+        message: "Error: unable to download the threats template file",
         severity: "error",
       });
     }
-  }
+  };
+
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
       metaDatas,
-      addButtonText: "Add Asset",
+      addButtonText: "Add Threat",
       addAction: () => setIsAddOpen(true),
       sortItems,
-      fileUploadTitle: "Import Assets",
+      onImport: () => setIsFileUploadOpen(true),
+      onExport: () => handleExportThreats(),
+      fileUploadTitle: "Import Threats",
       file,
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-      handleImport: handleImportAssets,
-      handledownloadTemplateFile: handledownloadAssetsTemplateFile,
-      onImport: () => setIsFileUploadOpen(true),
+      handleImport: handleImportThreats,
+      handledownloadTemplateFile: handledownloadThreatsTemplateFile,
       isImportRequired: true,
-      onExport: () => handleExportAssets(),
-      searchPattern,
       isExportRequired: true,
+      searchPattern,
       setSearchPattern,
       sort,
       setSort,
       statusFilters,
       setStatusFilters,
       filters,
-      setFilters
+      setFilters,
     }),
     [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
   //Function for Form Validation
-  const handleFormValidation = async (status: string) => {
-    try{
-      const res = await AssetService.fetch(0, 1, assetFormData.applicationName.trim(), "asset_code:asc");
-      if(res.data?.length > 0 && res.data[0].applicationName === assetFormData.applicationName.trim()){
-      setToast({
-        open: true,
-        message: `Asset Name already exists`,
-        severity: "error",
-      });
-      }else{
-        handleCreate(status)
-      }
-    } catch (error) {
-      console.error(error);
-      setToast({
-        open: true,
-        message: "Failed to create asset",
-        severity: "error",
-      });
-    } 
-  }
-
+  //   const handleFormValidation = async (status: string) => {
+  //     try {
+  //       const res = await AssetService.fetch(
+  //         0,
+  //         1,
+  //         assetFormData.applicationName.trim(),
+  //         "asset_code:asc"
+  //       );
+  //       if (
+  //         res.data?.length > 0 &&
+  //         res.data[0].applicationName === assetFormData.applicationName.trim()
+  //       ) {
+  //         setToast({
+  //           open: true,
+  //           message: `Asset Name already exists`,
+  //           severity: "error",
+  //         });
+  //       } else {
+  //         handleCreate(status);
+  //       }
+  //     } catch (error) {
+  //       console.error(error);
+  //       setToast({
+  //         open: true,
+  //         message: "Failed to create asset",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   return (
     <>
       {/* View modal */}
-      {selectedAsset && isViewOpen && (
-        <ViewAssetModal
-          assetData={selectedAsset}
-          setIsEditAssetOpen={setIsEditOpen}
-          setSelectedAsset={setSelectedAsset}
-          processes={processesData}
-          metaDatas={metaDatas}
+      {selectedThreat && isViewOpen && (
+        <ViewThreatModal
+          threatData={selectedThreat}
+          setIsEditThreatOpen={setIsEditOpen}
+          setSelectedThreat={setSelectedThreat}
           open={isViewOpen}
           onClose={() => {
             setIsViewOpen(false);
@@ -371,7 +380,7 @@ export default function AssetContainer() {
       )}
 
       {/* Add form */}
-      {isAddOpen && (
+      {/* {isAddOpen && (
         <AssetFormModal
           operation={"create"}
           open={isAddOpen}
@@ -385,10 +394,10 @@ export default function AssetContainer() {
             setIsAddConfirmOpen(true);
           }}
         />
-      )}
+      )} */}
 
       {/* Edit form */}
-      {isEditOpen && selectedAsset && (
+      {/* {isEditOpen && selectedAsset && (
         <AssetFormModal
           operation="edit"
           open={isEditOpen}
@@ -405,17 +414,17 @@ export default function AssetContainer() {
           onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
-      )}
+      )} */}
 
       {/* Confirm dialogs */}
       <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Asset Creation?"
-        description="Are you sure you want to cancel the asset creation? Any unsaved changes will be lost."
+        title="Cancel Threat Creation?"
+        description="Are you sure you want to cancel the threat creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
-          setAssetFormData(initialAssetFormData);
+          setFormData(initialThreatFormData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
@@ -425,18 +434,18 @@ export default function AssetContainer() {
       <ConfirmDialog
         open={isEditConfirmOpen}
         onClose={() => setIsEditConfirmOpen(false)}
-        title="Cancel Asset Updation?"
-        description="Are you sure you want to cancel the asset updation? Any unsaved changes will be lost."
+        title="Cancel Threat Updation?"
+        description="Are you sure you want to cancel the threat updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmOpen(false);
-          setSelectedAsset(null);
+          setSelectedThreat(null);
           setIsEditOpen(false);
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
       />
 
-      <ConfirmDialog
+      {/* <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Asset Deletion?"
@@ -444,24 +453,24 @@ export default function AssetContainer() {
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"
-      />
+      /> */}
 
       {/* Page content */}
       <Box p={5}>
         <LibraryHeader {...headerProps} />
-        <AssetList
+        <ThreatList
           loading={loading}
-          data={assetsData}
+          data={threatsData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          setSelectedAsset={setSelectedAsset}
+          setSelectedThreat={setSelectedThreat}
           setIsViewOpen={setIsViewOpen}
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-          handleUpdateStatus={handleUpdateStatus}
+          handleUpdateStatus={() => console.log("Updated")}
         />
       </Box>
 
@@ -478,8 +487,6 @@ export default function AssetContainer() {
         }
         toastSeverity={toast.severity}
       />
-
-      {/* <FileUpload open={isFileUploadOpen} onClose={() => setIsFileUploadOpen(false)} onUpload={handleImportAssets} onDownload={handledownloadAssetsTemplateFile} onFileSelect={(file) => setFile(file)} file ={file} title="Upload Assets"/> */}
     </>
   );
 }
