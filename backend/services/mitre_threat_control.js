@@ -47,15 +47,46 @@ class MitreThreatControlService {
         const total = await MitreThreatControl.count({
             where: whereClause,
         });
-        const mitreThreatControl = await MitreThreatControl.findAll({
+
+        const data = await MitreThreatControl.findAll({
             limit,
             offset,
             order: [[sortBy, sortOrder]],
             where: whereClause,
         });
 
+        const grouped = Object.values(
+            data.reduce((acc, row) => {
+            if (!acc[row.mitreTechniqueId]) {
+                acc[row.mitreTechniqueId] = {
+                id: row.id,
+                platforms: row.platforms,
+                mitreTechniqueId: row.mitreTechniqueId,
+                mitreTechniqueName: row.mitreTechniqueName,
+                ciaMapping: row.ciaMapping,
+                subTechniqueId: row.subTechniqueId,
+                subTechniqueName: row.subTechniqueName,
+                controls: [],
+                status: row.status,
+                created_at: row.created_at,
+                updated_at: row.updated_at,
+                };
+            }
+
+            acc[row.mitreTechniqueId].controls.push({
+                mitreControlId: row.mitreControlId,
+                mitreControlName: row.mitreControlName,
+                mitreControlType: row.mitreControlType,
+                mitreControlDescription: row.mitreControlDescription,
+                bluOceanControlDescription: row.bluOceanControlDescription,
+            });
+
+            return acc;
+            }, {})
+        );
+ 
         return {
-            data: mitreThreatControl,
+            data: grouped,
             total,
             page,
             limit,
