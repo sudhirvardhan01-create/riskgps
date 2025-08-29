@@ -65,7 +65,7 @@ const TextFieldStyled = styled(
           </Box>
         }
         InputLabelProps={{
-          shrink: rest.value ? true : undefined, // keeps floating label smooth
+          shrink: true, //rest.value ? true : undefined, // keeps floating label smooth
         }}
       />
     );
