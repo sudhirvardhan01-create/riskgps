@@ -44,6 +44,7 @@ interface ProcessFormModalProps {
   onClose: () => void;
   processData: ProcessData;
   processes: ProcessData[];
+  processForListing: ProcessData[],
   metaDatas: any[];
   setProcessData: React.Dispatch<React.SetStateAction<ProcessData>>;
   onSubmit: (status: string) => void;
@@ -56,11 +57,12 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
   processData,
   setProcessData,
   processes,
+  processForListing,
   metaDatas,
   onSubmit,
 }) => {
-  console.log(metaDatas);
-  console.log(processes);
+
+  console.log(processForListing);
 
   const [newDependentProcess, setNewDependentProcess] = React.useState<{
     sourceProcessId: number | null;
@@ -565,7 +567,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
           </Grid>
 
           {/* RELATED PROCESS SECTION */}
-          <Grid mt={3} size={{ xs: 11 }}>
+          <Grid mt={3} size={{ xs: 12 }}>
             <Box
               sx={{
                 border: "1px dashed #cecfd2",
@@ -584,9 +586,9 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 <Grid size={{ xs: 5 }}>
                   <Autocomplete
                     value={
-                      processes.find(
+                      processForListing.find(
                         (item) =>
-                          item.id === newDependentProcess?.sourceProcessId
+                          item.id === newDependentProcess?.targetProcessId
                       ) || null
                     }
                     onChange={(event, newValue) => {
@@ -596,7 +598,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                         relationType: null,
                       });
                     }}
-                    options={processes}
+                    options={processForListing.filter(p => p.id !== processData.id)}
                     getOptionLabel={(option) => option.processName}
                     isOptionEqualToValue={(option, value) =>
                       option.id === value.id
@@ -679,9 +681,8 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                       Relationship Type
                     </InputLabel>
                     <Select
-                      value={newDependentProcess?.relationType as string}
+                      value={newDependentProcess?.relationType ?? ''}
                       label="Relationship Type"
-                      displayEmpty
                       onChange={(e) => {
                         setNewDependentProcess((prev) => {
                           if (!prev || prev.targetProcessId === null) {
@@ -767,11 +768,13 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                       let key = null;
                       if (relation.targetProcessId === processData.id) {
                             key = relation.sourceProcessId;
-                            process = processes?.find((p) => p.id === relation.sourceProcessId);
+                            process = processForListing?.find((p) => p.id === relation.sourceProcessId);
                             relationType = relation.relationshipType === "follows" ? "precedes" : "follows";
                       } else {
+                            console.log(processData.id, relation);
                             key = relation.targetProcessId;
-                            process = processes?.find((p) => p.id === relation.targetProcessId);
+                            process = processForListing?.find((p) => p.id === relation.targetProcessId);
+                            console.log(process)
                             relationType = relation.relationshipType;
                       }
                       return (

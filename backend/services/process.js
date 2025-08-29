@@ -138,6 +138,15 @@ class ProcessService {
             totalPages: Math.ceil(total / limit),
         };
     }
+    static async getAllProcessForListing() {
+        const data = await Process.findAll({
+        attributes: ["id", "process_code", "process_name"],
+        });
+        let processes = data.map((s) => s.toJSON());
+        return {
+            data: processes,
+        };
+    }
 
     static async getProcessById(id) {
         const process = await Process.findByPk(id);

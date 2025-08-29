@@ -60,6 +60,7 @@ export default function ProcessContainer() {
   const [searchPattern, setSearchPattern] = useState<string> ();
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [processForListing, setProcessForListing] = useState<any[]>([]);;
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
 
@@ -106,7 +107,8 @@ export default function ProcessContainer() {
     (async () => {
       try {
         setLoading(true);
-        const [meta] = await Promise.all([fetchMetaDatas()]);
+        const [processesForListing, meta] = await Promise.all([ProcessService.fetchProcessesForListing() ,fetchMetaDatas()]);
+        setProcessForListing(processesForListing.data ?? [])
         setMetaDatas(meta.data ?? []);
         console.log(meta.data)
       } catch (err) {
@@ -283,6 +285,7 @@ export default function ProcessContainer() {
         <ViewProcessModal
           open={isViewOpen}
           processes={processesData as any[]}
+          processForListing={processForListing}
           metaDatas={metaDatas}
           processData={selectedProcess}
           setIsEditProcessOpen={setIsEditOpen}
@@ -302,6 +305,7 @@ export default function ProcessContainer() {
           processData={formData}
           setProcessData={setFormData}
           processes={processesData as ProcessData[]}
+          processForListing={processForListing as ProcessData[]}
           metaDatas={metaDatas}
           onSubmit={handleCreate}
           onClose={() => {
@@ -324,6 +328,7 @@ export default function ProcessContainer() {
             }
           }}
           processes={processesData as ProcessData[]}
+          processForListing={processForListing as ProcessData[]}
           metaDatas={metaDatas}
           onSubmit={handleUpdate}
           onClose={() => {

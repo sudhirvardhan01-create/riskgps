@@ -18,6 +18,7 @@ import { ProcessData } from "@/types/process";
 interface ViewProcessModalProps {
   open: boolean;
   processes: ProcessData[];
+  processForListing: ProcessData[],
   metaDatas: any[];
   processData: ProcessData;
   setIsEditProcessOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -29,6 +30,7 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
   processes,
   metaDatas,
   processData,
+  processForListing,
   setIsEditProcessOpen,
   setSelectedProcess,
   onClose,
@@ -74,11 +76,11 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
     let key = null;
     if (relProc.targetProcessId === processData.id) {
           key = relProc.sourceProcessId;
-          process = processes?.find((p) => p.id === relProc.sourceProcessId);
+          process = processForListing?.find((p) => p.id === relProc.sourceProcessId);
           relationType = relProc.relationshipType === "follows" ? "precedes" : "follows";
     } else {
           key = relProc.targetProcessId;
-          process = processes?.find((p) => p.id === relProc.targetProcessId);
+          process = processForListing?.find((p) => p.id === relProc.targetProcessId);
           relationType = relProc.relationshipType;
     }
     if (!process || !relationType) return null;
