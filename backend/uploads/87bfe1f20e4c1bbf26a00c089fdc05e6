@@ -1,0 +1,7 @@
+Application Name,Application Owner,Application IT Owner,Is Third Party Management,Third Party Name,Third Party Location,Hosting,Hosting Facility,Cloud Service Provider,Geographic Location,Has Redundancy,Databases,Has Network Segmentations,Network Name,Asset Category,Asset Description
+Customer Database,Michael Anderson,Michael Anderson,Yes,AWS,USA,SaaS,Public Cloud,"AWS, Azure",US-East,No,"MySQL,PSQL",Yes,Network Name 1,"Windows,macOS,Linux,Office 365,Azure AD,Google Workspace",Short description of the asset
+Banking Application,Jennifer Collins,Jennifer Collins,No,GCP,UK,PaaS,Private Cloud,"AWS, Azure",US-East,Yes,"Casandra, Mongo",No,Network Name 2,"Windows,macOS,Linux,Office 365,Azure AD,Google Workspace",
+Payment Rails,Robert Martinez,Robert Martinez,Yes,AWS,India,SaaS,Private Cloud,Google Cloud Platform,US-East,No,"Casandra, Mongo",Yes,Network Name 3,"Windows, macOS, Linux",
+Fraud Application,David Thompson,David Thompson,No,GCP,Canada,PaaS,Public Cloud,"AWS, Azure",US-East,No,"MySQL,PSQL",No,Network Name 4,"Windows, macOS, Linux",
+Loan Application,Laura Mitchell,Laura Mitchell,Yes,AWS,USA,SaaS,Private Cloud,"AWS, Azure",US-East,Yes,"MySQL,PSQL",Yes,Network Name 5,"Windows, macOS, Linux",
+Underwriting Application,Christopher Hughes,Christopher Hughes,No,GCP,UK,PaaS,Private Cloud,Google Cloud Platform,US-East,No,"Casandra, Mongo",Yes,Network Name 6,"Windows,macOS,Linux,Office 365,Azure AD,Google Workspace",

@@ -1,4 +1,4 @@
-import { createProcess, deleteProcess, fetchProcesses, updateProcess, updateProcessStatus } from "@/pages/api/process";
+import { createProcess, deleteProcess, fetchProcesses, fetchProcessesForListing, updateProcess, updateProcessStatus } from "@/pages/api/process";
 import { Filter } from "@/types/filter";
 
 
@@ -8,4 +8,5 @@ export const ProcessService = {
   update: (id: number, body: any) => updateProcess(id, body),
   delete: (id: number) => deleteProcess(id),
   updateStatus: (id: number, status: string) => updateProcessStatus(id, status),
+  fetchProcessesForListing: () => fetchProcessesForListing(),
 };

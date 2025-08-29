@@ -79,7 +79,33 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post("/import-process", upload.single("file"), async (req, res) => {
+router.get("/list", async (req, res) => {
+    try {
+        const processes = await ProcessService.getAllProcessForListing();
+        res.status(HttpStatus.OK).json({
+            data: processes,
+            msg: Messages.PROCESS.FETCHED
+        });
+
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
+})
+
+router.get("/download-template-file", async (req, res) => {
+    try {
+        await ProcessService.downloadProcessTemplateFile(res);
+    } catch (err) {
+        console.log(Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_TEMPLATE_FILE ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.PROCESS.FAILED_TO_DOWNLOAD_PROCESS_TEMPLATE_FILE
+        });
+    }
+});
+
+router.post("/import", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
             throw new Error("File is required!")
@@ -98,7 +124,7 @@ router.post("/import-process", upload.single("file"), async (req, res) => {
     }
 })
 
-router.get("/export-processes", async (req, res) => {
+router.get("/export", async (req, res) => {
     try {
         await ProcessService.exportProcessesCSV(res);
     } catch (err) {

@@ -50,6 +50,7 @@ module.exports = {
         INVALID_STATUS: 'Invalid status provided.',
         INVALID_RELATIONSHIP_TYPE: 'Invalid relationship type for process dependency.',
         MISSING_TARGET_ID: 'Missing or invalid target_process_id.',
+        SOURCE_NOT_FOUND: 'Source process not found for dependency.',
         TARGET_NOT_FOUND: 'Target process not found for dependency.',
         MISSING_ATTRIBUTE_FIELD: 'Each attribute must have meta_data_key_id and values.',
         INVALID_ATTRIBUTE_VALUE: 'Invalid value for one or more attributes.',
@@ -107,5 +108,20 @@ module.exports = {
         FAILED_TO_IMPORT_ASSET_CSV:' Failed to import asset CSV',
         FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE: "Failed to download asset template file"
         
+    },
+    MITRE_THREAT_CONTROL: {
+        CREATED: 'Mitre ThreatControl Record created successfully.',
+        UPDATED: 'Mitre ThreatControl Record updated successfully.',
+        DELETED: 'Mitre ThreatControl Record deleted successfully.',
+        FETCHED: 'Fetched all Mitre ThreatControl Record successfully.',
+        FETCHED_BY_ID: 'Fetched Mitre ThreatControl Record by ID successfully.',
+        IMPORTED_SUCCESSFULLY: "Mitre ThreatControl imported successfully",
+        NOT_FOUND: 'Mitre threat control record not found.',
+        INVALID_PlATFORMS: "Invalid value for platforms",
+        INVALID_CIA_MAPPING: "Invalid CIA Mapping",
+        FAILED_TO_EXPORT_CSV:' Failed to download Mitre ThreatControl Record CSV',
+        FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
+        FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
+
     }
 };

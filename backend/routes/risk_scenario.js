@@ -78,7 +78,18 @@ router.get('/', async (req, res) => {
 });
 
 
-router.post("/import-risk-scenarios", upload.single("file"), async (req, res) => {
+router.get("/download-template-file", async (req, res) => {
+    try {
+        await RiskScenarioService.downloadRiskScenarioTemplateFile(res);
+    } catch (err) {
+        console.log(Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE ,err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.ASSET.FAILED_TO_DOWNLOAD_ASSET_TEMPLATE_FILE
+        });
+    }
+});
+
+router.post("/import", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
             throw new Error("File is required!")
@@ -96,7 +107,7 @@ router.post("/import-risk-scenarios", upload.single("file"), async (req, res) =>
         });
     }
 })
-router.get("/export-risk-scenarios", async (req, res) => {
+router.get("/export", async (req, res) => {
     try {
         await RiskScenarioService.exportRiskScenariosCSV(res);
     } catch (err) {

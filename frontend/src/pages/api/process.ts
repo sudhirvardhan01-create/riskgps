@@ -46,7 +46,7 @@ const transformProcessData = (data: any[]): ProcessData[] => {
     requlatoryAndCompliance: item.regulatory_and_compliance,
     criticalityOfDataProcessed: item.criticality_of_data_processed,
     dataProcessed: item.data_processed,
-  
+    attributes: item.attributes,
     processDependency: Array.isArray(item.process_dependency)
       ? item.process_dependency.map((dep: any) => ({
           sourceProcessId: dep.source_process_id,
@@ -61,6 +61,33 @@ const transformProcessData = (data: any[]): ProcessData[] => {
 
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/process?${params}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to process data");
+  }
+  const res = await response.json();
+  res.data.data = transformProcessData(res.data.data);
+
+  return res.data;
+}
+
+export const fetchProcessesForListing = async () => {
+
+const transformProcessData = (data: any[]): ProcessData[] => {
+  return data.map((item) => ({
+    id: item.id,
+    processCode:item.process_code,
+    processName: item.process_name,
+    }));
+    };
+
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/process/list`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -96,6 +123,7 @@ export const createProcess = async (data: ProcessData) => {
       "criticality_of_data_processed": data.criticalityOfDataProcessed,
       "data_processed": data.dataProcessed,
       "status": data.status,
+      "attributes": data.attributes || [],
       "process_dependency" : Array.isArray(data.processDependency)
       ? data.processDependency.map((dep: ProcessDependency) => ({
           target_process_id: dep.targetProcessId,
@@ -149,8 +177,10 @@ export const updateProcess = async (id: number, data: ProcessData) => {
       "criticality_of_data_processed": data.criticalityOfDataProcessed,
       "data_processed": data.dataProcessed,
       "status": data.status,
+      "attributes": data.attributes || [],
       "process_dependency" : Array.isArray(data.processDependency)
       ? data.processDependency.map((dep: ProcessDependency) => ({
+          source_process_id: dep.sourceProcessId,
           target_process_id: dep.targetProcessId,
           relationship_type: dep.relationshipType,
         }))
@@ -215,3 +245,84 @@ export const deleteProcess = async (id: number) => {
   console.log(res);
   return res.data;
 }
+
+
+export const downloadProcessTemplateFile = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/process/download-template-file`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "text/csv",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to export.");
+  }
+  const blob = await response.blob();
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "assets.csv";
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+//Function to export the assets
+export const exportProcesses = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/process/export`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "text/csv",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to export.");
+  }
+  const blob = await response.blob();
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "assets.csv";
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+//Function to export the assets
+export const importProcesses = async (file: File): Promise<any> => {
+  if (!file) {
+    throw new Error("No file selected.");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file); 
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/process/import`, 
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to import.");
+  }
+
+  const response = await res.json();
+  console.log(response)
+  return response; 
+};

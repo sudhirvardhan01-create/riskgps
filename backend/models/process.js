@@ -16,10 +16,11 @@ module.exports = (sequelize) => {
       },
       process_name: { 
         type: DataTypes.STRING, 
+        unique: true,
         allowNull: false 
       },
       process_description: { 
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true 
       },
       senior_executive__owner_name: {
@@ -55,7 +56,7 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       third_party_involvement: {
-        type: DataTypes.STRING,
+        type: DataTypes.BOOLEAN,
         allowNull: true
       },
       users_customers: {
@@ -71,7 +72,9 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       data_processed: {
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(
+          DataTypes.ENUM(...GENERAL.DATA_TYPES)
+        ),
         allowNull: true
       },
       status: { 

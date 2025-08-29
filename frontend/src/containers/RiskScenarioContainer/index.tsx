@@ -15,6 +15,7 @@ import { RiskScenarioService } from "@/services/riskScenarioService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
 import { Filter } from "@/types/filter";
+import { FileService } from "@/services/fileService";
 
 const initialRiskData: RiskScenarioData = {
   riskScenario: "",
@@ -80,6 +81,10 @@ export default function RiskScenarioContainer() {
   });
 
   const [formData, setFormData] = useState<RiskScenarioData>(initialRiskData);
+
+      //Related to Import/Export
+  const [file, setFile] = useState<File | null>(null);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -234,6 +239,67 @@ export default function RiskScenarioContainer() {
     setPage(0);
   };
 
+       //Function to export the risk scenario
+      const handleExportRiskScenarios = async () => {
+        try {
+          await FileService.exportLibraryDataCSV("risk-scenario");
+          setToast({
+            open: true,
+            message: `Risk scenario exported successfully`,
+            severity: "success",
+          });
+        } catch (error) {
+          console.error(error);
+          setToast({
+            open: true,
+            message: "Error: unable to export the risk scenario",
+            severity: "error",
+          });
+        }
+      }
+    
+        //Function to import the process
+      const handleImportRiskScenarios = async () => {
+        try {
+          if (!file) {
+            throw new Error("File not found")
+          }
+          await FileService.importLibraryDataCSV("risk-scenario", file as File);
+          setIsFileUploadOpen(false);
+          setToast({
+            open: true,
+            message: `Risk scenario Imported successfully`,
+            severity: "success",
+          });
+        } catch (error) {
+          console.error(error);
+          setToast({
+            open: true,
+            message: "Error: unable to download the import risk scenario from file",
+            severity: "error",
+          });
+        }
+      }
+  
+    //Function to download the process template file
+    const handledownloadRiskScenarioTemplateFile = async () => {
+      try {
+        await FileService.dowloadCSVTemplate("risk-scenario");
+        setToast({
+          open: true,
+          message: `Risk scenario template file downloaded successfully`,
+          severity: "success",
+        });
+      } catch (error) {
+        console.error(error);
+        setToast({
+          open: true,
+          message: "Error: unable to download the risk scenario template file",
+          severity: "error",
+        });
+      }
+    }
+
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
@@ -242,6 +308,16 @@ export default function RiskScenarioContainer() {
       addButtonText: "Add Risk Scenario",
       addAction: () => setIsAddOpen(true),
       sortItems,
+      fileUploadTitle: "Import Risk Scenarios",
+      file,
+      setFile,
+      isFileUploadOpen,
+      setIsFileUploadOpen,
+      handleImport: handleImportRiskScenarios,
+      handledownloadTemplateFile: handledownloadRiskScenarioTemplateFile,
+      onImport: () => setIsFileUploadOpen(true),
+      isImportRequired: true,
+      onExport: () => handleExportRiskScenarios(),
       searchPattern,
       setSearchPattern,
       sort,
@@ -251,7 +327,7 @@ export default function RiskScenarioContainer() {
       filters,
       setFilters,
     }),
-    [filters]
+    [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
   //Function for Form Validation
