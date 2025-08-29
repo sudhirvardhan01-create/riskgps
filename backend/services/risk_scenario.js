@@ -243,9 +243,9 @@ class RiskScenarioService {
 
     // Row 1: Clarifications / Instructions
     csvStream.write({
-          "Risk Scenario": "Risk Scenario (Text)",
-          "Risk Description": "Risk Scenario Description (Text)",
-          "Risk Statement": "Risk Scenario Statement (Text)",
+      "Risk Scenario": "Risk Scenario (Text)",
+      "Risk Description": "Risk Scenario Description (Text)",
+      "Risk Statement": "Risk Scenario Statement (Text)",
 
     });
 
@@ -270,6 +270,11 @@ class RiskScenarioService {
         .on("end", async () => {
           try {
             await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
+            await sequelize.query(`
+                        UPDATE "library_risk_scenarios"
+                        SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
+                        WHERE risk_code IS NULL;
+                        `);
             fs.unlinkSync(filePath);
             resolve(rows.length);
           } catch (err) {

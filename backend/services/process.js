@@ -140,7 +140,7 @@ class ProcessService {
     }
     static async getAllProcessForListing() {
         const data = await Process.findAll({
-        attributes: ["id", "process_code", "process_name"],
+            attributes: ["id", "process_code", "process_name"],
         });
         let processes = data.map((s) => s.toJSON());
         return {
@@ -253,7 +253,7 @@ class ProcessService {
             "Users": "Users Type Internal Users / External Users / Third Party Users",
             "Regulatory and Compliance": "regulations",
             "Criticality Of Data Processed": "Criticality Of Data Processed",
-            "Data Processed": "List of values separated by Comma from" + GENERAL.DATA_TYPES.join(","),
+            "Data Processed": "List of values separated by Comma from " + GENERAL.DATA_TYPES.join(","),
         });
 
         csvStream.end();
@@ -325,8 +325,8 @@ class ProcessService {
         function parseDataProcessed(value) {
             if (!value) return [];
             return value
-                .split(",") 
-                .map((v) => v.trim()) 
+                .split(",")
+                .map((v) => v.trim())
                 .filter((v) => GENERAL.DATA_TYPES.includes(v));
         }
 
@@ -359,6 +359,11 @@ class ProcessService {
                 .on("end", async () => {
                     try {
                         await Process.bulkCreate(rows, { ignoreDuplicates: true });
+                        await sequelize.query(`
+                        UPDATE "library_processes"
+                        SET process_code = '#BP-' || LPAD(id::text, 5, '0')
+                        WHERE process_code IS NULL;
+                        `);
                         fs.unlinkSync(filePath);
                         resolve(rows.length);
                     } catch (err) {
