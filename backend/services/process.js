@@ -263,7 +263,7 @@ class ProcessService {
             const query = new QueryStream(sql);
             const stream = connection.query(query);
 
-            res.setHeader("Content-disposition", "attachment; filename=processes.csv");
+            res.setHeader("Content-disposition", "attachment; filename=processes_export.csv");
             res.setHeader("Content-Type", "text/csv");
 
             const csvStream = format({

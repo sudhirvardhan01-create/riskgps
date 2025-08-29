@@ -329,7 +329,7 @@ class AssetService {
       const query = new QueryStream(sql);
       const stream = connection.query(query);
 
-      res.setHeader("Content-disposition", "attachment; filename=assets.csv");
+      res.setHeader("Content-disposition", "attachment; filename=assets_export.csv");
       res.setHeader("Content-Type", "text/csv");
 
       const csvStream = format({
