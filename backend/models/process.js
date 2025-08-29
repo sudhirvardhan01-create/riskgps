@@ -16,6 +16,7 @@ module.exports = (sequelize) => {
       },
       process_name: { 
         type: DataTypes.STRING, 
+        unique: true,
         allowNull: false 
       },
       process_description: { 
