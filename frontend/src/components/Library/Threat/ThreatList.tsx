@@ -34,60 +34,66 @@ const ThreatList: React.FC<Props> = ({
 }) => {
   return (
     <>
-    <Box display={"flex"} flexDirection={"column"} sx={{ maxHeight: "calc(100vh - 290px)" }}>
-      <Stack
-        spacing={2}
-        sx={{ overflow: "auto" }}
+      <Box
+        display={"flex"}
+        flexDirection={"column"}
+        sx={{ maxHeight: "calc(100vh - 290px)" }}
       >
-        {data && data.length > 0 ? (
-          data.map((item) => (
-            <div key={item.id ?? JSON.stringify(item)}>
-              <ThreatCard
-                threatData={item}
-                setSelectedThreatData={setSelectedThreat}
-                setIsViewThreatOpen={setIsViewOpen}
-                setIsEditThreatOpen={setIsEditOpen}
-                setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
-                handleUpdateStatus={handleUpdateStatus}
-                threatTechniqueID={item.mitreTechniqueId ?? ""}
-                mitrePlatform={item.platforms.join(", ") ?? ""}
-                threatTechniqueName={
-                  item.mitreTechniqueName ?? ""
-                }
-                status={item.status ?? ""}
-                ciaMapping={item.ciaMapping}
-                tagItems={[
-                  { label: "MITRE Control ID", value: item.mitreControlId },
-                  { label: "MITRE Control Name", value: item.mitreControlName },
-                  { label: "MITRE Control Type", value: item.mitreControlType },
-                ]}
-              />
-            </div>
-          ))
-        ) : (
-          // empty state could be enhanced
-          <div>No threats found</div>
-        )}
-      </Stack>
+        <Stack spacing={2} sx={{ overflow: "auto" }}>
+          {data && data.length > 0 ? (
+            data.map((item) => (
+              <div key={item.id ?? JSON.stringify(item)}>
+                <ThreatCard
+                  threatData={item}
+                  setSelectedThreatData={setSelectedThreat}
+                  setIsViewThreatOpen={setIsViewOpen}
+                  setIsEditThreatOpen={setIsEditOpen}
+                  setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
+                  handleUpdateStatus={handleUpdateStatus}
+                  threatTechniqueID={item.mitreTechniqueId ?? ""}
+                  mitrePlatform={item.platforms.join(", ") ?? ""}
+                  threatTechniqueName={item.mitreTechniqueName ?? ""}
+                  status={item.status ?? ""}
+                  ciaMapping={item.ciaMapping}
+                  tagItems={[
+                    { label: "MITRE Control ID", value: item.mitreControlId },
+                    {
+                      label: "MITRE Control Name",
+                      value: item.mitreControlName,
+                    },
+                    {
+                      label: "MITRE Control Type",
+                      value: item.mitreControlType,
+                    },
+                  ]}
+                />
+              </div>
+            ))
+          ) : (
+            // empty state could be enhanced
+            <div>No threats found</div>
+          )}
+        </Stack>
 
-      {data.length >= 6 && <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          mb: -2
-        }}
-      >
-        <TablePagination
-          component="div"
-          count={totalRows}
-          page={page}
-          onPageChange={onPageChange}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={onRowsPerPageChange}
-          rowsPerPageOptions={[6, 12, 18, 24, 30]}
-        />
-      </Box>}</Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: -2,
+          }}
+        >
+          <TablePagination
+            component="div"
+            count={totalRows}
+            page={page}
+            onPageChange={onPageChange}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={onRowsPerPageChange}
+            rowsPerPageOptions={[6, 12, 18, 24, 30]}
+          />
+        </Box>
+      </Box>
     </>
   );
 };

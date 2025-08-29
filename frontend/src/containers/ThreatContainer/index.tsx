@@ -364,92 +364,6 @@ export default function ThreatContainer() {
   //     }
   //   };
 
-  const mitreData = [
-    {
-      id: 1,
-      platforms: ["Windows", "Linux"],
-      mitreTechniqueId: "T1059",
-      mitreTechniqueName: "Command and Scripting Interpreter",
-      ciaMapping: ["C", "I"],
-      subTechniqueId: "T1059.001",
-      subTechniqueName: "PowerShell",
-      mitreControlId: "M1016",
-      mitreControlName: "Application Control",
-      mitreControlType: "Mitigation",
-      mitreControlDescription:
-        "Restrict execution of unauthorized scripts or binaries.",
-      bluOceanControlDescription:
-        "Implement application whitelisting to prevent PowerShell misuse.",
-      status: "published",
-    },
-    {
-      id: 2,
-      platforms: ["macOS", "Linux"],
-      mitreTechniqueId: "T1078",
-      mitreTechniqueName: "Valid Accounts",
-      ciaMapping: ["C", "A"],
-      subTechniqueId: "",
-      subTechniqueName: "",
-      mitreControlId: "M1032",
-      mitreControlName: "Multi-factor Authentication",
-      mitreControlType: "Mitigation",
-      mitreControlDescription:
-        "Use MFA to prevent adversaries from abusing stolen credentials.",
-      bluOceanControlDescription:
-        "Enable MFA on all admin and critical accounts.",
-      status: "published",
-    },
-    {
-      id: 3,
-      platforms: ["Windows"],
-      mitreTechniqueId: "T1547",
-      mitreTechniqueName: "Boot or Logon Autostart Execution",
-      ciaMapping: ["I"],
-      subTechniqueId: "T1547.001",
-      subTechniqueName: "Registry Run Keys / Startup Folder",
-      mitreControlId: "DS1047",
-      mitreControlName: "Audit",
-      mitreControlType: "Detection",
-      mitreControlDescription:
-        "Audit registry keys and startup items for persistence attempts.",
-      bluOceanControlDescription:
-        "Regularly review autorun entries in Windows Registry.",
-      status: "not_published",
-    },
-    {
-      id: 4,
-      platforms: ["macOS", "Linux"],
-      mitreTechniqueId: "T1055",
-      mitreTechniqueName: "Process Injection",
-      ciaMapping: ["C", "I", "A"],
-      mitreControlId: "DS1040",
-      mitreControlName: "Behavior Prevention on Endpoint",
-      mitreControlType: "Detection",
-      mitreControlDescription:
-        "Use endpoint security solutions to detect malicious injection patterns.",
-      bluOceanControlDescription:
-        "Deploy EDR solutions that can block suspicious process injection.",
-      status: "published",
-    },
-    {
-      id: 5,
-      platforms: ["Windows", "SaaS"],
-      mitreTechniqueId: "T1566",
-      mitreTechniqueName: "Phishing",
-      ciaMapping: ["C"],
-      subTechniqueId: "T1566.001",
-      subTechniqueName: "Spearphishing Attachment",
-      mitreControlId: "M1054",
-      mitreControlName: "Software Configuration",
-      mitreControlType: "Mitigation",
-      mitreControlDescription:
-        "Configure email servers to block malicious attachments.",
-      bluOceanControlDescription:
-        "Use secure email gateways and train employees to recognize phishing attempts.",
-      status: "published",
-    },
-  ];
-
   return (
     <>
       {/* View modal */}
@@ -546,7 +460,7 @@ export default function ThreatContainer() {
         <LibraryHeader {...headerProps} />
         <ThreatList
           loading={loading}
-          data={mitreData}
+          data={threatsData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}
