@@ -25,13 +25,13 @@ interface Assessment {
 
 const mockData: Assessment[] = [
   {
-    runId: "6299",
-    org: "ABC Company",
-    industry: "Outpatient Services",
-    name: "Outpatient Services - Mar 23",
-    description: "Lorem ipsum dolor sit amet",
-    startDate: "10/02/2024",
-    lastActivity: "10/02/2024",
+    runId: "1001",
+    org: "Blue Ocean",
+    industry: "Healthcare",
+    name: "Retail Banking - Aug 23",
+    description: "Assessment to check the threats and controls",
+    startDate: "10/08/2024",
+    lastActivity: "10/08/2024",
     endDate: "-",
     lastModifiedBy: {
       name: "Karan Gautam",
@@ -42,16 +42,16 @@ const mockData: Assessment[] = [
     },
   },
   {
-    runId: "6299",
-    org: "ABC Company",
-    industry: "Outpatient Services",
-    name: "Outpatient Services - Mar 23",
-    description: "Lorem ipsum dolor sit amet",
-    startDate: "10/02/2024",
-    lastActivity: "10/02/2024",
+    runId: "1002",
+    org: "Blue Ocean",
+    industry: "Healthcare",
+    name: "Retail Banking - Mar 23",
+    description: "Assessment to check the threats and controls",
+    startDate: "10/03/2024",
+    lastActivity: "10/03/2024",
     endDate: "-",
     lastModifiedBy: {
-      name: "Karan Gautam",
+      name: "Shubham Kumar",
       avatar: "/path/to/avatar",
     },
     status: {
@@ -59,21 +59,21 @@ const mockData: Assessment[] = [
     },
   },
   {
-    runId: "6299",
-    org: "ABC Company",
-    industry: "Outpatient Services",
-    name: "Outpatient Services - Mar 23",
-    description: "Lorem ipsum dolor sit amet",
-    startDate: "10/02/2024",
-    lastActivity: "10/02/2024",
+    runId: "1003",
+    org: "Blue Ocean",
+    industry: "Healthcare",
+    name: "Retail Banking - Aug 25",
+    description: "Assessment to check the threats and controls",
+    startDate: "10/08/2025",
+    lastActivity: "10/08/2025",
     endDate: "-",
     lastModifiedBy: {
-      name: "Karan Gautam",
+      name: "Shivam Anand",
       avatar: "/path/to/avatar",
     },
     status: {
       progress: 100,
-      closed: true,
+      closed: true
     },
   },
 ];
@@ -188,7 +188,7 @@ const AssessmentDashboard = () => {
               onClick={() => setOpen(true)}
             >
               <Typography variant="body2" fontWeight={600}>
-                Start Assessment
+                Create Assessment
               </Typography>
             </Button>
           </Box>

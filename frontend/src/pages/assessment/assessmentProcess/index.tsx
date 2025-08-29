@@ -108,9 +108,9 @@ export default function BUProcessMappingPage() {
         {/* Top Navigation Bar */}
         <TopBar
           title={assessmentName}
-          runId="2249"
-          org={organisations.find((item) => item.id === selectedOrg)?.name}
-          bu={businessUnits.find((item) => item.id === selectedBU)?.name}
+          runId="1004"
+          org={organisations.find((item) => item.id === selectedOrg)?.name || ""}
+          bu={businessUnits.find((item) => item.id === selectedBU)?.name || ""}
           onBack={() => router.push("/assessment")}
         />
 
