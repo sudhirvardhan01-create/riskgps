@@ -76,6 +76,33 @@ const transformProcessData = (data: any[]): ProcessData[] => {
   return res.data;
 }
 
+export const fetchProcessesForListing = async () => {
+
+const transformProcessData = (data: any[]): ProcessData[] => {
+  return data.map((item) => ({
+    id: item.id,
+    processCode:item.process_code,
+    processName: item.process_name,
+    }));
+    };
+
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/process/list`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to process data");
+  }
+  const res = await response.json();
+  res.data.data = transformProcessData(res.data.data);
+
+  return res.data;
+}
+
 
 export const createProcess = async (data: ProcessData) => {
 

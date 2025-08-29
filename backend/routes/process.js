@@ -79,6 +79,21 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get("/list", async (req, res) => {
+    try {
+        const processes = await ProcessService.getAllProcessForListing();
+        res.status(HttpStatus.OK).json({
+            data: processes,
+            msg: Messages.PROCESS.FETCHED
+        });
+
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || Messages.GENERAL.SERVER_ERROR
+        });
+    }
+})
+
 router.get("/download-template-file", async (req, res) => {
     try {
         await ProcessService.downloadProcessTemplateFile(res);
