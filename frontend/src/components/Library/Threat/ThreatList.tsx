@@ -1,6 +1,6 @@
 import { Box, Stack, TablePagination } from "@mui/material";
 import { ThreatForm } from "@/types/threat";
-import ThreatCard from "./ThreatCard";
+import ThreatControlCard from "../ThreatControlCard";
 
 interface Props {
   loading: boolean;
@@ -43,19 +43,22 @@ const ThreatList: React.FC<Props> = ({
           {data && data.length > 0 ? (
             data.map((item) => (
               <div key={item.id ?? JSON.stringify(item)}>
-                <ThreatCard
-                  threatData={item}
-                  setSelectedThreatData={setSelectedThreat}
-                  setIsViewThreatOpen={setIsViewOpen}
-                  setIsEditThreatOpen={setIsEditOpen}
+                <ThreatControlCard
+                  module="threat"
+                  threatControlData={item}
+                  setSelectedData={setSelectedThreat}
+                  setIsViewOpen={setIsViewOpen}
+                  setIsEditOpen={setIsEditOpen}
                   setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                   handleUpdateStatus={handleUpdateStatus}
-                  threatTechniqueID={item.mitreTechniqueId ?? ""}
-                  mitrePlatform={item.platforms.join(", ") ?? ""}
-                  threatTechniqueName={item.mitreTechniqueName ?? ""}
+                  rowID={item.mitreTechniqueId ?? ""}
+                  headerChip={item.platforms.join(", ") ?? ""}
+                  title={item.mitreTechniqueName ?? ""}
                   status={item.status ?? ""}
-                  ciaMapping={item.ciaMapping}
                   lastUpdated={item.updated_at}
+                  footerChips={[
+                    { label: "CIA Mapping", value: item.ciaMapping?.join(",") },
+                  ]}
                 />
               </div>
             ))
