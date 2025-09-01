@@ -45,19 +45,16 @@ export const tooltips = {
     organizationalRevenueImpactPercentage: "Organizational Revenue Impact Percentage",
     thirdPartyInvolvement: "Third Party Involvement",
     regulatoryAndCompliance: "Regulatory and Compliance",
-    criticalityOfDataProcessed: "criticality of Data Processed",
+    criticalityOfDataProcessed: "Criticality of Data Processed",
     dataProcessed: "Data Processed",
-    financialMateriality: "Financial Materiality"
+    financialMateriality: "Financial Materiality",
 
-
-
-
-
-
-
-
-
-
-
+    //Threat
+    mitrePlatforms: "MITRE Platforms",
+    mitreTechniqueId: "MITRE Technique ID",
+    mitreTechniqueName: "MITRE Technique Name",
+    ciaMapping: "CIA Mapping",
+    subTechniqueId: "Sub Technique ID",
+    subTechniqueName: "Sub Technique Name",
 
 }

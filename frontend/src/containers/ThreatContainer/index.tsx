@@ -20,11 +20,6 @@ const initialThreatFormData: ThreatForm = {
   ciaMapping: [],
   subTechniqueId: "",
   subTechniqueName: "",
-  mitreControlId: "",
-  mitreControlName: "",
-  mitreControlType: "",
-  mitreControlDescription: "",
-  bluOceanControlDescription: "",
 };
 
 const sortItems = [
@@ -380,41 +375,38 @@ export default function ThreatContainer() {
       )}
 
       {/* Add form */}
-      {/* {isAddOpen && (
-        <AssetFormModal
+      {isAddOpen && (
+        <ThreatFormModal
           operation={"create"}
           open={isAddOpen}
-          assetFormData={assetFormData}
-          setAssetFormData={setAssetFormData}
-          processes={processesData}
+          formData={formData}
+          setFormData={setFormData}
           metaDatas={metaDatas}
-          onSubmit={handleFormValidation}
-          // onSubmit={handleCreate}
+          onSubmit={() => console.log("Submitted")}
           onClose={() => {
             setIsAddConfirmOpen(true);
           }}
         />
-      )} */}
+      )}
 
       {/* Edit form */}
-      {/* {isEditOpen && selectedAsset && (
-        <AssetFormModal
+      {isEditOpen && selectedThreat && (
+        <ThreatFormModal
           operation="edit"
           open={isEditOpen}
-          assetFormData={selectedAsset}
-          setAssetFormData={(val: any) => {
+          formData={selectedThreat}
+          setFormData={(val: any) => {
             if (typeof val === "function") {
-              setSelectedAsset((prev) => val(prev as AssetForm));
+              setSelectedThreat((prev) => val(prev as ThreatForm));
             } else {
-              setSelectedAsset(val);
+              setSelectedThreat(val);
             }
           }}
-          processes={processesData}
           metaDatas={metaDatas}
-          onSubmit={handleUpdate}
+          onSubmit={() => console.log("Updated")}
           onClose={() => setIsEditConfirmOpen(true)}
         />
-      )} */}
+      )}
 
       {/* Confirm dialogs */}
       <ConfirmDialog
@@ -445,15 +437,15 @@ export default function ThreatContainer() {
         confirmText="Yes, Cancel"
       />
 
-      {/* <ConfirmDialog
+      <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Confirm Asset Deletion?"
-        description={`Are you sure you want to delete Asset ${selectedAsset?.assetCode}? All associated data will be removed from the system.`}
-        onConfirm={handleDelete}
+        title="Confirm Threat Deletion?"
+        description={`Are you sure you want to delete Threat ${selectedThreat?.mitreTechniqueId}? All associated data will be removed from the system.`}
+        onConfirm={() => console.log("Deleted")}
         cancelText="Cancel"
         confirmText="Yes, Delete"
-      /> */}
+      />
 
       {/* Page content */}
       <Box p={5}>

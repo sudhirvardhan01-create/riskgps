@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -20,7 +20,6 @@ import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { tooltips } from "@/utils/tooltips";
-import TooltipComponent from "@/components/TooltipComponent";
 import { labels } from "@/utils/labels";
 import { ThreatForm } from "@/types/threat";
 
@@ -58,10 +57,11 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
     "iOS",
   ];
 
-  const ciaMappingItems = [{value:"C", label:"Confidentiality"},
-    {value:"I", label:"Integrity"},
-    {value:"A", label:"Availability"}
-  ]
+  const ciaMappingItems = [
+    { value: "C", label: "Confidentiality" },
+    { value: "I", label: "Integrity" },
+    { value: "A", label: "Availability" },
+  ];
 
   const handleChange = useCallback(
     (field: keyof ThreatForm, value: any) => {
@@ -158,9 +158,9 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
               required
               multiple
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetCategory}
+              tooltipTitle={tooltips.mitrePlatforms}
               value={formData.platforms}
-              label={labels.assetCategory}
+              label={labels.mitrePlatforms}
               displayEmpty
               onChange={(e) =>
                 handleChange("platforms", e.target.value as string[])
@@ -172,7 +172,6 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
                       variant="body1"
                       sx={{
                         color: "#9E9FA5",
-                        textTransform: "capitalize",
                       }}
                     >
                       Select MITRE Platforms
@@ -216,11 +215,12 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
           </Grid>
 
           {/* MITRE Technique ID */}
-          <Grid mt={1} size={{ xs: 12 }}>
+          <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.assetDescription}
+              required
+              label={labels.mitreTechniqueId}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetDescription}
+              tooltipTitle={tooltips.mitreTechniqueId}
               placeholder="Enter MITRE Technique ID"
               value={formData.mitreTechniqueId}
               onChange={(e) => handleChange("mitreTechniqueId", e.target.value)}
@@ -230,9 +230,10 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
           {/* MITRE Technique Name */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.assetOwner}
+              required
+              label={labels.mitreTechniqueName}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetOwner}
+              tooltipTitle={tooltips.mitreTechniqueName}
               placeholder="Enter MITRE Technique Name"
               value={formData.mitreTechniqueName}
               onChange={(e) =>
@@ -244,11 +245,12 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
           {/* CIA Mapping */}
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
+              required
               multiple
               value={formData.ciaMapping}
-              label={labels.hosting}
+              label={labels.ciaMapping}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.hosting}
+              tooltipTitle={tooltips.ciaMapping}
               displayEmpty
               onChange={(e) => handleChange("ciaMapping", e.target.value)}
               renderValue={(selected: any) => {
@@ -276,18 +278,23 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
                   );
                 }
               }}
-            >{ciaMappingItems.map((item) => {
-             return (<MenuItem value={item.value} key={item.value}>{item.label}</MenuItem>)
-            })}
+            >
+              {ciaMappingItems.map((item) => {
+                return (
+                  <MenuItem value={item.value} key={item.value}>
+                    {item.label}
+                  </MenuItem>
+                );
+              })}
             </SelectStyled>
           </Grid>
 
           {/* Sub Technique ID */}
-          <Grid mt={1} size={{ xs: 12 }}>
+          <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.assetDescription}
+              label={labels.subTechniqueId}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetDescription}
+              tooltipTitle={tooltips.subTechniqueId}
               placeholder="Enter Sub Technique ID"
               value={formData.subTechniqueId}
               onChange={(e) => handleChange("subTechniqueId", e.target.value)}
@@ -297,56 +304,40 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
           {/* Sub Technique Name */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.assetOwner}
+              label={labels.subTechniqueName}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetOwner}
+              tooltipTitle={tooltips.subTechniqueName}
               placeholder="Enter Sub Technique Name"
               value={formData.subTechniqueName}
-              onChange={(e) =>
-                handleChange("subTechniqueName", e.target.value)
-              }
+              onChange={(e) => handleChange("subTechniqueName", e.target.value)}
             />
           </Grid>
 
           {/* MITRE Control ID */}
-          <Grid mt={1} size={{ xs: 12 }}>
+          {/* <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
-              label={labels.assetDescription}
+              label={labels.mitreControlId}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetDescription}
+              tooltipTitle={tooltips.mitreControlId}
               placeholder="Enter MITRE Control ID"
               value={formData.mitreControlId}
               onChange={(e) => handleChange("mitreControlId", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
           {/* MITRE Control Name */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.assetOwner}
+              label={labels.mitreControlName}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetOwner}
+              tooltipTitle={tooltips.mitreControlName}
               placeholder="Enter MITRE Control Name"
               value={formData.mitreControlName}
               onChange={(e) =>
                 handleChange("mitreControlName", e.target.value)
               }
             />
-          </Grid>
-
-          {/* MITRE Control Name */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.assetOwner}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.assetOwner}
-              placeholder="Enter MITRE Control Name"
-              value={formData.mitreControlName}
-              onChange={(e) =>
-                handleChange("mitreControlName", e.target.value)
-              }
-            />
-          </Grid>
+          </Grid> */}
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>

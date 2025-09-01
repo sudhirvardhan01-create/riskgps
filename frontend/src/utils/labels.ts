@@ -47,8 +47,14 @@ export const labels = {
     regulatoryAndCompliance: "Regulatory and Compliance",
     criticalityOfDataProcessed: "criticality of Data Processed",
     dataProcessed: "Data Processed",
-    financialMateriality: "Financial Materiality"
+    financialMateriality: "Financial Materiality",
 
-
+    //Threat
+    mitrePlatforms: "MITRE Platforms",
+    mitreTechniqueId: "MITRE Technique ID",
+    mitreTechniqueName: "MITRE Technique Name",
+    ciaMapping: "CIA Mapping",
+    subTechniqueId: "Sub Technique ID",
+    subTechniqueName: "Sub Technique Name",
 
 }
