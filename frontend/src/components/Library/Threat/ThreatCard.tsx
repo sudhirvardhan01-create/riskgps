@@ -192,7 +192,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
                     </Typography>
                     &nbsp;
                     <Typography variant="body2" color="text.primary">
-                      {ciaMapping}
+                      {ciaMapping?.join(",")}
                     </Typography>
                   </Box>
                 }

@@ -4,13 +4,15 @@ export interface ThreatForm {
   mitreTechniqueId: string;
   mitreTechniqueName: string;
   ciaMapping: string[];
-  subTechniqueId?: string;
-  subTechniqueName?: string;
-  mitreControlId: string;
-  mitreControlName: string;
-  mitreControlType: string;
-  mitreControlDescription?: string;
-  bluOceanControlDescription?: string;
+  subTechniqueId: string;
+  subTechniqueName: string;
+  controls?: {
+    mitreControlId: string;
+    mitreControlName: string;
+    mitreControlType: string;
+    mitreControlDescription?: string;
+    bluOceanControlDescription?: string;
+  }[];
   status?: string;
   updated_at?: Date;
   created_at?: Date;

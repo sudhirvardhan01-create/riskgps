@@ -9,7 +9,14 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
+  Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
@@ -54,9 +61,15 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
         variant="outlined"
         size="small"
         color="primary"
-        sx={{ fontWeight: 550, borderRadius: 1, color:"primary.main", width: "96px", "& .MuiChip-icon": {
-          marginRight: "1px"
-        }}}
+        sx={{
+          fontWeight: 550,
+          borderRadius: 1,
+          color: "primary.main",
+          width: "96px",
+          "& .MuiChip-icon": {
+            marginRight: "1px",
+          },
+        }}
       />
     );
   };
@@ -137,7 +150,9 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 MITRE Technique Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreTechniqueName ? threatData.mitreTechniqueName : "-"}
+                {threatData.mitreTechniqueName
+                  ? threatData.mitreTechniqueName
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -173,7 +188,9 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Sub Technique Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.subTechniqueName ? threatData.subTechniqueName : "-"}
+                {threatData.subTechniqueName
+                  ? threatData.subTechniqueName
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -191,7 +208,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
           </Grid> */}
 
           {/* MITRE Control Name */}
-            {/* <Grid size={{ xs: 6 }}>
+          {/* <Grid size={{ xs: 6 }}>
               <Box display={"flex"} flexDirection={"column"} gap={0.5}>
                 <Typography variant="body2" color="#91939A" fontWeight={550}>
                   MITRE Control Name
@@ -242,6 +259,37 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
             </Box>
           </Grid> */}
 
+          <Grid size={{ xs: 12 }}>
+            <Paper sx={{ width: "100%", overflow: "hidden" }}>
+              <TableContainer sx={{ maxHeight: 440 }}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>MITRE Control ID</TableCell>
+                      <TableCell>MITRE Control Name</TableCell>
+                      <TableCell>MITRE Control Type</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {threatData.controls?.map((control, index) => {
+                      return (
+                        <TableRow
+                          hover
+                          role="checkbox"
+                          tabIndex={-1}
+                          key={index}
+                        >
+                          <TableCell>{control.mitreControlId}</TableCell>
+                          <TableCell>{control.mitreControlName}</TableCell>
+                          <TableCell>{control.mitreControlType}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
         </Grid>
       </DialogContent>
 
