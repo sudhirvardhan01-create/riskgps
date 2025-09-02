@@ -229,6 +229,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
           {/* Process Name */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled /// text
+              required
               label={labels.processName}
               placeholder="Enter Process Name"
               value={processData.processName}
@@ -442,31 +443,92 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               </RadioGroup>
             </FormControl>
           </Grid>
-
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled /// text
+            <SelectStyled
+              multiple
+              value={processData.requlatoryAndCompliance || []}
               label={labels.regulatoryAndCompliance}
-              placeholder="Regulatory and Compliance"
-              value={processData.requlatoryAndCompliance}
               isTooltipRequired={true}
               tooltipTitle={tooltips.regulatoryAndCompliance}
+              displayEmpty
               onChange={(e) =>
-                handleChange("requlatoryAndCompliance", e.target.value)
+                handleChange("requlatoryAndCompliance", e.target.value as string)
               }
-            />
+              renderValue={(selected: any) => {
+                if (!selected || selected.length === 0) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Regulation And Compliance
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected.join(", ")}
+                    </Typography>
+                  );
+                }
+              }}
+            >
+              <MenuItem value="HIPAA">HIPAA</MenuItem>
+              <MenuItem value="NIST CSF">NIST CSF</MenuItem>
+              <MenuItem value="NIST 800">NIST 800</MenuItem>
+            </SelectStyled>
           </Grid>
           {/* Criticality of Data Processed */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled /// text
-              label={labels.criticalityOfDataProcessed}
-              placeholder="Criticality of Data Processed"
+            <SelectStyled
               value={processData.criticalityOfDataProcessed}
+              label={labels.criticalityOfDataProcessed}
               isTooltipRequired={true}
               tooltipTitle={tooltips.criticalityOfDataProcessed}
-              onChange={(e) =>
-                handleChange("criticalityOfDataProcessed", e.target.value)
-              }
-            />
+              displayEmpty
+              onChange={(e) => handleChange("criticalityOfDataProcessed", e.target.value as string)}
+              renderValue={(selected: any) => {
+                if (!selected) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select Criticality
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {selected}
+                    </Typography>
+                  );
+                }
+              }}
+            >
+              <MenuItem value="Critical">Critical</MenuItem>
+              <MenuItem value="High">High</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="Third Party Users">Low</MenuItem>
+            </SelectStyled>
           </Grid>
 
           <Grid mt={1} size={{ xs: 6 }}>
@@ -550,9 +612,9 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 }
               }}
             >
-              <MenuItem value="SaaS">Internal Users</MenuItem>
-              <MenuItem value="PaaS">Public Users</MenuItem>
-              <MenuItem value="IaaS">Third Party Users</MenuItem>
+              <MenuItem value="Internal Users">Internal Users</MenuItem>
+              <MenuItem value="Public Users">Public Users</MenuItem>
+              <MenuItem value="Third Party Users">Third Party Users</MenuItem>
             </SelectStyled>
           </Grid>
 

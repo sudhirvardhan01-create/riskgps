@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
-
-const RISK_STATUS = ['draft', 'published', 'not_published'];
+const { GENERAL } = require('../constants/library');
 
 module.exports = (sequelize) => {
   const RiskScenario = sequelize.define('RiskScenario', {
@@ -15,18 +14,34 @@ module.exports = (sequelize) => {
     },
     risk_scenario: {
       allowNull: false,
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       unique: true 
     },
-    risk_description: DataTypes.TEXT,
-    risk_statement: DataTypes.TEXT,
+    risk_description: {
+      allowNull: true,
+      type: DataTypes.TEXT,
+    },
+    risk_statement: {
+      allowNull: true,
+      type: DataTypes.TEXT,
+    },
+    cia_mapping: {
+      allowNull: true,
+      type: DataTypes.ARRAY(DataTypes.ENUM(...GENERAL.CIA_MAPPING_VALUES)),
+    },
     status: { 
       defaultValue: 'published',
       allowNull: false,
-      type: DataTypes.ENUM(...RISK_STATUS) 
+      type: DataTypes.ENUM(GENERAL.STATUS_SUPPORTED_VALUES) 
     },
-    risk_field_1: DataTypes.TEXT,
-    risk_field_2: DataTypes.TEXT,
+    risk_field_1: {
+      allowNull: true,
+      type: DataTypes.TEXT,
+    },
+    risk_field_2: {
+      allowNull: true,
+      type: DataTypes.TEXT,
+    },
   }, {
     timestamps: true,
     createdAt: 'created_at',

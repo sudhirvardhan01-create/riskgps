@@ -137,4 +137,18 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+router.put("/:id", async (req, res) => {
+    try {
+        const data = await MitreThreatControlService.updateMitreThreatControlRecord(req.params.id, req.body);
+        res.status(HttpStatus.OK).json({
+            data: data,
+            msg: Messages.MITRE_THREAT_CONTROL.UPDATED
+        });
+    } catch (err) {
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.MITRE_THREAT_CONTROL.NOT_FOUND
+        });        
+    }
+})
+
 module.exports = router;

@@ -13,11 +13,11 @@ class MitreThreatControlService {
 
     static async createMitreThreatControlRecord(data) {
         return await sequelize.transaction(async (t) => {
-            console.log("[createAsset] Creating asset", data);
+            console.log("[createMitreThreatControlRecord] Creating mitre threat control", data);
 
             this.validateMitreThreatControlData(data);
 
-            const mitreThreatControlRecord = MitreThreatControl.create(assetData, {
+            const mitreThreatControlRecord = MitreThreatControl.create(data, {
                 transaction: t,
             });
 
@@ -108,6 +108,29 @@ class MitreThreatControlService {
         }
 
         return mitreThreatControl;
+    }
+
+                
+
+    static async updateMitreThreatControlRecord(id, data) {
+        if (!id) {
+            throw new CustomError("ID not found", HttpStatus.BAD_REQUEST);
+        }
+        return await sequelize.transaction(async (t) => {
+            console.log("[updateMitreThreatControlRecord] Updating mitre threat control", data);
+
+            this.validateMitreThreatControlData(data);
+
+        const [updatedCount] = await MitreThreatControl.update(data, { 
+        where: { id },
+        transaction: t
+        });
+        if (updatedCount === 0) {
+            throw new CustomError("Element not found with ID", HttpStatus.BAD_REQUEST);
+        }
+
+        return data;
+        });
     }
 
     static async deleteMitreThreatControlRecordById(id) {
@@ -255,14 +278,13 @@ class MitreThreatControlService {
 
     static validateMitreThreatControlData(data) {
         const {
-            mitreThreatControlId,
             platforms,
-            mitreTechniqueId,
-            mitreTechniqueName,
-            subTechniqueId,
+            // mitreTechniqueId,
+            // mitreTechniqueName,
+            // subTechniqueId,
             ciaMapping,
-            subTechniqueName,
-            mitreControlType,
+            // subTechniqueName,
+            // mitreControlType,
         } = data;
 
         if (

@@ -13,6 +13,8 @@ export const tooltips = {
     riskScenario: "Enter the Risk Scenario",
     riskStatement: "Enter the Risk Statement",
     riskDescription: "Enter the Risk Description",
+    ciaMapping: "CIA Mapping",
+
 
     //Asset
     assetName: "Enter the Asset Name",
