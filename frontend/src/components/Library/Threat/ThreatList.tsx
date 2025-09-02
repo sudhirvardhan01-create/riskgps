@@ -57,7 +57,10 @@ const ThreatList: React.FC<Props> = ({
                   status={item.status ?? ""}
                   lastUpdated={item.updated_at}
                   footerChips={[
-                    { label: "CIA Mapping", value: item.ciaMapping?.join(",") },
+                    {
+                      label: "CIA Mapping:",
+                      value: item.ciaMapping?.join(","),
+                    },
                   ]}
                 />
               </div>

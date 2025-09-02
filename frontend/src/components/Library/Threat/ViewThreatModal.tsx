@@ -36,6 +36,12 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
   setSelectedThreat,
   onClose,
 }: ViewThreatModalProps) => {
+  const ciaMappingItems = [
+    { value: "C", label: "Confidentiality" },
+    { value: "I", label: "Integrity" },
+    { value: "A", label: "Availability" },
+  ];
+
   const getStatusComponent = () => {
     if (
       threatData.status === "published" ||
@@ -164,7 +170,15 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 CIA Mapping
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.ciaMapping ? threatData.ciaMapping.join(", ") : "-"}
+                {threatData.ciaMapping
+                  ? threatData.ciaMapping
+                      ?.map((selectedItem) => {
+                        return ciaMappingItems.find(
+                          (item) => item.value === selectedItem
+                        )?.label;
+                      })
+                      .join(", ")
+                  : "-"}
               </Typography>
             </Box>
           </Grid>

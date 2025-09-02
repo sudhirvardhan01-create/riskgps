@@ -273,7 +273,13 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
                         color: "text.primary",
                       }}
                     >
-                      {selected.join(",")}
+                      {selected
+                        ?.map((selectedItem: any) => {
+                          return ciaMappingItems.find(
+                            (item) => item.value === selectedItem
+                          )?.label;
+                        })
+                        .join(", ")}
                     </Typography>
                   );
                 }
