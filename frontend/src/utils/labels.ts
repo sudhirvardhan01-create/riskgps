@@ -47,7 +47,7 @@ export const labels = {
     "Organizational Revenue Impact Percentage",
   thirdPartyInvolvement: "Third Party Involvement",
   regulatoryAndCompliance: "Regulatory and Compliance",
-  criticalityOfDataProcessed: "criticality of Data Processed",
+  criticalityOfDataProcessed: "Criticality of Data Processed",
   dataProcessed: "Data Processed",
   financialMateriality: "Financial Materiality",
 
