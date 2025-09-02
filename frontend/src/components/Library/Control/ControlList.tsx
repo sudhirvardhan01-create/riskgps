@@ -57,7 +57,8 @@ const ControlList: React.FC<Props> = ({
                   status={item.status ?? ""}
                   lastUpdated={item.updated_at}
                   footerChips={[
-                    { label: "CIA Mapping", value: item.ciaMapping?.join(",") },
+                    { label: "NIST 2.0 Control Category ID:", value: item.ciaMapping?.join(",") },
+                    { label: "NIST 2.0 Control Category:", value: item.ciaMapping?.join(",") },
                   ]}
                 />
               </div>

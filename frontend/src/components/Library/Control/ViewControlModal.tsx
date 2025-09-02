@@ -233,10 +233,10 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
           </Grid>
 
           {/* NIST 2.0 Control Sub-category */}
-          <Grid size={{ xs: 12 }}>
+          <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
-                NIST 2.0 Control Sub-category ID
+                NIST 2.0 Control Sub-category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
                 {controlData.mitreTechniqueId
