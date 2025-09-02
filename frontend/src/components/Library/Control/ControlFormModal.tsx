@@ -133,9 +133,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               required
-              label={labels.mitreTechniqueId}
+              label={labels.mitreControlId}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.mitreTechniqueId}
+              tooltipTitle={tooltips.mitreControlId}
               placeholder="Enter MITRE Control ID"
               value={formData.mitreTechniqueId}
               onChange={(e) => handleChange("mitreTechniqueId", e.target.value)}
@@ -146,9 +146,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               required
-              label={labels.mitreTechniqueId}
+              label={labels.mitreControlName}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.mitreTechniqueId}
+              tooltipTitle={tooltips.mitreControlName}
               placeholder="Enter MITRE Control Name"
               value={formData.mitreTechniqueId}
               onChange={(e) => handleChange("mitreTechniqueId", e.target.value)}
@@ -160,9 +160,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             <SelectStyled
               required
               value={formData.ciaMapping}
-              label={labels.ciaMapping}
+              label={labels.mitreControlType}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.ciaMapping}
+              tooltipTitle={tooltips.mitreControlType}
               displayEmpty
               onChange={(e) => handleChange("ciaMapping", e.target.value)}
               renderValue={(selected: any) => {
@@ -199,9 +199,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           {/* MITRE Control Description */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
-              label={labels.mitreTechniqueName}
+              label={labels.mitreControlDescription}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.mitreTechniqueName}
+              tooltipTitle={tooltips.mitreControlDescription}
               placeholder="Enter MITRE Control Description"
               value={formData.mitreTechniqueName}
               onChange={(e) =>
@@ -213,9 +213,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           {/* BluOcean Control Description */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
-              label={labels.subTechniqueId}
+              label={labels.bluoceanControlDescription}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.subTechniqueId}
+              tooltipTitle={tooltips.bluoceanControlDescription}
               placeholder="Enter BluOcean Control Description"
               value={formData.subTechniqueId}
               onChange={(e) => handleChange("subTechniqueId", e.target.value)}
@@ -225,9 +225,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           {/* NIST 2.0 Control Category ID */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.subTechniqueName}
+              label={labels.nistControlCategoryId}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.subTechniqueName}
+              tooltipTitle={tooltips.nistControlCategoryId}
               placeholder="Enter NIST 2.0 Control Category ID"
               value={formData.subTechniqueName}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
@@ -237,9 +237,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           {/* NIST 2.0 Control Category */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.subTechniqueName}
+              label={labels.nistControlCategory}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.subTechniqueName}
+              tooltipTitle={tooltips.nistControlCategory}
               placeholder="Enter NIST 2.0 Control Category"
               value={formData.subTechniqueName}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
@@ -249,9 +249,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           {/* NIST 2.0 Control Sub-category ID */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.subTechniqueName}
+              label={labels.nistControlSubcategoryId}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.subTechniqueName}
+              tooltipTitle={tooltips.nistControlSubcategoryId}
               placeholder="Enter NIST 2.0 Control Sub-category ID"
               value={formData.subTechniqueName}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
@@ -261,9 +261,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           {/* NIST 2.0 Control Sub-category */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              label={labels.subTechniqueName}
+              label={labels.nistControlSubcategory}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.subTechniqueName}
+              tooltipTitle={tooltips.nistControlSubcategory}
               placeholder="Enter NIST 2.0 Control Sub-category"
               value={formData.subTechniqueName}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
