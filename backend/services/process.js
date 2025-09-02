@@ -254,6 +254,7 @@ class ProcessService {
             "Regulatory and Compliance": "regulations",
             "Criticality Of Data Processed": "Criticality Of Data Processed",
             "Data Processed": "List of values separated by Comma from " + GENERAL.DATA_TYPES.join(","),
+            "Industry": "List of industries the process tagged to separated by comma"
         });
 
         csvStream.end();
@@ -311,7 +312,75 @@ class ProcessService {
         }
     }
 
+    // static async importProcessesFromCSV(filePath) {
+    //     function parseBoolean(value) {
+    //         if (!value) return null; // catch empty string or undefined
+    //         const v = value.toString().trim().toLowerCase();
+    //         return ["yes", "true", "1"].includes(v)
+    //             ? true
+    //             : ["no", "false", "0"].includes(v)
+    //                 ? false
+    //                 : null; // invalid case
+    //     }
+
+    //     function parseDataProcessed(value) {
+    //         if (!value) return [];
+    //         return value
+    //             .split(",")
+    //             .map((v) => v.trim())
+    //             .filter((v) => GENERAL.DATA_TYPES.includes(v));
+    //     }
+
+    //     return new Promise((resolve, reject) => {
+    //         const rows = [];
+
+    //         fs.createReadStream(filePath)
+    //             .pipe(parse({ headers: true }))
+    //             .on("error", (error) => reject(error))
+    //             .on("data", (row) => {
+    //                 rows.push({
+    //                     process_name: row["Process Name"],
+    //                     process_description: row["Process Description"],
+    //                     senior_executive__owner_name: row["Senior Executive Name"],
+    //                     senior_executive__owner_email: row["Senior Executive Email"],
+    //                     operations__owner_name: row["Operations Owner Name"],
+    //                     operations__owner_email: row["Operations Owner Email"],
+    //                     technology_owner_name: row["Technology Owner Name"],
+    //                     technology_owner_email: row["Technology Owner Email"],
+    //                     organizational_revenue_impact_percentage: parseFloat(row["Oraganizational Revenue Impact Percentage"]),
+    //                     financial_materiality: parseBoolean(row["Financial Materiality"]),
+    //                     third_party_involvement: parseBoolean(row["Third Party Involvement"]),
+    //                     users_customers: row["Users"],
+    //                     regulatory_and_compliance: row["Regulatory and Compliance"],
+    //                     criticality_of_data_processed: row["Criticality Of Data Processed"],
+    //                     data_processed: parseDataProcessed(row["Data Processes"]),
+    //                     status: "published"
+    //                 });
+    //             })
+    //             .on("end", async () => {
+    //                 try {
+    //                     await Process.bulkCreate(rows, { ignoreDuplicates: true });
+    //                     await sequelize.query(`
+    //                     UPDATE "library_processes"
+    //                     SET process_code = '#BP-' || LPAD(id::text, 5, '0')
+    //                     WHERE process_code IS NULL;
+    //                     `);
+    //                     fs.unlinkSync(filePath);
+    //                     resolve(rows.length);
+    //                 } catch (err) {
+    //                     reject(err);
+    //                 }
+    //             });
+    //     });
+    // };
+
     static async importProcessesFromCSV(filePath) {
+        const [rows, details] = await sequelize.query(
+            `select * from library_meta_datas where name ILIKE 'industry'`
+        );
+
+        const industryMetaData = rows[0];
+
         function parseBoolean(value) {
             if (!value) return null; // catch empty string or undefined
             const v = value.toString().trim().toLowerCase();
@@ -329,15 +398,33 @@ class ProcessService {
                 .map((v) => v.trim())
                 .filter((v) => GENERAL.DATA_TYPES.includes(v));
         }
+        function parseRegulatoryAndCompliance(value) {
+            if (!value) return [];
+            return value.split(",")
+        }
+
+        function parseIndustry(value) {
+            if (!value) return [];
+            return value
+                .split(",")
+                .map((v) => v.trim())
+                .filter((v) =>
+                    industryMetaData.supported_values.some(
+                        (supported) => supported.toLowerCase() === v.toLowerCase()
+                    )
+                );
+        }
 
         return new Promise((resolve, reject) => {
-            const rows = [];
+            const batchSize = 5000;
+            let batch = [];
+            let totalInserted = 0;
 
             fs.createReadStream(filePath)
                 .pipe(parse({ headers: true }))
                 .on("error", (error) => reject(error))
-                .on("data", (row) => {
-                    rows.push({
+                .on("data", async (row) => {
+                    batch.push({
                         process_name: row["Process Name"],
                         process_description: row["Process Description"],
                         senior_executive__owner_name: row["Senior Executive Name"],
@@ -350,28 +437,92 @@ class ProcessService {
                         financial_materiality: parseBoolean(row["Financial Materiality"]),
                         third_party_involvement: parseBoolean(row["Third Party Involvement"]),
                         users_customers: row["Users"],
-                        regulatory_and_compliance: row["Regulatory and Compliance"],
+                        regulatory_and_compliance: parseRegulatoryAndCompliance(row["Regulatory and Compliance"]),
                         criticality_of_data_processed: row["Criticality Of Data Processed"],
                         data_processed: parseDataProcessed(row["Data Processes"]),
-                        status: "published"
+                        status: "published",
+                        industry: parseIndustry(row["Industry"]),
                     });
+
+                    if (batch.length >= batchSize) {
+                        // pause stream while DB writes
+                        this.pause();
+
+                        try {
+                            const inserted = await Process.bulkCreate(batch, {
+                                returning: true,
+                                ignoreDuplicates: true,
+                            });
+
+                            // Insert metadata
+                            const metaRows = inserted.map((process) => {
+                                const match = batch.find(
+                                    (b) => b.process_name === process.process_name
+                                );
+
+                                return {
+                                    process_id: process.id,
+                                    meta_data_key_id: industryMetaData.id,
+                                    values: match ? match.industry : null, // safe in case no match
+                                };
+                            });
+                            if (metaRows.length > 0) {
+                                await ProcessAttribute.bulkCreate(metaRows);
+                            }
+
+                            totalInserted += inserted.length;
+                            batch = []; // reset
+                        } catch (err) {
+                            reject(err);
+                        } finally {
+                            // resume stream after DB insert
+                            this.resume();
+                        }
+                    }
                 })
                 .on("end", async () => {
                     try {
-                        await Process.bulkCreate(rows, { ignoreDuplicates: true });
+                        // flush leftover rows
+                        if (batch.length > 0) {
+                            const inserted = await Process.bulkCreate(batch, {
+                                returning: true,
+                                ignoreDuplicates: true,
+                            });
+
+                            // Insert metadata
+
+                            const metaRows = inserted.map((process) => {
+                                const match = batch.find(
+                                    (b) => b.process_name === process.process_name
+                                );
+
+                                return {
+                                    process_id: process.id,
+                                    meta_data_key_id: industryMetaData.id,
+                                    values: match ? match.industry : null, // safe in case no match
+                                };
+                            });
+                            if (metaRows.length > 0) {
+                                await ProcessAttribute.bulkCreate(metaRows);
+                            }
+
+                            totalInserted += inserted.length;
+                        }
+
                         await sequelize.query(`
-                        UPDATE "library_processes"
-                        SET process_code = '#BP-' || LPAD(id::text, 5, '0')
-                        WHERE process_code IS NULL;
-                        `);
+                UPDATE "library_processes"
+                SET process_code = '#BP-' || LPAD(id::text, 5, '0')
+                WHERE process_code IS NULL;
+              `);
+
                         fs.unlinkSync(filePath);
-                        resolve(rows.length);
+                        resolve(totalInserted);
                     } catch (err) {
                         reject(err);
                     }
                 });
         });
-    };
+    }
 
     static validateProcessData = (data) => {
         const { process_name, status } = data;
