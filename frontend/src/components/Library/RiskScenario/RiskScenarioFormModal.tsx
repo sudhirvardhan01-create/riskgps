@@ -42,6 +42,15 @@ interface RiskScenarioFormModalProps {
   onSubmit: (status: string) => void;
 }
 
+type CIAKey = "C" | "I" | "A";
+
+const ciaKeyValueMapping: Record<CIAKey, string> = {
+  C: "Confidentiality",
+  I: "Integrity",
+  A: "Availability"
+};
+
+
 const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   operation,
   open,
@@ -237,6 +246,51 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
               tooltipTitle={tooltips.riskDescription}
               onChange={(e) => handleChange("riskDescription", e.target.value)}
             />
+          </Grid>
+          <Grid mt={1} size={{ xs: 12 }}>
+            <SelectStyled
+              multiple
+              value={riskData.ciaMapping ?? []}
+              label={labels.ciaMapping}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.ciaMapping}
+              displayEmpty
+              onChange={(e) =>
+                handleChange("ciaMapping", e.target.value as string)
+              }
+              renderValue={(selected: any) => {
+                if (!selected || selected.length === 0) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "#9E9FA5",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Select CIA Mapping
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                  {(selected as CIAKey[]).map((val) => ciaKeyValueMapping[val]).join(", ")}
+
+                    </Typography>
+                  );
+                }
+              }}
+            >
+              <MenuItem value="C">Confidentiality</MenuItem>
+              <MenuItem value="A">Availability</MenuItem>
+              <MenuItem value="I">Integrity</MenuItem>
+            </SelectStyled>
           </Grid>
 
           {/* Risk Field 1*/}

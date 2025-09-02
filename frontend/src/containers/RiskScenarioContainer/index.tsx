@@ -21,6 +21,7 @@ const initialRiskData: RiskScenarioData = {
   riskScenario: "",
   riskStatement: "",
   riskDescription: "",
+  ciaMapping: [],
   riskField1: "",
   riskField2: "",
   attributes: [] as RiskScenarioAttributes[],

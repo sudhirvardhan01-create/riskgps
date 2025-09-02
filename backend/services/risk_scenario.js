@@ -17,7 +17,6 @@ const QueryStream = require("pg-query-stream");
 const fs = require("fs");
 const { parse } = require("fast-csv");
 
-
 class RiskScenarioService {
   static async createRiskScenario(data) {
     return await sequelize.transaction(async (t) => {
@@ -231,7 +230,6 @@ class RiskScenarioService {
     return { message: Messages.RISK_SCENARIO.STATUS_UPDATED };
   }
   static async downloadRiskScenarioTemplateFile(res) {
-
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
       "Content-Disposition",
@@ -246,13 +244,20 @@ class RiskScenarioService {
       "Risk Scenario": "Risk Scenario (Text)",
       "Risk Description": "Risk Scenario Description (Text)",
       "Risk Statement": "Risk Scenario Statement (Text)",
-
+      "CIA Mapping": "List separated by , eg: C,I,A",
     });
 
     csvStream.end();
   }
 
   static async importRiskScenariosFromCSV(filePath) {
+    function parseCIAMapping(value) {
+      if (!value) return [];
+      return value
+        .split(",") // split by comma
+        .map((v) => v.trim())
+        .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
+    }
     return new Promise((resolve, reject) => {
       const rows = [];
 
@@ -262,8 +267,9 @@ class RiskScenarioService {
         .on("data", (row) => {
           rows.push({
             risk_scenario: row["Risk Scenario"],
-            risk_description: row["Risk Description"],
-            risk_statement: row["Risk Statement"],
+            risk_description: row["Risk Description"] ?? null,
+            risk_statement: row["Risk Statement"] ?? null,
+            cia_mapping: parseCIAMapping(row["CIA Mapping"]),
             status: "published",
           });
         })
@@ -309,6 +315,7 @@ class RiskScenarioService {
           "Risk Scenario ID": row.risk_code,
           "Risk Scenario": row.risk_scenario,
           "Risk Description": row.risk_description,
+          "CIA Mapping": row.cia_mapping,
           "Risk Statement": row.risk_statement,
           "Status": row.status,
           "Created At": row.created_at,
@@ -338,7 +345,10 @@ class RiskScenarioService {
       );
     }
 
-    if (!status || (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
+    if (
+      !status ||
+      (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))
+    ) {
       console.log("[createRiskScenario] Invalid status:", status);
       throw new CustomError(
         Messages.RISK_SCENARIO.INVALID_STATUS,
@@ -352,6 +362,7 @@ class RiskScenarioService {
       "risk_scenario",
       "risk_description",
       "risk_statement",
+      "cia_mapping",
       "status",
       "risk_field_1",
       "risk_field_2",

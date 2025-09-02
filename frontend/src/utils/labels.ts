@@ -13,6 +13,7 @@ export const labels = {
     riskScenario: "Risk Scenario",
     riskStatement: "Risk Statement",
     riskDescription: "Risk Description",
+    ciaMapping: "CIA Mapping",
 
     //Asset
     assetName: "Asset Name",

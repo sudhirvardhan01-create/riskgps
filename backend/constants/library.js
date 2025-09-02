@@ -3,7 +3,15 @@ module.exports = {
     ALLOWED_SORT_ORDER: ["ASC", "DESC"],
     STATUS_SUPPORTED_VALUES: ["draft", "published", "not_published"],
     CIA_MAPPING_VALUES: ["C", "I", "A"],
-    DATA_TYPES: ["PHI", "PII", "PCI"]
+    // CIA_MAP: {
+    //   C: "Confidentiality",
+    //   I: "Integrity",
+    //   A: "availability",
+    //   Confidentiality: "C",
+    //   integrity: "I",
+    //   availability: "A",
+    // },
+    DATA_TYPES: ["PHI", "PII", "PCI"],
   },
   RISK_SCENARIO: {
     RISK_SCENARIO_SORT_FIELDS: [
@@ -41,7 +49,6 @@ module.exports = {
       "Containers",
       "Android",
       "iOS",
-
     ],
     ASSET_ALLOWED_SORT_FILED: [
       "id",
@@ -60,12 +67,7 @@ module.exports = {
     ],
   },
   META_DATA: {
-    META_DATA_ALLOWED_SORT_FIELDS: [
-      "id",
-      "created_at",
-      "updated_at",
-      "name",
-    ]
+    META_DATA_ALLOWED_SORT_FIELDS: ["id", "created_at", "updated_at", "name"],
   },
   MITRE_THREAT_CONTROL: {
     ALLOWED_SORT_FILED: [
@@ -74,5 +76,5 @@ module.exports = {
       "updated_at",
       "mitreTechniqueName",
     ],
-  }
+  },
 };
