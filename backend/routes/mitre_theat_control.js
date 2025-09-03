@@ -4,6 +4,7 @@ const Messages = require('../constants/messages');
 const HttpStatus = require('../constants/httpStatusCodes');
 const MitreThreatControlService = require("../services/mitre_threat_control")
 const multer = require("multer");
+const CustomError = require('../utils/CustomError');
 
 const upload = multer({
   dest: "uploads/",
@@ -124,10 +125,18 @@ router.get('/:id', async (req, res) => {
  * @returns {JSON} 200 - Success message
  * @returns {JSON} 404 - asset not found or deletion failed
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/delete-threats', async (req, res) => {
     try {
-        await MitreThreatControlService.deleteMitreThreatControlRecordById(req.params.id);
+        const mitreTechniqueId = req.query.mitre_technique_id ?? null
+        const mitreSubTechniqueId = req.query.mitre_sub_technique_id ?? null
+
+        if (!mitreTechniqueId) {
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.MITRE_THREAT_ID_REQUIRED, HttpStatus.BAD_REQUEST);
+        }
+
+        const response = await MitreThreatControlService.deleteMitreThreatControlRecordById(mitreTechniqueId, mitreSubTechniqueId);
         res.status(HttpStatus.OK).json({
+            data: response,
             msg: Messages.MITRE_THREAT_CONTROL.DELETED
         });
     } catch (err) {
@@ -150,5 +159,7 @@ router.put("/:id", async (req, res) => {
         });        
     }
 })
+
+
 
 module.exports = router;
