@@ -114,6 +114,7 @@ module.exports = {
         UPDATED: 'Mitre ThreatControl Record updated successfully.',
         DELETED: 'Mitre ThreatControl Record deleted successfully.',
         FETCHED: 'Fetched all Mitre ThreatControl Record successfully.',
+        MITRE_THREAT_ID_REQUIRED: "Mitre threat ID required",
         FETCHED_BY_ID: 'Fetched Mitre ThreatControl Record by ID successfully.',
         IMPORTED_SUCCESSFULLY: "Mitre ThreatControl imported successfully",
         NOT_FOUND: 'Mitre threat control record not found.',

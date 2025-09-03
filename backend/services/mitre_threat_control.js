@@ -51,31 +51,32 @@ class MitreThreatControlService {
 
         const grouped = Object.values(
             data.reduce((acc, row) => {
-            if (!acc[row.mitreTechniqueId]) {
-                acc[row.mitreTechniqueId] = {
-                id: row.id,
-                platforms: row.platforms,
-                mitreTechniqueId: row.mitreTechniqueId,
-                mitreTechniqueName: row.mitreTechniqueName,
-                ciaMapping: row.ciaMapping,
-                subTechniqueId: row.subTechniqueId,
-                subTechniqueName: row.subTechniqueName,
-                controls: [],
-                status: row.status,
-                created_at: row.created_at,
-                updated_at: row.updated_at,
-                };
-            }
+                const key = row.mitreTechniqueId + (row.subTechniqueId ? "." + row.subTechniqueId : "");
+                if (!acc[key]) {
+                    acc[key] = {
+                        id: row.id,
+                        platforms: row.platforms,
+                        mitreTechniqueId: row.mitreTechniqueId,
+                        mitreTechniqueName: row.mitreTechniqueName,
+                        ciaMapping: row.ciaMapping,
+                        subTechniqueId: row.subTechniqueId,
+                        subTechniqueName: row.subTechniqueName,
+                        controls: [],
+                        status: row.status,
+                        created_at: row.created_at,
+                        updated_at: row.updated_at,
+                    };
+                }
 
-            acc[row.mitreTechniqueId].controls.push({
-                mitreControlId: row.mitreControlId,
-                mitreControlName: row.mitreControlName,
-                mitreControlType: row.mitreControlType,
-                mitreControlDescription: row.mitreControlDescription,
-                bluOceanControlDescription: row.bluOceanControlDescription,
-            });
+                acc[key].controls.push({
+                    mitreControlId: row.mitreControlId,
+                    mitreControlName: row.mitreControlName,
+                    mitreControlType: row.mitreControlType,
+                    mitreControlDescription: row.mitreControlDescription,
+                    bluOceanControlDescription: row.bluOceanControlDescription,
+                });
 
-            return acc;
+                return acc;
             }, {})
         );
         const total = grouped.length;
@@ -85,7 +86,7 @@ class MitreThreatControlService {
         const start = page * limit;
         const end = start + limit;
         const paginatedData = grouped.slice(start, end);
- 
+
         return {
             data: paginatedData,
             total,
@@ -110,7 +111,7 @@ class MitreThreatControlService {
         return mitreThreatControl;
     }
 
-                
+
 
     static async updateMitreThreatControlRecord(id, data) {
         if (!id) {
@@ -121,31 +122,40 @@ class MitreThreatControlService {
 
             this.validateMitreThreatControlData(data);
 
-        const [updatedCount] = await MitreThreatControl.update(data, { 
-        where: { id },
-        transaction: t
-        });
-        if (updatedCount === 0) {
-            throw new CustomError("Element not found with ID", HttpStatus.BAD_REQUEST);
-        }
+            const [updatedCount] = await MitreThreatControl.update(data, {
+                where: { id },
+                transaction: t
+            });
+            if (updatedCount === 0) {
+                throw new CustomError("Element not found with ID", HttpStatus.BAD_REQUEST);
+            }
 
-        return data;
+            return data;
         });
     }
 
-    static async deleteMitreThreatControlRecordById(id) {
-        const mitreThreatControl = await MitreThreatControl.findByPk(id);
+    static async deleteMitreThreatControlRecordById(mitreTechniqueId, mitreSubTechniqueId = null) {
+        const whereClause = { mitreTechniqueId };
 
-        if (!mitreThreatControl) {
-            console.log("[deleteMitreThreatControlRecordById] Not found:", id);
+        if (mitreSubTechniqueId !== null) {
+            whereClause.subTechniqueId = mitreSubTechniqueId;
+        } else {
+            whereClause.subTechniqueId = {
+                [Op.or]: [null, '']
+            };
+        }
+
+        const deletedCount = await MitreThreatControl.destroy({ where: whereClause });
+
+        if (deletedCount === 0) {
+            console.log("[deleteMitreThreatControlRecordById] Not found:", whereClause);
             throw new CustomError(
-                Messages.MITRE_THREAT_CONTROL.NOT_FOUND(id),
+                Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
                 HttpStatus.NOT_FOUND
             );
         }
 
-        await mitreThreatControl.destroy();
-        return { message: Messages.MITRE_THREAT_CONTROL.DELETED };
+        return { data: deletedCount };
     }
 
     static async downloadMitreThreatControlImportTemplateFile(res) {
@@ -190,8 +200,8 @@ class MitreThreatControlService {
             if (!value) return [];
             return value
                 .split(",") // split by comma
-                .map((v) => v.trim()) 
-                .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v)); 
+                .map((v) => v.trim())
+                .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
 
         }
 
