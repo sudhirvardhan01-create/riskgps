@@ -28,6 +28,8 @@ export const fetchThreats = async (
     throw new Error("Failed to fetch threats data");
   }
   const res = await response.json();
+  console.log(res.data);
+  console.log(res.data.data.length);
   return res.data;
 };
 
