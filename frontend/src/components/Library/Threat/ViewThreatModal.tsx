@@ -282,6 +282,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                       <TableCell>MITRE Control ID</TableCell>
                       <TableCell>MITRE Control Name</TableCell>
                       <TableCell>MITRE Control Type</TableCell>
+                      <TableCell>MITRE Control Description</TableCell>
                       <TableCell>BluOcean Control Description</TableCell>
                     </TableRow>
                   </TableHead>
@@ -297,6 +298,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                           <TableCell>{control.mitreControlId}</TableCell>
                           <TableCell>{control.mitreControlName}</TableCell>
                           <TableCell>{control.mitreControlType}</TableCell>
+                          <TableCell>{control.mitreControlDescription}</TableCell>
                           <TableCell>{control.bluOceanControlDescription}</TableCell>
                         </TableRow>
                       );
