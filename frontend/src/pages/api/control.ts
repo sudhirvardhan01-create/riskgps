@@ -31,7 +31,7 @@ export const fetchControls = async (
   return res.data;
 };
 
-//Function to create an control
+//Function to create a control
 export const createControl = async (data: ControlForm) => {
   console.log(data);
   const response = await fetch(
