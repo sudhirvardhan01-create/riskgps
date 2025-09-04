@@ -9,7 +9,7 @@ import ViewControlModal from "@/components/Library/Control/ViewControlModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
-import { ControlForm } from "@/types/control";
+import { ControlForm, NISTControls } from "@/types/control";
 import { FileService } from "@/services/fileService";
 import { ControlService } from "@/services/controlService";
 
@@ -17,14 +17,14 @@ const initialControlFormData: ControlForm = {
   mitreControlId: "",
   mitreControlName: "",
   mitreControlType: "",
-  nistControls: [
-    {
-        frameWorkControlCategoryId: "",
-        frameWorkControlCategory: "",
-        frameWorkControlSubCategoryId: "",
-        frameWorkControlSubCategory: ""
-    }
-  ],
+  nistControls: [],
+};
+
+const initialNISTControlsFormData: NISTControls = {
+  frameWorkControlCategoryId: "",
+  frameWorkControlCategory: "",
+  frameWorkControlSubCategoryId: "",
+  frameWorkControlSubCategory: "",
 };
 
 const sortItems = [
@@ -86,6 +86,10 @@ export default function ControlContainer() {
   });
 
   const [formData, setFormData] = useState<ControlForm>(initialControlFormData);
+
+  const [nistFormData, setNISTFormData] = useState<NISTControls>(
+    initialNISTControlsFormData
+  );
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
@@ -445,6 +449,8 @@ export default function ControlContainer() {
           open={isAddOpen}
           formData={formData}
           setFormData={setFormData}
+          nistFormData={nistFormData}
+          setNISTFormData={setNISTFormData}
           onSubmit={() => console.log("Submitted")}
           onClose={() => {
             setIsAddConfirmOpen(true);
@@ -465,6 +471,8 @@ export default function ControlContainer() {
               setSelectedControl(val);
             }
           }}
+          nistFormData={selectedControl?.nistControls?.[0]}
+          setNISTFormData={setNISTFormData}
           onSubmit={() => console.log("Updated")}
           onClose={() => setIsEditConfirmOpen(true)}
         />
@@ -479,6 +487,7 @@ export default function ControlContainer() {
         onConfirm={() => {
           setIsAddConfirmOpen(false);
           setFormData(initialControlFormData);
+          setNISTFormData(initialNISTControlsFormData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
@@ -515,7 +524,7 @@ export default function ControlContainer() {
         <ControlList
           loading={loading}
           data={controlsData}
-        //   data={dummyData}
+          //   data={dummyData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}

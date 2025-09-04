@@ -55,13 +55,6 @@ const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, metaDatas, addButtonT
     setLocalSort(event.target.value);
     setSort?.(event.target.value);
   };
-    console.log({
-    isImportRequired,
-    setIsFileUploadOpen: typeof setIsFileUploadOpen,
-    handleImport: typeof handleImport,
-    setFile: typeof setFile,
-    handledownloadTemplateFile: typeof handledownloadTemplateFile,
-  });
 
   return (
     <>
