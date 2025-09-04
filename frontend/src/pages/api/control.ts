@@ -16,7 +16,7 @@ export const fetchControls = async (
   params.append("sort_order", sortOrder);
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset?${params}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/get-controls?${params}`,
     {
       method: "GET",
       headers: {
@@ -28,6 +28,7 @@ export const fetchControls = async (
     throw new Error("Failed to fetch controls data");
   }
   const res = await response.json();
+  console.log(res.data);
   return res.data;
 };
 

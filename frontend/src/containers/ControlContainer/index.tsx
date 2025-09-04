@@ -17,7 +17,14 @@ const initialControlFormData: ControlForm = {
   mitreControlId: "",
   mitreControlName: "",
   mitreControlType: "",
-  nistControls: [],
+  nistControls: [
+    {
+        frameWorkControlCategoryId: "",
+        frameWorkControlCategory: "",
+        frameWorkControlSubCategoryId: "",
+        frameWorkControlSubCategory: ""
+    }
+  ],
 };
 
 const sortItems = [
@@ -94,7 +101,7 @@ export default function ControlContainer() {
         searchPattern as string,
         sort
       );
-      setControlsData(data?.data ?? []);
+      setControlsData(data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
@@ -507,8 +514,8 @@ export default function ControlContainer() {
         <LibraryHeader {...headerProps} />
         <ControlList
           loading={loading}
-          //data={controlsData}
-          data={dummyData}
+          data={controlsData}
+        //   data={dummyData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}

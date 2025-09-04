@@ -40,6 +40,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
   setFormData,
   onSubmit,
 }) => {
+
   const handleChange = useCallback(
     (field: keyof ControlForm, value: any) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -203,8 +204,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               isTooltipRequired={true}
               tooltipTitle={tooltips.nistControlCategoryId}
               placeholder="Enter NIST 2.0 Control Category ID"
-              value={formData.nistControls}
-              onChange={(e) => handleChange("subTechniqueName", e.target.value)}
+              value={formData.nistControls?.[0]?.frameWorkControlCategoryId}
+              onChange={(e) =>
+                handleChange("nistControls?.[0]?.frameWorkControlCategoryId", e.target.value)
+              }
             />
           </Grid> */}
 

@@ -178,8 +178,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Category ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0].frameWorkControlCategoryId
-                  ? controlData.nistControls?.[0].frameWorkControlCategoryId
+                {controlData.nistControls?.[0]?.frameWorkControlCategoryId
+                  ? controlData.nistControls?.[0]?.frameWorkControlCategoryId
                   : "-"}
               </Typography>
             </Box>
@@ -192,8 +192,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0].frameWorkControlCategory
-                  ? controlData.nistControls?.[0].frameWorkControlCategory
+                {controlData.nistControls?.[0]?.frameWorkControlCategory
+                  ? controlData.nistControls?.[0]?.frameWorkControlCategory
                   : "-"}
               </Typography>
             </Box>
@@ -206,8 +206,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Sub-category ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0].frameWorkControlSubCategoryId
-                  ? controlData.nistControls?.[0].frameWorkControlSubCategoryId
+                {controlData.nistControls?.[0]?.frameWorkControlSubCategoryId
+                  ? controlData.nistControls?.[0]?.frameWorkControlSubCategoryId
                   : "-"}
               </Typography>
             </Box>
@@ -220,8 +220,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Sub-category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0].frameWorkControlSubCategory
-                  ? controlData.nistControls?.[0].frameWorkControlSubCategory
+                {controlData.nistControls?.[0]?.frameWorkControlSubCategory
+                  ? controlData.nistControls?.[0]?.frameWorkControlSubCategory
                   : "-"}
               </Typography>
             </Box>
