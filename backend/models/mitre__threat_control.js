@@ -5,10 +5,10 @@ module.exports = (sequelize) => {
   const MitreThreatControl = sequelize.define(
     "MitreThreatControl",
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
       },
       platforms: {
         type: DataTypes.ARRAY(DataTypes.ENUM(...ASSETS.ASSET_CATEGORY)),
@@ -72,6 +72,14 @@ module.exports = (sequelize) => {
       underscored: true,
     }
   );
+MitreThreatControl.associate = (models) => {
+  MitreThreatControl.belongsToMany(models.FrameWorkControl, {
+    through: models.MitreFrameworkControlMappings,
+    foreignKey: 'mitre_control_id',
+    otherKey: 'framework_control_id',
+    as: 'framework_controls',
+  });
+};
 
   return MitreThreatControl;
 };

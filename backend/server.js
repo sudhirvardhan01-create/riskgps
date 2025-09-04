@@ -8,7 +8,8 @@ const assetRoutes = require("./routes/asset")
 const db = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const errorHandler = require('./middleware/errorHandler');
-const mitreThreatsControlRoutes = require("./routes/mitre_theat_control")
+const mitreThreatsControlRoutes = require("./routes/mitre_theat_control");
+const controlsRoutes = require("./routes/controls")
 
 const cors = require('cors');
 app.use(express.json());
@@ -31,6 +32,8 @@ app.use("/library/risk-scenario", riskScenarioRoutes);
 app.use("/library/meta-data", metaDataRoutes);
 
 app.use("/library/mitre-threats-controls", mitreThreatsControlRoutes);
+
+app.use("/library/controls", controlsRoutes);
 
 app.use("/library/asset", assetRoutes);
 
