@@ -60,7 +60,9 @@ export default function ControlContainer() {
   const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
-  const [selectedControl, setSelectedControl] = useState<ControlForm | null>(null);
+  const [selectedControl, setSelectedControl] = useState<ControlForm | null>(
+    null
+  );
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -230,68 +232,68 @@ export default function ControlContainer() {
   };
 
   //Function to export the threats
-//   const handleExportThreats = async () => {
-//     try {
-//       await FileService.exportLibraryDataCSV("mitre-threats-controls");
-//       setToast({
-//         open: true,
-//         message: `Threats exported successfully`,
-//         severity: "success",
-//       });
-//     } catch (error) {
-//       console.error(error);
-//       setToast({
-//         open: true,
-//         message: "Error: unable to export the threats",
-//         severity: "error",
-//       });
-//     }
-//   };
+  //   const handleExportThreats = async () => {
+  //     try {
+  //       await FileService.exportLibraryDataCSV("mitre-threats-controls");
+  //       setToast({
+  //         open: true,
+  //         message: `Threats exported successfully`,
+  //         severity: "success",
+  //       });
+  //     } catch (error) {
+  //       console.error(error);
+  //       setToast({
+  //         open: true,
+  //         message: "Error: unable to export the threats",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   //Function to import the threats
-//   const handleImportThreats = async () => {
-//     try {
-//       if (!file) {
-//         throw new Error("File not found");
-//       }
-//       await FileService.importLibraryDataCSV(
-//         "mitre-threats-controls",
-//         file as File
-//       );
-//       setIsFileUploadOpen(false);
-//       setToast({
-//         open: true,
-//         message: `Threats Imported successfully`,
-//         severity: "success",
-//       });
-//     } catch (error) {
-//       console.error(error);
-//       setToast({
-//         open: true,
-//         message: "Error: unable to download the threats from file",
-//         severity: "error",
-//       });
-//     }
-//   };
+  //   const handleImportThreats = async () => {
+  //     try {
+  //       if (!file) {
+  //         throw new Error("File not found");
+  //       }
+  //       await FileService.importLibraryDataCSV(
+  //         "mitre-threats-controls",
+  //         file as File
+  //       );
+  //       setIsFileUploadOpen(false);
+  //       setToast({
+  //         open: true,
+  //         message: `Threats Imported successfully`,
+  //         severity: "success",
+  //       });
+  //     } catch (error) {
+  //       console.error(error);
+  //       setToast({
+  //         open: true,
+  //         message: "Error: unable to download the threats from file",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   //Function to download the threats template file
-//   const handledownloadThreatsTemplateFile = async () => {
-//     try {
-//       await FileService.dowloadCSVTemplate("mitre-threats-controls");
-//       setToast({
-//         open: true,
-//         message: `Threats template file downloaded successfully`,
-//         severity: "success",
-//       });
-//     } catch (error) {
-//       console.error(error);
-//       setToast({
-//         open: true,
-//         message: "Error: unable to download the threats template file",
-//         severity: "error",
-//       });
-//     }
-//   };
+  //   const handledownloadThreatsTemplateFile = async () => {
+  //     try {
+  //       await FileService.dowloadCSVTemplate("mitre-threats-controls");
+  //       setToast({
+  //         open: true,
+  //         message: `Threats template file downloaded successfully`,
+  //         severity: "success",
+  //       });
+  //     } catch (error) {
+  //       console.error(error);
+  //       setToast({
+  //         open: true,
+  //         message: "Error: unable to download the threats template file",
+  //         severity: "error",
+  //       });
+  //     }
+  //   };
 
   // memoize props used by list/header
   const headerProps = useMemo(
@@ -302,14 +304,14 @@ export default function ControlContainer() {
       addAction: () => setIsAddOpen(true),
       sortItems,
       onImport: () => setIsFileUploadOpen(true),
-    //   onExport: () => handleExportThreats(),
+      //   onExport: () => handleExportThreats(),
       fileUploadTitle: "Import Threats",
       file,
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-    //   handleImport: handleImportThreats,
-    //   handledownloadTemplateFile: handledownloadThreatsTemplateFile,
+      //   handleImport: handleImportThreats,
+      //   handledownloadTemplateFile: handledownloadThreatsTemplateFile,
       isImportRequired: true,
       isExportRequired: true,
       searchPattern,
@@ -354,6 +356,65 @@ export default function ControlContainer() {
   //       });
   //     }
   //   };
+
+  const dummyData = [
+    {
+      id: 20,
+      mitreControlId: "M1037",
+      mitreControlName: "Filter Network Traffic",
+      mitreControlType: "MITIGATION",
+      subControls: [
+        {
+          mitreControlDescription:
+            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks that allow access to the Cloud Instance Metadata API.(Citation: RedLock Instance Metadata API 2018)",
+          bluOceanControlDescription:
+            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks",
+        },
+      ],
+      nistControls: [
+        {
+          id: 1,
+          frameWorkName: "NIST CSF",
+          frameWorkControlCategoryId: "ID.AM",
+          frameWorkControlCategory: "Asset Management",
+          frameWorkControlDescription:
+            "Physical devices and systems within the organization are inventoried",
+          frameWorkControlSubCategoryId: "ID.AM-1",
+          frameWorkControlSubCategory:
+            "Physical devices and systems inventoried",
+        },
+      ],
+      status: "published",
+    },
+    {
+      id: 20,
+      mitreControlId: "M1037",
+      mitreControlName: "Filter Network Traffic",
+      mitreControlType: "MITIGATION",
+      subControls: [
+        {
+          mitreControlDescription:
+            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks that allow access to the Cloud Instance Metadata API.(Citation: RedLock Instance Metadata API 2018)",
+          bluOceanControlDescription:
+            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks",
+        },
+      ],
+      nistControls: [
+        {
+          id: 1,
+          frameWorkName: "NIST CSF",
+          frameWorkControlCategoryId: "ID.AM",
+          frameWorkControlCategory: "Asset Management",
+          frameWorkControlDescription:
+            "Physical devices and systems within the organization are inventoried",
+          frameWorkControlSubCategoryId: "ID.AM-1",
+          frameWorkControlSubCategory:
+            "Physical devices and systems inventoried",
+        },
+      ],
+      status: "published",
+    },
+  ];
 
   return (
     <>
@@ -446,7 +507,8 @@ export default function ControlContainer() {
         <LibraryHeader {...headerProps} />
         <ControlList
           loading={loading}
-          data={controlsData}
+          //data={controlsData}
+          data={dummyData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}
