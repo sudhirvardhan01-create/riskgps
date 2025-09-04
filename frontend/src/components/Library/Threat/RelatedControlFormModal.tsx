@@ -20,7 +20,6 @@ import SelectStyled from "@/components/SelectStyled";
 import { RelatedControlForm } from "@/types/threat";
 
 interface RelatedControlFormModalProps {
-  operation?: "create" | "edit";
   open: boolean;
   onClose: () => void;
   formData: RelatedControlForm;
@@ -29,7 +28,6 @@ interface RelatedControlFormModalProps {
 }
 
 const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
-  operation,
   open,
   onClose,
   formData,

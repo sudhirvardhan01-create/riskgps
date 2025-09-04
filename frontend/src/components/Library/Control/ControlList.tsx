@@ -1,10 +1,10 @@
 import { Box, Stack, TablePagination } from "@mui/material";
-import { ThreatForm } from "@/types/threat";
+import { ControlForm } from "@/types/control";
 import ThreatControlCard from "../ThreatControlCard";
 
 interface Props {
   loading: boolean;
-  data: ThreatForm[];
+  data: ControlForm[];
   totalRows: number;
   page: number;
   rowsPerPage: number;
@@ -12,7 +12,7 @@ interface Props {
   onRowsPerPageChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  setSelectedControl: React.Dispatch<React.SetStateAction<ThreatForm | null>>;
+  setSelectedControl: React.Dispatch<React.SetStateAction<ControlForm | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -51,14 +51,14 @@ const ControlList: React.FC<Props> = ({
                   setIsEditOpen={setIsEditOpen}
                   setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                   handleUpdateStatus={handleUpdateStatus}
-                  rowID={item.mitreTechniqueId ?? ""}
-                  headerChip={item.platforms.join(", ") ?? ""}
-                  title={item.mitreTechniqueName ?? ""}
+                  rowID={item.mitreControlId ?? ""}
+                  headerChip={item.mitreControlType ?? ""}
+                  title={item.mitreControlName ?? ""}
                   status={item.status ?? ""}
                   lastUpdated={item.updated_at}
                   footerChips={[
-                    { label: "NIST 2.0 Control Category ID:", value: item.ciaMapping?.join(",") },
-                    { label: "NIST 2.0 Control Category:", value: item.ciaMapping?.join(",") },
+                    { label: "NIST 2.0 Control Category ID:", value: item.nistControls?.[0].frameWorkControlCategoryId },
+                    { label: "NIST 2.0 Control Category:", value: item.nistControls?.[0].frameWorkControlCategory },
                   ]}
                 />
               </div>

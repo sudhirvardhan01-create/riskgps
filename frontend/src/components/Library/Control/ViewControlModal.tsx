@@ -9,17 +9,24 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
+  Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
-import { ThreatForm } from "@/types/threat";
+import { ControlForm } from "@/types/control";
 
 interface ViewControlModalProps {
   open: boolean;
-  controlData: ThreatForm;
+  controlData: ControlForm;
   setIsEditControlOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedControl: React.Dispatch<React.SetStateAction<ThreatForm | null>>;
+  setSelectedControl: React.Dispatch<React.SetStateAction<ControlForm | null>>;
   onClose: () => void;
 }
 const ViewControlModal: React.FC<ViewControlModalProps> = ({
@@ -94,7 +101,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
             gap={2}
           >
             <Typography variant="h5" color="#121212" fontWeight={550}>
-              Control {controlData.mitreTechniqueId}
+              Control {controlData.mitreControlId}
             </Typography>
             {getStatusComponent()}
           </Stack>
@@ -125,13 +132,13 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
       <DialogContent sx={{ paddingBottom: 0 }}>
         <Grid container spacing={3}>
           {/* MITRE Control ID */}
-          <Grid size={{ xs: 12 }}>
+          <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 MITRE Control ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.mitreTechniqueId}
+                {controlData.mitreControlId}
               </Typography>
             </Box>
           </Grid>
@@ -143,48 +150,22 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 MITRE Control Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.mitreTechniqueName
-                  ? controlData.mitreTechniqueName
+                {controlData.mitreControlName
+                  ? controlData.mitreControlName
                   : "-"}
               </Typography>
             </Box>
           </Grid>
 
           {/* MITRE Control Type */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 MITRE Control Type
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.ciaMapping
-                  ? controlData.ciaMapping.join(", ")
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* MITRE Control Description */}
-          <Grid size={{ xs: 12 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control Description
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.subTechniqueId ? controlData.subTechniqueId : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* BluOcean Control Description */}
-          <Grid size={{ xs: 12 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                BluOcean Control Description
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.subTechniqueName
-                  ? controlData.subTechniqueName
+                {controlData.mitreControlType
+                  ? controlData.mitreControlType
                   : "-"}
               </Typography>
             </Box>
@@ -197,8 +178,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Category ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.mitreTechniqueId
-                  ? controlData.mitreTechniqueId
+                {controlData.nistControls?.[0].frameWorkControlCategoryId
+                  ? controlData.nistControls?.[0].frameWorkControlCategoryId
                   : "-"}
               </Typography>
             </Box>
@@ -211,8 +192,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.mitreTechniqueId
-                  ? controlData.mitreTechniqueId
+                {controlData.nistControls?.[0].frameWorkControlCategory
+                  ? controlData.nistControls?.[0].frameWorkControlCategory
                   : "-"}
               </Typography>
             </Box>
@@ -225,8 +206,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Sub-category ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.mitreTechniqueId
-                  ? controlData.mitreTechniqueId
+                {controlData.nistControls?.[0].frameWorkControlSubCategoryId
+                  ? controlData.nistControls?.[0].frameWorkControlSubCategoryId
                   : "-"}
               </Typography>
             </Box>
@@ -239,11 +220,47 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 NIST 2.0 Control Sub-category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.mitreTechniqueId
-                  ? controlData.mitreTechniqueId
+                {controlData.nistControls?.[0].frameWorkControlSubCategory
+                  ? controlData.nistControls?.[0].frameWorkControlSubCategory
                   : "-"}
               </Typography>
             </Box>
+          </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <Paper sx={{ width: "100%", overflow: "hidden" }}>
+              <TableContainer sx={{ maxHeight: 440 }}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>MITRE Control ID</TableCell>
+                      <TableCell>MITRE Control Description</TableCell>
+                      <TableCell>BluOcean Control Description</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {controlData.subControls?.map((control, index) => {
+                      return (
+                        <TableRow
+                          hover
+                          role="checkbox"
+                          tabIndex={-1}
+                          key={index}
+                        >
+                          <TableCell>{controlData.mitreControlId}.{index+1}</TableCell>
+                          <TableCell>
+                            {control.mitreControlDescription}
+                          </TableCell>
+                          <TableCell>
+                            {control.bluOceanControlDescription}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
           </Grid>
         </Grid>
       </DialogContent>

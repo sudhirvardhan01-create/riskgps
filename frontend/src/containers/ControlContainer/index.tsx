@@ -9,17 +9,15 @@ import ViewControlModal from "@/components/Library/Control/ViewControlModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
-import { ThreatForm } from "@/types/threat";
-import { ThreatService } from "@/services/threatService";
+import { ControlForm } from "@/types/control";
 import { FileService } from "@/services/fileService";
+import { ControlService } from "@/services/controlService";
 
-const initialThreatFormData: ThreatForm = {
-  platforms: [],
-  mitreTechniqueId: "",
-  mitreTechniqueName: "",
-  ciaMapping: [],
-  subTechniqueId: "",
-  subTechniqueName: "",
+const initialControlFormData: ControlForm = {
+  mitreControlId: "",
+  mitreControlName: "",
+  mitreControlType: "",
+  nistControls: [],
 };
 
 const sortItems = [
@@ -57,12 +55,12 @@ export default function ControlContainer() {
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [sort, setSort] = useState<string>("id:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
-  const [threatsData, setThreatsData] = useState<ThreatForm[]>([]);
+  const [controlsData, setControlsData] = useState<ControlForm[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
-  const [selectedThreat, setSelectedThreat] = useState<ThreatForm | null>(null);
+  const [selectedControl, setSelectedControl] = useState<ControlForm | null>(null);
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -78,7 +76,7 @@ export default function ControlContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [formData, setFormData] = useState<ThreatForm>(initialThreatFormData);
+  const [formData, setFormData] = useState<ControlForm>(initialControlFormData);
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
@@ -88,19 +86,19 @@ export default function ControlContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ThreatService.fetch(
+      const data = await ControlService.fetch(
         page,
         rowsPerPage,
         searchPattern as string,
         sort
       );
-      setThreatsData(data?.data ?? []);
+      setControlsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
       setToast({
         open: true,
-        message: "Failed to fetch threats",
+        message: "Failed to fetch controls",
         severity: "error",
       });
     } finally {
@@ -111,8 +109,6 @@ export default function ControlContainer() {
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
-
-  console.log(threatsData);
 
   // fetch metadata
   useEffect(() => {
@@ -234,68 +230,68 @@ export default function ControlContainer() {
   };
 
   //Function to export the threats
-  const handleExportThreats = async () => {
-    try {
-      await FileService.exportLibraryDataCSV("mitre-threats-controls");
-      setToast({
-        open: true,
-        message: `Threats exported successfully`,
-        severity: "success",
-      });
-    } catch (error) {
-      console.error(error);
-      setToast({
-        open: true,
-        message: "Error: unable to export the threats",
-        severity: "error",
-      });
-    }
-  };
+//   const handleExportThreats = async () => {
+//     try {
+//       await FileService.exportLibraryDataCSV("mitre-threats-controls");
+//       setToast({
+//         open: true,
+//         message: `Threats exported successfully`,
+//         severity: "success",
+//       });
+//     } catch (error) {
+//       console.error(error);
+//       setToast({
+//         open: true,
+//         message: "Error: unable to export the threats",
+//         severity: "error",
+//       });
+//     }
+//   };
 
   //Function to import the threats
-  const handleImportThreats = async () => {
-    try {
-      if (!file) {
-        throw new Error("File not found");
-      }
-      await FileService.importLibraryDataCSV(
-        "mitre-threats-controls",
-        file as File
-      );
-      setIsFileUploadOpen(false);
-      setToast({
-        open: true,
-        message: `Threats Imported successfully`,
-        severity: "success",
-      });
-    } catch (error) {
-      console.error(error);
-      setToast({
-        open: true,
-        message: "Error: unable to download the threats from file",
-        severity: "error",
-      });
-    }
-  };
+//   const handleImportThreats = async () => {
+//     try {
+//       if (!file) {
+//         throw new Error("File not found");
+//       }
+//       await FileService.importLibraryDataCSV(
+//         "mitre-threats-controls",
+//         file as File
+//       );
+//       setIsFileUploadOpen(false);
+//       setToast({
+//         open: true,
+//         message: `Threats Imported successfully`,
+//         severity: "success",
+//       });
+//     } catch (error) {
+//       console.error(error);
+//       setToast({
+//         open: true,
+//         message: "Error: unable to download the threats from file",
+//         severity: "error",
+//       });
+//     }
+//   };
 
   //Function to download the threats template file
-  const handledownloadThreatsTemplateFile = async () => {
-    try {
-      await FileService.dowloadCSVTemplate("mitre-threats-controls");
-      setToast({
-        open: true,
-        message: `Threats template file downloaded successfully`,
-        severity: "success",
-      });
-    } catch (error) {
-      console.error(error);
-      setToast({
-        open: true,
-        message: "Error: unable to download the threats template file",
-        severity: "error",
-      });
-    }
-  };
+//   const handledownloadThreatsTemplateFile = async () => {
+//     try {
+//       await FileService.dowloadCSVTemplate("mitre-threats-controls");
+//       setToast({
+//         open: true,
+//         message: `Threats template file downloaded successfully`,
+//         severity: "success",
+//       });
+//     } catch (error) {
+//       console.error(error);
+//       setToast({
+//         open: true,
+//         message: "Error: unable to download the threats template file",
+//         severity: "error",
+//       });
+//     }
+//   };
 
   // memoize props used by list/header
   const headerProps = useMemo(
@@ -306,14 +302,14 @@ export default function ControlContainer() {
       addAction: () => setIsAddOpen(true),
       sortItems,
       onImport: () => setIsFileUploadOpen(true),
-      onExport: () => handleExportThreats(),
+    //   onExport: () => handleExportThreats(),
       fileUploadTitle: "Import Threats",
       file,
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-      handleImport: handleImportThreats,
-      handledownloadTemplateFile: handledownloadThreatsTemplateFile,
+    //   handleImport: handleImportThreats,
+    //   handledownloadTemplateFile: handledownloadThreatsTemplateFile,
       isImportRequired: true,
       isExportRequired: true,
       searchPattern,
@@ -362,11 +358,11 @@ export default function ControlContainer() {
   return (
     <>
       {/* View modal */}
-      {selectedThreat && isViewOpen && (
+      {selectedControl && isViewOpen && (
         <ViewControlModal
-          controlData={selectedThreat}
+          controlData={selectedControl}
           setIsEditControlOpen={setIsEditOpen}
-          setSelectedControl={setSelectedThreat}
+          setSelectedControl={setSelectedControl}
           open={isViewOpen}
           onClose={() => {
             setIsViewOpen(false);
@@ -389,16 +385,16 @@ export default function ControlContainer() {
       )}
 
       {/* Edit form */}
-      {isEditOpen && selectedThreat && (
+      {isEditOpen && selectedControl && (
         <ControlFormModal
           operation="edit"
           open={isEditOpen}
-          formData={selectedThreat}
+          formData={selectedControl}
           setFormData={(val: any) => {
             if (typeof val === "function") {
-              setSelectedThreat((prev) => val(prev as ThreatForm));
+              setSelectedControl((prev) => val(prev as ControlForm));
             } else {
-              setSelectedThreat(val);
+              setSelectedControl(val);
             }
           }}
           onSubmit={() => console.log("Updated")}
@@ -414,7 +410,7 @@ export default function ControlContainer() {
         description="Are you sure you want to cancel the control creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
-          setFormData(initialThreatFormData);
+          setFormData(initialControlFormData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
@@ -428,7 +424,7 @@ export default function ControlContainer() {
         description="Are you sure you want to cancel the control updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmOpen(false);
-          setSelectedThreat(null);
+          setSelectedControl(null);
           setIsEditOpen(false);
         }}
         cancelText="Continue Editing"
@@ -439,7 +435,7 @@ export default function ControlContainer() {
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Control Deletion?"
-        description={`Are you sure you want to delete Control ${selectedThreat?.mitreTechniqueId}? All associated data will be removed from the system.`}
+        description={`Are you sure you want to delete Control ${selectedControl?.mitreControlId}? All associated data will be removed from the system.`}
         onConfirm={() => console.log("Deleted")}
         cancelText="Cancel"
         confirmText="Yes, Delete"
@@ -450,13 +446,13 @@ export default function ControlContainer() {
         <LibraryHeader {...headerProps} />
         <ControlList
           loading={loading}
-          data={threatsData}
+          data={controlsData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          setSelectedControl={setSelectedThreat}
+          setSelectedControl={setSelectedControl}
           setIsViewOpen={setIsViewOpen}
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}

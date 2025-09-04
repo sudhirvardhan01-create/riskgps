@@ -21,14 +21,14 @@ import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
-import { ThreatForm } from "@/types/threat";
+import { ControlForm } from "@/types/control";
 
 interface ControlFormModalProps {
   operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
-  formData: ThreatForm;
-  setFormData: React.Dispatch<React.SetStateAction<ThreatForm>>;
+  formData: ControlForm;
+  setFormData: React.Dispatch<React.SetStateAction<ControlForm>>;
   onSubmit: (status: string) => void;
 }
 
@@ -41,7 +41,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
   onSubmit,
 }) => {
   const handleChange = useCallback(
-    (field: keyof ThreatForm, value: any) => {
+    (field: keyof ControlForm, value: any) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
     [setFormData] // only depends on setter from props
@@ -116,7 +116,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             <Typography variant="h5" fontWeight={550} color="#121212">
               {operation === "create"
                 ? "Add Control"
-                : `Edit Control ${formData.mitreTechniqueId}`}
+                : `Edit Control ${formData.mitreControlId}`}
             </Typography>
             {operation === "edit" ? getStatusComponent() : null}
           </Stack>
@@ -137,8 +137,8 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               isTooltipRequired={true}
               tooltipTitle={tooltips.mitreControlId}
               placeholder="Enter MITRE Control ID"
-              value={formData.mitreTechniqueId}
-              onChange={(e) => handleChange("mitreTechniqueId", e.target.value)}
+              value={formData.mitreControlId}
+              onChange={(e) => handleChange("mitreControlId", e.target.value)}
             />
           </Grid>
 
@@ -150,8 +150,8 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               isTooltipRequired={true}
               tooltipTitle={tooltips.mitreControlName}
               placeholder="Enter MITRE Control Name"
-              value={formData.mitreTechniqueId}
-              onChange={(e) => handleChange("mitreTechniqueId", e.target.value)}
+              value={formData.mitreControlName}
+              onChange={(e) => handleChange("mitreControlName", e.target.value)}
             />
           </Grid>
 
@@ -159,12 +159,12 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
               required
-              value={formData.ciaMapping}
+              value={formData.mitreControlType}
               label={labels.mitreControlType}
               isTooltipRequired={true}
               tooltipTitle={tooltips.mitreControlType}
               displayEmpty
-              onChange={(e) => handleChange("ciaMapping", e.target.value)}
+              onChange={(e) => handleChange("mitreControlType", e.target.value)}
               renderValue={(selected: any) => {
                 if (!selected) {
                   return (
@@ -196,46 +196,20 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             </SelectStyled>
           </Grid>
 
-          {/* MITRE Control Description */}
-          <Grid mt={1} size={{ xs: 12 }}>
-            <TextFieldStyled
-              label={labels.mitreControlDescription}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.mitreControlDescription}
-              placeholder="Enter MITRE Control Description"
-              value={formData.mitreTechniqueName}
-              onChange={(e) =>
-                handleChange("mitreTechniqueName", e.target.value)
-              }
-            />
-          </Grid>
-
-          {/* BluOcean Control Description */}
-          <Grid mt={1} size={{ xs: 12 }}>
-            <TextFieldStyled
-              label={labels.bluoceanControlDescription}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.bluoceanControlDescription}
-              placeholder="Enter BluOcean Control Description"
-              value={formData.subTechniqueId}
-              onChange={(e) => handleChange("subTechniqueId", e.target.value)}
-            />
-          </Grid>
-
           {/* NIST 2.0 Control Category ID */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlCategoryId}
               isTooltipRequired={true}
               tooltipTitle={tooltips.nistControlCategoryId}
               placeholder="Enter NIST 2.0 Control Category ID"
-              value={formData.subTechniqueName}
+              value={formData.nistControls}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
           {/* NIST 2.0 Control Category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlCategory}
               isTooltipRequired={true}
@@ -244,10 +218,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={formData.subTechniqueName}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
           {/* NIST 2.0 Control Sub-category ID */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlSubcategoryId}
               isTooltipRequired={true}
@@ -256,10 +230,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={formData.subTechniqueName}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
           {/* NIST 2.0 Control Sub-category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlSubcategory}
               isTooltipRequired={true}
@@ -268,7 +242,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={formData.subTechniqueName}
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
