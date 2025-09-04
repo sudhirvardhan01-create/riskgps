@@ -318,32 +318,6 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
               onChange={(e) => handleChange("subTechniqueName", e.target.value)}
             />
           </Grid>
-
-          {/* MITRE Control ID */}
-          {/* <Grid mt={1} size={{ xs: 12 }}>
-            <TextFieldStyled
-              label={labels.mitreControlId}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.mitreControlId}
-              placeholder="Enter MITRE Control ID"
-              value={formData.mitreControlId}
-              onChange={(e) => handleChange("mitreControlId", e.target.value)}
-            />
-          </Grid> */}
-
-          {/* MITRE Control Name */}
-          {/* <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.mitreControlName}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.mitreControlName}
-              placeholder="Enter MITRE Control Name"
-              value={formData.mitreControlName}
-              onChange={(e) =>
-                handleChange("mitreControlName", e.target.value)
-              }
-            />
-          </Grid> */}
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>

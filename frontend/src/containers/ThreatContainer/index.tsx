@@ -200,27 +200,35 @@ export default function ThreatContainer() {
   //   };
 
   // Delete
-  //   const handleDelete = async () => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       await AssetService.delete(selectedAsset.id as number);
-  //       setIsDeleteConfirmOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: `Deleted ${selectedAsset?.assetCode}`,
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to delete asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleDelete = async () => {
+    try {
+      if (!selectedThreat?.mitreTechniqueId)
+        throw new Error("Invalid selection");
+      if (selectedThreat?.subTechniqueId !== "") {
+        await ThreatService.delete(
+          selectedThreat.mitreTechniqueId as string,
+          selectedThreat.subTechniqueId as string
+        );
+      } else {
+        await ThreatService.delete(selectedThreat.mitreTechniqueId as string, "");
+      }
+      setIsDeleteConfirmOpen(false);
+      setSelectedThreat(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Deleted`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to delete threat",
+        severity: "error",
+      });
+    }
+  };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -442,7 +450,7 @@ export default function ThreatContainer() {
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Threat Deletion?"
         description={`Are you sure you want to delete Threat ${selectedThreat?.mitreTechniqueId}? All associated data will be removed from the system.`}
-        onConfirm={() => console.log("Deleted")}
+        onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"
       />

@@ -78,9 +78,9 @@ export const updateThreat = async (id: number, data: ThreatForm) => {
 };
 
 //Function to delete a threat
-export const deleteThreat = async (id: number) => {
+export const deleteThreat = async (mitre_technique_id: string, mitre_sub_technique_id?: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/${id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/delete-threats?mitre_technique_id=${mitre_technique_id}&&mitre_sub_technique_id=${mitre_sub_technique_id}`,
     {
       method: "DELETE",
       headers: {
