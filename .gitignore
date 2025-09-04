@@ -18,3 +18,4 @@ frontend/src/components/LibraryRowsCardComponent/test.tsx
 .vs
 backend/models/mitre_nist_mapping.js
 backend/models/nist_controls.js
+backend/uploads
