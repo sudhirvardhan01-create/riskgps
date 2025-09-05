@@ -20,12 +20,12 @@ const initialControlFormData: ControlForm = {
   nistControls: [],
 };
 
-const initialNISTControlsFormData: NISTControls = {
-  frameWorkControlCategoryId: "",
-  frameWorkControlCategory: "",
-  frameWorkControlSubCategoryId: "",
-  frameWorkControlSubCategory: "",
-};
+// const initialNISTControlsFormData: NISTControls = {
+//   frameWorkControlCategoryId: "",
+//   frameWorkControlCategory: "",
+//   frameWorkControlSubCategoryId: "",
+//   frameWorkControlSubCategory: "",
+// };
 
 const sortItems = [
   { label: "ID (Ascending)", value: "id:asc" },
@@ -87,9 +87,12 @@ export default function ControlContainer() {
 
   const [formData, setFormData] = useState<ControlForm>(initialControlFormData);
 
-  const [nistFormData, setNISTFormData] = useState<NISTControls>(
-    initialNISTControlsFormData
-  );
+  // const [nistFormData, setNISTFormData] = useState<NISTControls>(
+  //   initialNISTControlsFormData
+  // );
+
+  // const [selectedNISTControl, setSelectedNISTControl] =
+  //   useState<NISTControls | null>(null);
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
@@ -368,65 +371,6 @@ export default function ControlContainer() {
   //     }
   //   };
 
-  const dummyData = [
-    {
-      id: 20,
-      mitreControlId: "M1037",
-      mitreControlName: "Filter Network Traffic",
-      mitreControlType: "MITIGATION",
-      subControls: [
-        {
-          mitreControlDescription:
-            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks that allow access to the Cloud Instance Metadata API.(Citation: RedLock Instance Metadata API 2018)",
-          bluOceanControlDescription:
-            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks",
-        },
-      ],
-      nistControls: [
-        {
-          id: 1,
-          frameWorkName: "NIST CSF",
-          frameWorkControlCategoryId: "ID.AM",
-          frameWorkControlCategory: "Asset Management",
-          frameWorkControlDescription:
-            "Physical devices and systems within the organization are inventoried",
-          frameWorkControlSubCategoryId: "ID.AM-1",
-          frameWorkControlSubCategory:
-            "Physical devices and systems inventoried",
-        },
-      ],
-      status: "published",
-    },
-    {
-      id: 20,
-      mitreControlId: "M1037",
-      mitreControlName: "Filter Network Traffic",
-      mitreControlType: "MITIGATION",
-      subControls: [
-        {
-          mitreControlDescription:
-            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks that allow access to the Cloud Instance Metadata API.(Citation: RedLock Instance Metadata API 2018)",
-          bluOceanControlDescription:
-            "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks",
-        },
-      ],
-      nistControls: [
-        {
-          id: 1,
-          frameWorkName: "NIST CSF",
-          frameWorkControlCategoryId: "ID.AM",
-          frameWorkControlCategory: "Asset Management",
-          frameWorkControlDescription:
-            "Physical devices and systems within the organization are inventoried",
-          frameWorkControlSubCategoryId: "ID.AM-1",
-          frameWorkControlSubCategory:
-            "Physical devices and systems inventoried",
-        },
-      ],
-      status: "published",
-    },
-  ];
-
   return (
     <>
       {/* View modal */}
@@ -449,8 +393,8 @@ export default function ControlContainer() {
           open={isAddOpen}
           formData={formData}
           setFormData={setFormData}
-          nistFormData={nistFormData}
-          setNISTFormData={setNISTFormData}
+          // nistFormData={nistFormData}
+          // setNISTFormData={setNISTFormData}
           onSubmit={() => console.log("Submitted")}
           onClose={() => {
             setIsAddConfirmOpen(true);
@@ -471,8 +415,14 @@ export default function ControlContainer() {
               setSelectedControl(val);
             }
           }}
-          nistFormData={selectedControl?.nistControls?.[0]}
-          setNISTFormData={setNISTFormData}
+          // nistFormData={selectedNISTControl}
+          // setNISTFormData={(val: any) => {
+          //   if (typeof val === "function") {
+          //     setSelectedNISTControl((prev) => val(prev as NISTControls));
+          //   } else {
+          //     setSelectedNISTControl(val);
+          //   }
+          // }}
           onSubmit={() => console.log("Updated")}
           onClose={() => setIsEditConfirmOpen(true)}
         />
@@ -487,7 +437,7 @@ export default function ControlContainer() {
         onConfirm={() => {
           setIsAddConfirmOpen(false);
           setFormData(initialControlFormData);
-          setNISTFormData(initialNISTControlsFormData);
+          // setNISTFormData(initialNISTControlsFormData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"

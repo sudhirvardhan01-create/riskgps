@@ -29,8 +29,8 @@ interface ControlFormModalProps {
   onClose: () => void;
   formData: ControlForm;
   setFormData: React.Dispatch<React.SetStateAction<ControlForm>>;
-  nistFormData: NISTControls;
-  setNISTFormData: React.Dispatch<React.SetStateAction<NISTControls>>;
+  // nistFormData: NISTControls;
+  // setNISTFormData: React.Dispatch<React.SetStateAction<NISTControls>>;
   onSubmit: (status: string) => void;
 }
 
@@ -40,13 +40,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
   onClose,
   formData,
   setFormData,
-  nistFormData,
-  setNISTFormData,
+  // nistFormData,
+  // setNISTFormData,
   onSubmit,
 }) => {
-  console.log(formData);
-  console.log(nistFormData);
-
   const handleChange = useCallback(
     (field: keyof ControlForm, value: any) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -54,9 +51,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
     [setFormData] // only depends on setter from props
   );
 
-  const handleNISTChange = (field: keyof NISTControls, value: any) => {
-    setNISTFormData((prev) => ({...prev, [field] : value}));
-  }
+  // const handleNISTChange = (field: keyof NISTControls, value: any) => {
+  //   setNISTFormData((prev) => ({...prev, [field] : value}));
+  // }
 
   const getStatusComponent = () => {
     if (
@@ -208,7 +205,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           </Grid>
 
           {/* NIST 2.0 Control Category ID */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlCategoryId}
               isTooltipRequired={true}
@@ -219,10 +216,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                 handleNISTChange("frameWorkControlCategoryId", e.target.value)
               }
             />
-          </Grid>
+          </Grid> */}
 
           {/* NIST 2.0 Control Category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlCategory}
               isTooltipRequired={true}
@@ -231,10 +228,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={nistFormData.frameWorkControlCategory}
               onChange={(e) => handleNISTChange("frameWorkControlCategory", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
           {/* NIST 2.0 Control Sub-category ID */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlSubcategoryId}
               isTooltipRequired={true}
@@ -243,10 +240,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={nistFormData.frameWorkControlSubCategoryId}
               onChange={(e) => handleNISTChange("frameWorkControlSubCategoryId", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
           {/* NIST 2.0 Control Sub-category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          {/* <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.nistControlSubcategory}
               isTooltipRequired={true}
@@ -255,7 +252,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={nistFormData.frameWorkControlSubCategory}
               onChange={(e) => handleNISTChange("frameWorkControlSubCategory", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
@@ -300,8 +297,8 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             sx={{ width: 132, height: 40, borderRadius: 1 }}
             variant="contained"
             onClick={() => {
-              setFormData((prev) => ({...prev, nistControls: [{...nistFormData}]}))
-              // onSubmit("published");
+              // setFormData((prev) => ({...prev, nistControls: [{...nistFormData}]}))
+              onSubmit("published");
             }}
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
