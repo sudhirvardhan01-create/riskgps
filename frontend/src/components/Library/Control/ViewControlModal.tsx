@@ -233,7 +233,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell>MITRE Control ID</TableCell>
+                      <TableCell>MITRE Technique ID</TableCell>
+                      <TableCell>Sub Technique ID</TableCell>
                       <TableCell>MITRE Control Description</TableCell>
                       <TableCell>BluOcean Control Description</TableCell>
                     </TableRow>
@@ -247,7 +248,12 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                           tabIndex={-1}
                           key={index}
                         >
-                          <TableCell>{controlData.mitreControlId}.{index+1}</TableCell>
+                          <TableCell>
+                            {controlData.mitreControlId}.{index + 1}
+                          </TableCell>
+                          <TableCell>
+                            {controlData.mitreControlId}.{index + 1}
+                          </TableCell>
                           <TableCell>
                             {control.mitreControlDescription}
                           </TableCell>
