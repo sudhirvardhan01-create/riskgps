@@ -20,6 +20,7 @@ import SelectStyled from "@/components/SelectStyled";
 import { RelatedControlForm } from "@/types/threat";
 
 interface RelatedControlFormModalProps {
+  operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
   formData: RelatedControlForm;
@@ -28,6 +29,7 @@ interface RelatedControlFormModalProps {
 }
 
 const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
+  operation,
   open,
   onClose,
   formData,
@@ -69,7 +71,7 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
         }}
       >
         <Typography variant="h5" fontWeight={550} color="#121212">
-          Add Relatd Control
+          {operation === "create" ? "Add Control" : `Edit Control`}
         </Typography>
         <IconButton onClick={onClose} sx={{ padding: "0px !important" }}>
           <Close sx={{ color: "primary.main" }} />
@@ -77,7 +79,7 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
       </DialogTitle>
 
       <DialogContent sx={{ marginTop: 2 }}>
-        <Grid container spacing={5}>
+        <Grid container spacing={4}>
           {/* MITRE Control ID */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
@@ -94,7 +96,7 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
           </Grid>
 
           {/* MITRE Control Name */}
-          <Grid size={{ xs: 6 }}>
+          <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
               label={labels.mitreControlName}
               isTooltipRequired={true}
@@ -109,8 +111,9 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
           </Grid>
 
           {/* MITRE Control Type */}
-          <Grid size={{ xs: 6 }}>
+          <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
+              required
               value={formData.mitreControlType}
               label={labels.mitreControlType}
               isTooltipRequired={true}
@@ -153,7 +156,6 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
               tooltipTitle={tooltips.mitreControlDescription}
               placeholder="Enter MITRE Control Description"
               value={formData.mitreControlDescription}
-              required
               onChange={(e) =>
                 handleFieldChange("mitreControlDescription", e.target.value)
               }
@@ -168,7 +170,6 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
               tooltipTitle={tooltips.bluoceanControlDescription}
               placeholder="Enter BluOcean Control Description"
               value={formData.bluOceanControlDescription}
-              required
               onChange={(e) =>
                 handleFieldChange("bluOceanControlDescription", e.target.value)
               }
@@ -219,7 +220,7 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
             disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
-              Add
+              {operation === "create" ? "Add" : "Save"}
             </Typography>
           </Button>
         </Box>

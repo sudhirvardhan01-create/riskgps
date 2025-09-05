@@ -209,70 +209,6 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
             </Box>
           </Grid>
 
-          {/* MITRE Control ID */}
-          {/* <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control ID
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreControlId ? threatData.mitreControlId : "-"}
-              </Typography>
-            </Box>
-          </Grid> */}
-
-          {/* MITRE Control Name */}
-          {/* <Grid size={{ xs: 6 }}>
-              <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-                <Typography variant="body2" color="#91939A" fontWeight={550}>
-                  MITRE Control Name
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.primary"
-                  fontWeight={500}
-                >
-                  {threatData.mitreControlName ? threatData.mitreControlName : "-"}
-                </Typography>
-              </Box>
-            </Grid> */}
-
-          {/* MITRE Control Type */}
-          {/* <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control Type
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreControlType ? threatData.mitreControlType : "-"}
-              </Typography>
-            </Box>
-          </Grid> */}
-
-          {/* MITRE Control Description */}
-          {/* <Grid size={{ xs: 12 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control Description
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreControlDescription ? threatData.mitreControlDescription : "-"}
-              </Typography>
-            </Box>
-          </Grid> */}
-
-          {/* BluOcean Control Description */}
-          {/* <Grid size={{ xs: 12 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                BluOcean Control Description
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.bluOceanControlDescription ? threatData.bluOceanControlDescription : "-"}
-              </Typography>
-            </Box>
-          </Grid> */}
-
           <Grid size={{ xs: 12 }}>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
               <TableContainer sx={{ maxHeight: 440 }}>
@@ -298,8 +234,12 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                           <TableCell>{control.mitreControlId}</TableCell>
                           <TableCell>{control.mitreControlName}</TableCell>
                           <TableCell>{control.mitreControlType}</TableCell>
-                          <TableCell>{control.mitreControlDescription}</TableCell>
-                          <TableCell>{control.bluOceanControlDescription}</TableCell>
+                          <TableCell>
+                            {control.mitreControlDescription}
+                          </TableCell>
+                          <TableCell>
+                            {control.bluOceanControlDescription}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
