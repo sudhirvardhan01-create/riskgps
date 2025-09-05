@@ -124,11 +124,7 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
     "iOS",
   ];
 
-  const ciaMappingItems = [
-    { value: "C", label: "Confidentiality" },
-    { value: "I", label: "Integrity" },
-    { value: "A", label: "Availability" },
-  ];
+  const ciaMappingItems = ["Confidentiality", "Integrity", "Availability"];
 
   const handleChange = useCallback(
     (field: keyof ThreatForm, value: any) => {
@@ -388,25 +384,32 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
                           color: "text.primary",
                         }}
                       >
-                        {selected
-                          ?.map((selectedItem: any) => {
-                            return ciaMappingItems.find(
-                              (item) => item.value === selectedItem
-                            )?.label;
-                          })
-                          .join(", ")}
+                        {selected.join(", ")}
                       </Typography>
                     );
                   }
                 }}
               >
-                {ciaMappingItems.map((item) => {
-                  return (
-                    <MenuItem value={item.value} key={item.value}>
-                      {item.label}
-                    </MenuItem>
-                  );
-                })}
+                {metaDatas?.find((item) => item.name === "CIA Mapping")
+                  ?.supported_values &&
+                metaDatas?.find((item) => item.name === "CIA Mapping")
+                  ?.supported_values?.length > 0
+                  ? metaDatas
+                      ?.find((item) => item.name === "CIA Mapping")
+                      ?.supported_values?.map(
+                        (metaData: string, index: number) => (
+                          <MenuItem value={metaData[0]} key={index}>
+                            {metaData}
+                          </MenuItem>
+                        )
+                      )
+                  : ciaMappingItems.map((item) => {
+                      return (
+                        <MenuItem value={item[0]} key={item}>
+                          {item}
+                        </MenuItem>
+                      );
+                    })}
               </SelectStyled>
             </Grid>
 
