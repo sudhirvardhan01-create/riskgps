@@ -19,7 +19,11 @@ interface ThreatControlCardProps {
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (id: number, status: string) => void;
+  handleUpdateStatus: (
+    status: string,
+    mitreTechniqueId: string,
+    subTechniqueId?: string
+  ) => void;
   rowID: string;
   headerChip?: string;
   title: string;
@@ -55,8 +59,11 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
                   ? "published"
                   : "not_published";
                 handleUpdateStatus(
-                  threatControlData.id as number,
-                  updatedStatus
+                  updatedStatus,
+                  threatControlData.mitreTechniqueId as string,
+                  threatControlData?.subTechniqueId !== ""
+                    ? threatControlData.subTechniqueId
+                    : ""
                 );
               }}
               checked={status === "published"}

@@ -135,69 +135,82 @@ export default function ThreatContainer() {
   }, []);
 
   // Create
-    const handleCreate = async (status: string) => {
+  const handleCreate = async (status: string) => {
+    try {
+      const req = { ...formData, status };
+      await ThreatService.create(req);
+      setFormData(initialThreatFormData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Success! Threat ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to create threat",
+        severity: "error",
+      });
+    }
+  };
+
+  // Update
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedThreat?.mitreTechniqueId)
+        throw new Error("Invalid selection");
+      const body = { ...selectedThreat, status };
+      if (selectedThreat?.subTechniqueId !== "") {
+        await ThreatService.update(
+          body,
+          selectedThreat.mitreTechniqueId as string,
+          selectedThreat.subTechniqueId as string
+        );
+      }else{
+        await ThreatService.update(
+          body,
+          selectedThreat?.mitreTechniqueId as string,
+          ""
+        );
+      }
+      setIsEditOpen(false);
+      setSelectedThreat(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Threat updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update threat",
+        severity: "error",
+      });
+    }
+  };
+
+  // Update status only
+    const handleUpdateStatus = async (status: string, mitreTechniqueId: string, subTechniqueId?: string) => {
       try {
-        const req = { ...formData, status };
-        await ThreatService.create(req);
-        setFormData(initialThreatFormData);
-        setIsAddOpen(false);
+        await ThreatService.updateStatus(status, mitreTechniqueId, subTechniqueId);
         setRefreshTrigger((p) => p + 1);
-        setToast({
-          open: true,
-          message: `Success! Threat ${
-            status === "published" ? "published" : "saved as draft"
-          }`,
-          severity: "success",
-        });
+        setToast({ open: true, message: "Status updated", severity: "success" });
       } catch (err) {
         console.error(err);
         setToast({
           open: true,
-          message: "Failed to create threat",
+          message: "Failed to update status",
           severity: "error",
         });
       }
     };
-
-  // Update
-  //   const handleUpdate = async (status: string) => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       const body = { ...selectedAsset, status };
-  //       await AssetService.update(selectedAsset.id as number, body);
-  //       setIsEditOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: "Asset updated",
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
-
-  // Update status only
-  //   const handleUpdateStatus = async (id: number, status: string) => {
-  //     try {
-  //       await AssetService.updateStatus(id, status);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({ open: true, message: "Status updated", severity: "success" });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update status",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
 
   // Delete
   const handleDelete = async () => {
@@ -210,7 +223,10 @@ export default function ThreatContainer() {
           selectedThreat.subTechniqueId as string
         );
       } else {
-        await ThreatService.delete(selectedThreat.mitreTechniqueId as string, "");
+        await ThreatService.delete(
+          selectedThreat.mitreTechniqueId as string,
+          ""
+        );
       }
       setIsDeleteConfirmOpen(false);
       setSelectedThreat(null);
@@ -380,7 +396,7 @@ export default function ThreatContainer() {
             }
           }}
           metaDatas={metaDatas}
-          onSubmit={() => console.log("Updated")}
+          onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
@@ -439,7 +455,7 @@ export default function ThreatContainer() {
           setIsViewOpen={setIsViewOpen}
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-          handleUpdateStatus={() => console.log("Updated")}
+          handleUpdateStatus={handleUpdateStatus}
         />
       </Box>
 

@@ -95,15 +95,13 @@ export const deleteThreat = async (mitre_technique_id: string, mitre_sub_techniq
 };
 
 //Function to update status of a threat
-export const updateThreatStatus = async (id: number, status: string) => {
-  if (!id || !status) {
+export const updateThreatStatus = async (status: string, mitreTechniqueId: string, subTechniqueId?: string) => {
+  if (!mitreTechniqueId || !status) {
     throw new Error("Failed to perforom the operation, Invalid arguments");
   }
   const reqBody = { status };
-  console.log(reqBody);
-
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update-status/${id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update-status?mitreTechniqueId=${mitreTechniqueId}&&subTechniqueId=${subTechniqueId}`,
     {
       method: "PATCH",
       body: JSON.stringify(reqBody),
@@ -116,7 +114,6 @@ export const updateThreatStatus = async (id: number, status: string) => {
     throw new Error("Failed to update status of a threat");
   }
   const res = await response.json();
-  console.log(res);
   return res.data;
 };
 

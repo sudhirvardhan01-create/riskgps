@@ -16,7 +16,7 @@ interface Props {
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (id: number, status: string) => void;
+  handleUpdateStatus: (status: string, mitreTechniqueId: string, subTechniqueId?: string) => void;
 }
 
 const ThreatList: React.FC<Props> = ({

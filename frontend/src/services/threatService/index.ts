@@ -13,5 +13,5 @@ export const ThreatService = {
   create: (data: ThreatForm) => createThreat(data),
   delete: (mitre_technique_id: string, mitre_sub_technique_id?: string) => deleteThreat(mitre_technique_id, mitre_sub_technique_id),
   update: (data: ThreatForm, mitreTechniqueId: string, subTechniqueId?: string) => updateThreat(data, mitreTechniqueId, subTechniqueId),
-  updateStatus: (id: number, status: string) => updateThreatStatus(id, status),
+  updateStatus: (status: string, mitreTechniqueId: string, subTechniqueId?: string) => updateThreatStatus(status, mitreTechniqueId, subTechniqueId),
 };
