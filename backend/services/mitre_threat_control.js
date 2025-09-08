@@ -274,33 +274,31 @@ class MitreThreatControlService {
     }
 
     static async importMitreThreatControlRecordFromCSV(filePath) {
-
         function parsePlatforms(value) {
             if (!value) return [];
             return value
-                .split(",") // split by comma
-                .map((v) => v.trim()) // remove whitespace
+                .split(",")
+                .map((v) => v.trim())
                 .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
         }
 
         function parseCIAMapping(value) {
             if (!value) return [];
             return value
-                .split(",") // split by comma
+                .split(",")
                 .map((v) => v.trim())
                 .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
-
         }
 
         return new Promise((resolve, reject) => {
-            const rows = [];
+            const grouped = {};
 
             fs.createReadStream(filePath)
                 .pipe(parse({ headers: true }))
                 .on("error", (error) => reject(error))
                 .on("data", (row) => {
-                    rows.push({
-                        platforms: parsePlatforms(row["Platforms"]),
+                    // Build the key (all fields except platforms)
+                    const key = JSON.stringify({
                         mitreTechniqueId: row["Mitre Technique Id"],
                         mitreTechniqueName: row["Mitre Technique Name"],
                         ciaMapping: parseCIAMapping(row["CIA Mapping"]),
@@ -313,18 +311,83 @@ class MitreThreatControlService {
                         bluOceanControlDescription: row["BluOcean Control Description"],
                         status: "published",
                     });
+
+                    if (!grouped[key]) {
+                        grouped[key] = { ...JSON.parse(key), platforms: [] };
+                    }
+
+                    // Merge platforms incrementally
+                    console.log(parsePlatforms(row["Platforms"]));
+                    grouped[key].platforms = [
+                        ...new Set([...grouped[key].platforms, ...parsePlatforms(row["Platforms"])])
+                    ];
                 })
                 .on("end", async () => {
                     try {
-                        await MitreThreatControl.bulkCreate(rows, { ignoreDuplicates: true });
+                        const finalRows = Object.values(grouped);
+                        // await MitreThreatControl.bulkCreate(finalRows, { ignoreDuplicates: true });
                         fs.unlinkSync(filePath);
-                        resolve(rows.length);
+
+                        resolve(finalRows);
                     } catch (err) {
                         reject(err);
                     }
                 });
         });
     }
+
+    // static async importMitreThreatControlRecordFromCSV(filePath) {
+
+    //     function parsePlatforms(value) {
+    //         if (!value) return [];
+    //         return value
+    //             .split(",") // split by comma
+    //             .map((v) => v.trim()) // remove whitespace
+    //             .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
+    //     }
+
+    //     function parseCIAMapping(value) {
+    //         if (!value) return [];
+    //         return value
+    //             .split(",") // split by comma
+    //             .map((v) => v.trim())
+    //             .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
+
+    //     }
+
+    //     return new Promise((resolve, reject) => {
+    //         const rows = [];
+
+    //         fs.createReadStream(filePath)
+    //             .pipe(parse({ headers: true }))
+    //             .on("error", (error) => reject(error))
+    //             .on("data", (row) => {
+    //                 rows.push({
+    //                     platforms: parsePlatforms(row["Platforms"]),
+    //                     mitreTechniqueId: row["Mitre Technique Id"],
+    //                     mitreTechniqueName: row["Mitre Technique Name"],
+    //                     ciaMapping: parseCIAMapping(row["CIA Mapping"]),
+    //                     subTechniqueId: row["SubTechnique ID"],
+    //                     subTechniqueName: row["SubTechnique Name"],
+    //                     mitreControlId: row["Mitre Control ID"],
+    //                     mitreControlName: row["Mitre Control Name"],
+    //                     mitreControlType: row["Mitre Control Type"],
+    //                     mitreControlDescription: row["Mitre Control Description"],
+    //                     bluOceanControlDescription: row["BluOcean Control Description"],
+    //                     status: "published",
+    //                 });
+    //             })
+    //             .on("end", async () => {
+    //                 try {
+    //                     await MitreThreatControl.bulkCreate(rows, { ignoreDuplicates: true });
+    //                     fs.unlinkSync(filePath);
+    //                     resolve(rows.length);
+    //                 } catch (err) {
+    //                     reject(err);
+    //                 }
+    //             });
+    //     });
+    // }
 
     static async exportMitreThreatControlCSV(res) {
         const connection = await sequelize.connectionManager.getConnection();
