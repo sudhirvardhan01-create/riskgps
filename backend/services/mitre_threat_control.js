@@ -26,11 +26,13 @@ class MitreThreatControlService {
                 "ciaMapping": data.ciaMapping,
                 "subTechniqueId": data.subTechniqueId ?? null,
                 "subTechniqueName": data.subTechniqueName ?? null,
-                "mitreControlId": control.controlId,
+                "mitreControlId": control.mitreControlId,
                 "mitreControlName": control.mitreControlName,
                 "mitreControlType": control.mitreControlType,
                 "mitreControlDescription": control.mitreControlDescription,
-                "bluOceanControlDescription": control.bluOceanControlDescription
+                "bluOceanControlDescription": control.bluOceanControlDescription,
+                "status": data.status ?? "published"
+
             }));
 
             const mitreThreatControlRecord = await MitreThreatControl.bulkCreate(payloads, {
@@ -165,11 +167,12 @@ class MitreThreatControlService {
                 "ciaMapping": data.ciaMapping,
                 "subTechniqueId": subTechniqueId ?? null,
                 "subTechniqueName": data.subTechniqueName ?? null,
-                "mitreControlId": control.controlId,
+                "mitreControlId": control.mitreControlId,
                 "mitreControlName": control.mitreControlName,
                 "mitreControlType": control.mitreControlType,
                 "mitreControlDescription": control.mitreControlDescription,
-                "bluOceanControlDescription": control.bluOceanControlDescription
+                "bluOceanControlDescription": control.bluOceanControlDescription,
+                "status": data.status ?? "published"
             }));
 
             const mitreThreatControlRecord = await MitreThreatControl.bulkCreate(payloads, {
