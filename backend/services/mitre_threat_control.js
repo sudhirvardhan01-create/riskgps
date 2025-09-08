@@ -17,11 +17,28 @@ class MitreThreatControlService {
 
             this.validateMitreThreatControlData(data);
 
-            const mitreThreatControlRecord = MitreThreatControl.create(data, {
+            const controls = data.controls ?? [];
+
+            const payloads = controls.map(control => ({
+                "platforms": data.platforms,
+                "mitreTechniqueId": data.mitreTechniqueId,
+                "mitreTechniqueName": data.mitreTechniqueName,
+                "ciaMapping": data.ciaMapping,
+                "subTechniqueId": data.subTechniqueId ?? null,
+                "subTechniqueName": data.subTechniqueName ?? null,
+                "mitreControlId": control.controlId,
+                "mitreControlName": control.mitreControlName,
+                "mitreControlType": control.mitreControlType,
+                "mitreControlDescription": control.mitreControlDescription,
+                "bluOceanControlDescription": control.bluOceanControlDescription
+            }));
+
+            const mitreThreatControlRecord = await MitreThreatControl.bulkCreate(payloads, {
                 transaction: t,
             });
 
-            return mitreThreatControlRecord;
+            console.log(mitreThreatControlRecord.length);
+            return true;
         });
     }
 
@@ -113,20 +130,53 @@ class MitreThreatControlService {
 
 
 
-    static async updateMitreThreatControlRecord(id, data) {
-        if (!id) {
-            throw new CustomError("ID not found", HttpStatus.BAD_REQUEST);
+    static async updateMitreThreatControlRecord(mitreTechniqueId, subTechniqueId, data) {
+        if (!mitreTechniqueId) {
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED, HttpStatus.BAD_REQUEST);
         }
         return await sequelize.transaction(async (t) => {
             console.log("[updateMitreThreatControlRecord] Updating mitre threat control", data);
 
             this.validateMitreThreatControlData(data);
 
-            const [updatedCount] = await MitreThreatControl.update(data, {
-                where: { id },
-                transaction: t
+            const whereClause = { mitreTechniqueId };
+
+            if (subTechniqueId !== null) {
+                whereClause.subTechniqueId = subTechniqueId;
+            } else {
+                whereClause.subTechniqueId = {
+                    [Op.or]: [null, '']
+                };
+            }
+
+            if (subTechniqueId) {
+                whereClause.subTechniqueId = subTechniqueId;
+            }
+
+            const deletedCount = await MitreThreatControl.destroy({ where: whereClause });
+            console.log(deletedCount);
+
+            const controls = data.controls ?? [];
+
+            const payloads = controls.map(control => ({
+                "platforms": data.platforms,
+                "mitreTechniqueId": mitreTechniqueId,
+                "mitreTechniqueName": data.mitreTechniqueName,
+                "ciaMapping": data.ciaMapping,
+                "subTechniqueId": subTechniqueId ?? null,
+                "subTechniqueName": data.subTechniqueName ?? null,
+                "mitreControlId": control.controlId,
+                "mitreControlName": control.mitreControlName,
+                "mitreControlType": control.mitreControlType,
+                "mitreControlDescription": control.mitreControlDescription,
+                "bluOceanControlDescription": control.bluOceanControlDescription
+            }));
+
+            const mitreThreatControlRecord = await MitreThreatControl.bulkCreate(payloads, {
+                transaction: t,
             });
-            if (updatedCount === 0) {
+
+            if (mitreThreatControlRecord === 0) {
                 throw new CustomError("Element not found with ID", HttpStatus.BAD_REQUEST);
             }
 
@@ -135,6 +185,10 @@ class MitreThreatControlService {
     }
 
     static async deleteMitreThreatControlRecordById(mitreTechniqueId, mitreSubTechniqueId = null) {
+
+        if (!mitreTechniqueId) {
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED, HttpStatus.BAD_REQUEST);
+        }
         const whereClause = { mitreTechniqueId };
 
         if (mitreSubTechniqueId !== null) {
@@ -156,6 +210,36 @@ class MitreThreatControlService {
         }
 
         return { data: deletedCount };
+    }
+
+    static async updateMitreThreatControlStatus(mitreTechniqueId, subTechniqueId = null, status) {
+        if (!GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
+            console.log("[updateMitreThreatControlStatus] Invalid status:", status);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_STATUS, HttpStatus.BAD_REQUEST);
+        }
+
+        const whereClause = { mitreTechniqueId };
+
+
+        if (subTechniqueId !== null) {
+            whereClause.subTechniqueId = subTechniqueId;
+        } else {
+            whereClause.subTechniqueId = {
+                [Op.or]: [null, '']
+            };
+        }
+
+        const [updatedRowsCount] = await MitreThreatControl.update({ status }, { where: whereClause });
+
+        console.log(updatedRowsCount);
+
+        if (updatedRowsCount === 0) {
+            console.log("[updateProcessStatus] No mitre threat control recorod found:", mitreTechniqueId, subTechniqueId);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        console.log("[updateProcessStatus] Status updated successfully:", mitreTechniqueId, subTechniqueId);
+        return { message: Messages.PROCESS.STATUS_UPDATED };
     }
 
     static async downloadMitreThreatControlImportTemplateFile(res) {
@@ -289,12 +373,8 @@ class MitreThreatControlService {
     static validateMitreThreatControlData(data) {
         const {
             platforms,
-            // mitreTechniqueId,
-            // mitreTechniqueName,
-            // subTechniqueId,
+            controls,
             ciaMapping,
-            // subTechniqueName,
-            // mitreControlType,
         } = data;
 
         if (
@@ -311,6 +391,13 @@ class MitreThreatControlService {
         if (!ciaMapping || !Array.isArray(ciaMapping)) {
             throw new CustomError(
                 Messages.MITRE_THREAT_CONTROL.INVALID_CIA_MAPPING,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        if (!controls || controls.length < 1) {
+            throw new CustomError(
+                Messages.MITRE_THREAT_CONTROL.INVALID_CONTROLS_LIST_FOR_THREAT,
                 HttpStatus.NOT_FOUND
             );
         }
