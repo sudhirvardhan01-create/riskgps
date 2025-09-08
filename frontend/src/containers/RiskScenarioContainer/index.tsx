@@ -7,11 +7,15 @@ import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RiskScenarioFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
 import ViewRiskScenarioModal from "@/components/Library/RiskScenario/ViewRiskScenarioModalPopup";
-import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario";
+import {
+  RiskScenarioData,
+  RiskScenarioAttributes,
+} from "@/types/risk-scenario";
 import { RiskScenarioService } from "@/services/riskScenarioService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { fetchProcesses } from "@/pages/api/process";
 import { Filter } from "@/types/filter";
+import { FileService } from "@/services/fileService";
 
 const initialRiskData: RiskScenarioData = {
   riskScenario: "",
@@ -27,7 +31,6 @@ const sortItems = [
   { label: "Risk ID (Descending)", value: "id:desc" },
   { label: "Risk Name (Ascending)", value: "risk_scenario:asc" },
   { label: "Risk Name (Descending)", value: "risk_scenario:desc" },
-
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
   { label: "Created (Oldest to Latest)", value: "created_at:asc" },
   { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
@@ -36,7 +39,11 @@ const sortItems = [
 
 const breadcrumbItems = [
   // keep the same breadcrumb behavior from original page
-  { label: "Library", onClick: () => (window.location.href = "/library") , icon: <ArrowBack fontSize="small" /> },
+  {
+    label: "Library",
+    onClick: () => (window.location.href = "/library"),
+    icon: <ArrowBack fontSize="small" />,
+  },
   { label: "Risk Scenarios" },
 ];
 
@@ -46,15 +53,18 @@ export default function RiskScenarioContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>('id:asc');
-  const [searchPattern, setSearchPattern] = useState<string> ();
-  const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>([]);
+  const [sort, setSort] = useState<string>("id:asc");
+  const [searchPattern, setSearchPattern] = useState<string>();
+  const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>(
+    []
+  );
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
-  const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
+  const [selectedRiskScenario, setSelectedRiskScenario] =
+    useState<RiskScenarioData | null>(null);
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -64,20 +74,39 @@ export default function RiskScenarioContainer() {
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  const [toast, setToast] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" });
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "info",
+  });
 
   const [formData, setFormData] = useState<RiskScenarioData>(initialRiskData);
+
+      //Related to Import/Export
+  const [file, setFile] = useState<File | null>(null);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   // fetch list
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await RiskScenarioService.fetch(page, rowsPerPage, searchPattern, sort, statusFilters, filters);
+      const data = await RiskScenarioService.fetch(
+        page,
+        rowsPerPage,
+        searchPattern,
+        sort,
+        statusFilters,
+        filters
+      );
       setRiskScenarioData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to fetch risk scenarios", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to fetch risk scenarios",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -92,12 +121,19 @@ export default function RiskScenarioContainer() {
     (async () => {
       try {
         setLoading(true);
-        const [proc, meta] = await Promise.all([fetchProcesses(0, 0), fetchMetaDatas()]);
+        const [proc, meta] = await Promise.all([
+          fetchProcesses(0, 0),
+          fetchMetaDatas(),
+        ]);
         setProcessesData(proc.data ?? []);
         setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error(err);
-        setToast({ open: true, message: "Failed to fetch supporting data", severity: "error" });
+        setToast({
+          open: true,
+          message: "Failed to fetch supporting data",
+          severity: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -112,10 +148,20 @@ export default function RiskScenarioContainer() {
       setFormData(initialRiskData);
       setIsAddOpen(false);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: `Success! Risk scenario ${status === "published" ? "published" : "saved as draft"}`, severity: "success" });
+      setToast({
+        open: true,
+        message: `Success! Risk scenario ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to create risk scenario", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to create risk scenario",
+        severity: "error",
+      });
     }
   };
 
@@ -128,10 +174,18 @@ export default function RiskScenarioContainer() {
       setIsEditOpen(false);
       setSelectedRiskScenario(null);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: "Risk scenario updated", severity: "success" });
+      setToast({
+        open: true,
+        message: "Risk scenario updated",
+        severity: "success",
+      });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to update risk scenario", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to update risk scenario",
+        severity: "error",
+      });
     }
   };
 
@@ -143,7 +197,11 @@ export default function RiskScenarioContainer() {
       setToast({ open: true, message: "Status updated", severity: "success" });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to update status", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to update status",
+        severity: "error",
+      });
     }
   };
 
@@ -155,10 +213,18 @@ export default function RiskScenarioContainer() {
       setIsDeleteConfirmOpen(false);
       setSelectedRiskScenario(null);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: `Deleted RS-${selectedRiskScenario?.id}`, severity: "success" });
+      setToast({
+        open: true,
+        message: `Deleted RS-${selectedRiskScenario?.id}`,
+        severity: "success",
+      });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to delete risk scenario", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to delete risk scenario",
+        severity: "error",
+      });
     }
   };
 
@@ -166,10 +232,73 @@ export default function RiskScenarioContainer() {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+       //Function to export the risk scenario
+      const handleExportRiskScenarios = async () => {
+        try {
+          await FileService.exportLibraryDataCSV("risk-scenario");
+          setToast({
+            open: true,
+            message: `Risk scenario exported successfully`,
+            severity: "success",
+          });
+        } catch (error) {
+          console.error(error);
+          setToast({
+            open: true,
+            message: "Error: unable to export the risk scenario",
+            severity: "error",
+          });
+        }
+      }
+    
+        //Function to import the process
+      const handleImportRiskScenarios = async () => {
+        try {
+          if (!file) {
+            throw new Error("File not found")
+          }
+          await FileService.importLibraryDataCSV("risk-scenario", file as File);
+          setIsFileUploadOpen(false);
+          setToast({
+            open: true,
+            message: `Risk scenario Imported successfully`,
+            severity: "success",
+          });
+        } catch (error) {
+          console.error(error);
+          setToast({
+            open: true,
+            message: "Error: unable to download the import risk scenario from file",
+            severity: "error",
+          });
+        }
+      }
+  
+    //Function to download the process template file
+    const handledownloadRiskScenarioTemplateFile = async () => {
+      try {
+        await FileService.dowloadCSVTemplate("risk-scenario");
+        setToast({
+          open: true,
+          message: `Risk scenario template file downloaded successfully`,
+          severity: "success",
+        });
+      } catch (error) {
+        console.error(error);
+        setToast({
+          open: true,
+          message: "Error: unable to download the risk scenario template file",
+          severity: "error",
+        });
+      }
+    }
 
   // memoize props used by list/header
   const headerProps = useMemo(
@@ -179,6 +308,16 @@ export default function RiskScenarioContainer() {
       addButtonText: "Add Risk Scenario",
       addAction: () => setIsAddOpen(true),
       sortItems,
+      fileUploadTitle: "Import Risk Scenarios",
+      file,
+      setFile,
+      isFileUploadOpen,
+      setIsFileUploadOpen,
+      handleImport: handleImportRiskScenarios,
+      handledownloadTemplateFile: handledownloadRiskScenarioTemplateFile,
+      onImport: () => setIsFileUploadOpen(true),
+      isImportRequired: true,
+      onExport: () => handleExportRiskScenarios(),
       searchPattern,
       setSearchPattern,
       sort,
@@ -186,10 +325,41 @@ export default function RiskScenarioContainer() {
       statusFilters,
       setStatusFilters,
       filters,
-      setFilters
+      setFilters,
     }),
-    [filters]
+    [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
+
+  //Function for Form Validation
+  const handleFormValidation = async (status: string) => {
+    try {
+      const res = await RiskScenarioService.fetch(
+        0,
+        1,
+        formData.riskScenario.trim(),
+        "id:asc"
+      );
+      if (
+        res.data?.length > 0 &&
+        res.data[0].riskScenario === formData.riskScenario.trim()
+      ) {
+        setToast({
+          open: true,
+          message: `Risk Scenario already exists`,
+          severity: "error",
+        });
+      } else {
+        handleCreate(status);
+      }
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Failed to create risk scenario",
+        severity: "error",
+      });
+    }
+  };
 
   return (
     <>
@@ -215,7 +385,8 @@ export default function RiskScenarioContainer() {
           setRiskData={setFormData}
           processes={processesData}
           metaDatas={metaDatas}
-          onSubmit={handleCreate}
+          onSubmit={handleFormValidation}
+          // onSubmit={handleCreate}
           onClose={() => setIsAddConfirmOpen(true)}
         />
       )}
@@ -302,9 +473,13 @@ export default function RiskScenarioContainer() {
         open={toast.open}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
         message={toast.message}
-        toastBorder={toast.severity === "success" ? "1px solid #147A50" : undefined}
+        toastBorder={
+          toast.severity === "success" ? "1px solid #147A50" : undefined
+        }
         toastColor={toast.severity === "success" ? "#147A50" : undefined}
-        toastBackgroundColor={toast.severity === "success" ? "#DDF5EB" : undefined}
+        toastBackgroundColor={
+          toast.severity === "success" ? "#DDF5EB" : undefined
+        }
         toastSeverity={toast.severity}
       />
     </>

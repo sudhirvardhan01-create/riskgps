@@ -14,6 +14,8 @@ const Messages = require("../constants/messages");
 const { ASSETS, GENERAL } = require("../constants/library");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
+const fs = require("fs");
+const { parse } = require("fast-csv");
 
 class AssetService {
   static async createAsset(data) {
@@ -200,7 +202,81 @@ class AssetService {
     return { message: Messages.ASSET.STATUS_UPDATED };
   }
 
-  static async importRiskScenariosFromCSV(filePath) {
+  static async downloadAssetTemplateFile(res) {
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=asset_template.csv"
+    );
+
+    const csvStream = format({ headers: true });
+    csvStream.pipe(res);
+
+    // Row 1: Clarifications / Instructions
+    csvStream.write({
+      "Application Name": "Enter application name (text)",
+      "Application Owner": "Person/Dept responsible",
+      "Application IT Owner": "IT owner name",
+      "Is Third Party Management": "Yes / No",
+      "Third Party Name": "If Yes above, enter vendor name",
+      "Third Party Location": "Vendor location (e.g., USA)",
+      "Hosting": "Supported Value from the List " + ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
+      "Hosting Facility": "Supported Value from the List " + ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
+      "Cloud Service Provider": "Values separated by comma " + ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
+      "Geographic Location": "Primary location (e.g., US-East, EU-West)",
+      "Has Redundancy": "Yes / No",
+      "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
+      "Has Network Segmentations": "Yes / No",
+      "Network Name": "Network identifier (if applicable)",
+      "Asset Category": "Values separated by comma " + ASSETS.ASSET_CATEGORY.join(","),
+      "Asset Description": "Short description of the asset",
+    });
+
+    csvStream.end();
+  }
+
+
+  static async importAssetFromCSV(filePath) {
+
+    function parseBoolean(value) {
+      if (!value) return null; // catch empty string or undefined
+      const v = value.toString().trim().toLowerCase();
+      return ["yes", "true", "1"].includes(v)
+        ? true
+        : ["no", "false", "0"].includes(v)
+          ? false
+          : null; // invalid case
+    }
+
+    function parseHosting(value) {
+      if (!value) return null;
+      const v = value.trim();
+      return ASSETS.HOSTING_SUPPORTED_VALUES.includes(v) ? v : null;
+    }
+
+    function parseHostingFacility(value) {
+      if (!value) return null;
+      const v = value.trim();
+      return ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.includes(v) ? v : null;
+    }
+
+    function parseCloudServiceProvider(value) {
+      if (!value) return [];
+      return value
+        .split(",") // split by comma
+        .map((v) => v.trim()) // remove whitespace
+        .filter((v) => ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(v));
+    }
+
+    function parseAssetCategory(value) {
+      if (!value) return [];
+      return value
+        .split(",") // split by comma
+        .map((v) => v.trim()) // remove whitespace
+        .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
+    }
+
     return new Promise((resolve, reject) => {
       const rows = [];
 
@@ -209,15 +285,33 @@ class AssetService {
         .on("error", (error) => reject(error))
         .on("data", (row) => {
           rows.push({
-            risk_scenario: row["Risk Scenario"],
-            risk_description: row["Risk Description"],
-            risk_statement: row["Risk Statement"],
+            application_name: row["Application Name"],
+            application_owner: row["Application Owner"],
+            application_it_owner: row["Application IT Owner"],
+            is_third_party_management: parseBoolean(row["Is Third Party Management"]),
+            third_party_name: row["Third Party Name"],
+            third_party_location: row["Third Party Location"],
+            hosting: parseHosting(row["Hosting"]),
+            hosting_facility: parseHostingFacility(row["Hosting Facility"]),
+            cloud_service_provider: parseCloudServiceProvider(row["Cloud Service Provider"]),
+            geographic_location: row["Geographic Location"],
+            has_redundancy: parseBoolean(row["Has Redundancy"]),
+            databases: row["Databases"],
+            has_network_segmentation: parseBoolean(row["Has Network Segmentations"]),
+            network_name: row["Network Name"],
+            asset_category: parseAssetCategory(row["Asset Category"]),
+            asset_description: row["Asset Description"],
             status: "published",
           });
         })
         .on("end", async () => {
           try {
-            await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
+            await Asset.bulkCreate(rows, { ignoreDuplicates: true });
+            await sequelize.query(`
+                        UPDATE "library_assets"
+                        SET asset_code = '#A-' || LPAD(id::text, 5, '0')
+                        WHERE asset_code IS NULL;
+                        `);
             fs.unlinkSync(filePath);
             resolve(rows.length);
           } catch (err) {
@@ -240,10 +334,34 @@ class AssetService {
       const query = new QueryStream(sql);
       const stream = connection.query(query);
 
-      res.setHeader("Content-disposition", "attachment; filename=assets.csv");
+      res.setHeader("Content-disposition", "attachment; filename=assets_export.csv");
       res.setHeader("Content-Type", "text/csv");
 
-      const csvStream = format({ headers: true });
+      const csvStream = format({
+        headers: true,
+        transform: (row) => ({
+          "Asset ID": row.asset_code,
+          "Application Name": row.application_name,
+          "Application Owner": row.application_owner,
+          "Application IT Owner": row.application_it_owner,
+          "Is Third Party Management": row.is_third_party_management,
+          "Third Party Name": row.third_party_name,
+          "Third Party Location": row.third_party_location,
+          "Hosting": row.hosting,
+          "Hosting Facility": row.hosting_facility,
+          "Cloud Service Provider": (row.cloud_service_provider ?? []).join(","),
+          "Geographic Location": row.geographic_location,
+          "Has Redundancy": row.has_redundancy,
+          "Databases": row.databases,
+          "Has Network Segmentations": row.has_network_segmentation,
+          "Network Name": row.network_name,
+          "Asset Category": (row.asset_category ?? []).join(","),
+          "Asset Description": row.asset_description,
+          "Status": row.status,
+          "Created At": row.created_at,
+          "Updated At": row.updated_at,
+        }),
+      });
 
       stream.on("end", () => {
         sequelize.connectionManager.releaseConnection(connection);
@@ -273,7 +391,10 @@ class AssetService {
       );
     }
 
-    if (!status || ( status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
+    if (
+      !status ||
+      (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))
+    ) {
       throw new CustomError(
         Messages.LIBARY.INVALID_STATUS_VALUE,
         HttpStatus.BAD_REQUEST
@@ -349,7 +470,7 @@ class AssetService {
     ];
 
     return Object.fromEntries(
-    fields.map((key) => [key, data[key] === '' ? null : data[key]])
+      fields.map((key) => [key, data[key] === "" ? null : data[key]])
     );
   }
 

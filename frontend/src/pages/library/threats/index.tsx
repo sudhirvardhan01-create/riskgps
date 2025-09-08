@@ -1,5 +1,10 @@
-function ThreatLibraryPage() {
-  return <div>Threat Library</div>;
+import withAuth from "@/hoc/withAuth";
+import ThreatContainer from "@/containers/ThreatContainer";
+
+function ThreatsPage() {
+  return <ThreatContainer />;
 }
 
-export default ThreatLibraryPage;
+export default withAuth(ThreatsPage);
+
+

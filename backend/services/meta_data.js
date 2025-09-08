@@ -3,6 +3,7 @@ const { MetaData } = require("../models");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const MESSAGES = require("../constants/messages");
+const { META_DATA, GENERAL } = require("../constants/library");
 
 
 class MetaDataService {
@@ -46,24 +47,38 @@ class MetaDataService {
         };
     }
 
-    static async getAllMetaData(filters = {}) {
-        console.log("Fetching all metadata with filters:", filters);
+    static async getAllMetaData(page = 0, limit = 6, appliesTo, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
+        console.log("Fetching all metadata with filters:");
         const whereClause = {};
-
-        if (filters.name) {
-            whereClause.name = { [Op.iLike]: `%${filters.name}%` };
+        const offset = page * limit;
+        
+        if (!META_DATA.META_DATA_ALLOWED_SORT_FIELDS.includes(sortBy)) {
+            sortBy = 'created_at';
         }
 
-        if (filters.applies_to) {
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
+            sortOrder = 'ASC';
+        }
+
+        if (searchPattern) {
+            whereClause.name = { [Op.iLike]: `%${searchPattern}%` };
+        }
+
+        if (appliesTo) {
             whereClause.applies_to = {
                 [Op.or]: [
-                    { [Op.contains]: [filters.applies_to] },
+                    { [Op.contains]: [appliesTo] },
                     { [Op.contains]: ["all"] }
                 ]
             };
         }
 
-        const metadataList = await MetaData.findAll({ where: whereClause });
+        const metadataList = await MetaData.findAll({ 
+            ...(limit > 0 ? {limit, offset } : {}),
+            where: whereClause,
+            order: [[sortBy, sortOrder]],
+        });
+            
         console.log("Metadata retrieved:", metadataList.length);
         return {
             data: metadataList,

@@ -13,7 +13,11 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING, 
       unique: true 
     },
-    risk_scenario: DataTypes.TEXT,
+    risk_scenario: {
+      allowNull: false,
+      type: DataTypes.STRING,
+      unique: true 
+    },
     risk_description: DataTypes.TEXT,
     risk_statement: DataTypes.TEXT,
     status: { 

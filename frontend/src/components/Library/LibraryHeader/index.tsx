@@ -7,6 +7,7 @@ import {
 import { Dispatch, SetStateAction, useState } from "react";
 import FilterComponent from "@/components/Library/FilterComponent";
 import { Filter } from "@/types/filter";
+import FileUpload from "@/components/FileUpload";
 
 
 interface Props {
@@ -16,6 +17,14 @@ interface Props {
   addAction: () => void;
   sortItems: { label: string; value: string }[];
   // optional controlled props
+  fileUploadTitle?: string,
+  file: File | null,
+  setFile?: (file: File) => void
+  isFileUploadOpen?: boolean,
+  setIsFileUploadOpen?: (val: boolean) => void,
+  handleExport?: () => void;
+  handleImport?: () => void;
+  handledownloadTemplateFile?: () => Promise<void>;
   onImport?: () => void;
   isImportRequired?: boolean,
   onExport?: () => void;
@@ -30,7 +39,7 @@ interface Props {
   setFilters: Dispatch<SetStateAction<Filter[]>>;
 }
 
-const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, metaDatas, addButtonText, addAction, sortItems, isImportRequired = true, onImport, isExportRequired =true, onExport, searchPattern = "", setSearchPattern, sortValue, setSort, statusFilters, setStatusFilters, filters, setFilters }) => {
+const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, metaDatas, addButtonText, addAction, sortItems, isImportRequired = true, onImport, isExportRequired =true, onExport,fileUploadTitle, file, setFile, isFileUploadOpen, setIsFileUploadOpen, handledownloadTemplateFile, handleImport, searchPattern = "", setSearchPattern, sortValue, setSort, statusFilters, setStatusFilters, filters, setFilters }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isOpenFilter, setIsOpenFilter] = useState(false);
@@ -46,6 +55,13 @@ const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, metaDatas, addButtonT
     setLocalSort(event.target.value);
     setSort?.(event.target.value);
   };
+    console.log({
+    isImportRequired,
+    setIsFileUploadOpen: typeof setIsFileUploadOpen,
+    handleImport: typeof handleImport,
+    setFile: typeof setFile,
+    handledownloadTemplateFile: typeof handledownloadTemplateFile,
+  });
 
   return (
     <>
@@ -110,6 +126,8 @@ const LibraryHeader: React.FC<Props> = ({ breadcrumbItems, metaDatas, addButtonT
       </Box>
 
       <FilterComponent metaDatas={metaDatas} statusFilters={statusFilters} setStatusFilters={setStatusFilters} filters={filters} setFilters={setFilters} items={["Published", "Draft", "Not Published"]} open={isOpenFilter} onClose={() => setIsOpenFilter(false)} onClear={() => setIsOpenFilter(false)} onApply={() => setIsOpenFilter(false)} />
+      {isImportRequired && setIsFileUploadOpen && handleImport && setFile && handledownloadTemplateFile && fileUploadTitle &&<FileUpload open={isFileUploadOpen as boolean} onClose={() => setIsFileUploadOpen(false)} onUpload={handleImport} onDownload={handledownloadTemplateFile} onFileSelect={(file) => setFile(file as File)} file ={file as File} title={fileUploadTitle}/> }
+
     </>
   );
 };

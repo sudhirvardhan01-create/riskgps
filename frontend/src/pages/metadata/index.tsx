@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import MetaDataCard from "@/components/meta-data/MetaDataCard";
 import React, { useState, useEffect } from "react";
-import { FilterAltOutlined, Search } from "@mui/icons-material";
+import { Search } from "@mui/icons-material";
 import { MetaDataService } from "@/services/metaDataService";
 import { MetaData } from "@/types/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -24,9 +24,23 @@ import MetaDataFormModal from "@/components/meta-data/MetaDataFormModal";
 import withAuth from "@/hoc/withAuth";
 
 const Index = () => {
+  const sortItems = [
+    { value: "id:asc", label: "ID (Ascending)" },
+    { value: "id:desc", label: "ID (Descending)" },
+    { value: "name:asc", label: "Key (Ascending)" },
+    { value: "name:desc", label: "Key (Descending)" },
+    { value: "created_at:asc", label: "Created (Oldest to Latest)" },
+    { value: "created_at:desc", label: "Created (Latest to Oldest)" },
+    { value: "updated_at:asc", label: "Updated (Oldest to Latest)" },
+    { value: "updated_at:desc", label: "Updated (Latest to Oldest)" },
+  ];
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+
+  const [searchPattern, setSearchPattern] = useState("");
+  const [sort, setSort] = useState(sortItems[0].value);
   const [loading, setLoading] = useState(false);
   const [metaDatas, setMetaDatas] = useState<MetaData[]>();
   const [selectedMetaData, setSelectedMetaData] = useState<MetaData | null>(
@@ -40,7 +54,7 @@ const Index = () => {
   const [toast, setToast] = useState({
     open: false,
     message: "",
-    severity: "success" as "success" | "error" | "info"
+    severity: "success" as "success" | "error" | "info",
   });
   const [
     isDeleteMetaDataConfirmPopupOpen,
@@ -59,7 +73,7 @@ const Index = () => {
     const getMetaDatas = async () => {
       try {
         setLoading(true);
-        const [meta] = await Promise.all([MetaDataService.fetch()]);
+        const [meta] = await Promise.all([MetaDataService.fetch(0, 0, searchPattern, sort)]);
         setMetaDatas(meta.data ?? []);
       } catch (error) {
         console.error("Error while fetching metadata:", error);
@@ -68,20 +82,22 @@ const Index = () => {
       }
     };
     getMetaDatas();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, searchPattern, sort]);
 
   //Function to handle the delete of a metadata
   const handleDeleteMetaData = async () => {
     try {
       if (selectedMetaData?.id) {
-        const res = await MetaDataService.delete(selectedMetaData?.id as number);
+        const res = await MetaDataService.delete(
+          selectedMetaData?.id as number
+        );
         console.log(res);
         setRefreshTrigger((prev) => prev + 1);
         setIsDeleteMetaDataConfirmPopupOpen(false);
         setToast({
           open: true,
           message: `${selectedMetaData.name} deleted`,
-          severity: "success"
+          severity: "success",
         });
       } else {
         throw new Error("Invalid ID");
@@ -89,10 +105,10 @@ const Index = () => {
     } catch (err) {
       console.log("Something went wrong", err);
       setToast({
-          open: true,
-          message: `Error : Failed to delete metadata`,
-          severity: "error"
-        });
+        open: true,
+        message: `Error : Failed to delete metadata`,
+        severity: "error",
+      });
     }
   };
 
@@ -112,17 +128,17 @@ const Index = () => {
       setRefreshTrigger((prev) => prev + 1);
       setIsAddMetaDataModalOpen(false);
       setToast({
-          open: true,
-          message: `${reqBody.name} has been added successfully.`,
-          severity: "success"
-        });
+        open: true,
+        message: `${reqBody.name} has been added successfully.`,
+        severity: "success",
+      });
     } catch (err) {
       console.log("Something went wrong", err);
       setToast({
-          open: true,
-          message: `Error : Failed to create metadata`,
-          severity: "error"
-        });
+        open: true,
+        message: `Error : Failed to create metadata`,
+        severity: "error",
+      });
     }
   };
 
@@ -139,7 +155,7 @@ const Index = () => {
         setToast({
           open: true,
           message: `Changes have been saved successfully.`,
-          severity: "success"
+          severity: "success",
         });
       } else {
         alert("Invalid Operation");
@@ -147,12 +163,35 @@ const Index = () => {
     } catch (err) {
       console.log("Something went wrong", err);
       setToast({
-          open: true,
-          message: `Error : Failed to update metadata`,
-          severity: "error"
-        });
+        open: true,
+        message: `Error : Failed to update metadata`,
+        severity: "error",
+      });
     }
   };
+
+  //Function for Form Validation
+    const handleFormValidation = async () => {
+      try{
+        const res = await MetaDataService.fetch(0, 1, formData.name.trim(), "id:asc");
+        if(res.data?.length > 0 && res.data[0].name === formData.name.trim()){
+        setToast({
+          open: true,
+          message: `Key already exists`,
+          severity: "error",
+        });
+        }else{
+          handleCreateMetaData()
+        }
+      } catch (error) {
+        console.error(error);
+        setToast({
+          open: true,
+          message: "Failed to create metadata",
+          severity: "error",
+        });
+      } 
+    }
 
   return (
     <>
@@ -185,7 +224,7 @@ const Index = () => {
             });
           }}
           operation="create"
-          onSubmit={handleCreateMetaData}
+          onSubmit={handleFormValidation}
           formData={formData}
           setFormData={setFormData}
         />
@@ -241,11 +280,15 @@ const Index = () => {
 
       <ToastComponent
         open={toast.open}
-        onClose={() => setToast((toast) => ({...toast, open : false}))}
+        onClose={() => setToast((toast) => ({ ...toast, open: false }))}
         message={toast.message}
-        toastBorder="1px solid #147A50"
-        toastColor="#147A50"
-        toastBackgroundColor="#DDF5EB"
+        toastBorder={
+          toast.severity === "success" ? "1px solid #147A50" : undefined
+        }
+        toastColor={toast.severity === "success" ? "#147A50" : undefined}
+        toastBackgroundColor={
+          toast.severity === "success" ? "#DDF5EB" : undefined
+        }
         toastSeverity={toast.severity}
       />
 
@@ -293,8 +336,10 @@ const Index = () => {
             {/* Search Bar */}
             <TextField
               size="small"
-              placeholder="Search by key, value"
+              placeholder="Search by key"
               variant="outlined"
+              value={searchPattern}
+              onChange={(e) => setSearchPattern(e.target.value)}
               sx={{
                 borderRadius: 1,
                 height: "40px",
@@ -318,25 +363,21 @@ const Index = () => {
               flexWrap="wrap"
               justifyContent={isMobile ? "flex-start" : "flex-end"}
             >
-              <FormControl sx={{ backgroundColor: "#FFFFFF", borderRadius: 1 }}>
+              <FormControl sx={{ backgroundColor: "#FFFFFF", borderRadius: 1, width: 271, height: "40px", }}>
                 <InputLabel id="sort-metadata">Sort</InputLabel>
                 <Select
                   size="small"
-                  defaultValue="Alphabetical (A-Z)"
                   label="Sort"
                   labelId="sort-metadata"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
                 >
-                  <MenuItem value="Latest First">Latest First</MenuItem>
-                  <MenuItem value="Oldest First">Oldest First</MenuItem>
-                  <MenuItem value="Alphabetical (A-Z)">
-                    Alphabetical (A-Z)
-                  </MenuItem>
-                  <MenuItem value="Alphabetical (Z-A)">
-                    Alphabetical (Z-A)
-                  </MenuItem>
+                  {sortItems.map((item) => {
+                    return (<MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>)
+                  })}
                 </Select>
               </FormControl>
-              <Button
+              {/* <Button
                 variant="outlined"
                 endIcon={<FilterAltOutlined />}
                 onClick={() => console.log("Open Filter")}
@@ -349,7 +390,7 @@ const Index = () => {
                 }}
               >
                 Filter
-              </Button>
+              </Button> */}
             </Stack>
           </Stack>
         </Box>
