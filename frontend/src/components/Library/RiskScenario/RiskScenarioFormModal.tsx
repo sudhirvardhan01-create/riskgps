@@ -42,14 +42,13 @@ interface RiskScenarioFormModalProps {
   onSubmit: (status: string) => void;
 }
 
-type CIAKey = "C" | "I" | "A";
+// type CIAKey = "C" | "I" | "A";
 
-const ciaKeyValueMapping: Record<CIAKey, string> = {
-  C: "Confidentiality",
-  I: "Integrity",
-  A: "Availability"
-};
-
+// const ciaKeyValueMapping: Record<CIAKey, string> = {
+//   C: "Confidentiality",
+//   I: "Integrity",
+//   A: "Availability",
+// };
 
 const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   operation,
@@ -61,7 +60,8 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  console.log(processes);
+  const ciaMappingItems = ["Confidentiality", "Integrity", "Availability"];
+
   // State for related processes
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<
     number | null
@@ -237,7 +237,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
           </Grid>
 
           {/* Risk Description */}
-          <Grid mt={1} size={{ xs: 12 }}>
+          {/* <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
               label={labels.riskDescription}
               placeholder="Enter Risk Description"
@@ -246,10 +246,11 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
               tooltipTitle={tooltips.riskDescription}
               onChange={(e) => handleChange("riskDescription", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
           <Grid mt={1} size={{ xs: 12 }}>
             <SelectStyled
               multiple
+              required
               value={riskData.ciaMapping ?? []}
               label={labels.ciaMapping}
               isTooltipRequired={true}
@@ -280,16 +281,32 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
                         textTransform: "capitalize",
                       }}
                     >
-                  {(selected as CIAKey[]).map((val) => ciaKeyValueMapping[val]).join(", ")}
-
+                      {selected.join(", ")}
                     </Typography>
                   );
                 }
               }}
             >
-              <MenuItem value="C">Confidentiality</MenuItem>
-              <MenuItem value="A">Availability</MenuItem>
-              <MenuItem value="I">Integrity</MenuItem>
+              {metaDatas?.find((item) => item.name === "CIA Mapping")
+                ?.supported_values &&
+              metaDatas?.find((item) => item.name === "CIA Mapping")
+                ?.supported_values?.length > 0
+                ? metaDatas
+                    ?.find((item) => item.name === "CIA Mapping")
+                    ?.supported_values?.map(
+                      (metaData: string, index: number) => (
+                        <MenuItem value={metaData[0]} key={index}>
+                          {metaData}
+                        </MenuItem>
+                      )
+                    )
+                : ciaMappingItems.map((item) => {
+                    return (
+                      <MenuItem value={item[0]} key={item}>
+                        {item}
+                      </MenuItem>
+                    );
+                  })}
             </SelectStyled>
           </Grid>
 
@@ -599,7 +616,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
             onClick={() => {
               onSubmit("published");
             }}
-            disabled={riskData.riskScenario === ""}
+            disabled={riskData.riskScenario === "" || riskData.ciaMapping?.length === 0}
             disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
