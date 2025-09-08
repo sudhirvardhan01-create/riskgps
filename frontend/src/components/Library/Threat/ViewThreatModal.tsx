@@ -149,6 +149,20 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
             </Box>
           </Grid>
 
+          {/* MITRE Technique ID */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                MITRE Technique ID
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.mitreTechniqueId
+                  ? threatData.mitreTechniqueId
+                  : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
           {/* MITRE Technique Name */}
           <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
@@ -164,7 +178,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
           </Grid>
 
           {/* CIA Mapping */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 CIA Mapping
