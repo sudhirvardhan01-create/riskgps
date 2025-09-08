@@ -14,21 +14,17 @@ import {
   Chip,
   FormControlLabel,
   Stack,
-  Paper,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
 } from "@mui/material";
-import { Add, Close, DeleteOutlineOutlined, DoneOutlined, EditOutlined } from "@mui/icons-material";
+import {
+  Close,
+  DoneOutlined,
+} from "@mui/icons-material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
-import { ControlForm, NISTControls } from "@/types/control";
+import { ControlForm } from "@/types/control";
 
 interface ControlFormModalProps {
   operation: "create" | "edit";
@@ -203,137 +199,28 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             </SelectStyled>
           </Grid>
 
-          {/* NIST 2.0 Control Category ID */}
-          {/* <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.nistControlCategoryId}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.nistControlCategoryId}
-              placeholder="Enter NIST 2.0 Control Category ID"
-              value={nistFormData.frameWorkControlCategoryId}
-              onChange={(e) =>
-                handleNISTChange("frameWorkControlCategoryId", e.target.value)
-              }
-            />
-          </Grid> */}
-
-          {/* NIST 2.0 Control Category */}
-          {/* <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.nistControlCategory}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.nistControlCategory}
-              placeholder="Enter NIST 2.0 Control Category"
-              value={nistFormData.frameWorkControlCategory}
-              onChange={(e) => handleNISTChange("frameWorkControlCategory", e.target.value)}
-            />
-          </Grid> */}
-
-          {/* NIST 2.0 Control Sub-category ID */}
-          {/* <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.nistControlSubcategoryId}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.nistControlSubcategoryId}
-              placeholder="Enter NIST 2.0 Control Sub-category ID"
-              value={nistFormData.frameWorkControlSubCategoryId}
-              onChange={(e) => handleNISTChange("frameWorkControlSubCategoryId", e.target.value)}
-            />
-          </Grid> */}
-
-          {/* NIST 2.0 Control Sub-category */}
-          {/* <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.nistControlSubcategory}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.nistControlSubcategory}
-              placeholder="Enter NIST 2.0 Control Sub-category"
-              value={nistFormData.frameWorkControlSubCategory}
-              onChange={(e) => handleNISTChange("frameWorkControlSubCategory", e.target.value)}
-            />
-          </Grid> */}
-
-          {/* NIST CONTROLS SECTION */}
+          {/* MITRE Control Description */}
           <Grid mt={1} size={{ xs: 12 }}>
-            <Stack display={"flex"} flexDirection={"column"} gap={2}>
-              <Typography variant="h6" fontWeight={600}>
-                NIST Controls
-              </Typography>
-              <Grid size={{ xs: 12 }}>
-                <Button
-                  startIcon={<Add />}
-                  // onClick={() => {
-                  //   setIsAddRelatedControlOpen(true);
-                  //   setRelatedControlFormData(initialRelatedControlFormData);
-                  // }}
-                  sx={{ paddingY: 0 }}
-                >
-                  Add NIST Control
-                </Button>
-              </Grid>
-              {formData?.nistControls && formData?.nistControls?.length > 0 && (
-                <Grid size={{ xs: 12 }}>
-                  <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                    <TableContainer sx={{ maxHeight: 440 }}>
-                      <Table stickyHeader>
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>NIST 2.0 Control Category ID</TableCell>
-                            <TableCell>NIST 2.0 Control Category</TableCell>
-                            <TableCell>NIST 2.0 Control Sub-category ID</TableCell>
-                            <TableCell>NIST 2.0 Control Sub-category</TableCell>
-                            <TableCell>Actions</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {formData.nistControls?.map((control, index) => {
-                            return (
-                              <TableRow
-                                hover
-                                role="checkbox"
-                                tabIndex={-1}
-                                key={index}
-                              >
-                                <TableCell>{control.frameWorkControlCategoryId}</TableCell>
-                                <TableCell>
-                                  {control.frameWorkControlCategory}
-                                </TableCell>
-                                <TableCell>
-                                  {control.frameWorkControlSubCategoryId}
-                                </TableCell>
-                                <TableCell>
-                                  {control.frameWorkControlSubCategory}
-                                </TableCell>
-                                <TableCell>
-                                  <IconButton
-                                    // onClick={() => {
-                                    //   setSelectedRelatedControl(control);
-                                    //   setSelectedControlID(index);
-                                    //   setIsEditRelatedControlOpen(true);
-                                    // }}
-                                  >
-                                    <EditOutlined
-                                      sx={{ color: "primary.main" }}
-                                    />
-                                  </IconButton>
-                                  <IconButton
-                                    // onClick={() => deleteRelatedControl(index)}
-                                  >
-                                    <DeleteOutlineOutlined
-                                      sx={{ color: "#cd0303" }}
-                                    />
-                                  </IconButton>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Paper>
-                </Grid>
-              )}
-            </Stack>
+            <TextFieldStyled
+              label={labels.mitreControlDescription}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.mitreControlDescription}
+              placeholder="Enter MITRE Control Description"
+              value={formData.mitreControlDescription}
+              onChange={(e) => handleChange("mitreControlDescription", e.target.value)}
+            />
+          </Grid>
+
+          {/* MITRE Control Description */}
+          <Grid mt={1} size={{ xs: 12 }}>
+            <TextFieldStyled
+              label={labels.bluoceanControlDescription}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.bluoceanControlDescription}
+              placeholder="Enter BluOcean Control Description"
+              value={formData.bluOceanControlDescription}
+              onChange={(e) => handleChange("bluOceanControlDescription", e.target.value)}
+            />
           </Grid>
         </Grid>
       </DialogContent>

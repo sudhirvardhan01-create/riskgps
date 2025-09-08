@@ -171,62 +171,6 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
             </Box>
           </Grid>
 
-          {/* NIST 2.0 Control Category ID */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                NIST 2.0 Control Category ID
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0]?.frameWorkControlCategoryId
-                  ? controlData.nistControls?.[0]?.frameWorkControlCategoryId
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* NIST 2.0 Control Category */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                NIST 2.0 Control Category
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0]?.frameWorkControlCategory
-                  ? controlData.nistControls?.[0]?.frameWorkControlCategory
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* NIST 2.0 Control Sub-category ID */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                NIST 2.0 Control Sub-category ID
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0]?.frameWorkControlSubCategoryId
-                  ? controlData.nistControls?.[0]?.frameWorkControlSubCategoryId
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* NIST 2.0 Control Sub-category */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                NIST 2.0 Control Sub-category
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.nistControls?.[0]?.frameWorkControlSubCategory
-                  ? controlData.nistControls?.[0]?.frameWorkControlSubCategory
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
           <Grid size={{ xs: 12 }}>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
               <TableContainer sx={{ maxHeight: 440 }}>
@@ -249,10 +193,10 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                           key={index}
                         >
                           <TableCell>
-                            {controlData.mitreControlId}.{index + 1}
+                            {control.mitreTechniqueId}
                           </TableCell>
                           <TableCell>
-                            {controlData.mitreControlId}.{index + 1}
+                            {control?.subTechniqueId ? control.subTechniqueId : "-"}
                           </TableCell>
                           <TableCell>
                             {control.mitreControlDescription}

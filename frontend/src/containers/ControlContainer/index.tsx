@@ -9,7 +9,7 @@ import ViewControlModal from "@/components/Library/Control/ViewControlModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
-import { ControlForm, NISTControls } from "@/types/control";
+import { ControlForm } from "@/types/control";
 import { FileService } from "@/services/fileService";
 import { ControlService } from "@/services/controlService";
 
@@ -17,7 +17,6 @@ const initialControlFormData: ControlForm = {
   mitreControlId: "",
   mitreControlName: "",
   mitreControlType: "",
-  nistControls: [],
 };
 
 // const initialNISTControlsFormData: NISTControls = {

@@ -12,18 +12,12 @@ interface FooterChip {
   value: string;
 }
 
-interface ThreatControlCardProps {
-  module: "threat" | "control";
+interface BaseProps {
   threatControlData: any;
   setSelectedData: React.Dispatch<React.SetStateAction<any>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (
-    status: string,
-    mitreTechniqueId: string,
-    subTechniqueId?: string
-  ) => void;
   rowID: string;
   headerChip?: string;
   title: string;
@@ -31,6 +25,23 @@ interface ThreatControlCardProps {
   status: string;
   footerChips?: FooterChip[];
 }
+
+interface ThreatProps extends BaseProps {
+  module: "threat";
+  handleUpdateStatus: (
+    status: string,
+    mitreTechniqueId: string,
+    subTechniqueId?: string
+  ) => void;
+}
+
+interface ControlProps extends BaseProps {
+  module: "control";
+  handleUpdateStatus: (id: number, status: string) => void;
+}
+
+type ThreatControlCardProps = ThreatProps | ControlProps;
+
 
 const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
   module,
@@ -58,13 +69,15 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
                 const updatedStatus = e.target.checked
                   ? "published"
                   : "not_published";
+                if (module === "threat") {
                 handleUpdateStatus(
                   updatedStatus,
                   threatControlData.mitreTechniqueId as string,
-                  threatControlData?.subTechniqueId !== ""
-                    ? threatControlData.subTechniqueId
-                    : ""
+                  threatControlData?.subTechniqueId || ""
                 );
+              } else {
+                handleUpdateStatus(threatControlData.id, updatedStatus);
+              }
               }}
               checked={status === "published"}
             />
@@ -197,51 +210,50 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
         </Typography>
 
         {/* Meta Info */}
-        <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
-          {footerChips?.map((item, index) => (
-            <Box
-              key={index}
-              sx={{
-                pb: 1,
-                display: "flex",
-                alignItems: "center",
-                mt: 1,
-                mb: 1.5,
-                gap: 1.25,
-              }}
-            >
-              <Chip
-                label={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Typography variant="body2" color="#91939A">
-                      {item.label}
-                    </Typography>
-                    &nbsp;
-                    <Typography variant="body2" color="text.primary">
-                      {item.value}
-                    </Typography>
-                  </Box>
-                }
-                size="small"
+        {module === "threat" && (
+          <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
+            {footerChips?.map((item, index) => (
+              <Box
+                key={index}
                 sx={{
-                  borderRadius: 0.5,
-                  height: 24,
-                  backgroundColor: "#FFF9C7",
+                  pb: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  mt: 1,
+                  mb: 1.5,
+                  gap: 1.25,
                 }}
-              />
-              {index !== footerChips?.length - 1 && (
-                <Typography color="#D9D9D9">•</Typography>
-              )}
-            </Box>
-          ))}
-
-          {module === "threat" && (
+              >
+                <Chip
+                  label={
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Typography variant="body2" color="#91939A">
+                        {item.label}
+                      </Typography>
+                      &nbsp;
+                      <Typography variant="body2" color="text.primary">
+                        {item.value}
+                      </Typography>
+                    </Box>
+                  }
+                  size="small"
+                  sx={{
+                    borderRadius: 0.5,
+                    height: 24,
+                    backgroundColor: "#FFF9C7",
+                  }}
+                />
+                {index !== footerChips?.length - 1 && (
+                  <Typography color="#D9D9D9">•</Typography>
+                )}
+              </Box>
+            ))}
             <Box
               sx={{
                 pb: 1,
@@ -254,11 +266,27 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
             >
               <Typography color="#D9D9D9">•</Typography>
               <Typography variant="body2" color="text.primary">
-                {threatControlData.controls?.length} Controls
+                {threatControlData.controls?.length} Threats
               </Typography>
             </Box>
-          )}
-        </Stack>
+          </Stack>
+        )}
+        {module === "control" && <Box
+              sx={{
+                pb: 1,
+                display: "flex",
+                alignItems: "center",
+                mt: 1,
+                mb: 1.5,
+                gap: 1.25,
+                ml: 3
+              }}
+            >
+              <Typography color="#D9D9D9">•</Typography>
+              <Typography variant="body2" color="text.primary">
+                {threatControlData.subControls?.length} Threats
+              </Typography>
+            </Box>}
       </Box>
     </Box>
   );

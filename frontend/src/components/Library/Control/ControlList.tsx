@@ -56,10 +56,6 @@ const ControlList: React.FC<Props> = ({
                   title={item.mitreControlName ?? ""}
                   status={item.status ?? ""}
                   lastUpdated={item.updated_at}
-                  footerChips={[
-                    { label: "NIST 2.0 Control Category ID:", value: item.nistControls?.[0]?.frameWorkControlCategoryId },
-                    { label: "NIST 2.0 Control Category:", value: item.nistControls?.[0]?.frameWorkControlCategory },
-                  ]}
                 />
               </div>
             ))
