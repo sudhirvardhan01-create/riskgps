@@ -20,7 +20,7 @@ interface MoveProcessModalProps {
   processes: { id: string; name: string }[];
   fromProcessId: string | null;
   fromProcessName: string | null;
-  onMove: (fromProcessId: string, toProcessId: string) => void;
+  onMove: (fromProcessId: string | null, toProcessId: string) => void;
 }
 
 const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
