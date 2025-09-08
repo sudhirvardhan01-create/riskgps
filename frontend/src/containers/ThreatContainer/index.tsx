@@ -135,29 +135,29 @@ export default function ThreatContainer() {
   }, []);
 
   // Create
-  //   const handleCreate = async (status: string) => {
-  //     try {
-  //       const req = { ...assetFormData, status };
-  //       await AssetService.create(req);
-  //       setAssetFormData(initialAssetFormData);
-  //       setIsAddOpen(false);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: `Success! Asset ${
-  //           status === "published" ? "published" : "saved as draft"
-  //         }`,
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to create asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+    const handleCreate = async (status: string) => {
+      try {
+        const req = { ...formData, status };
+        await ThreatService.create(req);
+        setFormData(initialThreatFormData);
+        setIsAddOpen(false);
+        setRefreshTrigger((p) => p + 1);
+        setToast({
+          open: true,
+          message: `Success! Threat ${
+            status === "published" ? "published" : "saved as draft"
+          }`,
+          severity: "success",
+        });
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to create threat",
+          severity: "error",
+        });
+      }
+    };
 
   // Update
   //   const handleUpdate = async (status: string) => {
@@ -336,37 +336,6 @@ export default function ThreatContainer() {
     [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
-  //Function for Form Validation
-  //   const handleFormValidation = async (status: string) => {
-  //     try {
-  //       const res = await AssetService.fetch(
-  //         0,
-  //         1,
-  //         assetFormData.applicationName.trim(),
-  //         "asset_code:asc"
-  //       );
-  //       if (
-  //         res.data?.length > 0 &&
-  //         res.data[0].applicationName === assetFormData.applicationName.trim()
-  //       ) {
-  //         setToast({
-  //           open: true,
-  //           message: `Asset Name already exists`,
-  //           severity: "error",
-  //         });
-  //       } else {
-  //         handleCreate(status);
-  //       }
-  //     } catch (error) {
-  //       console.error(error);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to create asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
-
   return (
     <>
       {/* View modal */}
@@ -390,7 +359,7 @@ export default function ThreatContainer() {
           formData={formData}
           setFormData={setFormData}
           metaDatas={metaDatas}
-          onSubmit={() => console.log("Submitted")}
+          onSubmit={handleCreate}
           onClose={() => {
             setIsAddConfirmOpen(true);
           }}

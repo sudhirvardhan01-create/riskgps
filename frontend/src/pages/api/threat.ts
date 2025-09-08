@@ -35,7 +35,6 @@ export const fetchThreats = async (
 
 //Function to create a threat
 export const createThreat = async (data: ThreatForm) => {
-  console.log(data);
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls`,
     {
@@ -53,14 +52,13 @@ export const createThreat = async (data: ThreatForm) => {
     throw new Error("Failed to create Threat");
   }
   const res = await response.json();
-  console.log(res);
   return res.data;
 };
 
 //Function to update a threat
-export const updateThreat = async (id: number, data: ThreatForm) => {
+export const updateThreat = async (data: ThreatForm, mitreTechniqueId: string, subTechniqueId?: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/${id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update?mitreTechniqueId=${mitreTechniqueId}&&subTechniqueId=${subTechniqueId}`,
     {
       method: "PUT",
       body: JSON.stringify(data),
