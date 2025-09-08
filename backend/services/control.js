@@ -8,18 +8,6 @@ class ControlsService {
         const includeRelation = { model: FrameWorkControl, as: 'framework_controls' }
 
         const data = await MitreThreatControl.findAll({
-            attributes: [
-                'id',
-                'mitreControlId',
-                'mitreControlName',
-                'mitreControlType',
-                'mitreControlDescription',
-                'bluOceanControlDescription',
-                'status',
-                'created_at',
-                'updated_at'
-
-            ],
             where: whereClause,
             include: includeRelation
         });
@@ -34,6 +22,7 @@ class ControlsService {
                 if (!acc[key]) {
                     acc[key] = {
                         id: row.id,
+
                         mitreControlId: row.mitreControlId,
                         mitreControlName: row.mitreControlName,
                         mitreControlType: row.mitreControlType,
@@ -62,6 +51,10 @@ class ControlsService {
 
                 // push sub-control details
                 acc[key].subControls.push({
+                    mitreTechniqueId: row.mitreTechniqueId,
+                    mitreTechniqueName: row.mitreTechniqueName,
+                    subTechniqueId: row.subTechniqueId,
+                    subTechniqueName: row.subTechniqueName,
                     mitreControlDescription: row.mitreControlDescription,
                     bluOceanControlDescription: row.bluOceanControlDescription,
                 });
