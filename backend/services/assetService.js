@@ -229,7 +229,7 @@ class AssetService {
       "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
       "Has Network Segmentations": "Yes / No",
       "Network Name": "Network identifier (if applicable)",
-      "Asset Category": "Values separated by comma " + ASSETS.ASSET_CATEGORY.join(","),
+      "Asset Category": "A single Value from the list " + ASSETS.ASSET_CATEGORY.join(","),
       "Asset Description": "Short description of the asset",
     });
 
@@ -270,11 +270,9 @@ class AssetService {
     }
 
     function parseAssetCategory(value) {
-      if (!value) return [];
-      return value
-        .split(",") // split by comma
-        .map((v) => v.trim()) // remove whitespace
-        .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
+      if (!value) return null;
+      const v = value.trim();
+      return ASSETS.ASSET_CATEGORY.includes(v) ? v : null;
     }
 
     return new Promise((resolve, reject) => {
@@ -355,7 +353,7 @@ class AssetService {
           "Databases": row.databases,
           "Has Network Segmentations": row.has_network_segmentation,
           "Network Name": row.network_name,
-          "Asset Category": (row.asset_category ?? []).join(","),
+          "Asset Category": row.asset_category,
           "Asset Description": row.asset_description,
           "Status": row.status,
           "Created At": row.created_at,
@@ -432,18 +430,11 @@ class AssetService {
       }
     }
 
-    if (asset_category) {
-      if (
-        !Array.isArray(asset_category) ||
-        !asset_category.every((category) =>
-          ASSETS.ASSET_CATEGORY.includes(category)
-        )
-      ) {
-        throw new CustomError(
-          Messages.ASSET.INVALID_ASSET_CATEGORY,
-          HttpStatus.BAD_REQUEST
-        );
-      }
+    if (!asset_category || !ASSETS.ASSET_CATEGORY.includes(asset_category)) {
+      throw new CustomError(
+        Messages.ASSET.INVALID_ASSET_CATEGORY,
+        HttpStatus.BAD_REQUEST
+      );
     }
   }
 

@@ -157,12 +157,12 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
         {/* Meta Info */}
         <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center" }}>
           {tagItems.map((item, index) => (
-            <>
-              <Typography variant="body2" color="text.primary">
+            <div key={index}>
+              <Typography key={index} variant="body2" color="text.primary">
                 {item.value} &nbsp; {item.label}
               </Typography>
               {index !== tagItems.length - 1 && <Typography color="#D9D9D9" sx={{ ml: 1.5 }}>•</Typography>}
-            </>
+            </div>
           ))}
         </Box>
       </Box>
