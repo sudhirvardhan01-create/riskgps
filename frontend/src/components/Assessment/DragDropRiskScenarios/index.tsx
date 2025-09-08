@@ -43,14 +43,19 @@ const DragDropRiskScenarios: React.FC = () => {
     null
   );
 
-  const handleDelete = (processId: string) => {
+  const handleDeleteBulk = (processId: string) => {
     setProcesses((prev) =>
       prev.map((p) =>
         p.id === processId
-          ? { ...p, risks: p.risks.filter((r) => !selectedRisks.includes(r.id)) }
+          ? {
+              ...p,
+              risks: p.risks.filter((r) => !selectedRisks.includes(r.id)),
+            }
           : p
       )
     );
+
+    setSelectedRisks([]);
 
     const deletedRisks =
       processes
@@ -59,6 +64,22 @@ const DragDropRiskScenarios: React.FC = () => {
 
     if (deletedRisks.length > 0) {
       setRiskPool((prev) => [...prev, ...deletedRisks]);
+    }
+  };
+
+  const handleDelete = (processId: string, riskId: string) => {
+    setProcesses((prev) =>
+      prev.map((p) =>
+        p.id === processId
+          ? { ...p, risks: p.risks.filter((r) => r.id !== riskId) }
+          : p
+      )
+    );
+    const deletedRisk = processes
+      .find((p) => p.id === processId)
+      ?.risks.find((r) => r.id === riskId);
+    if (deletedRisk) {
+      setRiskPool((prev) => [...prev, deletedRisk]);
     }
   };
 
@@ -130,6 +151,7 @@ const DragDropRiskScenarios: React.FC = () => {
               selectedRisks={selectedRisks}
               setSelectedRisks={setSelectedRisks}
               onDelete={handleDelete}
+              onDeleteBulk={handleDeleteBulk}
               onMoveSelected={handleMoveSelected}
             />
           ))}

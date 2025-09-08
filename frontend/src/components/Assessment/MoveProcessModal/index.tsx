@@ -44,11 +44,12 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
+      maxWidth="md"
+      fullWidth
       slotProps={{
         paper: {
           sx: {
             borderRadius: 2,
-            minWidth: 400,
             m: 0
           }
         }

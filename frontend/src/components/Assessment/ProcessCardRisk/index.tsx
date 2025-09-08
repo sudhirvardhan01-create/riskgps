@@ -28,7 +28,8 @@ interface ProcessCardRiskProps {
   };
   selectedRisks: string[];
   setSelectedRisks: React.Dispatch<React.SetStateAction<string[]>>;
-  onDelete: (processId: string) => void;
+  onDelete: (processId: string, riskId: string) => void;
+  onDeleteBulk: (processId: string) => void;
   onMoveSelected: (processId: string, processName: string) => void;
 }
 
@@ -37,6 +38,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
   selectedRisks,
   setSelectedRisks,
   onDelete,
+  onDeleteBulk,
   onMoveSelected,
 }) => {
   const { setNodeRef } = useDroppable({ id: process.id });
@@ -134,7 +136,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                   }
                   color="error"
                   sx={{ textTransform: "none" }}
-                  onClick={() => onDelete(process.id)}
+                  onClick={() => onDeleteBulk(process.id)}
                 >
                   Remove selected items
                 </Button>
@@ -216,8 +218,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => {
-                        toggleSelect(risk.id)
-                        onDelete(process.id)
+                        onDelete(process.id, risk.id)
                       }}
                     >
                       <DeleteOutlineIcon
