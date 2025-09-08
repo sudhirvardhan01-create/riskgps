@@ -15,7 +15,7 @@ import { Filter } from "@/types/filter";
 import { FileService } from "@/services/fileService";
 
 const initialAssetFormData: AssetForm = {
-  assetCategory: [],
+  assetCategory: "",
   assetDescription: "",
   applicationName: "",
   applicationOwner: "",
@@ -172,6 +172,7 @@ export default function AssetContainer() {
       await AssetService.update(selectedAsset.id as number, body);
       setIsEditOpen(false);
       setSelectedAsset(null);
+      setIsViewOpen(false);
       setRefreshTrigger((p) => p + 1);
       setToast({
         open: true,

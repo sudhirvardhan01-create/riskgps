@@ -254,7 +254,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
               label={labels.assetCategory}
               displayEmpty
               onChange={(e) =>
-                handleChange("assetCategory", e.target.value as string[])
+                handleChange("assetCategory", e.target.value as string)
               }
               renderValue={(selected: any) => {
                 if (!selected) {
