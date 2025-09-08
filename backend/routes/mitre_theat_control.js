@@ -146,9 +146,16 @@ router.delete('/delete-threats', async (req, res) => {
     }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/update", async (req, res) => {
     try {
-        const data = await MitreThreatControlService.updateMitreThreatControlRecord(req.params.id, req.body);
+        const mitreTechniqueId = req.query.mitreTechniqueId || null;
+        const subTechniqueId = req.query.subTechniqueId || null;
+
+        if (!mitreTechniqueId) {
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED, HttpStatus.BAD_REQUEST);
+        }
+
+        const data = await MitreThreatControlService.updateMitreThreatControlRecord(mitreTechniqueId, subTechniqueId, req.body);
         res.status(HttpStatus.OK).json({
             data: data,
             msg: Messages.MITRE_THREAT_CONTROL.UPDATED
@@ -160,6 +167,29 @@ router.put("/:id", async (req, res) => {
     }
 })
 
+
+router.patch("/update-status/", async (req, res) => {
+    try {
+
+        const mitreTechniqueId = req.query.mitreTechniqueId || null;
+        const subTechniqueId = req.query.subTechniqueId || null;
+
+        if (!mitreTechniqueId) {
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED, HttpStatus.BAD_REQUEST);
+        }
+        const status = req.body.status;
+
+        await MitreThreatControlService.updateMitreThreatControlStatus(mitreTechniqueId, subTechniqueId, status);
+        res.status(HttpStatus.OK).json({
+            msg: Messages.PROCESS.STATUS_UPDATED
+        });
+    } catch (err) {
+        console.log("Failed operation: update status", err);
+        res.status(HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.PROCESS.NOT_FOUND
+        });
+    }
+});
 
 
 module.exports = router;

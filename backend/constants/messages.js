@@ -120,6 +120,9 @@ module.exports = {
         NOT_FOUND: 'Mitre threat control record not found.',
         INVALID_PlATFORMS: "Invalid value for platforms",
         INVALID_CIA_MAPPING: "Invalid CIA Mapping",
+        INVALID_MITRE_TECHNIQUE_ID_REQUIRED: "Mitre Technique ID required",
+        INVALID_CONTROLS_LIST_FOR_THREAT: "Invalid controls list for threat",
+        INVALID_STATUS: 'Invalid status provided.',
         FAILED_TO_EXPORT_CSV:' Failed to download Mitre ThreatControl Record CSV',
         FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
         FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
