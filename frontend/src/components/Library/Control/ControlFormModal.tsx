@@ -14,8 +14,15 @@ import {
   Chip,
   FormControlLabel,
   Stack,
+  Paper,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
-import { Close, DoneOutlined } from "@mui/icons-material";
+import { Add, Close, DeleteOutlineOutlined, DoneOutlined, EditOutlined } from "@mui/icons-material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
@@ -29,8 +36,6 @@ interface ControlFormModalProps {
   onClose: () => void;
   formData: ControlForm;
   setFormData: React.Dispatch<React.SetStateAction<ControlForm>>;
-  // nistFormData: NISTControls;
-  // setNISTFormData: React.Dispatch<React.SetStateAction<NISTControls>>;
   onSubmit: (status: string) => void;
 }
 
@@ -40,8 +45,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
   onClose,
   formData,
   setFormData,
-  // nistFormData,
-  // setNISTFormData,
   onSubmit,
 }) => {
   const handleChange = useCallback(
@@ -50,10 +53,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
     },
     [setFormData] // only depends on setter from props
   );
-
-  // const handleNISTChange = (field: keyof NISTControls, value: any) => {
-  //   setNISTFormData((prev) => ({...prev, [field] : value}));
-  // }
 
   const getStatusComponent = () => {
     if (
@@ -253,6 +252,89 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               onChange={(e) => handleNISTChange("frameWorkControlSubCategory", e.target.value)}
             />
           </Grid> */}
+
+          {/* NIST CONTROLS SECTION */}
+          <Grid mt={1} size={{ xs: 12 }}>
+            <Stack display={"flex"} flexDirection={"column"} gap={2}>
+              <Typography variant="h6" fontWeight={600}>
+                NIST Controls
+              </Typography>
+              <Grid size={{ xs: 12 }}>
+                <Button
+                  startIcon={<Add />}
+                  // onClick={() => {
+                  //   setIsAddRelatedControlOpen(true);
+                  //   setRelatedControlFormData(initialRelatedControlFormData);
+                  // }}
+                  sx={{ paddingY: 0 }}
+                >
+                  Add NIST Control
+                </Button>
+              </Grid>
+              {formData?.nistControls && formData?.nistControls?.length > 0 && (
+                <Grid size={{ xs: 12 }}>
+                  <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                    <TableContainer sx={{ maxHeight: 440 }}>
+                      <Table stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>NIST 2.0 Control Category ID</TableCell>
+                            <TableCell>NIST 2.0 Control Category</TableCell>
+                            <TableCell>NIST 2.0 Control Sub-category ID</TableCell>
+                            <TableCell>NIST 2.0 Control Sub-category</TableCell>
+                            <TableCell>Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {formData.nistControls?.map((control, index) => {
+                            return (
+                              <TableRow
+                                hover
+                                role="checkbox"
+                                tabIndex={-1}
+                                key={index}
+                              >
+                                <TableCell>{control.frameWorkControlCategoryId}</TableCell>
+                                <TableCell>
+                                  {control.frameWorkControlCategory}
+                                </TableCell>
+                                <TableCell>
+                                  {control.frameWorkControlSubCategoryId}
+                                </TableCell>
+                                <TableCell>
+                                  {control.frameWorkControlSubCategory}
+                                </TableCell>
+                                <TableCell>
+                                  <IconButton
+                                    // onClick={() => {
+                                    //   setSelectedRelatedControl(control);
+                                    //   setSelectedControlID(index);
+                                    //   setIsEditRelatedControlOpen(true);
+                                    // }}
+                                  >
+                                    <EditOutlined
+                                      sx={{ color: "primary.main" }}
+                                    />
+                                  </IconButton>
+                                  <IconButton
+                                    // onClick={() => deleteRelatedControl(index)}
+                                  >
+                                    <DeleteOutlineOutlined
+                                      sx={{ color: "#cd0303" }}
+                                    />
+                                  </IconButton>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Paper>
+                </Grid>
+              )}
+            </Stack>
+          </Grid>
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
@@ -297,7 +379,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             sx={{ width: 132, height: 40, borderRadius: 1 }}
             variant="contained"
             onClick={() => {
-              // setFormData((prev) => ({...prev, nistControls: [{...nistFormData}]}))
               onSubmit("published");
             }}
           >
