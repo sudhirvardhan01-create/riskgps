@@ -200,7 +200,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           </Grid>
 
           {/* MITRE Control Description */}
-          <Grid mt={1} size={{ xs: 12 }}>
+          {/* <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
               label={labels.mitreControlDescription}
               isTooltipRequired={true}
@@ -209,10 +209,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={formData.mitreControlDescription}
               onChange={(e) => handleChange("mitreControlDescription", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
           {/* MITRE Control Description */}
-          <Grid mt={1} size={{ xs: 12 }}>
+          {/* <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
               label={labels.bluoceanControlDescription}
               isTooltipRequired={true}
@@ -221,7 +221,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               value={formData.bluOceanControlDescription}
               onChange={(e) => handleChange("bluOceanControlDescription", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
