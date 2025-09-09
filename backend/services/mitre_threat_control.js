@@ -325,7 +325,7 @@ class MitreThreatControlService {
                 .on("end", async () => {
                     try {
                         const finalRows = Object.values(grouped);
-                        // await MitreThreatControl.bulkCreate(finalRows, { ignoreDuplicates: true });
+                        await MitreThreatControl.bulkCreate(finalRows, { ignoreDuplicates: true });
                         fs.unlinkSync(filePath);
 
                         resolve(finalRows);
