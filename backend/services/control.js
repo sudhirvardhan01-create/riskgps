@@ -13,16 +13,14 @@ class ControlsService {
         });
 
         let val = data.map((s) => s.toJSON());
-        console.log(val)
 
         const grouped = Object.values(
             data.reduce((acc, row) => {
-                const key = row.mitreControlId;
+                const key = row.mitreControlId + row.mitreControlName;
 
                 if (!acc[key]) {
                     acc[key] = {
                         id: row.id,
-
                         mitreControlId: row.mitreControlId,
                         mitreControlName: row.mitreControlName,
                         mitreControlType: row.mitreControlType,
