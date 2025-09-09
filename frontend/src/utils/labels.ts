@@ -64,8 +64,9 @@ export const labels = {
   mitreControlType: "MITRE Control Type",
   mitreControlDescription: "MITRE Control Description",
   bluoceanControlDescription: "BluOcean Control Description",
-  nistControlCategoryId: "NIST 2.0 Control Category ID",
-  nistControlCategory: "NIST 2.0 Control Category",
-  nistControlSubcategoryId: "NIST 2.0 Control Sub-category ID",
-  nistControlSubcategory: "NIST 2.0 Control Sub-category",
+  framework: "Control Framework",
+  frameworkControlCategoryId: "Control Category ID",
+  frameworkControlCategory: "Control Category",
+  frameworkControlSubcategoryId: "Control Sub-category ID",
+  frameworkControlSubcategory: "Control Sub-category",
 };

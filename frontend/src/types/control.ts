@@ -17,3 +17,11 @@ export interface ControlForm {
   updated_at?: Date;
   created_at?: Date;
 }
+
+export interface ControlFrameworkForm {
+  framework: string;
+  frameWorkControlCategoryId: string;
+  frameWorkControlCategory: string;
+  frameWorkControlSubCategoryId: string;
+  frameWorkControlSubCategory: string;
+}

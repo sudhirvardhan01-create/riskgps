@@ -84,6 +84,7 @@ export default function ControlContainer() {
   const [file, setFile] = useState<File | null>(null);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
+  {/* Related to Control Framework */}
   const [selectedControlFramework, setSelectedControlFramework] =
     useState("MITRE");
   const frameworks = ["NIST", "ATLAS", "CRI"];
@@ -419,11 +420,14 @@ export default function ControlContainer() {
       {/* Page content */}
       <Box p={5}>
         <LibraryHeader {...headerProps} />
+
+        {/* Tabs to select the Control Framework */}
         <ControlButtonTab
           selectedControlFramework={selectedControlFramework}
           setSelectedControlFramework={setSelectedControlFramework}
           frameworks={frameworks}
         />
+
         <ControlList
           loading={loading}
           data={controlsData}

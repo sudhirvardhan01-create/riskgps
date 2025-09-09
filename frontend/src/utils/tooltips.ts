@@ -65,8 +65,9 @@ export const tooltips = {
   mitreControlType: "Enter MITRE Control Type",
   mitreControlDescription: "Enter MITRE Control Description",
   bluoceanControlDescription: "Enter BluOcean Control Description",
-  nistControlCategoryId: "Enter NIST 2.0 Control Category ID",
-  nistControlCategory: "Enter NIST 2.0 Control Category",
-  nistControlSubcategoryId: "Enter NIST 2.0 Control Sub-category ID",
-  nistControlSubcategory: "Enter NIST 2.0 Control Sub-category",
+  framework: "Select Control Framework",
+  frameworkControlCategoryId: "Enter Control Category ID",
+  frameworkControlCategory: "Enter Control Category",
+  frameworkControlSubcategoryId: "Enter Control Sub-category ID",
+  frameworkControlSubcategory: "Enter Control Sub-category",
 };
