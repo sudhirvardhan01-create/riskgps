@@ -9,6 +9,7 @@ import StepIndicator from "@/components/Assessment/StepIndicator";
 import AssignOrder from "@/components/Assessment/AssignOrder";
 import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
+import DragDropRiskScenarios from "@/components/Assessment/DragDropRiskScenarios";
 
 interface Organisation {
   id: string;
@@ -29,15 +30,15 @@ interface ProcessUnit {
 
 export default function BUProcessMappingPage() {
   const {
-  assessmentName,
-  selectedOrg,
-  selectedBU,
-  selectedProcesses,
-  setSelectedProcesses,
-  orderedProcesses,
-  setOrderedProcesses,
-  submitAssessment,
-} = useAssessment();
+    assessmentName,
+    selectedOrg,
+    selectedBU,
+    selectedProcesses,
+    setSelectedProcesses,
+    orderedProcesses,
+    setOrderedProcesses,
+    submitAssessment,
+  } = useAssessment();
   const router = useRouter();
 
   // Stepper State
@@ -65,14 +66,14 @@ export default function BUProcessMappingPage() {
     { id: "org1", name: "BluOcean" },
     { id: "org2", name: "CDW" },
     { id: "org3", name: "Affirm" }
-];
+  ];
 
-const businessUnits: BusinessUnit[] = [
+  const businessUnits: BusinessUnit[] = [
     { id: "bu1", name: "Retail Banking", orgId: "org1" },
     { id: "bu2", name: "Loan Services", orgId: "org1" },
     { id: "bu3", name: "Retail Banking", orgId: "org2" },
     { id: "bu4", name: "Loan Services", orgId: "org2" },
-];
+  ];
 
   const processes: ProcessUnit[] = [
     { id: "process1", name: "Electronic Banking", buId: "bu3" },
@@ -121,13 +122,13 @@ const businessUnits: BusinessUnit[] = [
           <ArrowStepper steps={steps} activeStep={activeStep} />
         </Box>
 
-        <Box mt={4}>
+        {activeStep === 0 && <Box mt={4}>
           <StepIndicator steps={stepsTab} activeStep={activeTab} />
-        </Box>
+        </Box>}
 
         {/* Content Area */}
         <Box my={4}>
-          {activeTab === 0 && (
+          {activeStep === 0 && activeTab === 0 && (
             <SectionProcesses
               processes={processes.filter((item) => item.buId === selectedBU)}
               selected={selectedProcesses}
@@ -135,12 +136,17 @@ const businessUnits: BusinessUnit[] = [
             />
           )}
 
-          {activeTab === 1 && (
+          {activeStep === 0 && activeTab === 1 && (
             <AssignOrder
               processes={selectedProcesses}
               onOrderChange={setOrderedProcesses}
             />
           )}
+
+          {activeStep === 1 && (
+            <DragDropRiskScenarios />
+          )}
+
         </Box>
       </Box>
 
