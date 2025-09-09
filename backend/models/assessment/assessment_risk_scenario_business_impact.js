@@ -1,7 +1,6 @@
-const { DataTypes } = require("sequelize");
 const commonFields = require("./common_fields");
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
     const AssessmentRiskScenarioBusinessImpact = sequelize.define(
         "AssessmentRiskScenarioBusinessImpact",
         {

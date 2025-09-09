@@ -1,7 +1,6 @@
-const { DataTypes } = require("sequelize");
 const commonFields = require("./common_fields");
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
     const Assessment = sequelize.define(
         "Assessment",
         {
@@ -76,7 +75,6 @@ module.exports = (sequelize) => {
     );
 
     Assessment.associate = (models) => {
-        // Example associations
         Assessment.hasMany(models.AssessmentRiskTaxonomy, {
             foreignKey: "assessmentId",
             sourceKey: "assessmentId",

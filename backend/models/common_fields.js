@@ -31,4 +31,4 @@ const commonFields = {
     },
 };
 
-module.exports = { commonFields };
+module.exports = commonFields;
