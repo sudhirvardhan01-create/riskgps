@@ -12,19 +12,13 @@ import ControlList from "@/components/Library/Control/ControlList";
 import { ControlForm } from "@/types/control";
 import { FileService } from "@/services/fileService";
 import { ControlService } from "@/services/controlService";
+import ControlButtonTab from "@/components/Library/Control/ControlButtonTab";
 
 const initialControlFormData: ControlForm = {
   mitreControlId: "",
   mitreControlName: "",
   mitreControlType: "",
 };
-
-// const initialNISTControlsFormData: NISTControls = {
-//   frameWorkControlCategoryId: "",
-//   frameWorkControlCategory: "",
-//   frameWorkControlSubCategoryId: "",
-//   frameWorkControlSubCategory: "",
-// };
 
 const sortItems = [
   { label: "ID (Ascending)", value: "id:asc" },
@@ -86,16 +80,13 @@ export default function ControlContainer() {
 
   const [formData, setFormData] = useState<ControlForm>(initialControlFormData);
 
-  // const [nistFormData, setNISTFormData] = useState<NISTControls>(
-  //   initialNISTControlsFormData
-  // );
-
-  // const [selectedNISTControl, setSelectedNISTControl] =
-  //   useState<NISTControls | null>(null);
-
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
+
+  const [selectedControlFramework, setSelectedControlFramework] =
+    useState("MITRE");
+  const frameworks = ["NIST", "ATLAS", "CRI"];
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -313,7 +304,7 @@ export default function ControlContainer() {
     () => ({
       breadcrumbItems,
       metaDatas,
-      addButtonText: "Add Control",
+      addButtonText: "Add Control Mapping",
       addAction: () => setIsAddOpen(true),
       sortItems,
       onImport: () => setIsFileUploadOpen(true),
@@ -339,37 +330,6 @@ export default function ControlContainer() {
     [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
-  //Function for Form Validation
-  //   const handleFormValidation = async (status: string) => {
-  //     try {
-  //       const res = await AssetService.fetch(
-  //         0,
-  //         1,
-  //         assetFormData.applicationName.trim(),
-  //         "asset_code:asc"
-  //       );
-  //       if (
-  //         res.data?.length > 0 &&
-  //         res.data[0].applicationName === assetFormData.applicationName.trim()
-  //       ) {
-  //         setToast({
-  //           open: true,
-  //           message: `Asset Name already exists`,
-  //           severity: "error",
-  //         });
-  //       } else {
-  //         handleCreate(status);
-  //       }
-  //     } catch (error) {
-  //       console.error(error);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to create asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
-
   return (
     <>
       {/* View modal */}
@@ -392,8 +352,6 @@ export default function ControlContainer() {
           open={isAddOpen}
           formData={formData}
           setFormData={setFormData}
-          // nistFormData={nistFormData}
-          // setNISTFormData={setNISTFormData}
           onSubmit={() => console.log("Submitted")}
           onClose={() => {
             setIsAddConfirmOpen(true);
@@ -414,14 +372,6 @@ export default function ControlContainer() {
               setSelectedControl(val);
             }
           }}
-          // nistFormData={selectedNISTControl}
-          // setNISTFormData={(val: any) => {
-          //   if (typeof val === "function") {
-          //     setSelectedNISTControl((prev) => val(prev as NISTControls));
-          //   } else {
-          //     setSelectedNISTControl(val);
-          //   }
-          // }}
           onSubmit={() => console.log("Updated")}
           onClose={() => setIsEditConfirmOpen(true)}
         />
@@ -436,7 +386,6 @@ export default function ControlContainer() {
         onConfirm={() => {
           setIsAddConfirmOpen(false);
           setFormData(initialControlFormData);
-          // setNISTFormData(initialNISTControlsFormData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
@@ -470,10 +419,14 @@ export default function ControlContainer() {
       {/* Page content */}
       <Box p={5}>
         <LibraryHeader {...headerProps} />
+        <ControlButtonTab
+          selectedControlFramework={selectedControlFramework}
+          setSelectedControlFramework={setSelectedControlFramework}
+          frameworks={frameworks}
+        />
         <ControlList
           loading={loading}
           data={controlsData}
-          //   data={dummyData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}
