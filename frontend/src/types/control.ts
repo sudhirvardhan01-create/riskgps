@@ -24,4 +24,7 @@ export interface ControlFrameworkForm {
   frameWorkControlCategory: string;
   frameWorkControlSubCategoryId: string;
   frameWorkControlSubCategory: string;
+  status?: string;
+  updated_at?: Date;
+  created_at?: Date;
 }
