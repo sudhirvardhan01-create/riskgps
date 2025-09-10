@@ -32,30 +32,6 @@ export const fetchControls = async (
   return res.data;
 };
 
-//Function to create a control
-export const createControl = async (data: ControlForm) => {
-  console.log(data);
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  if (!response.ok) {
-    console.error("Fetch failed with status:", response.status);
-    const errorResponse = await response.json(); // if API returns error details
-    console.log("Error response:", errorResponse);
-    throw new Error("Failed to create Control");
-  }
-  const res = await response.json();
-  console.log(res);
-  return res.data;
-};
-
 //Function to update a control
 export const updateControl = async (id: number, data: ControlForm) => {
   const response = await fetch(
