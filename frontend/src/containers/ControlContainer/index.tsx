@@ -9,15 +9,18 @@ import ViewControlModal from "@/components/Library/Control/ViewControlModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
-import { ControlForm } from "@/types/control";
+import { ControlForm, ControlFrameworkForm } from "@/types/control";
 import { FileService } from "@/services/fileService";
 import { ControlService } from "@/services/controlService";
 import ControlButtonTab from "@/components/Library/Control/ControlButtonTab";
+import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 
-const initialControlFormData: ControlForm = {
-  mitreControlId: "",
-  mitreControlName: "",
-  mitreControlType: "",
+const initialControlFrameworkFormData: ControlFrameworkForm = {
+  framework: "",
+  frameWorkControlCategoryId: "",
+  frameWorkControlCategory: "",
+  frameWorkControlSubCategoryId: "",
+  frameWorkControlSubCategory: "",
 };
 
 const sortItems = [
@@ -78,7 +81,7 @@ export default function ControlContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [formData, setFormData] = useState<ControlForm>(initialControlFormData);
+  const [formData, setFormData] = useState<ControlFrameworkForm>(initialControlFrameworkFormData);
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
@@ -348,7 +351,7 @@ export default function ControlContainer() {
 
       {/* Add form */}
       {isAddOpen && (
-        <ControlFormModal
+        <ControlFrameworkFormModal
           operation={"create"}
           open={isAddOpen}
           formData={formData}
@@ -382,11 +385,11 @@ export default function ControlContainer() {
       <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Control Creation?"
-        description="Are you sure you want to cancel the control creation? Any unsaved changes will be lost."
+        title="Cancel Control Mapping Creation?"
+        description="Are you sure you want to cancel the control mapping creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
-          setFormData(initialControlFormData);
+          setFormData(initialControlFrameworkFormData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
@@ -428,7 +431,7 @@ export default function ControlContainer() {
           frameworks={frameworks}
         />
 
-        <ControlList
+        {selectedControlFramework === "MITRE" && <ControlList
           loading={loading}
           data={controlsData}
           totalRows={totalRows}
@@ -441,7 +444,7 @@ export default function ControlContainer() {
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
           handleUpdateStatus={() => console.log("Updated")}
-        />
+        />}
       </Box>
 
       <ToastComponent

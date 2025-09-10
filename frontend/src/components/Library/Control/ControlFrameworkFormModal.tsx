@@ -1,5 +1,5 @@
 import React from "react";
-import { Close } from "@mui/icons-material";
+import { Add, Close } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -11,6 +11,7 @@ import {
   Grid,
   IconButton,
   MenuItem,
+  Stack,
   Typography,
 } from "@mui/material";
 import TextFieldStyled from "@/components/TextFieldStyled";
@@ -83,7 +84,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
       <DialogContent sx={{ marginTop: 2 }}>
         <Grid container spacing={4}>
           {/* Framework Name */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          <Grid mt={1} size={{ xs: 12 }}>
             <SelectStyled
               required
               value={formData.framework}
@@ -127,6 +128,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
           {/* Framework Control Category ID */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
+              required
               label={labels.frameworkControlCategoryId}
               isTooltipRequired={true}
               tooltipTitle={tooltips.frameworkControlCategoryId}
@@ -141,6 +143,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
           {/* Framework Control Category */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
+              required
               label={labels.frameworkControlCategory}
               isTooltipRequired={true}
               tooltipTitle={tooltips.frameworkControlCategory}
@@ -182,6 +185,27 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
               }
             />
           </Grid>
+
+          {/* RELATED CONTROLS SECTION */}
+          <Grid mt={1} size={{ xs: 12 }}>
+            <Stack display={"flex"} flexDirection={"column"} gap={2}>
+              <Typography variant="h6" fontWeight={600}>
+                Related MITRE Controls
+              </Typography>
+              <Grid size={{ xs: 12 }}>
+                <Button
+                  startIcon={<Add />}
+                  onClick={() => {
+                    // setIsAddRelatedControlOpen(true);
+                    // setRelatedControlFormData(initialRelatedControlFormData);
+                  }}
+                  sx={{ paddingY: 0 }}
+                >
+                  Add New Control
+                </Button>
+              </Grid>
+            </Stack>
+          </Grid>
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", my: 2.5, mx: 3 }}>
@@ -222,9 +246,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
             disabled={
               formData.framework === "" ||
               formData.frameWorkControlCategoryId === "" ||
-              formData.frameWorkControlCategory === "" ||
-              formData.frameWorkControlSubCategoryId === "" ||
-              formData.frameWorkControlSubCategory === ""
+              formData.frameWorkControlCategory === ""
             }
             disableRipple
           >
