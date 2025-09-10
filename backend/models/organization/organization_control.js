@@ -10,27 +10,40 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: DataTypes.UUIDV4,
                 field: "org_control_id",
             },
+            organizationId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                field: "org_id", // alias → DB column org_id
+            },
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 field: "name",
             },
-            ...commonFields,
+            ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "organization_control",
-            timestamps: false,
+            timestamps: false, // we’re handling timestamps manually
         }
     );
 
     OrganizationControl.associate = (models) => {
-        // later: if organization ↔ control mapping exists, add associations here
-        // Example:
-        // OrganizationControl.belongsTo(models.Organization, {
-        //     foreignKey: "organizationId",
-        //     targetKey: "organizationId",
-        //     as: "organization",
-        // });
+        // belongsTo Organization
+        OrganizationControl.belongsTo(models.Organization, {
+            foreignKey: "organizationId", // alias
+            targetKey: "organizationId",
+            as: "organizationDetails",
+        });
+
+        // One Organization → Many Controls
+        if (models.Organization) {
+            models.Organization.hasMany(OrganizationControl, {
+                foreignKey: "organizationId",
+                sourceKey: "organizationId",
+                as: "controls",
+            });
+        }
     };
 
     return OrganizationControl;

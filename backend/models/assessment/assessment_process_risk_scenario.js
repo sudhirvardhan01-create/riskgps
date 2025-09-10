@@ -1,4 +1,4 @@
-const commonFields = require("../common_fields");
+const { commonFields } = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const AssessmentProcessRiskScenario = sequelize.define(
@@ -15,6 +15,11 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 field: "assessment_process_id",
             },
+            assessmentId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                field: "assessment_id",
+            },
             riskScenarioName: {
                 type: DataTypes.STRING,
                 allowNull: false,
@@ -25,33 +30,26 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "risk_scenario_desc",
             },
-            assessmentId: {
-                type: DataTypes.UUID,
-                allowNull: false,
-                field: "assessment_id",
-            },
-
-            ...commonFields,
+            ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "assessment_process_risk_scenario",
+            schema: "public",
             timestamps: false,
         }
     );
 
     AssessmentProcessRiskScenario.associate = (models) => {
-        // belongsTo Assessment
-        AssessmentProcessRiskScenario.belongsTo(models.Assessment, {
-            foreignKey: "assessmentId",
-            targetKey: "assessmentId",
-            as: "assessment",
-        });
-
-        // belongsTo AssessmentProcess
+        // Relation to AssessmentProcess
         AssessmentProcessRiskScenario.belongsTo(models.AssessmentProcess, {
             foreignKey: "assessmentProcessId",
-            targetKey: "assessmentProcessId",
-            as: "process",
+            as: "assessmentProcess",
+        });
+
+        // Relation to Assessment
+        AssessmentProcessRiskScenario.belongsTo(models.Assessment, {
+            foreignKey: "assessmentId",
+            as: "assessment",
         });
     };
 

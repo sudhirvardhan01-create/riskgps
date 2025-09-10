@@ -1,4 +1,4 @@
-const commonFields = require("../common_fields");
+﻿const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const Organization = sequelize.define(
@@ -8,34 +8,68 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 primaryKey: true,
                 defaultValue: DataTypes.UUIDV4,
-                field: "org_id",
+                field: "org_id", // maps alias organizationId -> DB column org_id
             },
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 field: "name",
             },
-            ...commonFields,
+            desc: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: "desc",
+            },
+            ...commonFields, // adds createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "organization",
-            timestamps: false,
+            timestamps: false, // disable default createdAt/updatedAt
         }
     );
 
     Organization.associate = (models) => {
-        // one organization has many assessments
+        // One organization has many assessments
         Organization.hasMany(models.Assessment, {
-            foreignKey: "organizationId",
+            foreignKey: "organizationId", // keep alias
             sourceKey: "organizationId",
             as: "assessments",
         });
 
-        // one organization has many business units
+        /**
+        * Organization → Business Units
+        */
         Organization.hasMany(models.OrganizationBusinessUnit, {
-            foreignKey: "org_id",
+            foreignKey: "organizationId",
             sourceKey: "organizationId",
-            as: "business_units",
+            as: "businessUnits",
+        });
+
+        /**
+         * Organization → Assets
+         */
+        Organization.hasMany(models.OrganizationAsset, {
+            foreignKey: "organizationId",
+            sourceKey: "organizationId",
+            as: "assets",
+        });
+
+        /**
+         * Organization → Risk Scenarios
+         */
+        Organization.hasMany(models.OrganizationRiskScenario, {
+            foreignKey: "organizationId",
+            sourceKey: "organizationId",
+            as: "riskScenarios",
+        });
+
+        /**
+         * Organization → Taxonomies
+         */
+        Organization.hasMany(models.Taxonomy, {
+            foreignKey: "organizationId",
+            sourceKey: "organizationId",
+            as: "taxonomies",
         });
     };
 

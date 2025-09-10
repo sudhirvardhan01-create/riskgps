@@ -1,4 +1,4 @@
-const commonFields = require("../common_fields");
+const { commonFields } = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const AssessmentProcess = sequelize.define(
@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
                 primaryKey: true,
                 defaultValue: DataTypes.UUIDV4,
                 field: "assessment_process_id",
+            },
+            assessmentId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                field: "assessment_id",
             },
             processName: {
                 type: DataTypes.STRING,
@@ -25,24 +30,19 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "order",
             },
-            assessmentId: {
-                type: DataTypes.UUID,
-                allowNull: false,
-                field: "assessment_id",
-            },
-
-            ...commonFields,
+            ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, etc.
         },
         {
             tableName: "assessment_process",
+            schema: "public",
             timestamps: false,
         }
     );
 
     AssessmentProcess.associate = (models) => {
+        // Relation to Assessment
         AssessmentProcess.belongsTo(models.Assessment, {
             foreignKey: "assessmentId",
-            targetKey: "assessmentId",
             as: "assessment",
         });
     };
