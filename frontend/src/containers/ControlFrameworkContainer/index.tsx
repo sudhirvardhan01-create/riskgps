@@ -193,7 +193,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       frameWorkControlCategoryId: "CAT-002",
       frameWorkControlCategory: "Incident Response",
       frameWorkControlSubCategoryId: "SUB-002",
-      frameWorkControlSubCategory: "Response Planning",
+      frameWorkControlSubCategory: "Personnel activity and technology usage are monitored to find potentially adverse events",
       mitreControls: ["DS0022", "M1047"],
     },
     {
@@ -201,10 +201,10 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       frameWorkControlCategoryId: "CAT-003",
       frameWorkControlCategory: "Risk Management",
       frameWorkControlSubCategoryId: "SUB-003",
-      frameWorkControlSubCategory: "Risk Assessment",
+      frameWorkControlSubCategory: "Personnel activity and technology usage are monitored to find potentially adverse events",
       mitreControls: ["DS0022", "M1047"],
     },
-    {
+     {
       frameWorkName: "NIST",
       frameWorkControlCategoryId: "CAT-004",
       frameWorkControlCategory: "System Integrity",
@@ -259,8 +259,8 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       <ConfirmDialog
         open={isEditConfirmOpen}
         onClose={() => setIsEditConfirmOpen(false)}
-        title="Cancel Control Updation?"
-        description="Are you sure you want to cancel the control updation? Any unsaved changes will be lost."
+        title="Cancel Control mapping Updation?"
+        description="Are you sure you want to cancel the control mapping updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmOpen(false);
           setSelectedData(null);
@@ -284,7 +284,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       <ControlFrameworkList
         loading={loading}
         //data={controlsData}
-        data={dummyFrameworkRecords}
+        data={dummyFrameworkRecords.filter((item) => item.frameWorkName === selectedControlFramework)}
         totalRows={totalRows}
         page={page}
         rowsPerPage={rowsPerPage}

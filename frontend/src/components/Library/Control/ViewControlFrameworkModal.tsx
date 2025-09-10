@@ -9,7 +9,14 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
+  Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
@@ -45,7 +52,9 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
             />
           }
           label={
-            controlFrameworkRecord.status === "published" ? "Enabled" : "Disabled"
+            controlFrameworkRecord.status === "published"
+              ? "Enabled"
+              : "Disabled"
           }
           sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
         />
@@ -129,7 +138,7 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
       <DialogContent sx={{ paddingBottom: 0 }}>
         <Grid container spacing={3}>
           {/* Control Framework */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 Control Framework
@@ -181,7 +190,7 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
           </Grid>
 
           {/* Framework Control Sub-Category */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 Framework Control Sub-Category
@@ -192,6 +201,42 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
                   : "-"}
               </Typography>
             </Box>
+          </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <Typography variant="h6" fontWeight={600}>
+              Mapping with MITRE Controls
+            </Typography>
+          </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <Paper sx={{ width: "100%", overflow: "hidden" }}>
+              <TableContainer sx={{ maxHeight: 440 }}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>MITRE Control ID</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {controlFrameworkRecord.mitreControls?.map(
+                      (control, index) => {
+                        return (
+                          <TableRow
+                            hover
+                            role="checkbox"
+                            tabIndex={-1}
+                            key={index}
+                          >
+                            <TableCell>{control}</TableCell>
+                          </TableRow>
+                        );
+                      }
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
           </Grid>
         </Grid>
       </DialogContent>

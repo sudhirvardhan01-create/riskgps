@@ -64,10 +64,6 @@ const ControlFrameworkList: React.FC<Props> = ({
                       label: "Sub-Category ID:",
                       value: item.frameWorkControlSubCategoryId,
                     },
-                    {
-                      label: "Sub-Category Name:",
-                      value: item.frameWorkControlSubCategory,
-                    },
                   ]}
                 />
               </div>
