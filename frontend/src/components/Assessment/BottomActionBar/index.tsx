@@ -52,7 +52,7 @@ export default function BottomActionBar({
             color: "#04139A",
             textTransform: "none",
             fontWeight: 500,
-            borderRadius: "8px",
+            borderRadius: "4px",
           }}
         >
           Save as Draft
@@ -65,7 +65,7 @@ export default function BottomActionBar({
             bgcolor: "#04139A",
             textTransform: "none",
             fontWeight: 500,
-            borderRadius: "8px",
+            borderRadius: "4px",
             "&:hover": { bgcolor: "#02106f" },
           }}
         >

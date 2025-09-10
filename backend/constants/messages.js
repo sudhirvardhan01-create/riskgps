@@ -126,6 +126,17 @@ module.exports = {
         FAILED_TO_EXPORT_CSV:' Failed to download Mitre ThreatControl Record CSV',
         FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
         FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
-
+    },
+    ASSESSMENT: {
+        NAME_REQUIRED: "Assessment name is required.",
+        NOT_FOUND: (id) => `Assessment with id '${id}' not found.`,
+        DELETED: "Assessment deleted successfully.",
+        CREATED: "Assessment created successfully.",
+        UPDATED: "Assessment updated successfully.",
+    },
+    ORGANIZATION: {
+        FETCHED: "Organizations fetched successfully",
+        FETCHED_BY_ID: "Organization fetched by ID successfully",
+        NOT_FOUND: "Organization not found",
     }
 };
