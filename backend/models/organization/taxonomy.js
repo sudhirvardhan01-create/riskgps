@@ -1,4 +1,4 @@
-const commonFields = require("./common_fields");
+const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const Taxonomy = sequelize.define(

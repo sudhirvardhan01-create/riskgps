@@ -1,4 +1,4 @@
-const commonFields = require("./common_fields");
+const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const Assessment = sequelize.define(
@@ -75,11 +75,11 @@ module.exports = (sequelize, DataTypes) => {
     );
 
     Assessment.associate = (models) => {
-        Assessment.hasMany(models.AssessmentRiskTaxonomy, {
-            foreignKey: "assessmentId",
-            sourceKey: "assessmentId",
-            as: "riskTaxonomies",
-        });
+        //Assessment.hasMany(models.AssessmentRiskTaxonomy, {
+        //    foreignKey: "assessmentId",
+        //    sourceKey: "assessmentId",
+        //    as: "riskTaxonomies",
+        //});
 
         Assessment.hasMany(models.AssessmentRiskScenarioBusinessImpact, {
             foreignKey: "assessmentId",
