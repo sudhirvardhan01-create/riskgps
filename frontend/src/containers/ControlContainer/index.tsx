@@ -17,11 +17,12 @@ import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrame
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
-  framework: "",
+  frameWorkName: "",
   frameWorkControlCategoryId: "",
   frameWorkControlCategory: "",
   frameWorkControlSubCategoryId: "",
   frameWorkControlSubCategory: "",
+  mitreControls: [],
 };
 
 const sortItems = [
@@ -82,13 +83,17 @@ export default function ControlContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [formData, setFormData] = useState<ControlFrameworkForm>(initialControlFrameworkFormData);
+  const [formData, setFormData] = useState<ControlFrameworkForm>(
+    initialControlFrameworkFormData
+  );
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
-  {/* Related to Control Framework */}
+  {
+    /* Related to Control Framework */
+  }
   const [selectedControlFramework, setSelectedControlFramework] =
     useState("MITRE");
   const frameworks = ["NIST", "ATLAS", "CRI"];
@@ -355,6 +360,7 @@ export default function ControlContainer() {
         <ControlFrameworkFormModal
           operation={"create"}
           open={isAddOpen}
+          controls={controlsData}
           formData={formData}
           setFormData={setFormData}
           onSubmit={() => console.log("Submitted")}
@@ -432,22 +438,29 @@ export default function ControlContainer() {
           frameworks={frameworks}
         />
 
-        {selectedControlFramework === "MITRE" && <ControlList
-          loading={loading}
-          data={controlsData}
-          totalRows={totalRows}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          setSelectedControl={setSelectedControl}
-          setIsViewOpen={setIsViewOpen}
-          setIsEditOpen={setIsEditOpen}
-          setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-          handleUpdateStatus={() => console.log("Updated")}
-        />}
+        {selectedControlFramework === "MITRE" && (
+          <ControlList
+            loading={loading}
+            data={controlsData}
+            totalRows={totalRows}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            setSelectedControl={setSelectedControl}
+            setIsViewOpen={setIsViewOpen}
+            setIsEditOpen={setIsEditOpen}
+            setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
+            handleUpdateStatus={() => console.log("Updated")}
+          />
+        )}
 
-        {/* {selectedControlFramework !== "MITRE" && <ControlFrameworkContainer selectedControlFramework={selectedControlFramework} />} */}
+        {selectedControlFramework !== "MITRE" && (
+          <ControlFrameworkContainer
+            selectedControlFramework={selectedControlFramework}
+            controls={controlsData}
+          />
+        )}
       </Box>
 
       <ToastComponent

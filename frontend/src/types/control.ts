@@ -20,11 +20,12 @@ export interface ControlForm {
 
 export interface ControlFrameworkForm {
   id?: number;
-  framework: string;
+  frameWorkName: string;
   frameWorkControlCategoryId: string;
   frameWorkControlCategory: string;
   frameWorkControlSubCategoryId: string;
   frameWorkControlSubCategory: string;
+  mitreControls: string[];
   status?: string;
   updated_at?: Date;
   created_at?: Date;

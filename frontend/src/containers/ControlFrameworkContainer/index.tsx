@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
-import { Box } from "@mui/material";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { ControlFrameworkForm } from "@/types/control";
+import { ControlForm, ControlFrameworkForm } from "@/types/control";
 import { FileService } from "@/services/fileService";
 import { ControlService } from "@/services/controlService";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
@@ -12,17 +11,20 @@ import ViewControlFrameworkModal from "@/components/Library/Control/ViewControlF
 
 interface ControlFrameworkContainerProps {
   selectedControlFramework: string;
+  controls: ControlForm[];
 }
 
 const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   selectedControlFramework,
+  controls,
 }) => {
   const initialControlFrameworkFormData: ControlFrameworkForm = {
-    framework: "",
+    frameWorkName: "",
     frameWorkControlCategoryId: "",
     frameWorkControlCategory: "",
     frameWorkControlSubCategoryId: "",
     frameWorkControlSubCategory: "",
+    mitreControls: [],
   };
 
   const [loading, setLoading] = useState(false);
@@ -179,39 +181,44 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
 
   const dummyFrameworkRecords = [
     {
-      framework: "NIST",
+      frameWorkName: "NIST",
       frameWorkControlCategoryId: "CAT-001",
       frameWorkControlCategory: "Access Control",
       frameWorkControlSubCategoryId: "SUB-001",
       frameWorkControlSubCategory: "User Authentication",
+      mitreControls: ["DS0022", "M1047"],
     },
     {
-      framework: "CRI",
+      frameWorkName: "CRI",
       frameWorkControlCategoryId: "CAT-002",
       frameWorkControlCategory: "Incident Response",
       frameWorkControlSubCategoryId: "SUB-002",
       frameWorkControlSubCategory: "Response Planning",
+      mitreControls: ["DS0022", "M1047"],
     },
     {
-      framework: "ATLAS",
+      frameWorkName: "ATLAS",
       frameWorkControlCategoryId: "CAT-003",
       frameWorkControlCategory: "Risk Management",
       frameWorkControlSubCategoryId: "SUB-003",
       frameWorkControlSubCategory: "Risk Assessment",
+      mitreControls: ["DS0022", "M1047"],
     },
     {
-      framework: "NIST",
+      frameWorkName: "NIST",
       frameWorkControlCategoryId: "CAT-004",
       frameWorkControlCategory: "System Integrity",
       frameWorkControlSubCategoryId: "SUB-004",
       frameWorkControlSubCategory: "Malware Protection",
+      mitreControls: ["DS0022", "M1047"],
     },
     {
-      framework: "CRI",
+      frameWorkName: "CRI",
       frameWorkControlCategoryId: "CAT-005",
       frameWorkControlCategory: "Data Protection",
       frameWorkControlSubCategoryId: "SUB-005",
       frameWorkControlSubCategory: "Encryption & Key Management",
+      mitreControls: ["DS0022", "M1047"],
     },
   ];
 
@@ -235,6 +242,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
         <ControlFrameworkFormModal
           operation="edit"
           open={isEditOpen}
+          controls={controls}
           formData={selectedData}
           setFormData={(val: any) => {
             if (typeof val === "function") {

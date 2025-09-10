@@ -1,6 +1,7 @@
-import React from "react";
-import { Add, Close } from "@mui/icons-material";
+import React, { useState } from "react";
+import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
 import {
+  Autocomplete,
   Box,
   Button,
   Dialog,
@@ -11,19 +12,29 @@ import {
   Grid,
   IconButton,
   MenuItem,
+  Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import { labels } from "@/utils/labels";
 import { tooltips } from "@/utils/tooltips";
-import { ControlFrameworkForm } from "@/types/control";
+import { ControlForm, ControlFrameworkForm } from "@/types/control";
 import SelectStyled from "@/components/SelectStyled";
+import TooltipComponent from "@/components/TooltipComponent";
 
 interface ControlFrameworkFormModalProps {
   operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
+  controls: ControlForm[];
   formData: ControlFrameworkForm;
   setFormData: React.Dispatch<React.SetStateAction<ControlFrameworkForm>>;
   onSubmit: () => void;
@@ -33,10 +44,21 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
   operation,
   open,
   onClose,
+  controls,
   formData,
   setFormData,
   onSubmit,
 }) => {
+  const [selectedMITREControlID, setSelectedMITREControlID] = useState<
+    string | null
+  >(null);
+  //   const [mitreControlIDSearch, setMITREControlIDSearch] = useState<string>("");
+  //   const filteredMITREControlIDs = controls.filter((item) =>
+  //     item.mitreControlId.includes(mitreControlIDSearch)
+  //   );
+  const distictMITREControlIDs = [
+    ...new Set(controls.map((item) => item.mitreControlId)),
+  ];
   //Function to handle the Field change
   const handleFieldChange = (field: keyof typeof formData, value: any) => {
     setFormData((prev) => {
@@ -47,12 +69,31 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
     });
   };
 
+  const addMITREControlID = () => {
+    if (selectedMITREControlID) {
+      setFormData((prev) => ({
+        ...prev,
+        mitreControls: [
+          ...(formData.mitreControls ?? []),
+          selectedMITREControlID,
+        ],
+      }));
+    }
+    setSelectedMITREControlID(null);
+  };
+
+  const deleteMITREControlID = (id: number) => {
+    const updatedMITREControls = formData.mitreControls.filter(
+      (_, i) => i !== id
+    );
+    setFormData((prev) => ({ ...prev, mitreControls: updatedMITREControls }));
+  };
   return (
     <Dialog
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="sm"
+      maxWidth="md"
       slotProps={{
         paper: {
           sx: {
@@ -87,12 +128,14 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
           <Grid mt={1} size={{ xs: 12 }}>
             <SelectStyled
               required
-              value={formData.framework}
+              value={formData.frameWorkName}
               label={labels.framework}
               isTooltipRequired={true}
               tooltipTitle={tooltips.framework}
               displayEmpty
-              onChange={(e) => handleFieldChange("framework", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("frameWorkName", e.target.value)
+              }
               renderValue={(selected: any) => {
                 if (!selected) {
                   return (
@@ -190,20 +233,149 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
           <Grid mt={1} size={{ xs: 12 }}>
             <Stack display={"flex"} flexDirection={"column"} gap={2}>
               <Typography variant="h6" fontWeight={600}>
-                Related MITRE Controls
+                Mapping with MITRE Controls
               </Typography>
-              <Grid size={{ xs: 12 }}>
-                <Button
-                  startIcon={<Add />}
-                  onClick={() => {
-                    // setIsAddRelatedControlOpen(true);
-                    // setRelatedControlFormData(initialRelatedControlFormData);
-                  }}
-                  sx={{ paddingY: 0 }}
-                >
-                  Add New Control
-                </Button>
-              </Grid>
+              <Stack
+                display={"flex"}
+                flexDirection={"row"}
+                gap={2}
+                alignItems={"center"}
+              >
+                <Grid size={{ xs: 10 }}>
+                  <Autocomplete
+                    disablePortal
+                    options={distictMITREControlIDs}
+                    value={selectedMITREControlID}
+                    onChange={(event: any, newValue: string | null) => {
+                      setSelectedMITREControlID(newValue);
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        height: "52px",
+                        borderRadius: "8px",
+                        backgroundColor: "#ffffff",
+                        "& fieldset": {
+                          borderColor: "#cecfd2",
+                          borderWidth: "1px",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "#cecfd2",
+                          borderWidth: "1.5px",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#cecfd2",
+                          borderWidth: "1.5px",
+                        },
+                        "& input": {
+                          padding: "14px 16px",
+                          fontSize: "16px",
+                          color: "#484848",
+                          "&::placeholder": {
+                            color: "#9E9FA5",
+                            opacity: 1,
+                          },
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#121212",
+                        "&.Mui-focused": {
+                          color: "#121212",
+                        },
+                        "&.MuiInputLabel-shrink": {
+                          transform: "translate(14px, -9px) scale(0.75)",
+                        },
+                      },
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Typography
+                              variant="body1"
+                              color="#121212"
+                              fontWeight={500}
+                            >
+                              {labels.mitreControlId}
+                            </Typography>
+                            {/* <Typography color="#FB2020">*</Typography> */}
+                            <TooltipComponent title={tooltips.mitreControlId} />
+                          </Box>
+                        }
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid size={{ xs: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={addMITREControlID}
+                    disabled={!selectedMITREControlID}
+                    sx={{
+                      backgroundColor: "main.color",
+                      "&:hover": {
+                        backgroundColor: "#1565c0",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#9e9e9e",
+                      },
+                    }}
+                  >
+                    Add
+                  </Button>
+                </Grid>
+              </Stack>
+              {formData?.mitreControls &&
+                formData?.mitreControls?.length > 0 && (
+                  <Grid size={{ xs: 12 }}>
+                    <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                      <TableContainer sx={{ maxHeight: 440 }}>
+                        <Table stickyHeader>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>MITRE Control ID</TableCell>
+                              <TableCell>Actions</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {formData.mitreControls?.map((control, index) => {
+                              return (
+                                <TableRow
+                                  hover
+                                  role="checkbox"
+                                  tabIndex={-1}
+                                  key={index}
+                                >
+                                  <TableCell>{control}</TableCell>
+                                  <TableCell>
+                                    <IconButton
+                                      onClick={() => deleteMITREControlID(index)}
+                                    >
+                                      <DeleteOutlineOutlined
+                                        sx={{ color: "#cd0303" }}
+                                      />
+                                    </IconButton>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Paper>
+                  </Grid>
+                )}
             </Stack>
           </Grid>
         </Grid>
@@ -244,7 +416,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
             variant="contained"
             onClick={onSubmit}
             disabled={
-              formData.framework === "" ||
+              formData.frameWorkName === "" ||
               formData.frameWorkControlCategoryId === "" ||
               formData.frameWorkControlCategory === ""
             }
@@ -261,3 +433,54 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
 };
 
 export default ControlFrameworkFormModal;
+
+{
+  /* <FormControl fullWidth size="medium">
+                  <InputLabel id="mitre-control-id-label">
+                    <Typography variant="body1" color="#121212">
+                      {labels.mitreControlId}
+                    </Typography>
+                  </InputLabel>
+                  <Select
+                    labelId="mitre-control-id-label"
+                    label={
+                      <Typography variant="body1" color="#121212">
+                        {labels.mitreControlId}
+                      </Typography>
+                    }
+                    value={selectedMITREControlID}
+                    onChange={(e) => {
+                      setSelectedMITREControlID(e.target.value);
+                    }}
+                    sx={{ bgcolor: "#fff", borderRadius: "8px" }}
+                    renderValue={(val) => {
+                      if (!val) return "Select MITRE Control ID";
+                      return val;
+                    }}
+                    required
+                  >
+                    <ListSubheader>
+                      <TextField
+                        size="small"
+                        placeholder="Search MITRE Control ID"
+                        value={mitreControlIDSearch}
+                        onChange={(e) =>
+                          setMITREControlIDSearch(e.target.value)
+                        }
+                        fullWidth
+                      />
+                    </ListSubheader>
+
+                    {filteredMITREControlIDs.map((item, index) => (
+                      <MenuItem key={index} value={item.mitreControlId}>
+                        <Radio
+                          checked={
+                            selectedMITREControlID === item.mitreControlId
+                          }
+                        />
+                        {item.mitreControlId}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl> */
+}

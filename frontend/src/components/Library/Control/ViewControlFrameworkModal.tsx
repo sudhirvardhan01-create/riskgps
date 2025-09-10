@@ -135,7 +135,7 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
                 Control Framework
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlFrameworkRecord.framework}
+                {controlFrameworkRecord.frameWorkName}
               </Typography>
             </Box>
           </Grid>
