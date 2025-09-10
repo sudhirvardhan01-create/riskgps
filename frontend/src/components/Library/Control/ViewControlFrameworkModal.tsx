@@ -17,7 +17,7 @@ import { ControlFrameworkForm } from "@/types/control";
 
 interface ViewControlFrameworkModalProps {
   open: boolean;
-  controlFrameworkData: ControlFrameworkForm;
+  controlFrameworkRecord: ControlFrameworkForm;
   setIsEditControlOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedControlFrameworkRecord: React.Dispatch<
     React.SetStateAction<ControlFrameworkForm | null>
@@ -26,26 +26,26 @@ interface ViewControlFrameworkModalProps {
 }
 const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
   open,
-  controlFrameworkData,
+  controlFrameworkRecord,
   setIsEditControlOpen,
   setSelectedControlFrameworkRecord,
   onClose,
 }: ViewControlFrameworkModalProps) => {
   const getStatusComponent = () => {
     if (
-      controlFrameworkData.status === "published" ||
-      controlFrameworkData.status === "not_published"
+      controlFrameworkRecord.status === "published" ||
+      controlFrameworkRecord.status === "not_published"
     ) {
       return (
         <FormControlLabel
           control={
             <ToggleSwitch
               color="success"
-              checked={controlFrameworkData.status === "published"}
+              checked={controlFrameworkRecord.status === "published"}
             />
           }
           label={
-            controlFrameworkData.status === "published" ? "Enabled" : "Disabled"
+            controlFrameworkRecord.status === "published" ? "Enabled" : "Disabled"
           }
           sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
         />
@@ -98,7 +98,7 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
             gap={2}
           >
             <Typography variant="h5" color="#121212" fontWeight={550}>
-              Control {controlFrameworkData.frameWorkControlCategoryId}
+              Control {controlFrameworkRecord.frameWorkControlCategoryId}
             </Typography>
             {getStatusComponent()}
           </Stack>
@@ -112,7 +112,7 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
             <IconButton
               sx={{ padding: 0 }}
               onClick={() => {
-                setSelectedControlFrameworkRecord(controlFrameworkData);
+                setSelectedControlFrameworkRecord(controlFrameworkRecord);
                 setIsEditControlOpen(true);
               }}
             >
@@ -135,7 +135,7 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
                 Control Framework
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlFrameworkData.framework}
+                {controlFrameworkRecord.framework}
               </Typography>
             </Box>
           </Grid>
@@ -147,7 +147,7 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
                 Framework Control Category ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlFrameworkData.frameWorkControlCategoryId}
+                {controlFrameworkRecord.frameWorkControlCategoryId}
               </Typography>
             </Box>
           </Grid>
@@ -159,8 +159,8 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
                 Framework Control Category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlFrameworkData.frameWorkControlCategory
-                  ? controlFrameworkData.frameWorkControlCategory
+                {controlFrameworkRecord.frameWorkControlCategory
+                  ? controlFrameworkRecord.frameWorkControlCategory
                   : "-"}
               </Typography>
             </Box>
@@ -173,8 +173,8 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
                 Framework Control Sub-Category ID
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlFrameworkData.frameWorkControlSubCategoryId
-                  ? controlFrameworkData.frameWorkControlSubCategoryId
+                {controlFrameworkRecord.frameWorkControlSubCategoryId
+                  ? controlFrameworkRecord.frameWorkControlSubCategoryId
                   : "-"}
               </Typography>
             </Box>
@@ -187,8 +187,8 @@ const ViewControlFrameworkModal: React.FC<ViewControlFrameworkModalProps> = ({
                 Framework Control Sub-Category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlFrameworkData.frameWorkControlSubCategory
-                  ? controlFrameworkData.frameWorkControlSubCategory
+                {controlFrameworkRecord.frameWorkControlSubCategory
+                  ? controlFrameworkRecord.frameWorkControlSubCategory
                   : "-"}
               </Typography>
             </Box>

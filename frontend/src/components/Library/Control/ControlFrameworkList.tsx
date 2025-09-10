@@ -13,7 +13,7 @@ interface Props {
   onRowsPerPageChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  setSelectedData: React.Dispatch<React.SetStateAction<ControlFrameworkForm | null>>;
+  setSelectedControlFrameworkRecord: React.Dispatch<React.SetStateAction<ControlFrameworkForm | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -27,7 +27,7 @@ const ControlFrameworkList: React.FC<Props> = ({
   rowsPerPage,
   onPageChange,
   onRowsPerPageChange,
-  setSelectedData,
+  setSelectedControlFrameworkRecord,
   setIsViewOpen,
   setIsEditOpen,
   setIsDeleteConfirmOpen,
@@ -45,8 +45,8 @@ const ControlFrameworkList: React.FC<Props> = ({
             data.map((item) => (
               <div key={item.id ?? JSON.stringify(item)}>
                 <ControlFrameworkCard
-                  controlFrameworkData={item}
-                  setSelectedData={setSelectedData}
+                  controlFrameworkRecord={item}
+                  setSelectedControlFrameworkRecord={setSelectedControlFrameworkRecord}
                   setIsViewOpen={setIsViewOpen}
                   setIsEditOpen={setIsEditOpen}
                   setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
@@ -56,6 +56,7 @@ const ControlFrameworkList: React.FC<Props> = ({
                   title={item.frameWorkControlCategory?? ""}
                   status={item.status ?? ""}
                   lastUpdated={item.updated_at}
+                  footerChips={[{label: "Sub-Category ID", value: "ID"}]}
                 />
               </div>
             ))

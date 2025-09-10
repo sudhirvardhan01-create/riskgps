@@ -14,6 +14,7 @@ import { FileService } from "@/services/fileService";
 import { ControlService } from "@/services/controlService";
 import ControlButtonTab from "@/components/Library/Control/ControlButtonTab";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
+import ControlFrameworkContainer from "../ControlFrameworkContainer";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
   framework: "",
@@ -445,6 +446,8 @@ export default function ControlContainer() {
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
           handleUpdateStatus={() => console.log("Updated")}
         />}
+
+        {/* {selectedControlFramework !== "MITRE" && <ControlFrameworkContainer selectedControlFramework={selectedControlFramework} />} */}
       </Box>
 
       <ToastComponent

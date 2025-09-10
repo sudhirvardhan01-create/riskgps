@@ -14,8 +14,8 @@ interface FooterChip {
 }
 
 interface ControlFrameworkCardProps {
-  controlFrameworkData: ControlFrameworkForm;
-  setSelectedData: React.Dispatch<React.SetStateAction<any>>;
+  controlFrameworkRecord: ControlFrameworkForm;
+  setSelectedControlFrameworkRecord: React.Dispatch<React.SetStateAction<any>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,8 +29,8 @@ interface ControlFrameworkCardProps {
 }
 
 const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
-  controlFrameworkData,
-  setSelectedData,
+  controlFrameworkRecord,
+  setSelectedControlFrameworkRecord,
   setIsViewOpen,
   setIsEditOpen,
   setIsDeleteConfirmPopupOpen,
@@ -53,8 +53,8 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
                 const updatedStatus = e.target.checked
                   ? "published"
                   : "not_published";
-                if (typeof controlFrameworkData.id === "number")
-                  handleUpdateStatus(controlFrameworkData.id, updatedStatus);
+                if (typeof controlFrameworkRecord.id === "number")
+                  handleUpdateStatus(controlFrameworkRecord.id, updatedStatus);
               }}
               checked={status === "published"}
             />
@@ -79,7 +79,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
   const dialogData = [
     {
       onAction: () => {
-        setSelectedData(controlFrameworkData);
+        setSelectedControlFrameworkRecord(controlFrameworkRecord);
         setIsEditOpen(true);
       },
       color: "primary.main",
@@ -88,7 +88,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
     },
     {
       onAction: () => {
-        setSelectedData(controlFrameworkData);
+        setSelectedControlFrameworkRecord(controlFrameworkRecord);
         setIsDeleteConfirmPopupOpen(true);
       },
       color: "#CD0303",
@@ -175,7 +175,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
       {/* Body */}
       <Box
         onClick={() => {
-          setSelectedData(controlFrameworkData);
+          setSelectedControlFrameworkRecord(controlFrameworkRecord);
           setIsViewOpen(true);
         }}
         sx={{ cursor: "pointer" }}
@@ -195,6 +195,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
               mt: 1,
               mb: 1.5,
               gap: 1.25,
+              ml: 3
             }}
           >
             <Chip
