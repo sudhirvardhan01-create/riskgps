@@ -1,4 +1,4 @@
-const commonFields = require("../common_fields");
+﻿const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const Taxonomy = sequelize.define(
@@ -18,29 +18,32 @@ module.exports = (sequelize, DataTypes) => {
             organizationId: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                field: "organization_id",
+                field: "org_id", // alias → DB column
             },
-            ...commonFields,
+            ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "taxonomy",
-            timestamps: false,
+            timestamps: false, // audit fields handled manually
         }
     );
 
     Taxonomy.associate = (models) => {
-        // one taxonomy belongs to an organization
+        // belongsTo Organization
         Taxonomy.belongsTo(models.Organization, {
             foreignKey: "organizationId",
             targetKey: "organizationId",
-            as: "organization",
+            as: "organizationForTaxonomies",
         });
 
-        // optional: one taxonomy can have many children (if hierarchical)
-        // Taxonomy.hasMany(models.Taxonomy, {
-        //     foreignKey: "parentId",
-        //     as: "children",
-        // });
+        // Organization hasMany Taxonomy
+        if (models.Organization) {
+            models.Organization.hasMany(Taxonomy, {
+                foreignKey: "organizationId",
+                sourceKey: "organizationId",
+                as: "organizationTaxonomies",
+            });
+        }
     };
 
     return Taxonomy;

@@ -1,120 +1,77 @@
-// routes/assessmentRoutes.js
 const express = require("express");
 const router = express.Router();
-const Messages = require("../constants/messages");
-const HttpStatus = require("../constants/httpStatusCodes");
 const AssessmentService = require("../services/assessmentService");
-const multer = require("multer");
+const asyncHandler = require("../utils/asyncHandler"); // optional helper to catch async errors
+const HttpStatus = require("../constants/httpStatusCodes");
 
-/**
- * @route POST /assessment
- * @description Create a new Assessment
- */
-router.post("/", async (req, res) => {
-    console.log("Request received for assessment creation", req.body);
-    try {
-        const assessment = await AssessmentService.createAssessment(req.body);
-        res.status(HttpStatus.CREATED).json({
-            data: assessment,
-            msg: Messages.ASSESSMENT.CREATED,
-        });
-    } catch (err) {
-        res.status(HttpStatus.BAD_REQUEST).json({
-            error: err.message || Messages.GENERAL.BAD_REQUEST,
-        });
-    }
-});
+// Route: Create a new assessment
+router.post(
+    "/",
+    asyncHandler(async (req, res) => {
+        const assessmentData = req.body;
 
-/**
- * @route GET /assessment
- * @description Get all assessments with optional filtering + pagination
- */
-router.get("/", async (req, res) => {
-    try {
-        const searchPattern = req.query.search || null;
-        const limit = parseInt(req.query?.limit) || 6;
-        const page = parseInt(req.query?.page) || 0;
-        const sortBy = req.query.sort_by || "created_at";
-        const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
-        const statusFilter = req.query.status ? req.query.status?.split(",") : [];
-        const attrFilters = (req.query.attributes || "")
-            .split(";")
-            .map((expr) => {
-                if (!expr) return null;
-                const [metaDataKeyId, values] = expr.split(":");
-                return { metaDataKeyId, values: values.split(",") };
-            })
-            .filter(Boolean);
+        if (!assessmentData.userId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "userId is required in the request body",
+            });
+        }
 
-        const assessments = await AssessmentService.getAllAssessments(
-            page,
-            limit,
-            searchPattern,
-            sortBy,
-            sortOrder,
-            statusFilter,
-            attrFilters
+        const assessment = await AssessmentService.createAssessment(
+            assessmentData,
+            assessmentData.userId
         );
 
-        res.status(HttpStatus.OK).json({
-            data: assessments,
-            msg: Messages.ASSESSMENT.FETCHED,
-        });
-    } catch (err) {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            error: err.message || Messages.GENERAL.SERVER_ERROR,
-        });
-    }
-});
-
-/**
- * @route GET /assessment/:id
- */
-router.get("/:id", async (req, res) => {
-    try {
-        const assessment = await AssessmentService.getAssessmentById(req.params.id);
-        res.status(HttpStatus.OK).json({
+        res.status(HttpStatus.CREATED).json({
+            message: "Assessment created successfully",
             data: assessment,
-            msg: Messages.ASSESSMENT.FETCHED_BY_ID,
         });
-    } catch (err) {
-        res.status(HttpStatus.NOT_FOUND).json({
-            error: err.message || Messages.ASSESSMENT.NOT_FOUND,
-        });
-    }
-});
+    })
+);
 
 /**
- * @route PUT /assessment/:id
+ * Add processes & update status
  */
-router.put("/:id", async (req, res) => {
-    try {
-        const assessment = await AssessmentService.updateAssessment(req.params.id, req.body);
-        res.status(HttpStatus.OK).json({
-            data: assessment,
-            msg: Messages.ASSESSMENT.UPDATED,
-        });
-    } catch (err) {
-        res.status(HttpStatus.NOT_FOUND).json({
-            error: err.message || Messages.ASSESSMENT.NOT_FOUND,
-        });
-    }
-});
+router.post(
+    "/:id/processes-and-status",
+    asyncHandler(async (req, res) => {
+        const { id } = req.params;
+        const { processes, status, userId } = req.body;
+
+        if (!userId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "userId is required in the request body",
+            });
+        }
+
+        const result = await AssessmentService.addProcessesAndUpdateStatus(
+            id,
+            processes,
+            status,
+            userId
+        );
+
+        res.status(HttpStatus.OK).json(result);
+    })
+);
 
 /**
- * @route DELETE /assessment/:id
+ * @route POST /assessment-process-risk-scenarios
+ * @desc Save risk scenarios for an assessment process and update assessment status
  */
-router.delete("/:id", async (req, res) => {
-    try {
-        await AssessmentService.deleteAssessmentById(req.params.id);
-        res.status(HttpStatus.OK).json({
-            msg: Messages.ASSESSMENT.DELETED,
-        });
-    } catch (err) {
-        res.status(HttpStatus.NOT_FOUND).json({
-            error: err.message || Messages.ASSESSMENT.NOT_FOUND,
-        });
-    }
-});
+router.post(
+    "/",
+    asyncHandler(async (req, res) => {
+        const { userId } = req.body; // userId comes in body
+        const payload = req.body;
+
+        const result =
+            await AssessmentProcessRiskScenarioService.addRiskScenariosAndUpdateStatus(
+                payload,
+                userId
+            );
+
+        res.status(HttpStatus.OK).json(result);
+    })
+);
 
 module.exports = router;

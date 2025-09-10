@@ -1,10 +1,10 @@
-const commonFields = require("../common_fields");
+const { commonFields } = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const AssessmentRiskScenarioBusinessImpact = sequelize.define(
         "AssessmentRiskScenarioBusinessImpact",
         {
-            assessmentRiskBiId: {
+            assessmentRiskBIId: {
                 type: DataTypes.UUID,
                 primaryKey: true,
                 defaultValue: DataTypes.UUIDV4,
@@ -15,10 +15,10 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 field: "assessment_id",
             },
-            assessmentRiskId: {
+            assessmentProcessRiskId: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                field: "assessment_risk_id",
+                field: "assessment_process_risk_id",
             },
             riskThreshold: {
                 type: DataTypes.STRING,
@@ -30,29 +30,27 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "risk_threshold_value",
             },
-
-            ...commonFields,
+            ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "assessment_risk_scenario_business_impact",
+            schema: "public",
             timestamps: false,
         }
     );
 
     AssessmentRiskScenarioBusinessImpact.associate = (models) => {
-        // belongsTo Assessment
+        // Relation to Assessment
         AssessmentRiskScenarioBusinessImpact.belongsTo(models.Assessment, {
             foreignKey: "assessmentId",
-            targetKey: "assessmentId",
             as: "assessment",
         });
 
-        // belongsTo AssessmentRiskTaxonomy (or RiskScenario model if you have it)
-        //AssessmentRiskScenarioBusinessImpact.belongsTo(models.AssessmentRiskTaxonomy, {
-        //    foreignKey: "assessmentRiskId",
-        //    targetKey: "assessmentRiskId",
-        //    as: "riskTaxonomy",
-        //});
+        // Relation to AssessmentProcessRiskScenario
+        AssessmentRiskScenarioBusinessImpact.belongsTo(models.AssessmentProcessRiskScenario, {
+            foreignKey: "assessmentProcessRiskId",
+            as: "assessmentProcessRiskScenario",
+        });
     };
 
     return AssessmentRiskScenarioBusinessImpact;
