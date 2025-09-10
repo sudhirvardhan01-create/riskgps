@@ -229,6 +229,7 @@ class RiskScenarioService {
     console.log("[updateRiskScenarioStatus] Updated:", id, status);
     return { message: Messages.RISK_SCENARIO.STATUS_UPDATED };
   }
+  
   static async downloadRiskScenarioTemplateFile(res) {
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(

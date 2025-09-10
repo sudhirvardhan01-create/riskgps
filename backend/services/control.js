@@ -1,4 +1,8 @@
-const { sequelize, MitreThreatControl, FrameWorkControl } = require("../models");
+const { format } = require("fast-csv");
+const HttpStatusCodes = require("../constants/httpStatusCodes");
+const Messages = require("../constants/messages");
+const { sequelize, MitreThreatControl, FrameWorkControl, MitreFrameworkControlMappings } = require("../models");
+const CustomError = require("../utils/CustomError");
 
 
 class ControlsService {
@@ -61,16 +65,182 @@ class ControlsService {
             }, {})
         );
 
-        console.log(grouped);
         return grouped
     }
 
-    static async createControl() {
+    static async createFrameworkControl(data) {
+        try {
+            return await sequelize.transaction(async (t) => {
+                console.log("[createFrameworkControl] create FrameworkControl", data);
+
+                this.validateFrameworkControls(data);
+
+                const frameworkControlData = this.handleFrameworkDataColumnMapping(data);
+                console.log("Creating framework control with data:", frameworkControlData);
+
+                const newControl = await FrameWorkControl.create(frameworkControlData, { transaction: t });
+
+                await this.handleFrameworkControlToMitreControlsMapping(newControl.id, data.mitreControls, t);
+
+                return true;
+            });
+        } catch (err) {
+            console.error("[createFrameworkControl] Error:", err);
+            throw err;
+        }
+    }
+
+    static async getAllFrameworkControls() {
+        const data = await FrameWorkControl.findAll({
+            include: [
+                {
+                    model: sequelize.models.MitreThreatControl,
+                    as: 'mitre_controls',   // must match the alias in your association
+                    through: { attributes: [] } // exclude join table fields
+                }
+            ]
+        });
+        const controls = data.map((s) => s.toJSON());
+
+
+        for (let i = 0; i < controls.length; i++) {
+            const control = controls[i];
+            const mitreControls = control.mitre_controls ?? []
+
+            const uniqueMitreControlIds = [...new Set(mitreControls?.map(item => item.mitreControlId))];
+
+            control.mitre_controls = uniqueMitreControlIds;
+        }
+
+
+
+        return controls;
+    }
+
+    static async deleteFrameWorkdControl() {
 
     }
 
-    static async deleteControl() {
 
+    static async downloadFrameworkControlsTemplateFile(res) {
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=framework_control_import_template.csv"
+        );
+
+        const csvStream = format({ headers: true });
+        csvStream.pipe(res);
+
+        // Row 1: Clarifications / Instructions
+        csvStream.write({
+            "Framework Name": "Framework Name",
+            "frameWorkControlCategoryId": "frameWorkControlCategoryId",
+            "frameWorkControlCategory": "framework control category name",
+            "frameWorkControlSubCategoryId": "sub category id",
+            "frameWorkControlSubCategory": "sub category id name",
+            "mitreControlId": "related mitre Control Ids separated by comma"
+        }); y
+
+        csvStream.end();
+    }
+
+
+    static async importFrameworkControlsFromCSV(filePath) {
+        return new Promise((resolve, reject) => {
+            const rows = [];
+
+            fs.createReadStream(filePath)
+                .pipe(parse({ headers: true }))
+                .on("error", (error) => reject(error))
+                .on("data", (row) => {
+                    // build the framework control row
+                    rows.push({
+                        framework_name: row["Framework Name"],
+                        frameWorkControlCategoryId: row["frameWorkControlCategoryId"],
+                        frameWorkControlCategory: row["frameWorkControlCategory"],
+                        frameWorkControlSubCategoryId: row["frameWorkControlSubCategoryId"],
+                        frameWorkControlSubCategory: row["frameWorkControlSubCategory"],
+                        mitreControls: row["mitreControlId"]
+                            ? row["mitreControlId"]
+                                .split(",") // CSV cell might have "M1042,M1053"
+                                .map((v) => v.trim())
+                                .filter((v) => v.length > 0)
+                            : [],
+                        status: "published",
+                    });
+                })
+                .on("end", async () => {
+                    const transaction = await sequelize.transaction();
+                    try {
+                        for (const data of rows) {
+                            // Step 1: Create framework control
+                            const frameworkControlData = {
+                                framework_name: data.framework_name,
+                                frameWorkControlCategoryId: data.frameWorkControlCategoryId,
+                                frameWorkControlCategory: data.frameWorkControlCategory,
+                                frameWorkControlSubCategoryId: data.frameWorkControlSubCategoryId,
+                                frameWorkControlSubCategory: data.frameWorkControlSubCategory,
+                                status: data.status,
+                            };
+
+                            const newControl = await FrameWorkControl.create(frameworkControlData, { transaction });
+
+                            // Step 2: Map to mitre controls if provided
+                            if (data.mitreControls?.length > 0) {
+                                await this.handleFrameworkControlToMitreControlsMapping(
+                                    newControl.id,
+                                    data.mitreControls,
+                                    transaction
+                                );
+                            }
+                        }
+
+                        await transaction.commit();
+                        fs.unlinkSync(filePath);
+                        resolve(rows.length);
+                    } catch (err) {
+                        await transaction.rollback();
+                        reject(err);
+                    }
+                });
+        });
+    }
+
+
+    static async exportFrameworkControlCSV(res) {
+        try {
+            // fetch transformed framework controls
+            const controls = await this.getAllFrameworkControls();
+
+            res.setHeader(
+                "Content-disposition",
+                "attachment; filename=framework_controls_export.csv"
+            );
+            res.setHeader("Content-Type", "text/csv");
+
+            const csvStream = format({
+                headers: true,
+                transform: (row) => ({
+                    "Framework Name": row.frameWorkName,
+                    "Control Category Id": row.frameWorkControlCategoryId ?? "",
+                    "Control Category": row.frameWorkControlCategoryId ?? "",
+                    "Control Sub Category Id": row.frameWorkControlSubCategoryId ?? "",
+                    "Control Sub Category": row.frameWorkControlSubCategory ?? "",
+                    "MITRE Controls": Array.isArray(row.mitre_controls) ? row.mitre_controls.join(", ") : "",
+                    "Status": row.status,
+                }),
+            });
+
+            // stream the rows into CSV
+            controls.forEach((row) => csvStream.write(row));
+            csvStream.end();
+
+            csvStream.pipe(res);
+        } catch (err) {
+            console.error("Error exporting framework controls CSV:", err);
+            throw new Error(err);
+        }
     }
 
     static handleControlsFilters(
@@ -91,6 +261,79 @@ class ControlsService {
             });
         }
         return conditions.length > 0 ? { [Op.and]: conditions } : {};
+    }
+
+    static validateFrameworkControls(data) {
+        const {
+            frameWorkName,
+            frameWorkControlCategoryId,
+            frameWorkControlCategory,
+            frameWorkControlSubCategoryId,
+            frameWorkControlSubCategory,
+        } = data;
+
+        if (!frameWorkName) {
+            console.log("a")
+            throw new CustomError(Messages.FRAMEWORK_CONTROLS.INVALID_FRAMEWORK_NAME_REQUIRED);
+        }
+
+        if (!frameWorkControlCategoryId || !frameWorkControlCategory) {
+            throw new CustomError(Messages.FRAMEWORK_CONTROLS.INVALID_FRAMEWORK_INPUTS, HttpStatusCodes.BAD_REQUEST);
+
+        }
+
+    }
+
+    static handleFrameworkDataColumnMapping(data) {
+        const fields = [
+            "frameWorkName",
+            "frameWorkControlCategoryId",
+            "frameWorkControlCategory",
+            "frameWorkControlSubCategoryId",
+            "frameWorkControlSubCategory",
+            "status",
+        ];
+
+        return Object.fromEntries(
+            fields.map((key) => [key, data[key] === "" ? null : data[key]])
+        );
+    }
+
+    static async handleFrameworkControlToMitreControlsMapping(
+        frameWorkControlId,
+        relatedMitreControls,
+        transaction
+    ) {
+
+        if (!frameWorkControlId) {
+            throw new Error("aa")
+        }
+        if (Array.isArray(relatedMitreControls)) {
+            const payload = [];
+            for (const mitreControl of relatedMitreControls) {
+
+                const controlData = await MitreThreatControl.findAll({
+                    where: { mitreControlId: mitreControl }
+                });
+
+                if (controlData.length === 0) {
+                    console.log("[Framework Control] Related mitre controls not found:", mitreControl);
+                    throw new CustomError(
+                        Messages.FRAMEWORK_CONTROLS.INVALID_FRAMEWORK_MITRE_MAPPING,
+                        HttpStatus.NOT_FOUND
+                    );
+                }
+
+                for (const control of controlData) {
+                    payload.push({
+                        mitre_control_id: control.id,
+                        framework_control_id: frameWorkControlId,
+                    });
+                }
+
+            }
+            await MitreFrameworkControlMappings.bulkCreate(payload, { transaction });
+        }
     }
 }
 

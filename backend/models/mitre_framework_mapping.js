@@ -4,7 +4,7 @@ module.exports = (sequelize) => {
   const MitreFrameworkControlMappings = sequelize.define('MitreFrameworkControlMappings', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     mitre_control_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       references: { model: 'library_mitre_threats_controls', key: 'id' },
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',

@@ -30,6 +30,7 @@ class ProcessService {
 
             const newProcess = await Process.create(processData, { transaction: t });
 
+            console.log("aaasaa")
             if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
                 await this.handleProcessDependencies("create", newProcess.id, data.process_dependency, t);
             }
@@ -661,7 +662,7 @@ class ProcessService {
                     throw new Error("Invalid metaDataKeyId");
                 }
 
-                const valuesArray = filter.values.map((v) => sequelize.escape(v)).join(",");
+                const valuesArray = filter.values?.map((v) => sequelize.escape(v)).join(",");
 
                 if (idx > 0) subquery += " INTERSECT ";
                 subquery += `

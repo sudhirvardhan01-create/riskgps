@@ -1,11 +1,12 @@
 const { DataTypes } = require('sequelize');
+const { GENERAL } = require('../constants/library');
 
 module.exports = (sequelize) => {
     const FrameWorkControl = sequelize.define('FrameWorkControl', {
-        id: { 
-            type: DataTypes.INTEGER, 
-            primaryKey: true, 
-            autoIncrement: true 
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
         },
         frameWorkName: {
             type: DataTypes.STRING,
@@ -46,6 +47,11 @@ module.exports = (sequelize) => {
             allowNull: true,
             field: 'framework_control_sub_category',
         },
+        status: {
+            defaultValue: 'published',
+            allowNull: false,
+            type: DataTypes.ENUM(...GENERAL.STATUS_SUPPORTED_VALUES)
+        },
     }, {
         tableName: 'library_framework_controls',
         timestamps: true,
@@ -55,14 +61,15 @@ module.exports = (sequelize) => {
     });
 
     // Associations
-FrameWorkControl.associate = (models) => {
-  FrameWorkControl.belongsToMany(models.MitreThreatControl, {
-    through: models.MitreFrameworkControlMappings,
-    foreignKey: 'framework_control_id',
-    otherKey: 'mitre_control_id',
-    as: 'mitre_controls',
-  });
-};
+    FrameWorkControl.associate = (models) => {
+        FrameWorkControl.belongsToMany(models.MitreThreatControl, {
+            through: models.MitreFrameworkControlMappings,
+            foreignKey: 'framework_control_id',   // mapping table column
+            otherKey: 'mitre_control_id',         // mapping table column
+            targetKey: 'id',          // business key in MitreThreatControl
+            as: 'mitre_controls',
+        });
+    };
 
     return FrameWorkControl;
 }
