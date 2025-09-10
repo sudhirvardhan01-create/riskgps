@@ -185,6 +185,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
         </Typography>
 
         {/* Meta Info */}
+        <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
         {footerChips?.map((item, index) => (
           <Box
             key={index}
@@ -195,7 +196,6 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
               mt: 1,
               mb: 1.5,
               gap: 1.25,
-              ml: 3
             }}
           >
             <Chip
@@ -228,6 +228,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
             )}
           </Box>
         ))}
+        </Stack>
       </Box>
     </Box>
   );

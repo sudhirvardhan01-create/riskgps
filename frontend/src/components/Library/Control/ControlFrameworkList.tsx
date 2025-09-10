@@ -2,7 +2,6 @@ import { Box, Stack, TablePagination } from "@mui/material";
 import { ControlFrameworkForm } from "@/types/control";
 import ControlFrameworkCard from "./ControlFrameworkCard";
 
-
 interface Props {
   loading: boolean;
   data: ControlFrameworkForm[];
@@ -13,7 +12,9 @@ interface Props {
   onRowsPerPageChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  setSelectedControlFrameworkRecord: React.Dispatch<React.SetStateAction<ControlFrameworkForm | null>>;
+  setSelectedControlFrameworkRecord: React.Dispatch<
+    React.SetStateAction<ControlFrameworkForm | null>
+  >;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -46,17 +47,28 @@ const ControlFrameworkList: React.FC<Props> = ({
               <div key={item.id ?? JSON.stringify(item)}>
                 <ControlFrameworkCard
                   controlFrameworkRecord={item}
-                  setSelectedControlFrameworkRecord={setSelectedControlFrameworkRecord}
+                  setSelectedControlFrameworkRecord={
+                    setSelectedControlFrameworkRecord
+                  }
                   setIsViewOpen={setIsViewOpen}
                   setIsEditOpen={setIsEditOpen}
                   setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                   handleUpdateStatus={handleUpdateStatus}
                   rowID={item.frameWorkControlCategoryId ?? ""}
                   headerChip={"Not Defined"}
-                  title={item.frameWorkControlCategory?? ""}
+                  title={item.frameWorkControlCategory ?? ""}
                   status={item.status ?? ""}
                   lastUpdated={item.updated_at}
-                  footerChips={[{label: "Sub-Category ID", value: "ID"}]}
+                  footerChips={[
+                    {
+                      label: "Sub-Category ID:",
+                      value: item.frameWorkControlSubCategoryId,
+                    },
+                    {
+                      label: "Sub-Category Name:",
+                      value: item.frameWorkControlSubCategory,
+                    },
+                  ]}
                 />
               </div>
             ))
