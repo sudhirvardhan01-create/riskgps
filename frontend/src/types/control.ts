@@ -19,6 +19,7 @@ export interface ControlForm {
 }
 
 export interface ControlFrameworkForm {
+  id?: number;
   framework: string;
   frameWorkControlCategoryId: string;
   frameWorkControlCategory: string;
