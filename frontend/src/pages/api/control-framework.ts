@@ -67,3 +67,57 @@ export const downloadFrameworkControlsTemplateFile = async () => {
     a.remove();
     window.URL.revokeObjectURL(url);
 };
+
+//Function to export the framework controls
+export const exportFrameworkControls = async () => {
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/library/controls/export-frameworks`,
+        {
+            method: "GET",
+            headers: {
+                Accept: "text/csv",
+            },
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to export.");
+    }
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `controls_exports.csv`;
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(url);
+};
+
+//Function to import the framework controls
+export const importFrameworkControls = async (file: File): Promise<any> => {
+    if (!file) {
+        throw new Error("No file selected.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/library/controls/import-framework-controls`,
+        {
+            method: "POST",
+            body: formData,
+        }
+    );
+
+    if (!res.ok) {
+        throw new Error("Failed to import.");
+    }
+
+    const response = await res.json();
+    console.log(response)
+    return response;
+};

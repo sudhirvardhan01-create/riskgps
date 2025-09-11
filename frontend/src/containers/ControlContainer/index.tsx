@@ -10,7 +10,6 @@ import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
 import { ControlForm, ControlFrameworkForm } from "@/types/control";
-import { FileService } from "@/services/fileService";
 import { ControlService } from "@/services/controlService";
 import ControlButtonTab from "@/components/Library/Control/ControlButtonTab";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
@@ -246,50 +245,47 @@ export default function ControlContainer() {
     setPage(0);
   };
 
-  //Function to export the threats
-  //   const handleExportThreats = async () => {
-  //     try {
-  //       await FileService.exportLibraryDataCSV("mitre-threats-controls");
-  //       setToast({
-  //         open: true,
-  //         message: `Threats exported successfully`,
-  //         severity: "success",
-  //       });
-  //     } catch (error) {
-  //       console.error(error);
-  //       setToast({
-  //         open: true,
-  //         message: "Error: unable to export the threats",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  //Function to export the framework controls
+  const handleExportFrameworkControls = async () => {
+    try {
+      await ControlFrameworkService.export();
+      setToast({
+        open: true,
+        message: `Controls exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the controls",
+        severity: "error",
+      });
+    }
+  };
 
-  //Function to import the threats
-  //   const handleImportThreats = async () => {
-  //     try {
-  //       if (!file) {
-  //         throw new Error("File not found");
-  //       }
-  //       await FileService.importLibraryDataCSV(
-  //         "mitre-threats-controls",
-  //         file as File
-  //       );
-  //       setIsFileUploadOpen(false);
-  //       setToast({
-  //         open: true,
-  //         message: `Threats Imported successfully`,
-  //         severity: "success",
-  //       });
-  //     } catch (error) {
-  //       console.error(error);
-  //       setToast({
-  //         open: true,
-  //         message: "Error: unable to download the threats from file",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  //Function to import the framework controls
+  const handleImportFrameworkControls = async () => {
+    try {
+      if (!file) {
+        throw new Error("File not found");
+      }
+      await ControlFrameworkService.import(file as File);
+      setIsFileUploadOpen(false);
+      setToast({
+        open: true,
+        message: `Controls Imported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to download the controls from file",
+        severity: "error",
+      });
+    }
+  };
 
   //Function to download the framework controls template file
   const handledownloadFrameworkControlsTemplateFile = async () => {
@@ -320,13 +316,13 @@ export default function ControlContainer() {
       addAction: () => setIsAddOpen(true),
       sortItems,
       onImport: () => setIsFileUploadOpen(true),
-      //   onExport: () => handleExportThreats(),
+      onExport: () => handleExportFrameworkControls(),
       fileUploadTitle: "Import Threats",
       file,
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-      handleImport: () => console.log("Imported"),
+      handleImport: handleImportFrameworkControls,
       handledownloadTemplateFile: handledownloadFrameworkControlsTemplateFile,
       isImportRequired: true,
       isExportRequired: true,

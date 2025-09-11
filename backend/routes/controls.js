@@ -91,12 +91,12 @@ router.post("/import-framework-controls", upload.single("file"), async (req, res
         }
         const filePath = req.file.path;
         const insertedRowCount = await ControlsService.importFrameworkControlsFromCSV(filePath);
-        res.status(HttpStatus.OK).json({
+        res.status(HttpStatusCodes.OK).json({
             data: insertedRowCount
         });
     } catch (err) {
         console.log("Failed to upload process", err || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV);
-        res.status(HttpStatus.BAD_REQUEST).json({
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
             error: err.message || Messages.PROCESS.FAILED_TO_IMPORT_PROCESS_CSV
         });
     }

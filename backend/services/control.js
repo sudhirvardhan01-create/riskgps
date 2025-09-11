@@ -3,6 +3,8 @@ const HttpStatusCodes = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
 const { sequelize, MitreThreatControl, FrameWorkControl, MitreFrameworkControlMappings } = require("../models");
 const CustomError = require("../utils/CustomError");
+const fs = require("fs");
+const { parse } = require("fast-csv");
 
 
 class ControlsService {
@@ -156,7 +158,7 @@ class ControlsService {
                 .on("data", (row) => {
                     // build the framework control row
                     rows.push({
-                        framework_name: row["Framework Name"],
+                        frameWorkName: row["Framework Name"],
                         frameWorkControlCategoryId: row["Framework Control Category Id"],
                         frameWorkControlCategory: row["Framework Control Category"],
                         frameWorkControlSubCategoryId: row["Framework Control SubCategory Id"],
@@ -176,7 +178,7 @@ class ControlsService {
                         for (const data of rows) {
                             // Step 1: Create framework control
                             const frameworkControlData = {
-                                framework_name: data.framework_name,
+                                frameWorkName: data.frameWorkName,
                                 frameWorkControlCategoryId: data.frameWorkControlCategoryId,
                                 frameWorkControlCategory: data.frameWorkControlCategory,
                                 frameWorkControlSubCategoryId: data.frameWorkControlSubCategoryId,
