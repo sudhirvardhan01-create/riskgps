@@ -2,6 +2,7 @@ const {
     Organization,
     OrganizationBusinessUnit,
     OrganizationProcess,
+    OrganizationRiskScenario,
     Sequelize,
 } = require("../models");
 const { Op } = Sequelize;
@@ -40,7 +41,8 @@ class OrganizationService {
                         required: false,
                         attributes: [
                             "orgBusinessUnitId",
-                            "name",
+                            "businessUnitName",
+                            "businessUnitDesc",
                             "createdBy",
                             "modifiedBy",
                             "createdDate",
@@ -133,7 +135,7 @@ class OrganizationService {
                     {
                         model: OrganizationBusinessUnit,
                         as: "businessUnitDetails",
-                        attributes: ["orgBusinessUnitId", "name"],
+                        attributes: ["orgBusinessUnitId", "businessUnitName"],
                     },
                     {
                         model: Organization,
