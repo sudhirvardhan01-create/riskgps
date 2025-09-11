@@ -1,4 +1,4 @@
-const { commonFields } = require("../common_fields");
+const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const OrganizationBusinessUnit = sequelize.define(
@@ -13,35 +13,40 @@ module.exports = (sequelize, DataTypes) => {
             organizationId: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                field: "org_id",
+                field: "org_id", // DB column, alias remains organizationId
             },
             businessUnitName: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 field: "business_unit_name",
             },
-            ...commonFields,
+            businessUnitDesc: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                field: "business_unit_desc",
+            },
+            ...commonFields, // adds createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "organization_business_unit",
-            timestamps: false,
+            timestamps: false, // we manage timestamps manually
         }
     );
 
     OrganizationBusinessUnit.associate = (models) => {
         // belongsTo Organization
         OrganizationBusinessUnit.belongsTo(models.Organization, {
-            foreignKey: "organizationId",
+            foreignKey: "organizationId", // alias, maps to org_id
             targetKey: "organizationId",
-            as: "organization",
+            as: "organizationDetails",
         });
 
-        // Optionally: An organization can have many business units
+        // One Organization -> Many Business Units
         if (models.Organization) {
             models.Organization.hasMany(OrganizationBusinessUnit, {
-                foreignKey: "organizationId",
+                foreignKey: "organizationId", // alias
                 sourceKey: "organizationId",
-                as: "businessUnits",
+                as: "organizationBusinessUnits",
             });
         }
     };

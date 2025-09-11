@@ -1,4 +1,4 @@
-const commonFields = require("../common_fields");
+﻿const { commonFields } = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const Assessment = sequelize.define(
@@ -10,29 +10,39 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: DataTypes.UUIDV4,
                 field: "assessment_id",
             },
+            assessmentName: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: "Assessment_Name",
+            },
+            assessmentDesc: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: "Assessment_Desc",
+            },
             runId: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 field: "run_id",
             },
-            organizationId: {
+            orgId: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                field: "organization_id",
+                field: "org_id",
             },
-            organizationName: {
+            orgName: {
                 type: DataTypes.STRING,
                 allowNull: true,
-                field: "organization_name",
+                field: "org_name",
             },
-            organizationDesc: {
+            orgDesc: {
                 type: DataTypes.STRING,
                 allowNull: true,
-                field: "organization_desc",
+                field: "org_desc",
             },
             businessUnitId: {
                 type: DataTypes.UUID,
-                allowNull: false,
+                allowNull: true,
                 field: "business_unit_id",
             },
             businessUnitName: {
@@ -44,6 +54,11 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: true,
                 field: "business_unit_desc",
+            },
+            status: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                field: "status",
             },
             startDate: {
                 type: DataTypes.DATE,
@@ -62,29 +77,47 @@ module.exports = (sequelize, DataTypes) => {
             },
             userId: {
                 type: DataTypes.UUID,
-                allowNull: false,
+                allowNull: true,
                 field: "user_id",
             },
-
-            ...commonFields,
+            ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, tenantId, status, etc.
         },
         {
             tableName: "assessment",
+            schema: "public",
             timestamps: false,
         }
     );
 
     Assessment.associate = (models) => {
-        //Assessment.hasMany(models.AssessmentRiskTaxonomy, {
-        //    foreignKey: "assessmentId",
-        //    sourceKey: "assessmentId",
-        //    as: "riskTaxonomies",
-        //});
+        // Organization Relation
+        Assessment.belongsTo(models.Organization, {
+            foreignKey: "orgId",
+            as: "organization",
+        });
 
-        Assessment.hasMany(models.AssessmentRiskScenarioBusinessImpact, {
-            foreignKey: "assessmentId",
-            sourceKey: "assessmentId",
-            as: "businessImpacts",
+        // Business Unit Relation
+        Assessment.belongsTo(models.OrganizationBusinessUnit, {
+            foreignKey: "businessUnitId",
+            as: "businessUnit",
+        });
+
+        // User Relation
+        Assessment.belongsTo(models.User, {
+            foreignKey: "userId",
+            as: "user",
+        });
+
+        // CreatedBy Relation
+        Assessment.belongsTo(models.User, {
+            foreignKey: "createdBy",
+            as: "creator",
+        });
+
+        // ModifiedBy Relation
+        Assessment.belongsTo(models.User, {
+            foreignKey: "modifiedBy",
+            as: "modifier",
         });
     };
 

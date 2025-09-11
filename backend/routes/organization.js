@@ -53,4 +53,52 @@ router.get("/:id", async (req, res) => {
     }
 });
 
+/**
+ * @route GET /organization/:orgId/business-unit/:businessUnitId/processes
+ * @description Get all processes for a given organization + business unit (both mandatory)
+ */
+router.get("/:orgId/business-unit/:businessUnitId/processes", async (req, res) => {
+    try {
+        const { orgId, businessUnitId } = req.params;
+
+        const processes = await OrganizationService.getOrganizationProcesses(orgId, businessUnitId);
+
+        res.status(HttpStatus.OK).json({
+            data: processes,
+            msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || Messages.GENERAL.SERVER_ERROR,
+        });
+    }
+});
+
+/**
+ * @route GET /organization/:orgId/risk-scenarios
+ * @desc Get all risk scenarios for an organization
+ */
+router.get("/:orgId/risk-scenarios", async (req, res) => {
+    try {
+        const { orgId } = req.params;
+
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationRiskScenarioService.getRiskScenariosByOrgId(orgId);
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization risk scenarios fetched successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to fetch organization risk scenarios",
+        });
+    }
+});
+
 module.exports = router;

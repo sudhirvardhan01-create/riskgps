@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
             taxonomyId: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                field: "taxonomy_id",
+                field: "taxonomy_id", // FK to Taxonomy
             },
             name: {
                 type: DataTypes.STRING,
@@ -30,21 +30,30 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "max_range",
             },
-            ...commonFields,
+            ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "severity_level",
-            timestamps: false,
+            timestamps: false, // we manage audit fields manually
         }
     );
 
     SeverityLevel.associate = (models) => {
-        // one severity level belongs to a taxonomy
+        // belongsTo Taxonomy
         SeverityLevel.belongsTo(models.Taxonomy, {
             foreignKey: "taxonomyId",
             targetKey: "taxonomyId",
-            as: "taxonomy",
+            as: "taxonomyDetails",
         });
+
+        // Taxonomy hasMany SeverityLevels
+        if (models.Taxonomy) {
+            models.Taxonomy.hasMany(SeverityLevel, {
+                foreignKey: "taxonomyId",
+                sourceKey: "taxonomyId",
+                as: "severityLevels",
+            });
+        }
     };
 
     return SeverityLevel;

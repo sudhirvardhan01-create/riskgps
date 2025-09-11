@@ -1,4 +1,4 @@
-const { commonFields } = require("../common_fields");
+﻿const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const OrganizationAsset = sequelize.define(
@@ -13,28 +13,37 @@ module.exports = (sequelize, DataTypes) => {
             organizationId: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                field: "organization_id",
+                field: "org_id", // alias → DB column org_id
             },
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 field: "name",
             },
-            ...commonFields,
+            ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "organization_asset",
-            timestamps: false,
+            timestamps: false, // we use custom audit fields
         }
     );
 
     OrganizationAsset.associate = (models) => {
         // belongsTo Organization
         OrganizationAsset.belongsTo(models.Organization, {
-            foreignKey: "organizationId",
+            foreignKey: "organizationId", // alias
             targetKey: "organizationId",
-            as: "organization",
+            as: "organizationDetails",
         });
+
+        // One Organization → Many Assets
+        if (models.Organization) {
+            models.Organization.hasMany(OrganizationAsset, {
+                foreignKey: "organizationId",
+                sourceKey: "organizationId",
+                as: "organizationAssets",
+            });
+        }
     };
 
     return OrganizationAsset;
