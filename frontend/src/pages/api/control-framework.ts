@@ -39,3 +39,31 @@ export const fetchFrameworkControls = async () => {
     console.log(res.data);
     return res.data;
 }
+
+//Function to download the framework controls template file
+export const downloadFrameworkControlsTemplateFile = async () => {
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/library/controls/download-framework-template`,
+        {
+            method: "GET",
+            headers: {
+                Accept: "text/csv",
+            },
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to download template file.");
+    }
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `controls_template_file.csv`;
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(url);
+};

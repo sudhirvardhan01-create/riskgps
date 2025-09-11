@@ -135,12 +135,12 @@ class ControlsService {
         // Row 1: Clarifications / Instructions
         csvStream.write({
             "Framework Name": "Framework Name",
-            "frameWorkControlCategoryId": "frameWorkControlCategoryId",
-            "frameWorkControlCategory": "framework control category name",
-            "frameWorkControlSubCategoryId": "sub category id",
-            "frameWorkControlSubCategory": "sub category id name",
-            "mitreControlId": "related mitre Control Ids separated by comma"
-        }); y
+            "Framework Control Category Id": "Framework Control Category Id",
+            "Framework Control Category": "Framework Control Category Name",
+            "Framework Control SubCategory Id": "Framework Control Sub-Category Id",
+            "Framework Control SubCategory": "Framework Control Sub-Category Name",
+            "MITRE Control Id": "Related MITRE Control Ids separated by comma"
+        }); 
 
         csvStream.end();
     }
@@ -157,12 +157,12 @@ class ControlsService {
                     // build the framework control row
                     rows.push({
                         framework_name: row["Framework Name"],
-                        frameWorkControlCategoryId: row["frameWorkControlCategoryId"],
-                        frameWorkControlCategory: row["frameWorkControlCategory"],
-                        frameWorkControlSubCategoryId: row["frameWorkControlSubCategoryId"],
-                        frameWorkControlSubCategory: row["frameWorkControlSubCategory"],
-                        mitreControls: row["mitreControlId"]
-                            ? row["mitreControlId"]
+                        frameWorkControlCategoryId: row["Framework Control Category Id"],
+                        frameWorkControlCategory: row["Framework Control Category"],
+                        frameWorkControlSubCategoryId: row["Framework Control SubCategory Id"],
+                        frameWorkControlSubCategory: row["Framework Control SubCategory"],
+                        mitreControls: row["MITRE Control Id"]
+                            ? row["MITRE Control Id"]
                                 .split(",") // CSV cell might have "M1042,M1053"
                                 .map((v) => v.trim())
                                 .filter((v) => v.length > 0)

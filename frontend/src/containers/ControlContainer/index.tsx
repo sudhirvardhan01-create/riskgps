@@ -148,29 +148,29 @@ export default function ControlContainer() {
   }, []);
 
   // Create Control Mapping
-    const handleCreate = async (status: string) => {
-      try {
-        const req = { ...formData, status };
-        await ControlFrameworkService.create(req);
-        setFormData(initialControlFrameworkFormData);
-        setIsAddOpen(false);
-        setRefreshTrigger((p) => p + 1);
-        setToast({
-          open: true,
-          message: `Success! Control mapping ${
-            status === "published" ? "published" : "saved as draft"
-          }`,
-          severity: "success",
-        });
-      } catch (err) {
-        console.error(err);
-        setToast({
-          open: true,
-          message: "Failed to create control mapping",
-          severity: "error",
-        });
-      }
-    };
+  const handleCreate = async (status: string) => {
+    try {
+      const req = { ...formData, status };
+      await ControlFrameworkService.create(req);
+      setFormData(initialControlFrameworkFormData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Success! Control mapping ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to create control mapping",
+        severity: "error",
+      });
+    }
+  };
 
   // Update
   //   const handleUpdate = async (status: string) => {
@@ -291,24 +291,25 @@ export default function ControlContainer() {
   //     }
   //   };
 
-  //Function to download the threats template file
-  //   const handledownloadThreatsTemplateFile = async () => {
-  //     try {
-  //       await FileService.dowloadCSVTemplate("mitre-threats-controls");
-  //       setToast({
-  //         open: true,
-  //         message: `Threats template file downloaded successfully`,
-  //         severity: "success",
-  //       });
-  //     } catch (error) {
-  //       console.error(error);
-  //       setToast({
-  //         open: true,
-  //         message: "Error: unable to download the threats template file",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  //Function to download the framework controls template file
+  const handledownloadFrameworkControlsTemplateFile = async () => {
+    try {
+      await ControlFrameworkService.download();
+      setToast({
+        open: true,
+        message: `Framework controls template file downloaded successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message:
+          "Error: unable to download the framework controls template file",
+        severity: "error",
+      });
+    }
+  };
 
   // memoize props used by list/header
   const headerProps = useMemo(
@@ -325,8 +326,8 @@ export default function ControlContainer() {
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-      //   handleImport: handleImportThreats,
-      //   handledownloadTemplateFile: handledownloadThreatsTemplateFile,
+      handleImport: () => console.log("Imported"),
+      handledownloadTemplateFile: handledownloadFrameworkControlsTemplateFile,
       isImportRequired: true,
       isExportRequired: true,
       searchPattern,
