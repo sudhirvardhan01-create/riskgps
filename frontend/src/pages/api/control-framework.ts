@@ -23,3 +23,19 @@ export const createControlMapping = async (data: ControlFrameworkForm) => {
   console.log(res);
   return res.data;
 };
+
+//Function to fetch the framework controls
+export const fetchFrameworkControls = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/get-all-framework-control`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+    if(!response.ok){
+        throw new Error("Failed to fetch Controls");
+    }
+    const res = await response.json();
+    console.log(res.data);
+    return res.data;
+}

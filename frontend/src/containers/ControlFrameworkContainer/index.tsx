@@ -4,10 +4,10 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { ControlForm, ControlFrameworkForm } from "@/types/control";
 import { FileService } from "@/services/fileService";
-import { ControlService } from "@/services/controlService";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkList from "@/components/Library/Control/ControlFrameworkList";
 import ViewControlFrameworkModal from "@/components/Library/Control/ViewControlFrameworkModal";
+import { ControlFrameworkService } from "@/services/controlFrameworkService";
 
 interface ControlFrameworkContainerProps {
   selectedControlFramework: string;
@@ -61,14 +61,9 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ControlService.fetch(
-        page,
-        rowsPerPage,
-        searchPattern as string,
-        sort
-      );
+      const data = await ControlFrameworkService.fetch();
       setControlsData(data ?? []);
-      setTotalRows(data?.total ?? 0);
+      //setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
       setToast({
@@ -79,7 +74,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, []);
 
   useEffect(() => {
     loadList();
@@ -193,7 +188,8 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       frameWorkControlCategoryId: "CAT-002",
       frameWorkControlCategory: "Incident Response",
       frameWorkControlSubCategoryId: "SUB-002",
-      frameWorkControlSubCategory: "Personnel activity and technology usage are monitored to find potentially adverse events",
+      frameWorkControlSubCategory:
+        "Personnel activity and technology usage are monitored to find potentially adverse events",
       mitreControls: ["DS0022", "M1047"],
     },
     {
@@ -201,10 +197,11 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       frameWorkControlCategoryId: "CAT-003",
       frameWorkControlCategory: "Risk Management",
       frameWorkControlSubCategoryId: "SUB-003",
-      frameWorkControlSubCategory: "Personnel activity and technology usage are monitored to find potentially adverse events",
+      frameWorkControlSubCategory:
+        "Personnel activity and technology usage are monitored to find potentially adverse events",
       mitreControls: ["DS0022", "M1047"],
     },
-     {
+    {
       frameWorkName: "NIST",
       frameWorkControlCategoryId: "CAT-004",
       frameWorkControlCategory: "System Integrity",
@@ -284,7 +281,9 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       <ControlFrameworkList
         loading={loading}
         //data={controlsData}
-        data={dummyFrameworkRecords.filter((item) => item.frameWorkName === selectedControlFramework)}
+        data={dummyFrameworkRecords.filter(
+          (item) => item.frameWorkName === selectedControlFramework
+        )}
         totalRows={totalRows}
         page={page}
         rowsPerPage={rowsPerPage}

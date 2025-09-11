@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Add, Close, DeleteOutlineOutlined } from "@mui/icons-material";
+import { Close, DeleteOutlineOutlined } from "@mui/icons-material";
 import {
   Autocomplete,
   Box,
@@ -37,7 +37,7 @@ interface ControlFrameworkFormModalProps {
   controls: ControlForm[];
   formData: ControlFrameworkForm;
   setFormData: React.Dispatch<React.SetStateAction<ControlFrameworkForm>>;
-  onSubmit: () => void;
+  onSubmit: (status: string) => void;
 }
 
 const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
@@ -360,7 +360,9 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                                   <TableCell>{control}</TableCell>
                                   <TableCell>
                                     <IconButton
-                                      onClick={() => deleteMITREControlID(index)}
+                                      onClick={() =>
+                                        deleteMITREControlID(index)
+                                      }
                                     >
                                       <DeleteOutlineOutlined
                                         sx={{ color: "#cd0303" }}
@@ -385,45 +387,53 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
       </Box>
       <DialogActions
         sx={{
-          px: 3,
           pt: 1.5,
-          pb: 4,
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
+          pb: 4,
+          px: 3,
         }}
       >
+        <Button
+          sx={{
+            width: 113,
+            height: 40,
+            border: "1px solid #CD0303",
+            borderRadius: 1,
+          }}
+          variant="outlined"
+          onClick={onClose}
+        >
+          <Typography variant="body1" color="#CD0303" fontWeight={500}>
+            Cancel
+          </Typography>
+        </Button>
         <Box display={"flex"} gap={3}>
           <Button
-            onClick={onClose}
-            sx={{
-              width: 113,
-              height: 40,
-              borderRadius: 1,
-              border: "1px solid #04139A",
+            onClick={() => {
+              onSubmit("draft");
             }}
+            sx={{ width: 161, height: 40, borderRadius: 1 }}
             variant="outlined"
           >
-            <Typography variant="body1" color="primary.main">
-              Cancel
+            <Typography variant="body1" color="#04139A" fontWeight={500}>
+              Save as Draft
             </Typography>
           </Button>
           <Button
-            sx={{
-              width: 110,
-              height: 40,
-              borderRadius: 1,
-            }}
+            sx={{ width: 132, height: 40, borderRadius: 1 }}
             variant="contained"
-            onClick={onSubmit}
+            onClick={() => {
+              onSubmit("published");
+            }}
             disabled={
               formData.frameWorkName === "" ||
               formData.frameWorkControlCategoryId === "" ||
               formData.frameWorkControlCategory === ""
             }
-            disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
-              {operation === "create" ? "Add" : "Save"}
+              Publish
             </Typography>
           </Button>
         </Box>

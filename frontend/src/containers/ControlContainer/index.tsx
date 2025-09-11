@@ -15,6 +15,7 @@ import { ControlService } from "@/services/controlService";
 import ControlButtonTab from "@/components/Library/Control/ControlButtonTab";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
+import { ControlFrameworkService } from "@/services/controlFrameworkService";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
   frameWorkName: "",
@@ -146,30 +147,30 @@ export default function ControlContainer() {
     })();
   }, []);
 
-  // Create
-  //   const handleCreate = async (status: string) => {
-  //     try {
-  //       const req = { ...assetFormData, status };
-  //       await AssetService.create(req);
-  //       setAssetFormData(initialAssetFormData);
-  //       setIsAddOpen(false);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: `Success! Asset ${
-  //           status === "published" ? "published" : "saved as draft"
-  //         }`,
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to create asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  // Create Control Mapping
+    const handleCreate = async (status: string) => {
+      try {
+        const req = { ...formData, status };
+        await ControlFrameworkService.create(req);
+        setFormData(initialControlFrameworkFormData);
+        setIsAddOpen(false);
+        setRefreshTrigger((p) => p + 1);
+        setToast({
+          open: true,
+          message: `Success! Control mapping ${
+            status === "published" ? "published" : "saved as draft"
+          }`,
+          severity: "success",
+        });
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to create control mapping",
+          severity: "error",
+        });
+      }
+    };
 
   // Update
   //   const handleUpdate = async (status: string) => {
@@ -363,7 +364,7 @@ export default function ControlContainer() {
           controls={controlsData}
           formData={formData}
           setFormData={setFormData}
-          onSubmit={() => console.log("Submitted")}
+          onSubmit={handleCreate}
           onClose={() => {
             setIsAddConfirmOpen(true);
           }}
