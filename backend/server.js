@@ -4,14 +4,14 @@ const app = express();
 const riskScenarioRoutes = require("./routes/risk_scenario");
 const metaDataRoutes = require("./routes/meta_data");
 const processRoutes = require("./routes/process");
-const assetRoutes = require("./routes/asset");
-const db = require("./models");
-const authRoutes = require("./routes/authRoutes");
-const errorHandler = require("./middleware/errorHandler");
+const assetRoutes = require("./routes/asset")
+const db = require('./models');
+const authRoutes = require('./routes/authRoutes');
+const errorHandler = require('./middleware/errorHandler');
 const mitreThreatsControlRoutes = require("./routes/mitre_theat_control");
-const controlsRoutes = require("./routes/controls");
+const controlsRoutes = require("./routes/controls")
 const organizationRoutes = require("./routes/organization");
-const cors = require("cors");
+const cors = require('cors');
 app.use(express.json());
 
 app.use(

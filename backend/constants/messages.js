@@ -127,6 +127,12 @@ module.exports = {
         FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
         FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
     },
+    FRAMEWORK_CONTROLS : {
+        INVALID_FRAMEWORK_NAME_REQUIRED: "Invalid framework name required",
+        INVALID_FRAMEWORK_INPUTS: "Invalid framework inputs",
+        INVALID_FRAMEWORK_MITRE_MAPPING: "Invalid framework to mitre mapping",
+
+    },
     ASSESSMENT: {
         NAME_REQUIRED: "Assessment name is required.",
         NOT_FOUND: (id) => `Assessment with id '${id}' not found.`,
