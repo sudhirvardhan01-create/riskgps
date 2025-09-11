@@ -216,12 +216,14 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
           </Grid>
 
           {/* Framework Control Sub-category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
               label={labels.frameworkControlSubcategory}
               isTooltipRequired={true}
               tooltipTitle={tooltips.frameworkControlSubcategory}
               placeholder="Enter Control Sub-category"
+              multiline
+              minRows={1}
               value={formData.frameWorkControlSubCategory}
               onChange={(e) =>
                 handleFieldChange("frameWorkControlSubCategory", e.target.value)
@@ -309,7 +311,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                             >
                               {labels.mitreControlId}
                             </Typography>
-                            {/* <Typography color="#FB2020">*</Typography> */}
+                            <Typography color="#FB2020">*</Typography>
                             <TooltipComponent title={tooltips.mitreControlId} />
                           </Box>
                         }
@@ -429,7 +431,9 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
             disabled={
               formData.frameWorkName === "" ||
               formData.frameWorkControlCategoryId === "" ||
-              formData.frameWorkControlCategory === ""
+              formData.frameWorkControlCategory === "" ||
+              !formData.mitreControls ||
+              formData.mitreControls.length === 0
             }
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>

@@ -3,7 +3,6 @@ import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { ControlForm, ControlFrameworkForm } from "@/types/control";
-import { FileService } from "@/services/fileService";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkList from "@/components/Library/Control/ControlFrameworkList";
 import ViewControlFrameworkModal from "@/components/Library/Control/ViewControlFrameworkModal";
@@ -12,11 +11,13 @@ import { ControlFrameworkService } from "@/services/controlFrameworkService";
 interface ControlFrameworkContainerProps {
   selectedControlFramework: string;
   controls: ControlForm[];
+  renderOnCreation: any;
 }
 
 const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   selectedControlFramework,
   controls,
+  renderOnCreation
 }) => {
   const initialControlFrameworkFormData: ControlFrameworkForm = {
     frameWorkName: "",
@@ -32,8 +33,6 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>("id:asc");
-  const [searchPattern, setSearchPattern] = useState<string>();
   const [controlsData, setControlsData] = useState<ControlFrameworkForm[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
 
@@ -78,7 +77,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
 
   useEffect(() => {
     loadList();
-  }, [loadList, refreshTrigger]);
+  }, [loadList, refreshTrigger, selectedControlFramework, renderOnCreation]);
 
   // fetch metadata
   useEffect(() => {
@@ -281,7 +280,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       <ControlFrameworkList
         loading={loading}
         //data={controlsData}
-        data={dummyFrameworkRecords.filter(
+        data={controlsData.filter(
           (item) => item.frameWorkName === selectedControlFramework
         )}
         totalRows={totalRows}

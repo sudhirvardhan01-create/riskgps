@@ -457,6 +457,7 @@ export default function ControlContainer() {
           <ControlFrameworkContainer
             selectedControlFramework={selectedControlFramework}
             controls={controlsData}
+            renderOnCreation={handleCreate}
           />
         )}
       </Box>

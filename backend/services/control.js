@@ -111,7 +111,8 @@ class ControlsService {
 
             const uniqueMitreControlIds = [...new Set(mitreControls?.map(item => item.mitreControlId))];
 
-            control.mitre_controls = uniqueMitreControlIds;
+            control.mitreControls = uniqueMitreControlIds;
+            delete control.mitre_controls;
         }
 
 
