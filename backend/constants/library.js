@@ -77,4 +77,24 @@ module.exports = {
       "mitreTechniqueName",
     ],
   },
+
+  MITRE_CONTROLS: {
+    ALLOWED_SORT_FILED: [
+      "id",
+      "created_at",
+      "updated_at",
+      "mitreControlId",
+      "mitreControlName"
+    ],
+  },
+  FRAMEWORK_CONTROLS: {
+    ALLOWED_SORT_FILED: [
+      "id",
+      "created_at",
+      "updated_at",
+      "frameWorkControlCategoryId",
+      "frameWorkControlCategory",
+      "frameWorkControlDescription"
+    ],
+  }
 };

@@ -127,6 +127,12 @@ module.exports = {
         FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
         FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
     },
+    MITRE_CONTROLS: {
+        UPDATED_STATUS: "Status updated successfully",
+        DELETED_SUCCESSFULLY: " Deleted successfully",
+        INVALID_MITRE_CONTROL_ID: "Mitre control ID required"
+
+    },
     FRAMEWORK_CONTROLS : {
         INVALID_FRAMEWORK_NAME_REQUIRED: "Invalid framework name required",
         INVALID_FRAMEWORK_INPUTS: "Invalid framework inputs",
