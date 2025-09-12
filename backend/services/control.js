@@ -5,20 +5,35 @@ const { sequelize, MitreThreatControl, FrameWorkControl, MitreFrameworkControlMa
 const CustomError = require("../utils/CustomError");
 const fs = require("fs");
 const { parse } = require("fast-csv");
+const { MITRE_CONTROLS, GENERAL, FRAMEWORK_CONTROLS } = require("../constants/library");
+const { Op, where } = require("sequelize");
 
 
 class ControlsService {
-    static async getAllControl(searchPattern = null) {
+    static async getAllControl(
+        page = 0,
+        limit = 6,
+        searchPattern = null,
+        sortBy = "created_at",
+        sortOrder = "ASC",
+    ) {
+
+        if (!MITRE_CONTROLS.ALLOWED_SORT_FILED.includes(sortBy)) {
+            sortBy = "created_at";
+        }
+
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
+            sortOrder = "ASC";
+        }
         const whereClause = this.handleControlsFilters(searchPattern);
 
         const includeRelation = { model: FrameWorkControl, as: 'framework_controls' }
 
         const data = await MitreThreatControl.findAll({
+            order: [[sortBy, sortOrder]],
             where: whereClause,
             include: includeRelation
         });
-
-        let val = data.map((s) => s.toJSON());
 
         const grouped = Object.values(
             data.reduce((acc, row) => {
@@ -67,8 +82,73 @@ class ControlsService {
             }, {})
         );
 
-        return grouped
+        const total = grouped.length;
+        const totalPages = Math.ceil(total / limit);
+
+        // slice based on zero-indexed page
+        const start = page * limit;
+        const end = start + limit;
+        const paginatedData = grouped.slice(start, end);
+
+        return {
+            data: paginatedData,
+            total,
+            page,
+            limit,
+            totalPages,
+        };
     }
+
+    static async deleteMitreControl(mitreControlId, mitreControlName) {
+        const whereClause = { mitreControlId };
+
+        if (mitreControlName !== null) {
+            whereClause.mitreControlName = mitreControlName;
+        } else {
+            whereClause.mitreControlName = {
+                [Op.or]: [null, '']
+            };
+        }
+
+        const [deletedCount] = await MitreThreatControl.destroy({ where: whereClause });
+
+        if (deletedCount === 0) {
+            console.log("[deleteMitreControl] No mitre threat control recorod found:", mitreControlId, mitreControlName);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        console.log("[updateMitreControlStatus] Status updated successfully:", mitreControlId, mitreControlName);
+        return { message: Messages.MITRE_CONTROLS.UPDATED_STATUS };
+    }
+
+
+    static async updateMitreControlStatus(mitreControlId, mitreControlName, status) {
+        const whereClause = { mitreControlId };
+
+        if (!status) {
+            throw new Error("Status required");
+        }
+
+        if (mitreControlName !== null) {
+            whereClause.mitreControlName = mitreControlName;
+        } else {
+            whereClause.mitreControlName = {
+                [Op.or]: [null, '']
+            };
+        }
+
+        const [updatedRowsCount] = await MitreThreatControl.update({ status }, { where: whereClause });
+
+        if (updatedRowsCount === 0) {
+            console.log("[updateMitreControlStatus] No mitre threat control recorod found:", mitreControlId, mitreControlName);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        console.log("[updateMitreControlStatus] Status updated successfully:", mitreControlId, mitreControlName);
+        return { message: Messages.MITRE_CONTROLS.UPDATED_STATUS };
+    }
+
+
 
     static async createFrameworkControl(data) {
         try {
@@ -92,8 +172,26 @@ class ControlsService {
         }
     }
 
-    static async getAllFrameworkControls() {
+    static async getAllFrameworkControls(
+        frameWorkName,
+        page = 0,
+        limit = 6,
+        searchPattern = null,
+        sortBy = "created_at",
+        sortOrder = "ASC") {
+
+        if (!FRAMEWORK_CONTROLS.ALLOWED_SORT_FILED.includes(sortBy)) {
+            sortBy = "created_at";
+        }
+
+        if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
+            sortOrder = "ASC";
+        }
+
+        const whereClause = this.handleFrameworkControlsFilters(frameWorkName, searchPattern);
+
         const data = await FrameWorkControl.findAll({
+            where: whereClause,
             include: [
                 {
                     model: sequelize.models.MitreThreatControl,
@@ -115,13 +213,56 @@ class ControlsService {
             delete control.mitre_controls;
         }
 
+        const total = controls.length;
+        const totalPages = Math.ceil(total / limit);
 
+        // slice based on zero-indexed page
+        const start = page * limit;
+        const end = start + limit;
+        const paginatedData = controls.slice(start, end);
 
-        return controls;
+        return {
+            data: paginatedData,
+            total,
+            page,
+            limit,
+            totalPages,
+        };
     }
 
-    static async deleteFrameWorkdControl() {
+    static async deleteFrameWorkControl(id) {
+        if (!id) {
+            throw new Error("Invalid request id required");
+        }
+        const whereClause ={ id };
+        // const whereClause = {
+        //     [Op.and]: [
+        //         { frameworkName },
+        //         { frameWorkControlCategoryId }
+        //     ]
+        // };
 
+        // // Add optional ones if present
+        // if (frameWorkControlCategory) {
+        //     whereClause[Op.and].push({ frameWorkControlCategory });
+        // }
+
+        // if (frameWorkControlSubCategoryId) {
+        //     whereClause[Op.and].push({ frameWorkControlSubCategoryId });
+        // }
+
+        // if (frameWorkControlSubCategory) {
+        //     whereClause[Op.and].push({ frameWorkControlSubCategory });
+        // }
+
+        const [deletedCount] = await FrameWorkControl.destroy({ where: whereClause });
+
+        if (deletedCount < 1) {
+            console.log("[deleteMitreControl] No mitre threat control recorod found:");
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        return { message: "Framework control deleted" };
     }
 
 
@@ -143,9 +284,33 @@ class ControlsService {
             "Framework Control SubCategory Id": "Framework Control Sub-Category Id",
             "Framework Control SubCategory": "Framework Control Sub-Category Name",
             "MITRE Control Id": "Related MITRE Control Ids separated by comma"
-        }); 
+        });
 
         csvStream.end();
+    }
+
+    static async updateFrameWorkControlStatus(status, id) {
+        if (!status) {
+            throw new Error("Status required")
+        }
+
+        if (!id) {
+            throw new Error("Invalid request id required");
+        }
+
+        // Add optional ones if present
+
+        const whereClause = { id };
+
+
+        const [updatedCount] = await FrameWorkControl.update({ status }, { where: whereClause });
+
+        if (updatedCount < 1) {
+            console.log("[deleteMitreControl] No mitre threat control recorod found:");
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        return { message: "Framework control updated" };
     }
 
 
@@ -256,11 +421,39 @@ class ControlsService {
         if (searchPattern) {
             conditions.push({
                 [Op.or]: [
+                    { mitreControlId: { [Op.iLike]: `%${searchPattern}%` } },
                     { mitreControlName: { [Op.iLike]: `%${searchPattern}%` } },
                     { mitreControlType: { [Op.iLike]: `%${searchPattern}%` } },
                     { mitreControlDescription: { [Op.iLike]: `%${searchPattern}%` } },
                     { bluOceanControlDescription: { [Op.iLike]: `%${searchPattern}%` } },
                 ],
+            });
+        }
+        return conditions.length > 0 ? { [Op.and]: conditions } : {};
+    }
+
+    static handleFrameworkControlsFilters(
+        frameworkName = null,
+        searchPattern = null,
+        statusFilter = [],
+        attrFilters = []
+    ) {
+        let conditions = [];
+        if (searchPattern) {
+            conditions.push({
+                [Op.or]: [
+                    { frameWorkControlCategoryId: { [Op.iLike]: `%${searchPattern}%` } },
+                    { frameWorkControlCategory: { [Op.iLike]: `%${searchPattern}%` } },
+                    { frameWorkControlDescription: { [Op.iLike]: `%${searchPattern}%` } },
+                    { frameWorkControlSubCategoryId: { [Op.iLike]: `%${searchPattern}%` } },
+                    { frameWorkControlSubCategory: { [Op.iLike]: `%${searchPattern}%` } },
+                ],
+            });
+        }
+
+        if (frameworkName) {
+            conditions.push({
+                frameworkName: frameworkName, // must match your model's attribute name
             });
         }
         return conditions.length > 0 ? { [Op.and]: conditions } : {};

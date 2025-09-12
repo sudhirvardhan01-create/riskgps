@@ -2,6 +2,7 @@ const express = require("express");
 const ControlsService = require("../services/control");
 const HttpStatusCodes = require("../constants/httpStatusCodes");
 const multer = require("multer");
+const Messages = require("../constants/messages");
 const router = express.Router();
 
 const upload = multer({
@@ -17,10 +18,15 @@ const upload = multer({
 });
 
 router.get("/get-controls", async (req, res) => {
-    console.log("got request")
+    const searchPattern = req.query.search || null;
+    const limit = parseInt(req.query?.limit) || 6;
+    const page = parseInt(req.query?.page) || 0;
+    const sortBy = req.query.sort_by || 'created_at';
+    const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+
     try {
-        const data = await ControlsService.getAllControl();
-        res.json({data})
+        const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder);
+        res.status(200).json({data});
 
     } catch (error) {
         res.status(400).json({
@@ -30,8 +36,57 @@ router.get("/get-controls", async (req, res) => {
     }
 })
 
+router.patch("/update-mitre-control-status", async (req, res) => {
+    try {
+        const mitreControlId = req.query.mitreControlId ?? null;
+        const mitreControlIdName = req.query.mitreControlIdName ?? null;
+        const status = req.body.status ?? null;
+
+        if (!mitreControlId) {
+            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatus.BAD_REQUEST);
+        }
+
+        if (!status) {
+            throw new CustomError("Status required", HttpStatus.BAD_REQUEST);
+        }
+        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlIdName, status);
+        res.status(HttpStatusCodes.CREATED).json({
+            data: response,
+            msg: "mitre control status updated"
+        })
+    } catch (err) {
+        console.log("Failed to update framework controls status", err)
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+            msg: err.message
+        })
+    }
+})
+
+router.delete("/delete-mitre-control-status", async (req, res) => {
+    try {
+        const mitreControlId = req.query.mitreControlId ?? null;
+        const mitreControlIdName = req.query.mitreControlIdName ?? null;
+
+        if (!mitreControlId) {
+            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatus.BAD_REQUEST);
+        }
+
+        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlIdName);
+        res.status(HttpStatusCodes.CREATED).json({
+            data: response,
+            msg: "mitre control deleted "
+        })
+    } catch (err) {
+        console.log("Failed to  framework controls delete", err)
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+            msg: err.message
+        })
+    }
+})
+
 router.post("/framework-control", async (req, res) => {
     try {
+        
         const response = await ControlsService.createFrameworkControl(req.body);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
@@ -45,14 +100,63 @@ router.post("/framework-control", async (req, res) => {
     }
 })
 
+
 router.get("/get-all-framework-control", async (req, res) => {
     try {
-        const response = await ControlsService.getAllFrameworkControls();
+        const frameworkName = req.query.frameworkName || null
+        const searchPattern = req.query.search || null;
+        const limit = parseInt(req.query?.limit) || 6;
+        const page = parseInt(req.query?.page) || 0;
+        const sortBy = req.query.sort_by || 'created_at';
+        const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+  
+        const response = await ControlsService.getAllFrameworkControls(frameworkName, page, limit, searchPattern, sortBy, sortOrder);
         res.status(200).json({
             data: response
         })
     } catch (err) {
         console.log("failed to get all controls");
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+            msg: err.message
+        })
+    }
+})
+
+router.delete("/framework-control", async (req, res) =>{
+    try {
+        const id = req.query.id ?? null;
+
+        if (!id ) {
+            throw new Error("Failed, id required")
+        }
+        const response = await ControlsService.deleteFrameWorkControl(id);
+        res.status(200).json({
+            data: response
+        })
+
+    } catch (err) {
+        console.log("failed to delete", err);
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+            msg: err.message
+        })
+    }
+})
+
+router.patch("/framework-control-update-status", async (req, res) =>{
+    try {
+        const id = req.query.id ?? null;
+        const status = req.body.status;
+
+        if (!id || !status) {
+            throw new Error("Failed, id and status required")
+        }
+        const response = await ControlsService.updateFrameWorkControlStatus(status, id);
+        res.status(200).json({
+            data: response
+        })
+
+    } catch (err) {
+        console.log("failed to update status", err);
         res.status(HttpStatusCodes.BAD_REQUEST).json({
             msg: err.message
         })

@@ -151,10 +151,6 @@ class MitreThreatControlService {
                 };
             }
 
-            if (subTechniqueId) {
-                whereClause.subTechniqueId = subTechniqueId;
-            }
-
             const deletedCount = await MitreThreatControl.destroy({ where: whereClause });
             console.log(deletedCount);
 
