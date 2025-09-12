@@ -1,223 +1,291 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    Button,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Typography,
-    Autocomplete,
-    Box,
-    Grid,
-    Radio,
-    AutocompleteRenderInputParams,
-    Paper,
-    Select,
-    ListSubheader,
-    MenuItem,
-    FormControl,
-    InputLabel,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Typography,
+  Autocomplete,
+  Box,
+  Grid,
+  Radio,
+  AutocompleteRenderInputParams,
+  Paper,
+  Select,
+  ListSubheader,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import TextFieldStyled from "../../TextFieldStyled";
 import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
 
 interface Organisation {
-    id: string;
-    name: string;
+  id: string;
+  name: string;
 }
 
 interface BusinessUnit {
-    id: string;
-    name: string;
-    orgId: string;
+  id: string;
+  name: string;
+  orgId: string;
 }
 
 interface StartAssessmentModalProps {
-    open: boolean;
-    onClose: () => void;
+  open: boolean;
+  onClose: () => void;
 }
 
-const organisations: Organisation[] = [
-    { id: "org1", name: "BluOcean" },
-    { id: "org2", name: "CDW" },
-    { id: "org3", name: "Affirm" }
-];
+// const organisations: Organisation[] = [
+//     { id: "org1", name: "BluOcean" },
+//     { id: "org2", name: "CDW" },
+//     { id: "org3", name: "Affirm" }
+// ];
 
-const businessUnits: BusinessUnit[] = [
-    { id: "bu1", name: "Retail Banking", orgId: "org1" },
-    { id: "bu2", name: "Loan Services", orgId: "org1" },
-    { id: "bu3", name: "Retail Banking", orgId: "org2" },
-    { id: "bu4", name: "Loan Services", orgId: "org2" },
-];
+// const businessUnits: BusinessUnit[] = [
+//     { id: "bu1", name: "Retail Banking", orgId: "org1" },
+//     { id: "bu2", name: "Loan Services", orgId: "org1" },
+//     { id: "bu3", name: "Retail Banking", orgId: "org2" },
+//     { id: "bu4", name: "Loan Services", orgId: "org2" },
+// ];
 
 const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
-    open,
-    onClose,
+  open,
+  onClose,
 }) => {
-    const {
-        assessmentName,
-        setAssessmentName,
-        assessmentDescription,
-        setAssessmentDescription,
-        selectedOrg,
-        setSelectedOrg,
-        selectedBU,
-        setSelectedBU,
-        submitAssessment
-    } = useAssessment();
+  const {
+    assessmentName,
+    setAssessmentName,
+    assessmentDescription,
+    setAssessmentDescription,
+    selectedOrg,
+    setSelectedOrg,
+    selectedBU,
+    setSelectedBU,
+    submitAssessment,
+  } = useAssessment();
 
-    const router = useRouter()
+  const router = useRouter();
 
-    const [orgSearch, setOrgSearch] = useState("");
-    const [buSearch, setBuSearch] = useState("");
+  const [orgSearch, setOrgSearch] = useState("");
+  const [buSearch, setBuSearch] = useState("");
 
-    const handleSubmit = () => {
-        if (selectedOrg && selectedBU) {
-            // submitAssessment();
-            router.push("/assessment/assessmentProcess")
-            onClose();
-        }
+  const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get("/api/organisations");
+        setOrganisations(res.data);
+      } catch (error) {
+        console.error("Error fetching organisations:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const filteredOrgs = organisations.filter((o) =>
-        o.name.toLowerCase().includes(orgSearch.toLowerCase())
-    );
+    fetchOrgs();
+  }, []);
 
-    const filteredBUs = businessUnits
-        .filter((bu) => bu.orgId === selectedOrg)
-        .filter((bu) => bu.name.toLowerCase().includes(buSearch.toLowerCase()));
+  useEffect(() => {
+    if (!selectedOrg) {
+      setBusinessUnits([]);
+      return;
+    }
 
+    const fetchBUs = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`/api/business-units?orgId=${selectedOrg}`);
+        setBusinessUnits(res.data);
+      } catch (error) {
+        console.error("Error fetching business units:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-            <DialogTitle sx={{ p: 4, pb: 5 }}>
-                <Typography variant="h5" fontWeight="550" sx={{ mb: 3 }}>
-                    Start Assessment
-                </Typography>
-                <Box sx={{ borderBottom: "1px solid #D9D9D9" }} />
-            </DialogTitle>
+    fetchBUs();
+  }, [selectedOrg]);
 
-            <DialogContent sx={{ p: 4 }}>
-                <Typography variant="body1" fontWeight={550} sx={{ mb: 5 }}>
-                    Select Organisation and Business Unit
-                </Typography>
+  const handleSubmit = () => {
+    if (selectedOrg && selectedBU) {
+      // submitAssessment();
+      router.push("/assessment/assessmentProcess");
+      onClose();
+    }
+  };
 
-                <TextFieldStyled
-                    label="Assessment Name"
-                    required
-                    size="small"
-                    sx={{ mb: 4 }}
-                    value={assessmentName}
-                    onChange={(e) => setAssessmentName(e.target.value)}
-                />
-                <TextFieldStyled
-                    label="Assessment Description"
-                    size="small"
-                    sx={{ mb: 4 }}
-                    value={assessmentDescription}
-                    onChange={(e) => setAssessmentDescription(e.target.value)}
-                />
+  const filteredOrgs = organisations.filter((o) =>
+    o.name.toLowerCase().includes(orgSearch.toLowerCase())
+  );
 
-                <Grid container spacing={4} sx={{ height: "100%", display: "flex", alignItems: "baseline" }}>
-                    <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
-                        {/* Organisation Dropdown */}
-                        <FormControl fullWidth size="medium">
-                            <InputLabel id="org-label"><Typography variant="body1" color="#121212">Organisations</Typography></InputLabel>
-                            <Select
-                                labelId="org-label"
-                                label={<Typography variant="body1" color="#121212">Organisations</Typography>}
-                                value={selectedOrg}
-                                onChange={(e) => {
-                                    setSelectedOrg(e.target.value);
-                                    setSelectedBU("");
-                                }}
-                                sx={{ bgcolor: "#fff", borderRadius: "8px" }}
-                                renderValue={(val) => {
-                                    if (!val) return "Select Organisation";
-                                    return organisations.find((o) => o.id === val)?.name || "";
-                                }}
-                                required
-                            >
-                                {/* Search bar pinned at top */}
-                                <ListSubheader>
-                                    <TextField
-                                        size="small"
-                                        placeholder="Search Organisation"
-                                        value={orgSearch}
-                                        onChange={(e) => setOrgSearch(e.target.value)}
-                                        fullWidth
-                                    />
-                                </ListSubheader>
+  const filteredBUs = businessUnits
+    .filter((bu) => bu.orgId === selectedOrg)
+    .filter((bu) => bu.name.toLowerCase().includes(buSearch.toLowerCase()));
 
-                                {filteredOrgs.map((org) => (
-                                    <MenuItem key={org.id} value={org.id}>
-                                        <Radio checked={selectedOrg === org.id} />
-                                        {org.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+  return (
+    <>
+      {loading && <MenuItem disabled>Loading...</MenuItem>}
 
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
-                        {/* Business Unit Dropdown */}
-                        <FormControl fullWidth size="medium" disabled={!selectedOrg}>
-                            <InputLabel id="bu-label"><Typography variant="body1" color="#121212">Business Unit</Typography></InputLabel>
-                            <Select
-                                labelId="bu-label"
-                                label={<Typography variant="body1" color="#121212">Business Unit</Typography>}
-                                value={selectedBU}
-                                onChange={(e) => setSelectedBU(e.target.value)}
-                                sx={{ bgcolor: "#fff", borderRadius: "8px" }}
-                                renderValue={(val) => {
-                                    if (!val) return "Select Business Unit";
-                                    return businessUnits.find((b) => b.id === val)?.name || "";
-                                }}
-                                required
-                            >
-                                {/* Search bar pinned at top */}
-                                <ListSubheader>
-                                    <TextField
-                                        size="small"
-                                        placeholder="Search Business Unit"
-                                        value={buSearch}
-                                        onChange={(e) => setBuSearch(e.target.value)}
-                                        fullWidth
-                                    />
-                                </ListSubheader>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ p: 4, pb: 5 }}>
+          <Typography variant="h5" fontWeight="550" sx={{ mb: 3 }}>
+            Start Assessment
+          </Typography>
+          <Box sx={{ borderBottom: "1px solid #D9D9D9" }} />
+        </DialogTitle>
 
-                                {filteredBUs.map((bu) => (
-                                    <MenuItem key={bu.id} value={bu.id}>
-                                        <Radio checked={selectedBU === bu.id} />
-                                        {bu.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                </Grid>
-            </DialogContent>
+        <DialogContent sx={{ p: 4 }}>
+          <Typography variant="body1" fontWeight={550} sx={{ mb: 5 }}>
+            Select Organisation and Business Unit
+          </Typography>
 
-            <DialogActions sx={{ p: 4, pt: 1 }}>
-                <Button onClick={onClose} variant="outlined" color="error" sx={{ borderRadius: 1 }}>
-                    Cancel
-                </Button>
-                <Button
-                    onClick={handleSubmit}
-                    variant="contained"
-                    color="primary"
-                    disabled={!selectedOrg || !selectedBU || !assessmentName}
-                    sx={{ borderRadius: 1 }}
+          <TextFieldStyled
+            label="Assessment Name"
+            required
+            size="small"
+            sx={{ mb: 4 }}
+            value={assessmentName}
+            onChange={(e) => setAssessmentName(e.target.value)}
+          />
+          <TextFieldStyled
+            label="Assessment Description"
+            size="small"
+            sx={{ mb: 4 }}
+            value={assessmentDescription}
+            onChange={(e) => setAssessmentDescription(e.target.value)}
+          />
+
+          <Grid
+            container
+            spacing={4}
+            sx={{ height: "100%", display: "flex", alignItems: "baseline" }}
+          >
+            <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
+              {/* Organisation Dropdown */}
+              <FormControl fullWidth size="medium">
+                <InputLabel id="org-label">
+                  <Typography variant="body1" color="#121212">
+                    Organisations
+                  </Typography>
+                </InputLabel>
+                <Select
+                  labelId="org-label"
+                  label={
+                    <Typography variant="body1" color="#121212">
+                      Organisations
+                    </Typography>
+                  }
+                  value={selectedOrg}
+                  onChange={(e) => {
+                    setSelectedOrg(e.target.value);
+                    setSelectedBU("");
+                  }}
+                  sx={{ bgcolor: "#fff", borderRadius: "8px" }}
+                  renderValue={(val) => {
+                    if (!val) return "Select Organisation";
+                    return organisations.find((o) => o.id === val)?.name || "";
+                  }}
+                  required
                 >
-                    Start Assessment
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
+                  {/* Search bar pinned at top */}
+                  <ListSubheader>
+                    <TextField
+                      size="small"
+                      placeholder="Search Organisation"
+                      value={orgSearch}
+                      onChange={(e) => setOrgSearch(e.target.value)}
+                      fullWidth
+                    />
+                  </ListSubheader>
+
+                  {filteredOrgs.map((org) => (
+                    <MenuItem key={org.id} value={org.id}>
+                      <Radio checked={selectedOrg === org.id} />
+                      {org.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
+              {/* Business Unit Dropdown */}
+              <FormControl fullWidth size="medium" disabled={!selectedOrg}>
+                <InputLabel id="bu-label">
+                  <Typography variant="body1" color="#121212">
+                    Business Unit
+                  </Typography>
+                </InputLabel>
+                <Select
+                  labelId="bu-label"
+                  label={
+                    <Typography variant="body1" color="#121212">
+                      Business Unit
+                    </Typography>
+                  }
+                  value={selectedBU}
+                  onChange={(e) => setSelectedBU(e.target.value)}
+                  sx={{ bgcolor: "#fff", borderRadius: "8px" }}
+                  renderValue={(val) => {
+                    if (!val) return "Select Business Unit";
+                    return businessUnits.find((b) => b.id === val)?.name || "";
+                  }}
+                  required
+                >
+                  {/* Search bar pinned at top */}
+                  <ListSubheader>
+                    <TextField
+                      size="small"
+                      placeholder="Search Business Unit"
+                      value={buSearch}
+                      onChange={(e) => setBuSearch(e.target.value)}
+                      fullWidth
+                    />
+                  </ListSubheader>
+
+                  {filteredBUs.map((bu) => (
+                    <MenuItem key={bu.id} value={bu.id}>
+                      <Radio checked={selectedBU === bu.id} />
+                      {bu.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 4, pt: 1 }}>
+          <Button
+            onClick={onClose}
+            variant="outlined"
+            color="error"
+            sx={{ borderRadius: 1 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            color="primary"
+            disabled={!selectedOrg || !selectedBU || !assessmentName}
+            sx={{ borderRadius: 1 }}
+          >
+            Start Assessment
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
 };
 
 export default AssessmentModal;

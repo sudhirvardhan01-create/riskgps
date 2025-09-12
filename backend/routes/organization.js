@@ -88,7 +88,7 @@ router.get("/:orgId/risk-scenarios", async (req, res) => {
             });
         }
 
-        const scenarios = await OrganizationRiskScenarioService.getRiskScenariosByOrgId(orgId);
+        const scenarios = await OrganizationService.getRiskScenariosByOrgId(orgId);
 
         res.status(HttpStatus.OK).json({
             message: "Organization risk scenarios fetched successfully",
