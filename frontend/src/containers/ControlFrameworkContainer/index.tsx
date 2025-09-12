@@ -70,6 +70,11 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
     loadList();
   }, [loadList, refreshTrigger, selectedControlFramework, renderOnCreation]);
 
+  //Set Page Number to 0 on change of Selected Control Framework
+  useEffect(() => {
+    setPage(0)
+  }, [selectedControlFramework]);
+
   // fetch metadata
   useEffect(() => {
     (async () => {

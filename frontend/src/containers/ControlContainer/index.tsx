@@ -340,6 +340,11 @@ const frameworksSortItems = [
     }
   };
 
+  useEffect(() => {
+    setSearchPattern("");
+    setSort("id:asc");
+  }, [selectedControlFramework]);
+
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
@@ -359,7 +364,7 @@ const frameworksSortItems = [
       handledownloadTemplateFile: handledownloadFrameworkControlsTemplateFile,
       isImportRequired: true,
       isExportRequired: true,
-      searchPattern : selectedControlFramework === "MITRE" ? "" : searchPattern,
+      searchPattern,
       setSearchPattern,
       sort,
       setSort,
@@ -368,9 +373,8 @@ const frameworksSortItems = [
       filters,
       setFilters,
     }),
-    [statusFilters, filters, metaDatas, file, isFileUploadOpen, selectedControlFramework]
+    [statusFilters, filters, metaDatas, file, isFileUploadOpen, selectedControlFramework, searchPattern]
   );
-  console.log(headerProps);
 
   return (
     <>
@@ -492,7 +496,7 @@ const frameworksSortItems = [
             selectedControlFramework={selectedControlFramework}
             controls={controlsData}
             renderOnCreation={handleCreate}
-            searchPattern={searchPattern}
+            searchPattern={selectedControlFramework === "MITRE" ? "" : searchPattern}
             sort={sort}
           />
         )}

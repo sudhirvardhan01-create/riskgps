@@ -36,7 +36,7 @@ export const fetchFrameworkControls = async (
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
   params.append("limit", JSON.stringify(limit));
-  params.append("frameworkName", JSON.stringify(frameworkName));
+  params.append("frameworkName", frameworkName);
   params.append("search", searchPattern ?? "");
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
