@@ -3,7 +3,7 @@ import { ControlFrameworkForm } from "@/types/control";
 
 export const ControlFrameworkService = {
         create: (data: ControlFrameworkForm) => createControlMapping(data),
-        fetch: () => fetchFrameworkControls(),
+        fetch: (page: number, limit: number, frameworkName: string, searchPattern?: string, sort?: string) => fetchFrameworkControls(page, limit, frameworkName, searchPattern, sort),
         download: () => downloadFrameworkControlsTemplateFile(),
         export: () => exportFrameworkControls(),
         import: (file: File) => importFrameworkControls(file),

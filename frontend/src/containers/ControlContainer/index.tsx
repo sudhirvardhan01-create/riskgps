@@ -141,7 +141,7 @@ const frameworksSortItems = [
         searchPattern as string,
         sort
       );
-      setControlsData(data ?? []);
+      setControlsData(data.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
@@ -359,7 +359,7 @@ const frameworksSortItems = [
       handledownloadTemplateFile: handledownloadFrameworkControlsTemplateFile,
       isImportRequired: true,
       isExportRequired: true,
-      searchPattern,
+      searchPattern : selectedControlFramework === "MITRE" ? "" : searchPattern,
       setSearchPattern,
       sort,
       setSort,
@@ -370,6 +370,7 @@ const frameworksSortItems = [
     }),
     [statusFilters, filters, metaDatas, file, isFileUploadOpen, selectedControlFramework]
   );
+  console.log(headerProps);
 
   return (
     <>
@@ -491,6 +492,8 @@ const frameworksSortItems = [
             selectedControlFramework={selectedControlFramework}
             controls={controlsData}
             renderOnCreation={handleCreate}
+            searchPattern={searchPattern}
+            sort={sort}
           />
         )}
       </Box>

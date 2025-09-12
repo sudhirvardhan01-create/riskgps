@@ -12,12 +12,16 @@ interface ControlFrameworkContainerProps {
   selectedControlFramework: string;
   controls: ControlForm[];
   renderOnCreation: any;
+  searchPattern?: string;
+  sort: string;
 }
 
 const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   selectedControlFramework,
   controls,
   renderOnCreation,
+  searchPattern,
+  sort,
 }) => {
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -47,9 +51,9 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ControlFrameworkService.fetch();
-      setControlsData(data ?? []);
-      //setTotalRows(data?.total ?? 0);
+      const data = await ControlFrameworkService.fetch(page, rowsPerPage, selectedControlFramework, searchPattern, sort);
+      setControlsData(data.data ?? []);
+      setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
       setToast({
@@ -60,7 +64,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, rowsPerPage, searchPattern, sort, selectedControlFramework]);
 
   useEffect(() => {
     loadList();
