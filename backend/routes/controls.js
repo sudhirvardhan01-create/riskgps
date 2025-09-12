@@ -62,16 +62,16 @@ router.patch("/update-mitre-control-status", async (req, res) => {
     }
 })
 
-router.delete("/delete-mitre-control-status", async (req, res) => {
+router.delete("/delete-mitre-control", async (req, res) => {
     try {
         const mitreControlId = req.query.mitreControlId ?? null;
-        const mitreControlIdName = req.query.mitreControlIdName ?? null;
+        const mitreControlName = req.query.mitreControlName ?? null;
 
         if (!mitreControlId) {
             throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatus.BAD_REQUEST);
         }
 
-        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlIdName);
+        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlName);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "mitre control deleted "
