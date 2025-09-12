@@ -14,11 +14,15 @@ import {
   Chip,
   FormControlLabel,
   Stack,
+  Paper,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
-import {
-  Close,
-  DoneOutlined,
-} from "@mui/icons-material";
+import { Add, Close, DeleteOutlineOutlined, DoneOutlined, EditOutlined } from "@mui/icons-material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
@@ -197,6 +201,86 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               <MenuItem value="MITIGATION">MITIGATION</MenuItem>
               <MenuItem value="DETECTION">DETECTION</MenuItem>
             </SelectStyled>
+          </Grid>
+
+          {/* RELATED THREATS SECTION */}
+          <Grid mt={1} size={{ xs: 12 }}>
+            <Stack display={"flex"} flexDirection={"column"} gap={2}>
+              <Typography variant="h6" fontWeight={600}>
+                Related Threats
+              </Typography>
+              <Grid size={{ xs: 12 }}>
+                <Button
+                  startIcon={<Add />}
+                  // onClick={() => {
+                  //   setIsAddRelatedControlOpen(true);
+                  //   setRelatedControlFormData(initialRelatedControlFormData);
+                  // }}
+                  sx={{ paddingY: 0 }}
+                >
+                  Add New Threat
+                </Button>
+              </Grid>
+              {formData?.subControls && formData?.subControls?.length > 0 && (
+                <Grid size={{ xs: 12 }}>
+                  <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                    <TableContainer sx={{ maxHeight: 440 }}>
+                      <Table stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>MITRE Technique ID</TableCell>
+                            <TableCell>Sub Technique ID</TableCell>
+                            <TableCell>MITRE Control Description</TableCell>
+                            <TableCell>Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {formData.subControls?.map((control, index) => {
+                            return (
+                              <TableRow
+                                hover
+                                role="checkbox"
+                                tabIndex={-1}
+                                key={index}
+                              >
+                                <TableCell>{control.mitreTechniqueId}</TableCell>
+                                <TableCell>
+                                  {control.subTechniqueId}
+                                </TableCell>
+                                <TableCell>
+                                  {control.mitreControlDescription}
+                                </TableCell>
+                                <TableCell>
+                                  <Stack display={"flex"} flexDirection={"row"}>
+                                  <IconButton
+                                    // onClick={() => {
+                                    //   setSelectedRelatedControl(control);
+                                    //   setSelectedControlID(index);
+                                    //   setIsEditRelatedControlOpen(true);
+                                    // }}
+                                  >
+                                    <EditOutlined
+                                      sx={{ color: "primary.main" }}
+                                    />
+                                  </IconButton>
+                                  <IconButton
+                                    // onClick={() => deleteRelatedControl(index)}
+                                  >
+                                    <DeleteOutlineOutlined
+                                      sx={{ color: "#cd0303" }}
+                                    />
+                                  </IconButton></Stack>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Paper>
+                </Grid>
+              )}
+            </Stack>
           </Grid>
         </Grid>
       </DialogContent>

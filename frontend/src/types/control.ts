@@ -1,3 +1,12 @@
+export interface RelatedThreatForm {
+  mitreTechniqueId: string;
+  mitreTechniqueName: string;
+  subTechniqueId: string;
+  subTechniqueName: string;
+  mitreControlDescription: string;
+  bluOceanControlDescription: string;
+}
+
 export interface ControlForm {
   id?: number;
   mitreControlId: string;
@@ -5,14 +14,7 @@ export interface ControlForm {
   mitreControlType: string;
   mitreControlDescription?: string;
   bluOceanControlDescription?: string;
-  subControls?: {
-    mitreTechniqueId: string;
-    mitreTechniqueName: string;
-    subTechniqueId: string;
-    subTechniqueName: string;
-    mitreControlDescription: string;
-    bluOceanControlDescription: string;
-  }[];
+  subControls?: RelatedThreatForm[];
   status?: string;
   updated_at?: Date;
   created_at?: Date;

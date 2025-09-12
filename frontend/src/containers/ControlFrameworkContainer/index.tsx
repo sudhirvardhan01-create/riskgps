@@ -17,17 +17,8 @@ interface ControlFrameworkContainerProps {
 const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   selectedControlFramework,
   controls,
-  renderOnCreation
+  renderOnCreation,
 }) => {
-  const initialControlFrameworkFormData: ControlFrameworkForm = {
-    frameWorkName: "",
-    frameWorkControlCategoryId: "",
-    frameWorkControlCategory: "",
-    frameWorkControlSubCategoryId: "",
-    frameWorkControlSubCategory: "",
-    mitreControls: [],
-  };
-
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
@@ -51,10 +42,6 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
     message: "",
     severity: "success" as "success" | "error" | "info",
   });
-
-  const [formData, setFormData] = useState<ControlFrameworkForm>(
-    initialControlFrameworkFormData
-  );
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -172,51 +159,6 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-  const dummyFrameworkRecords = [
-    {
-      frameWorkName: "NIST",
-      frameWorkControlCategoryId: "CAT-001",
-      frameWorkControlCategory: "Access Control",
-      frameWorkControlSubCategoryId: "SUB-001",
-      frameWorkControlSubCategory: "User Authentication",
-      mitreControls: ["DS0022", "M1047"],
-    },
-    {
-      frameWorkName: "CRI",
-      frameWorkControlCategoryId: "CAT-002",
-      frameWorkControlCategory: "Incident Response",
-      frameWorkControlSubCategoryId: "SUB-002",
-      frameWorkControlSubCategory:
-        "Personnel activity and technology usage are monitored to find potentially adverse events",
-      mitreControls: ["DS0022", "M1047"],
-    },
-    {
-      frameWorkName: "ATLAS",
-      frameWorkControlCategoryId: "CAT-003",
-      frameWorkControlCategory: "Risk Management",
-      frameWorkControlSubCategoryId: "SUB-003",
-      frameWorkControlSubCategory:
-        "Personnel activity and technology usage are monitored to find potentially adverse events",
-      mitreControls: ["DS0022", "M1047"],
-    },
-    {
-      frameWorkName: "NIST",
-      frameWorkControlCategoryId: "CAT-004",
-      frameWorkControlCategory: "System Integrity",
-      frameWorkControlSubCategoryId: "SUB-004",
-      frameWorkControlSubCategory: "Malware Protection",
-      mitreControls: ["DS0022", "M1047"],
-    },
-    {
-      frameWorkName: "CRI",
-      frameWorkControlCategoryId: "CAT-005",
-      frameWorkControlCategory: "Data Protection",
-      frameWorkControlSubCategoryId: "SUB-005",
-      frameWorkControlSubCategory: "Encryption & Key Management",
-      mitreControls: ["DS0022", "M1047"],
-    },
-  ];
 
   return (
     <>

@@ -25,23 +25,6 @@ const initialControlFrameworkFormData: ControlFrameworkForm = {
   mitreControls: [],
 };
 
-const sortItems = [
-  { label: "ID (Ascending)", value: "id:asc" },
-  { label: "ID (Descending)", value: "id:desc" },
-  {
-    label: "MITRE Technique Name (Ascending)",
-    value: "mitreTechniqueName:asc",
-  },
-  {
-    label: "MITRE Technique Name (Descending)",
-    value: "mitreTechniqueName:desc",
-  },
-  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
-  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
-  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
-  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
-];
-
 const breadcrumbItems = [
   // keep the same breadcrumb behavior from original page
   {
@@ -97,6 +80,56 @@ export default function ControlContainer() {
   const [selectedControlFramework, setSelectedControlFramework] =
     useState("MITRE");
   const frameworks = ["NIST", "ATLAS", "CRI"];
+
+  const sortItems = [
+  { label: "ID (Ascending)", value: "id:asc" },
+  { label: "ID (Descending)", value: "id:desc" },
+  {
+    label: "MITRE Control ID (Ascending)",
+    value: "mitreControlId:asc",
+  },
+  {
+    label: "MITRE Control ID (Descending)",
+    value: "mitreControlId:desc",
+  },
+  {
+    label: "MITRE Control Name (Ascending)",
+    value: "mitreControlName:asc",
+  },
+  {
+    label: "MITRE Control Name (Descending)",
+    value: "mitreControlName:desc",
+  },
+  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
+  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
+  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
+  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
+]
+
+const frameworksSortItems = [
+  { label: "ID (Ascending)", value: "id:asc" },
+  { label: "ID (Descending)", value: "id:desc" },
+  {
+    label: "Framework Control Category ID (Ascending)",
+    value: "frameWorkControlCategoryId:asc",
+  },
+  {
+    label: "Framework Control Category ID (Descending)",
+    value: "frameWorkControlCategoryId:desc",
+  },
+  {
+    label: "Framework Control Category (Ascending)",
+    value: "frameWorkControlCategory:asc",
+  },
+  {
+    label: "Framework Control Category (Descending)",
+    value: "frameWorkControlCategory:desc",
+  },
+  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
+  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
+  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
+  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
+];
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -314,7 +347,7 @@ export default function ControlContainer() {
       metaDatas,
       addButtonText: "Add Control Mapping",
       addAction: () => setIsAddOpen(true),
-      sortItems,
+      sortItems: selectedControlFramework === "MITRE" ? sortItems : frameworksSortItems,
       onImport: () => setIsFileUploadOpen(true),
       onExport: () => handleExportFrameworkControls(),
       fileUploadTitle: "Import Threats",
@@ -335,7 +368,7 @@ export default function ControlContainer() {
       filters,
       setFilters,
     }),
-    [statusFilters, filters, metaDatas, file, isFileUploadOpen]
+    [statusFilters, filters, metaDatas, file, isFileUploadOpen, selectedControlFramework]
   );
 
   return (
