@@ -453,7 +453,7 @@ class ControlsService {
 
         if (frameworkName) {
             conditions.push({
-                frameworkName: frameworkName, // must match your model's attribute name
+                frameWorkName: frameworkName, // must match your model's attribute name
             });
         }
         return conditions.length > 0 ? { [Op.and]: conditions } : {};

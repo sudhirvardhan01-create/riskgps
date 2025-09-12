@@ -39,7 +39,7 @@ router.get("/get-controls", async (req, res) => {
 router.patch("/update-mitre-control-status", async (req, res) => {
     try {
         const mitreControlId = req.query.mitreControlId ?? null;
-        const mitreControlIdName = req.query.mitreControlIdName ?? null;
+        const mitreControlName = req.query.mitreControlName ?? null;
         const status = req.body.status ?? null;
 
         if (!mitreControlId) {
@@ -49,7 +49,7 @@ router.patch("/update-mitre-control-status", async (req, res) => {
         if (!status) {
             throw new CustomError("Status required", HttpStatus.BAD_REQUEST);
         }
-        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlIdName, status);
+        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlName, status);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "mitre control status updated"
@@ -145,7 +145,7 @@ router.delete("/framework-control", async (req, res) =>{
 router.patch("/framework-control-update-status", async (req, res) =>{
     try {
         const id = req.query.id ?? null;
-        const status = req.body.status;
+        const status = req.body.status ?? null;
 
         if (!id || !status) {
             throw new Error("Failed, id and status required")
