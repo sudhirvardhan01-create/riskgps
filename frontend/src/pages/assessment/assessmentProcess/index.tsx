@@ -10,6 +10,7 @@ import AssignOrder from "@/components/Assessment/AssignOrder";
 import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
 import DragDropRiskScenarios from "@/components/Assessment/DragDropRiskScenarios";
+import { getOrganization } from "../../api/organization";
 
 interface Organisation {
   organizationId: string;
@@ -130,8 +131,8 @@ export default function BUProcessMappingPage() {
         <TopBar
           title={assessmentName}
           runId="1004"
-          org={organisations.find((item) => item.id === selectedOrg)?.name || ""}
-          bu={businessUnits.find((item) => item.id === selectedBU)?.name || ""}
+                  org={organisations.find((item) => item.organizationId === selectedOrg)?.name || ""}
+                  bu={businessUnits.find((item) => item.orgBusinessUnitId === selectedBU)?.businessUnitName || ""}
           onBack={() => router.push("/assessment")}
         />
 

@@ -1,12 +1,12 @@
 interface AssessmentData {
     assessmentName: string;
     assessmentDesc: string;
-    orgId: string;
-    orgName: string;
-    orgDesc: string;
-    businessUnitId: string;
-    businessUnitName: string;
-    businessUnitDesc: string;
+    orgId?: string;
+    orgName?: string;
+    orgDesc?: string;
+    businessUnitId?: string;
+    businessUnitName?: string;
+    businessUnitDesc?: string;
     runId: string;
     userId: string;
 }

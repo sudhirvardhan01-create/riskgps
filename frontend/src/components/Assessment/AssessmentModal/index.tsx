@@ -107,12 +107,12 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
       saveAssessment({
         assessmentName: assessmentName,
         assessmentDesc: assessmentDescription,
-        orgId: selectedOrganization.organizationId,
-        orgName: selectedOrganization.name,
-        orgDesc: selectedOrganization.desc,
-        businessUnitId: selectedBussinessUnit.orgBusinessUnitId,
-        businessUnitName: selectedBussinessUnit.businessUnitName,
-        businessUnitDesc: selectedBussinessUnit.businessUnitDesc,
+        orgId: selectedOrganization?.organizationId,
+        orgName: selectedOrganization?.name,
+        orgDesc: selectedOrganization?.desc,
+        businessUnitId: selectedBussinessUnit?.orgBusinessUnitId,
+        businessUnitName: selectedBussinessUnit?.businessUnitName,
+        businessUnitDesc: selectedBussinessUnit?.businessUnitDesc,
         runId: "1004",
         userId: "2"
       })
