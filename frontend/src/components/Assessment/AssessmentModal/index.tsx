@@ -24,35 +24,26 @@ import {
 import TextFieldStyled from "../../TextFieldStyled";
 import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
+import { getOrganization } from "@/pages/api/organization";
+import { saveAssessment } from "@/pages/api/assessment";
 
 interface Organisation {
-  id: string;
+  organizationId: string;
   name: string;
+  desc: string;
+  businessUnits: BusinessUnit[];
 }
 
 interface BusinessUnit {
-  id: string;
-  name: string;
-  orgId: string;
+  orgBusinessUnitId: string;
+  businessUnitName: string;
+  businessUnitDesc: string;
 }
 
 interface StartAssessmentModalProps {
   open: boolean;
   onClose: () => void;
 }
-
-// const organisations: Organisation[] = [
-//     { id: "org1", name: "BluOcean" },
-//     { id: "org2", name: "CDW" },
-//     { id: "org3", name: "Affirm" }
-// ];
-
-// const businessUnits: BusinessUnit[] = [
-//     { id: "bu1", name: "Retail Banking", orgId: "org1" },
-//     { id: "bu2", name: "Loan Services", orgId: "org1" },
-//     { id: "bu3", name: "Retail Banking", orgId: "org2" },
-//     { id: "bu4", name: "Loan Services", orgId: "org2" },
-// ];
 
 const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
   open,
@@ -66,8 +57,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
     selectedOrg,
     setSelectedOrg,
     selectedBU,
-    setSelectedBU,
-    submitAssessment,
+    setSelectedBU
   } = useAssessment();
 
   const router = useRouter();
@@ -83,8 +73,8 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
     const fetchOrgs = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("/api/organisations");
-        setOrganisations(res.data);
+        const res = await getOrganization();
+        setOrganisations(res.data.organizations);
       } catch (error) {
         console.error("Error fetching organisations:", error);
       } finally {
@@ -95,30 +85,37 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
     fetchOrgs();
   }, []);
 
+  // Update businessUnits whenever selectedOrg changes
   useEffect(() => {
     if (!selectedOrg) {
       setBusinessUnits([]);
       return;
     }
 
-    const fetchBUs = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`/api/business-units?orgId=${selectedOrg}`);
-        setBusinessUnits(res.data);
-      } catch (error) {
-        console.error("Error fetching business units:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBUs();
-  }, [selectedOrg]);
+    const org = organisations.find(
+      (o) => o.organizationId === selectedOrg
+    );
+    setBusinessUnits(org?.businessUnits || []);
+  }, [selectedOrg, organisations]);
 
   const handleSubmit = () => {
     if (selectedOrg && selectedBU) {
-      // submitAssessment();
+
+      const selectedOrganization = organisations.find(item => item.organizationId === selectedOrg)
+      const selectedBussinessUnit = selectedOrganization?.businessUnits.find(item => item.orgBusinessUnitId === selectedBU)
+
+      saveAssessment({
+        assessmentName: assessmentName,
+        assessmentDesc: assessmentDescription,
+        orgId: selectedOrganization?.organizationId,
+        orgName: selectedOrganization?.name,
+        orgDesc: selectedOrganization?.desc,
+        businessUnitId: selectedBussinessUnit?.orgBusinessUnitId,
+        businessUnitName: selectedBussinessUnit?.businessUnitName,
+        businessUnitDesc: selectedBussinessUnit?.businessUnitDesc,
+        runId: "1004",
+        userId: "2"
+      })
       router.push("/assessment/assessmentProcess");
       onClose();
     }
@@ -128,9 +125,9 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
     o.name.toLowerCase().includes(orgSearch.toLowerCase())
   );
 
-  const filteredBUs = businessUnits
-    .filter((bu) => bu.orgId === selectedOrg)
-    .filter((bu) => bu.name.toLowerCase().includes(buSearch.toLowerCase()));
+  const filteredBUs = businessUnits.filter((bu) =>
+    bu.businessUnitName.toLowerCase().includes(buSearch.toLowerCase())
+  );
 
   return (
     <>
@@ -144,11 +141,11 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
           <Box sx={{ borderBottom: "1px solid #D9D9D9" }} />
         </DialogTitle>
 
+
         <DialogContent sx={{ p: 4 }}>
           <Typography variant="body1" fontWeight={550} sx={{ mb: 5 }}>
             Select Organisation and Business Unit
           </Typography>
-
           <TextFieldStyled
             label="Assessment Name"
             required
@@ -165,19 +162,13 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
             onChange={(e) => setAssessmentDescription(e.target.value)}
           />
 
-          <Grid
-            container
-            spacing={4}
-            sx={{ height: "100%", display: "flex", alignItems: "baseline" }}
-          >
+          <Grid container spacing={4} sx={{ height: "100%", display: "flex", alignItems: "baseline" }}>
             <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
               {/* Organisation Dropdown */}
               <FormControl fullWidth size="medium">
-                <InputLabel id="org-label">
-                  <Typography variant="body1" color="#121212">
-                    Organisations
-                  </Typography>
-                </InputLabel>
+                <InputLabel id="org-label"><Typography variant="body1" color="#121212">
+                  Organisations
+                </Typography></InputLabel>
                 <Select
                   labelId="org-label"
                   label={
@@ -193,11 +184,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                   renderValue={(val) => {
                     if (!val) return "Select Organisation";
-                    return organisations.find((o) => o.id === val)?.name || "";
+                    return organisations.find((o) => o.organizationId === val)?.name || "";
                   }}
                   required
                 >
-                  {/* Search bar pinned at top */}
                   <ListSubheader>
                     <TextField
                       size="small"
@@ -209,22 +199,21 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   </ListSubheader>
 
                   {filteredOrgs.map((org) => (
-                    <MenuItem key={org.id} value={org.id}>
-                      <Radio checked={selectedOrg === org.id} />
+                    <MenuItem key={org.organizationId} value={org.organizationId}>
+                      <Radio checked={selectedOrg === org.organizationId} />
                       {org.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
+
             <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
               {/* Business Unit Dropdown */}
               <FormControl fullWidth size="medium" disabled={!selectedOrg}>
-                <InputLabel id="bu-label">
-                  <Typography variant="body1" color="#121212">
-                    Business Unit
-                  </Typography>
-                </InputLabel>
+                <InputLabel id="bu-label"><Typography variant="body1" color="#121212">
+                  Business Unit
+                </Typography></InputLabel>
                 <Select
                   labelId="bu-label"
                   label={
@@ -237,11 +226,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                   renderValue={(val) => {
                     if (!val) return "Select Business Unit";
-                    return businessUnits.find((b) => b.id === val)?.name || "";
+                    return businessUnits.find((b) => b.orgBusinessUnitId === val)?.businessUnitName || "";
                   }}
                   required
                 >
-                  {/* Search bar pinned at top */}
                   <ListSubheader>
                     <TextField
                       size="small"
@@ -253,9 +241,9 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   </ListSubheader>
 
                   {filteredBUs.map((bu) => (
-                    <MenuItem key={bu.id} value={bu.id}>
-                      <Radio checked={selectedBU === bu.id} />
-                      {bu.name}
+                    <MenuItem key={bu.orgBusinessUnitId} value={bu.orgBusinessUnitId}>
+                      <Radio checked={selectedBU === bu.orgBusinessUnitId} />
+                      {bu.businessUnitName}
                     </MenuItem>
                   ))}
                 </Select>

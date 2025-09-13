@@ -1,5 +1,5 @@
 // pages/bu-process-mapping.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import TopBar from "@/components/Assessment/TopBar";
 import ArrowStepper from "@/components/Assessment/ArrowStepper";
@@ -10,16 +10,17 @@ import AssignOrder from "@/components/Assessment/AssignOrder";
 import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
 import DragDropRiskScenarios from "@/components/Assessment/DragDropRiskScenarios";
+import { getOrganization } from "../../api/organization";
 
 interface Organisation {
-  id: string;
+  organizationId: string;
   name: string;
+  businessUnits: BusinessUnit[];
 }
 
 interface BusinessUnit {
-  id: string;
-  name: string;
-  orgId: string;
+  orgBusinessUnitId: string;
+  businessUnitName: string;
 }
 
 interface ProcessUnit {
@@ -36,8 +37,7 @@ export default function BUProcessMappingPage() {
     selectedProcesses,
     setSelectedProcesses,
     orderedProcesses,
-    setOrderedProcesses,
-    submitAssessment,
+    setOrderedProcesses
   } = useAssessment();
   const router = useRouter();
 
@@ -61,19 +61,38 @@ export default function BUProcessMappingPage() {
 
   const [activeStep, setActiveStep] = useState(0); // main stepper (ArrowStepper)
   const [activeTab, setActiveTab] = useState(0);   // inner tab (StepIndicator)
+  const [organisations, setOrganisations] = useState<Organisation[]>([]);
+    const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
+    const [loading, setLoading] = useState(false);
 
-  const organisations: Organisation[] = [
-    { id: "org1", name: "BluOcean" },
-    { id: "org2", name: "CDW" },
-    { id: "org3", name: "Affirm" }
-  ];
-
-  const businessUnits: BusinessUnit[] = [
-    { id: "bu1", name: "Retail Banking", orgId: "org1" },
-    { id: "bu2", name: "Loan Services", orgId: "org1" },
-    { id: "bu3", name: "Retail Banking", orgId: "org2" },
-    { id: "bu4", name: "Loan Services", orgId: "org2" },
-  ];
+   useEffect(() => {
+      const fetchOrgs = async () => {
+        try {
+          setLoading(true);
+          const res = await getOrganization();
+          setOrganisations(res.data.organizations);
+        } catch (error) {
+          console.error("Error fetching organisations:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchOrgs();
+    }, []);
+  
+    // Update businessUnits whenever selectedOrg changes
+    useEffect(() => {
+      if (!selectedOrg) {
+        setBusinessUnits([]);
+        return;
+      }
+  
+      const org = organisations.find(
+        (o) => o.organizationId === selectedOrg
+      );
+      setBusinessUnits(org?.businessUnits || []);
+    }, [selectedOrg, organisations]);
 
   const processes: ProcessUnit[] = [
     { id: "process1", name: "Electronic Banking", buId: "bu3" },
@@ -112,8 +131,8 @@ export default function BUProcessMappingPage() {
         <TopBar
           title={assessmentName}
           runId="1004"
-          org={organisations.find((item) => item.id === selectedOrg)?.name || ""}
-          bu={businessUnits.find((item) => item.id === selectedBU)?.name || ""}
+                  org={organisations.find((item) => item.organizationId === selectedOrg)?.name || ""}
+                  bu={businessUnits.find((item) => item.orgBusinessUnitId === selectedBU)?.businessUnitName || ""}
           onBack={() => router.push("/assessment")}
         />
 
