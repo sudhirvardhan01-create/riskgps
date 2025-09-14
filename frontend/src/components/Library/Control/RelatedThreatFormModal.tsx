@@ -18,6 +18,7 @@ import { tooltips } from "@/utils/tooltips";
 import { RelatedThreatForm } from "@/types/control";
 
 interface RelatedThreatFormModalProps {
+  operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
   formData: RelatedThreatForm;
@@ -26,6 +27,7 @@ interface RelatedThreatFormModalProps {
 }
 
 const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
+  operation,
   open,
   onClose,
   formData,
@@ -67,7 +69,9 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
         }}
       >
         <Typography variant="h5" fontWeight={550} color="#121212">
-          {`Edit Threat Details`}
+          {operation === "create"
+            ? "Add Threat Details"
+            : `Edit Threat Details`}
         </Typography>
         <IconButton onClick={onClose} sx={{ padding: "0px !important" }}>
           <Close sx={{ color: "primary.main" }} />
@@ -114,7 +118,6 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
               tooltipTitle={tooltips.subTechniqueId}
               placeholder="Enter Sub Technique ID"
               value={formData.subTechniqueId}
-              required
               onChange={(e) =>
                 handleFieldChange("subTechniqueId", e.target.value)
               }
@@ -129,7 +132,6 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
               tooltipTitle={tooltips.subTechniqueName}
               placeholder="Enter Sub Technique Name"
               value={formData.subTechniqueName}
-              required
               onChange={(e) =>
                 handleFieldChange("subTechniqueName", e.target.value)
               }
@@ -139,6 +141,8 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
           {/* MITRE Control Description */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
+              multiline
+              minRows={1}
               label={labels.mitreControlDescription}
               isTooltipRequired={true}
               tooltipTitle={tooltips.mitreControlDescription}
@@ -153,6 +157,8 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
           {/* BluOcean Control Description */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
+              multiline
+              minRows={1}
               label={labels.bluoceanControlDescription}
               isTooltipRequired={true}
               tooltipTitle={tooltips.bluoceanControlDescription}
@@ -207,7 +213,7 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
             disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
-              {"Save"}
+              {operation === "create" ? "Add" : "Save"}
             </Typography>
           </Button>
         </Box>
