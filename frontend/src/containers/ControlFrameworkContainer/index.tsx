@@ -51,7 +51,13 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ControlFrameworkService.fetch(page, rowsPerPage, selectedControlFramework, searchPattern, sort);
+      const data = await ControlFrameworkService.fetch(
+        page,
+        rowsPerPage,
+        selectedControlFramework,
+        searchPattern,
+        sort
+      );
       setControlsData(data.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -72,7 +78,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
 
   //Set Page Number to 0 on change of Selected Control Framework
   useEffect(() => {
-    setPage(0)
+    setPage(0);
   }, [selectedControlFramework]);
 
   // fetch metadata
@@ -96,67 +102,67 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
   }, []);
 
   // Update
-  //   const handleUpdate = async (status: string) => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       const body = { ...selectedAsset, status };
-  //       await AssetService.update(selectedAsset.id as number, body);
-  //       setIsEditOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: "Asset updated",
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedData?.id) throw new Error("Invalid selection");
+      const body = { ...selectedData, status };
+      await ControlFrameworkService.update(selectedData.id as number, body);
+      setIsEditOpen(false);
+      setSelectedData(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Framework control updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update framework control",
+        severity: "error",
+      });
+    }
+  };
 
   // Update status only
-  //   const handleUpdateStatus = async (id: number, status: string) => {
-  //     try {
-  //       await AssetService.updateStatus(id, status);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({ open: true, message: "Status updated", severity: "success" });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update status",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleUpdateStatus = async (id: number, status: string) => {
+    try {
+      await ControlFrameworkService.updateStatus(id, status);
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: "Status updated", severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update status",
+        severity: "error",
+      });
+    }
+  };
 
   // Delete
-  //   const handleDelete = async () => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       await AssetService.delete(selectedAsset.id as number);
-  //       setIsDeleteConfirmOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: `Deleted ${selectedAsset?.assetCode}`,
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to delete asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleDelete = async () => {
+    try {
+      if (!selectedData?.id) throw new Error("Invalid selection");
+      await ControlFrameworkService.delete(selectedData.id as number);
+      setIsDeleteConfirmOpen(false);
+      setSelectedData(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Deleted framework control`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to delete framework control",
+        severity: "error",
+      });
+    }
+  };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -198,7 +204,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
               setSelectedData(val);
             }
           }}
-          onSubmit={() => console.log("Updated")}
+          onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
@@ -222,7 +228,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Control Deletion?"
         description={`Are you sure you want to delete Control ${selectedData?.frameWorkControlCategoryId}? All associated data will be removed from the system.`}
-        onConfirm={() => console.log("Deleted")}
+        onConfirm={() => handleDelete()}
         cancelText="Cancel"
         confirmText="Yes, Delete"
       />
@@ -230,10 +236,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
       {/* Page content */}
       <ControlFrameworkList
         loading={loading}
-        //data={controlsData}
-        data={controlsData.filter(
-          (item) => item.frameWorkName === selectedControlFramework
-        )}
+        data={controlsData}
         totalRows={totalRows}
         page={page}
         rowsPerPage={rowsPerPage}
@@ -243,7 +246,7 @@ const ControlFrameworkContainer: React.FC<ControlFrameworkContainerProps> = ({
         setIsViewOpen={setIsViewOpen}
         setIsEditOpen={setIsEditOpen}
         setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-        handleUpdateStatus={() => console.log("Updated")}
+        handleUpdateStatus={handleUpdateStatus}
       />
 
       <ToastComponent

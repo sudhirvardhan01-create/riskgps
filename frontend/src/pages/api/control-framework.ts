@@ -160,7 +160,7 @@ export const updateFrameworkControlStatus = async (id: number, status: string) =
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to Update framework control Status");
+    throw new Error("Failed to update framework control status");
   }
   const res = await response.json();
   return res.data;
@@ -184,6 +184,30 @@ export const deleteFrameworkControl = async (id: number) => {
   });
   if (!response.ok) {
     throw new Error("Failed to delete framework control");
+  }
+  const res = await response.json();
+  return res.data;
+}
+
+/**
+ * Function to update framework control
+ * @param id
+ * @param body 
+ * @returns response body
+ */
+export const updateFrameworkControl = async (id: number, data: ControlFrameworkForm) => {
+  if (!id) {
+    throw new Error("invalid Operation, failed to update");
+  }
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to update framework control");
   }
   const res = await response.json();
   return res.data;

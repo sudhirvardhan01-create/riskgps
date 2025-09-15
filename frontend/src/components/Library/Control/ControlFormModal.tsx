@@ -62,14 +62,14 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
     mitreControlDescription: "",
     bluOceanControlDescription: "",
   };
-  const [isAddRelatedThreatModalOpen, setIsAddRelatedThreatModalOpen] =
-    useState<boolean>(false);
+  // const [isAddRelatedThreatModalOpen, setIsAddRelatedThreatModalOpen] =
+  //   useState<boolean>(false);
   const [isEditRelatedThreatModalOpen, setIsEditRelatedThreatModalOpen] =
     useState<boolean>(false);
 
-  const [relatedThreatData, setRelatedThreatData] = useState<RelatedThreatForm>(
-    initialRelatedThreatFormData
-  );
+  // const [relatedThreatData, setRelatedThreatData] = useState<RelatedThreatForm>(
+  //   initialRelatedThreatFormData
+  // );
   const [selectedRelatedThreat, setSelectedRelatedThreat] =
     useState<RelatedThreatForm | null>(null);
 
@@ -82,19 +82,19 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
     [setFormData] // only depends on setter from props
   );
 
-  const addRelatedThreat = () => {
-    setFormData((prev) => ({
-      ...prev,
-      subControls: [...(formData?.subControls ?? []), { ...relatedThreatData }],
-    }));
-  };
+  // const addRelatedThreat = () => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     subControls: [...(formData?.subControls ?? []), { ...relatedThreatData }],
+  //   }));
+  // };
 
-  const deleteRelatedThreat = (id: number) => {
-    const updatedRelatedThreats = formData?.subControls?.filter(
-      (_, index) => index !== id
-    );
-    setFormData((prev) => ({ ...prev, subControls: updatedRelatedThreats }));
-  };
+  // const deleteRelatedThreat = (id: number) => {
+  //   const updatedRelatedThreats = formData?.subControls?.filter(
+  //     (_, index) => index !== id
+  //   );
+  //   setFormData((prev) => ({ ...prev, subControls: updatedRelatedThreats }));
+  // };
 
   const getStatusComponent = () => {
     if (
@@ -137,7 +137,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
   return (
     <>
       {/* Add Related Threat */}
-      <RelatedThreatFormModal
+      {/* <RelatedThreatFormModal
         operation="create"
         open={isAddRelatedThreatModalOpen}
         onClose={() => {
@@ -150,7 +150,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
           addRelatedThreat();
           setIsAddRelatedThreatModalOpen(false);
         }}
-      />
+      /> */}
 
       {/* Edit Related Threat */}
       {selectedRelatedThreat && (
@@ -291,7 +291,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                 <Typography variant="h6" fontWeight={600}>
                   Related Threats
                 </Typography>
-                <Grid size={{ xs: 12 }}>
+                {/* <Grid size={{ xs: 12 }}>
                   <Button
                     startIcon={<Add />}
                     onClick={() => {
@@ -302,7 +302,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                   >
                     Add New Threat
                   </Button>
-                </Grid>
+                </Grid> */}
                 {formData?.subControls && formData?.subControls?.length > 0 && (
                   <Grid size={{ xs: 12 }}>
                     <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -352,7 +352,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                                           sx={{ color: "primary.main" }}
                                         />
                                       </IconButton>
-                                      <IconButton
+                                      {/* <IconButton
                                         onClick={() =>
                                           deleteRelatedThreat(index)
                                         }
@@ -360,7 +360,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                                         <DeleteOutlineOutlined
                                           sx={{ color: "#cd0303" }}
                                         />
-                                      </IconButton>
+                                      </IconButton> */}
                                     </Stack>
                                   </TableCell>
                                 </TableRow>
