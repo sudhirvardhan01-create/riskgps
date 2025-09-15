@@ -192,6 +192,7 @@ class ControlsService {
 
         const data = await FrameWorkControl.findAll({
             where: whereClause,
+             order: [[sortBy, sortOrder]],
             include: [
                 {
                     model: sequelize.models.MitreThreatControl,
