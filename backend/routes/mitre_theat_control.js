@@ -7,15 +7,15 @@ const multer = require("multer");
 const CustomError = require('../utils/CustomError');
 
 const upload = multer({
-  dest: "uploads/",
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
-      cb(null, true);
-    } else {
-      cb(new Error("Only CSV files are allowed"));
-    }
-  },
+    dest: "uploads/",
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
+            cb(null, true);
+        } else {
+            cb(new Error("Only CSV files are allowed"));
+        }
+    },
 });
 
 
@@ -60,7 +60,7 @@ router.get("/download-template-file", async (req, res) => {
     try {
         await MitreThreatControlService.downloadMitreThreatControlImportTemplateFile(res);
     } catch (err) {
-        console.log(Messages.MITRE_THREAT_CONTROL.FAILED_TO_DOWNLOAD_TEMPLATE_FILE ,err);
+        console.log(Messages.MITRE_THREAT_CONTROL.FAILED_TO_DOWNLOAD_TEMPLATE_FILE, err);
         res.status(HttpStatus.NOT_FOUND).json({
             error: err.message || Messages.MITRE_THREAT_CONTROL.FAILED_TO_DOWNLOAD_TEMPLATE_FILE
         });
@@ -90,7 +90,7 @@ router.get("/export", async (req, res) => {
     try {
         await MitreThreatControlService.exportMitreThreatControlCSV(res);
     } catch (err) {
-        console.log(Messages.MITRE_THREAT_CONTROL.FAILED_TO_EXPORT_CSV ,err);
+        console.log(Messages.MITRE_THREAT_CONTROL.FAILED_TO_EXPORT_CSV, err);
         res.status(HttpStatus.NOT_FOUND).json({
             error: err.message || Messages.MITRE_THREAT_CONTROL.FAILED_TO_EXPORT_CSV
         });
@@ -163,7 +163,7 @@ router.put("/update", async (req, res) => {
     } catch (err) {
         res.status(HttpStatus.NOT_FOUND).json({
             error: err.message || Messages.MITRE_THREAT_CONTROL.NOT_FOUND
-        });        
+        });
     }
 })
 

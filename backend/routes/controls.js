@@ -36,6 +36,10 @@ router.get("/get-controls", async (req, res) => {
     }
 })
 
+router.patch("/update-mitre-control", async (req, res) => {
+
+})
+
 router.patch("/update-mitre-control-status", async (req, res) => {
     try {
         const mitreControlId = req.query.mitreControlId ?? null;
@@ -122,20 +126,19 @@ router.get("/get-all-framework-control", async (req, res) => {
     }
 })
 
-router.delete("/framework-control/:id", async (req, res) =>{
+router.put("/framework-control/:id", async (req, res) => {
     try {
-        const id = req.params.id ?? null;
-
-        if (!id ) {
-            throw new Error("Failed, id required to delete framework control")
+        const id = req.params.id;
+        if (!id) {
+            throw new Error("Invalid request, id required");
         }
-        const response = await ControlsService.deleteFrameWorkControl(id);
-        res.status(200).json({
-            data: response
+        const response = await ControlsService.updateFrameworkControl(id, req.body);
+        res.status(HttpStatusCodes.CREATED).json({
+            data: response,
+            msg: "framework control updated"
         })
-
-    } catch (err) {
-        console.log("failed to delete", err);
+    } catch(err) {
+        console.log("Failed to update framework control", err)
         res.status(HttpStatusCodes.BAD_REQUEST).json({
             msg: err.message
         })
@@ -157,6 +160,27 @@ router.patch("/framework-control-update-status/:id", async (req, res) =>{
 
     } catch (err) {
         console.log("failed to update status", err);
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+            msg: err.message
+        })
+    }
+})
+
+
+router.delete("/framework-control/:id", async (req, res) =>{
+    try {
+        const id = req.params.id ?? null;
+
+        if (!id ) {
+            throw new Error("Failed, id required to delete framework control")
+        }
+        const response = await ControlsService.deleteFrameWorkControl(id);
+        res.status(200).json({
+            data: response
+        })
+
+    } catch (err) {
+        console.log("failed to delete", err);
         res.status(HttpStatusCodes.BAD_REQUEST).json({
             msg: err.message
         })
