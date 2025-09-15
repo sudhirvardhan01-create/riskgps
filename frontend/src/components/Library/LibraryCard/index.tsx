@@ -155,14 +155,14 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
         <Divider sx={{ mx: 3, my: 1 }} />
 
         {/* Meta Info */}
-        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center" }}>
+        <Box sx={{ px: 3, pb: 1, display: "flex", gap: 1.25 }}>
           {tagItems.map((item, index) => (
-            <div key={index}>
+            <Stack key={index} display={"flex"} flexDirection={"row"} gap={1.25}>
               <Typography key={index} variant="body2" color="text.primary">
                 {item.value} &nbsp; {item.label}
               </Typography>
-              {index !== tagItems.length - 1 && <Typography color="#D9D9D9" sx={{ ml: 1.5 }}>•</Typography>}
-            </div>
+              {index !== tagItems.length - 1 && <Typography color="#D9D9D9">•</Typography>}
+            </Stack>
           ))}
         </Box>
       </Box>
