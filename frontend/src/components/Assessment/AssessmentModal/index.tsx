@@ -50,6 +50,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
   onClose,
 }) => {
   const {
+    setAssessmentId,
     assessmentName,
     setAssessmentName,
     assessmentDescription,
@@ -57,7 +58,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
     selectedOrg,
     setSelectedOrg,
     selectedBU,
-    setSelectedBU
+    setSelectedBU,
   } = useAssessment();
 
   const router = useRouter();
@@ -92,19 +93,20 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
       return;
     }
 
-    const org = organisations.find(
-      (o) => o.organizationId === selectedOrg
-    );
+    const org = organisations.find((o) => o.organizationId === selectedOrg);
     setBusinessUnits(org?.businessUnits || []);
   }, [selectedOrg, organisations]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedOrg && selectedBU) {
+      const selectedOrganization = organisations.find(
+        (item) => item.organizationId === selectedOrg
+      );
+      const selectedBussinessUnit = selectedOrganization?.businessUnits.find(
+        (item) => item.orgBusinessUnitId === selectedBU
+      );
 
-      const selectedOrganization = organisations.find(item => item.organizationId === selectedOrg)
-      const selectedBussinessUnit = selectedOrganization?.businessUnits.find(item => item.orgBusinessUnitId === selectedBU)
-
-      saveAssessment({
+      const res = await saveAssessment({
         assessmentName: assessmentName,
         assessmentDesc: assessmentDescription,
         orgId: selectedOrganization?.organizationId,
@@ -114,8 +116,11 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
         businessUnitName: selectedBussinessUnit?.businessUnitName,
         businessUnitDesc: selectedBussinessUnit?.businessUnitDesc,
         runId: "1004",
-        userId: "2"
-      })
+        userId: "2",
+      });
+
+      setAssessmentId(res.data.assessmentId);
+
       router.push("/assessment/assessmentProcess");
       onClose();
     }
@@ -141,7 +146,6 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
           <Box sx={{ borderBottom: "1px solid #D9D9D9" }} />
         </DialogTitle>
 
-
         <DialogContent sx={{ p: 4 }}>
           <Typography variant="body1" fontWeight={550} sx={{ mb: 5 }}>
             Select Organisation and Business Unit
@@ -162,13 +166,19 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
             onChange={(e) => setAssessmentDescription(e.target.value)}
           />
 
-          <Grid container spacing={4} sx={{ height: "100%", display: "flex", alignItems: "baseline" }}>
+          <Grid
+            container
+            spacing={4}
+            sx={{ height: "100%", display: "flex", alignItems: "baseline" }}
+          >
             <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
               {/* Organisation Dropdown */}
               <FormControl fullWidth size="medium">
-                <InputLabel id="org-label"><Typography variant="body1" color="#121212">
-                  Organisations
-                </Typography></InputLabel>
+                <InputLabel id="org-label">
+                  <Typography variant="body1" color="#121212">
+                    Organisations
+                  </Typography>
+                </InputLabel>
                 <Select
                   labelId="org-label"
                   label={
@@ -184,7 +194,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                   renderValue={(val) => {
                     if (!val) return "Select Organisation";
-                    return organisations.find((o) => o.organizationId === val)?.name || "";
+                    return (
+                      organisations.find((o) => o.organizationId === val)
+                        ?.name || ""
+                    );
                   }}
                   required
                 >
@@ -199,7 +212,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   </ListSubheader>
 
                   {filteredOrgs.map((org) => (
-                    <MenuItem key={org.organizationId} value={org.organizationId}>
+                    <MenuItem
+                      key={org.organizationId}
+                      value={org.organizationId}
+                    >
                       <Radio checked={selectedOrg === org.organizationId} />
                       {org.name}
                     </MenuItem>
@@ -211,9 +227,11 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
             <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
               {/* Business Unit Dropdown */}
               <FormControl fullWidth size="medium" disabled={!selectedOrg}>
-                <InputLabel id="bu-label"><Typography variant="body1" color="#121212">
-                  Business Unit
-                </Typography></InputLabel>
+                <InputLabel id="bu-label">
+                  <Typography variant="body1" color="#121212">
+                    Business Unit
+                  </Typography>
+                </InputLabel>
                 <Select
                   labelId="bu-label"
                   label={
@@ -226,7 +244,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                   renderValue={(val) => {
                     if (!val) return "Select Business Unit";
-                    return businessUnits.find((b) => b.orgBusinessUnitId === val)?.businessUnitName || "";
+                    return (
+                      businessUnits.find((b) => b.orgBusinessUnitId === val)
+                        ?.businessUnitName || ""
+                    );
                   }}
                   required
                 >
@@ -241,7 +262,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                   </ListSubheader>
 
                   {filteredBUs.map((bu) => (
-                    <MenuItem key={bu.orgBusinessUnitId} value={bu.orgBusinessUnitId}>
+                    <MenuItem
+                      key={bu.orgBusinessUnitId}
+                      value={bu.orgBusinessUnitId}
+                    >
                       <Radio checked={selectedBU === bu.orgBusinessUnitId} />
                       {bu.businessUnitName}
                     </MenuItem>

@@ -2,9 +2,8 @@ import { Box, Grid, MenuItem, Select, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
 export interface ProcessUnit {
-  id: string;
+  orgProcessId: string;
   name: string;
-  buId?: string; // optional if needed
 }
 
 interface AssignOrderProps {
@@ -18,7 +17,7 @@ export default function AssignOrder({ processes, onOrderChange }: AssignOrderPro
   // Initialize mapping when processes change
   useEffect(() => {
     const initial = processes.reduce(
-      (acc, process, i) => ({ ...acc, [process.id]: i + 1 }),
+      (acc, process, i) => ({ ...acc, [process.orgProcessId]: i + 1 }),
       {}
     );
     setOrderMapping(initial);
@@ -48,12 +47,12 @@ export default function AssignOrder({ processes, onOrderChange }: AssignOrderPro
     <Box>
       <Grid container spacing={2}>
         {processes.map((process) => (
-          <Grid size={12} key={process.id}>
+          <Grid size={12} key={process.orgProcessId}>
             <Box display="flex" gap={2} alignItems="center">
               {/* Order Dropdown */}
               <Select
-                value={orderMapping[process.id] || ""}
-                onChange={(e) => handleOrderChange(process.id, Number(e.target.value))}
+                value={orderMapping[process.orgProcessId] || ""}
+                onChange={(e) => handleOrderChange(process.orgProcessId, Number(e.target.value))}
                 displayEmpty
                 size="small"
                 sx={{

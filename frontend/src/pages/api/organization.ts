@@ -13,3 +13,19 @@ export const getOrganization = async () => {
   }
   return response.json();
 };
+
+export const getOrganizationProcess = async (orgId: string, buId: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/processes`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch login data");
+  }
+  return response.json();
+};

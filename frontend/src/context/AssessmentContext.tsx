@@ -3,12 +3,13 @@
 import React, { createContext, useContext, useState } from "react";
 
 interface ProcessUnit {
-  id: string;
+  orgProcessId: string;
   name: string;
-  buId: string;
 }
 
 interface AssessmentContextType {
+  assessmentId: string;
+  setAssessmentId: (name: string) => void;
   assessmentName: string;
   setAssessmentName: (name: string) => void;
   assessmentDescription: string;
@@ -21,7 +22,6 @@ interface AssessmentContextType {
   setSelectedProcesses: (processes: ProcessUnit[]) => void;
   orderedProcesses: { [key: string]: number };
   setOrderedProcesses: (order: { [key: string]: number }) => void;
-  submitAssessment: () => void;
 }
 
 const AssessmentContext = createContext<AssessmentContextType | undefined>(
@@ -31,6 +31,7 @@ const AssessmentContext = createContext<AssessmentContextType | undefined>(
 export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const [assessmentId, setAssessmentId] = useState("");
   const [assessmentName, setAssessmentName] = useState("");
   const [assessmentDescription, setAssessmentDescription] = useState("");
   const [selectedOrg, setSelectedOrg] = useState("");
@@ -40,20 +41,11 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({
     [key: string]: number;
   }>({});
 
-  const submitAssessment = () => {
-    console.log("Submitting Assessment:", {
-      assessmentName,
-      assessmentDescription,
-      selectedOrg,
-      selectedBU,
-      selectedProcesses,
-      orderedProcesses,
-    });
-  };
-
   return (
     <AssessmentContext.Provider
       value={{
+        assessmentId,
+        setAssessmentId,
         assessmentName,
         setAssessmentName,
         assessmentDescription,
@@ -66,7 +58,6 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({
         setSelectedProcesses,
         orderedProcesses,
         setOrderedProcesses,
-        submitAssessment,
       }}
     >
       {children}

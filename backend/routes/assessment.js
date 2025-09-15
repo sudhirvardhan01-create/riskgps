@@ -31,7 +31,7 @@ router.post(
  * Add processes & update status
  */
 router.post(
-    "/:id/processes-and-status",
+    "/:id/save_processes",
     async (req, res) => {
         const { id } = req.params;
         const { processes, status, userId } = req.body;
