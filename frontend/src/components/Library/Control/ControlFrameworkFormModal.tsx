@@ -52,10 +52,6 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
   const [selectedMITREControlID, setSelectedMITREControlID] = useState<
     string | null
   >(null);
-  //   const [mitreControlIDSearch, setMITREControlIDSearch] = useState<string>("");
-  //   const filteredMITREControlIDs = controls.filter((item) =>
-  //     item.mitreControlId.includes(mitreControlIDSearch)
-  //   );
   const distictMITREControlIDs = [
     ...new Set(controls.map((item) => item.mitreControlId)),
   ];
@@ -447,54 +443,3 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
 };
 
 export default ControlFrameworkFormModal;
-
-{
-  /* <FormControl fullWidth size="medium">
-                  <InputLabel id="mitre-control-id-label">
-                    <Typography variant="body1" color="#121212">
-                      {labels.mitreControlId}
-                    </Typography>
-                  </InputLabel>
-                  <Select
-                    labelId="mitre-control-id-label"
-                    label={
-                      <Typography variant="body1" color="#121212">
-                        {labels.mitreControlId}
-                      </Typography>
-                    }
-                    value={selectedMITREControlID}
-                    onChange={(e) => {
-                      setSelectedMITREControlID(e.target.value);
-                    }}
-                    sx={{ bgcolor: "#fff", borderRadius: "8px" }}
-                    renderValue={(val) => {
-                      if (!val) return "Select MITRE Control ID";
-                      return val;
-                    }}
-                    required
-                  >
-                    <ListSubheader>
-                      <TextField
-                        size="small"
-                        placeholder="Search MITRE Control ID"
-                        value={mitreControlIDSearch}
-                        onChange={(e) =>
-                          setMITREControlIDSearch(e.target.value)
-                        }
-                        fullWidth
-                      />
-                    </ListSubheader>
-
-                    {filteredMITREControlIDs.map((item, index) => (
-                      <MenuItem key={index} value={item.mitreControlId}>
-                        <Radio
-                          checked={
-                            selectedMITREControlID === item.mitreControlId
-                          }
-                        />
-                        {item.mitreControlId}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl> */
-}

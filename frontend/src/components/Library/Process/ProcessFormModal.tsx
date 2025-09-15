@@ -658,7 +658,24 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label="Select Process"
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Typography
+                              variant="body1"
+                              color="#121212"
+                              fontWeight={500}
+                            >
+                              Select Process
+                            </Typography>
+                            <TooltipComponent title={"Select Process"} />
+                          </Box>
+                        }
                         placeholder="Type to search processes..."
                         InputLabelProps={{
                           shrink: true,
