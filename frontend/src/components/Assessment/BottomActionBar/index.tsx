@@ -4,8 +4,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 interface BottomActionBarProps {
   onPrev?: () => void;
   onCancel?: () => void;
-  onSaveDraft?: () => void;
-  onSaveContinue?: () => void;
+  onSaveDraft?: (e: any) => void;
+  onSaveContinue?: (e: any) => void;
 }
 
 export default function BottomActionBar({

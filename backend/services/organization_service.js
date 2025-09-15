@@ -131,18 +131,6 @@ class OrganizationService {
                     "createdDate",
                     "modifiedDate",
                 ],
-                include: [
-                    {
-                        model: OrganizationBusinessUnit,
-                        as: "businessUnitDetails",
-                        attributes: ["orgBusinessUnitId", "businessUnitName"],
-                    },
-                    {
-                        model: Organization,
-                        as: "organizationDetails",
-                        attributes: ["organizationId", "name"],
-                    },
-                ],
                 order: [["createdDate", "DESC"]],
             });
 
