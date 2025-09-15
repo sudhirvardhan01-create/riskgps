@@ -1,4 +1,5 @@
 export interface RelatedThreatForm {
+  id?: number,
   mitreTechniqueId: string;
   mitreTechniqueName: string;
   subTechniqueId: string;

@@ -5,7 +5,7 @@ export const fetchControls = async (
   page: number,
   limit: number,
   searchPattern?: string,
-  sort?: string,
+  sort?: string
 ) => {
   const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
@@ -53,9 +53,12 @@ export const updateControl = async (id: number, data: ControlForm) => {
 };
 
 //Function to delete a control
-export const deleteControl = async (id: number) => {
+export const deleteControl = async (
+  mitreControlId: string,
+  mitreControlName: string
+) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/${id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/delete-mitre-control?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}`,
     {
       method: "DELETE",
       headers: {
@@ -72,15 +75,17 @@ export const deleteControl = async (id: number) => {
 };
 
 //Function to update status of a control
-export const updateControlStatus = async (id: number, status: string) => {
-  if (!id || !status) {
+export const updateControlStatus = async (
+  mitreControlId: string,
+  mitreControlName: string,
+  status: string
+) => {
+  if (!mitreControlId || !mitreControlName || !status) {
     throw new Error("Failed to perforom the operation, Invalid arguments");
   }
   const reqBody = { status };
-  console.log(reqBody);
-
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/update-status/${id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control-status?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}`,
     {
       method: "PATCH",
       body: JSON.stringify(reqBody),

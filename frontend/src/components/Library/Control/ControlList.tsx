@@ -16,7 +16,7 @@ interface Props {
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (id: number, status: string) => void;
+  handleUpdateStatus: (status: string, mitreControlId: string, mitreControlName?: string) => void;
 }
 
 const ControlList: React.FC<Props> = ({

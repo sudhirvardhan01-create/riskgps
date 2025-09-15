@@ -1,4 +1,4 @@
-import { InfoOutline } from "@mui/icons-material";
+import { Info } from "@mui/icons-material";
 import { IconButton, Tooltip } from "@mui/material";
 
 interface TooltipComponentProps {
@@ -9,16 +9,17 @@ interface TooltipComponentProps {
 
 const TooltipComponent: React.FC<TooltipComponentProps> = ({
   title,
-  width="16px",
-  height="16px"
+  width = "16px",
+  height = "16px",
 }: TooltipComponentProps) => {
   return (
     <Tooltip title={title} placement="top">
-      <IconButton sx={{ padding: 0, height: {height}, width: {width} }}>
-        <InfoOutline sx={{ height: {height}, width: {width}, color: "#FF830F" }} />
+      <IconButton sx={{ padding: 0, height: { height }, width: { width } }}>
+        <Info sx={{ height: { height }, width: { width } }} />
       </IconButton>
     </Tooltip>
   );
 };
 
 export default TooltipComponent;
+

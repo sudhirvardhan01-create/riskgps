@@ -82,54 +82,54 @@ export default function ControlContainer() {
   const frameworks = ["NIST", "ATLAS", "CRI"];
 
   const sortItems = [
-  { label: "ID (Ascending)", value: "id:asc" },
-  { label: "ID (Descending)", value: "id:desc" },
-  {
-    label: "MITRE Control ID (Ascending)",
-    value: "mitreControlId:asc",
-  },
-  {
-    label: "MITRE Control ID (Descending)",
-    value: "mitreControlId:desc",
-  },
-  {
-    label: "MITRE Control Name (Ascending)",
-    value: "mitreControlName:asc",
-  },
-  {
-    label: "MITRE Control Name (Descending)",
-    value: "mitreControlName:desc",
-  },
-  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
-  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
-  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
-  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
-]
+    { label: "ID (Ascending)", value: "id:asc" },
+    { label: "ID (Descending)", value: "id:desc" },
+    {
+      label: "MITRE Control ID (Ascending)",
+      value: "mitreControlId:asc",
+    },
+    {
+      label: "MITRE Control ID (Descending)",
+      value: "mitreControlId:desc",
+    },
+    {
+      label: "MITRE Control Name (Ascending)",
+      value: "mitreControlName:asc",
+    },
+    {
+      label: "MITRE Control Name (Descending)",
+      value: "mitreControlName:desc",
+    },
+    { label: "Created (Latest to Oldest)", value: "created_at:desc" },
+    { label: "Created (Oldest to Latest)", value: "created_at:asc" },
+    { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
+    { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
+  ];
 
-const frameworksSortItems = [
-  { label: "ID (Ascending)", value: "id:asc" },
-  { label: "ID (Descending)", value: "id:desc" },
-  {
-    label: "Framework Control Category ID (Ascending)",
-    value: "frameWorkControlCategoryId:asc",
-  },
-  {
-    label: "Framework Control Category ID (Descending)",
-    value: "frameWorkControlCategoryId:desc",
-  },
-  {
-    label: "Framework Control Category (Ascending)",
-    value: "frameWorkControlCategory:asc",
-  },
-  {
-    label: "Framework Control Category (Descending)",
-    value: "frameWorkControlCategory:desc",
-  },
-  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
-  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
-  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
-  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
-];
+  const frameworksSortItems = [
+    { label: "ID (Ascending)", value: "id:asc" },
+    { label: "ID (Descending)", value: "id:desc" },
+    {
+      label: "Framework Control Category ID (Ascending)",
+      value: "frameWorkControlCategoryId:asc",
+    },
+    {
+      label: "Framework Control Category ID (Descending)",
+      value: "frameWorkControlCategoryId:desc",
+    },
+    {
+      label: "Framework Control Category (Ascending)",
+      value: "frameWorkControlCategory:asc",
+    },
+    {
+      label: "Framework Control Category (Descending)",
+      value: "frameWorkControlCategory:desc",
+    },
+    { label: "Created (Latest to Oldest)", value: "created_at:desc" },
+    { label: "Created (Oldest to Latest)", value: "created_at:asc" },
+    { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
+    { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
+  ];
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -229,43 +229,60 @@ const frameworksSortItems = [
   //   };
 
   // Update status only
-  //   const handleUpdateStatus = async (id: number, status: string) => {
-  //     try {
-  //       await AssetService.updateStatus(id, status);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({ open: true, message: "Status updated", severity: "success" });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update status",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleUpdateStatus = async (
+    status: string,
+    mitreControlId: string,
+    mitreControlName?: string
+  ) => {
+    try {
+      if (!status || !mitreControlId || !mitreControlName)
+        throw new Error("Invalid selection");
+      await ControlService.updateStatus(
+        mitreControlId,
+        mitreControlName,
+        status
+      );
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: "Status updated", severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update status",
+        severity: "error",
+      });
+    }
+  };
 
   // Delete
-  //   const handleDelete = async () => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       await AssetService.delete(selectedAsset.id as number);
-  //       setIsDeleteConfirmOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: `Deleted ${selectedAsset?.assetCode}`,
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to delete asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleDelete = async () => {
+    try {
+      if (
+        !selectedControl?.mitreControlId ||
+        !selectedControl?.mitreControlName
+      )
+        throw new Error("Invalid selection");
+      await ControlService.delete(
+        selectedControl.mitreControlId as string,
+        selectedControl.mitreControlName as string
+      );
+      setIsDeleteConfirmOpen(false);
+      setSelectedControl(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Deleted control ${selectedControl?.mitreControlName}`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to delete control",
+        severity: "error",
+      });
+    }
+  };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -352,7 +369,8 @@ const frameworksSortItems = [
       metaDatas,
       addButtonText: "Add Control Mapping",
       addAction: () => setIsAddOpen(true),
-      sortItems: selectedControlFramework === "MITRE" ? sortItems : frameworksSortItems,
+      sortItems:
+        selectedControlFramework === "MITRE" ? sortItems : frameworksSortItems,
       onImport: () => setIsFileUploadOpen(true),
       onExport: () => handleExportFrameworkControls(),
       fileUploadTitle: "Import Threats",
@@ -373,7 +391,15 @@ const frameworksSortItems = [
       filters,
       setFilters,
     }),
-    [statusFilters, filters, metaDatas, file, isFileUploadOpen, selectedControlFramework, searchPattern]
+    [
+      statusFilters,
+      filters,
+      metaDatas,
+      file,
+      isFileUploadOpen,
+      selectedControlFramework,
+      searchPattern,
+    ]
   );
 
   return (
@@ -458,7 +484,7 @@ const frameworksSortItems = [
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Control Deletion?"
         description={`Are you sure you want to delete Control ${selectedControl?.mitreControlId}? All associated data will be removed from the system.`}
-        onConfirm={() => console.log("Deleted")}
+        onConfirm={() => handleDelete()}
         cancelText="Cancel"
         confirmText="Yes, Delete"
       />
@@ -487,7 +513,7 @@ const frameworksSortItems = [
             setIsViewOpen={setIsViewOpen}
             setIsEditOpen={setIsEditOpen}
             setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-            handleUpdateStatus={() => console.log("Updated")}
+            handleUpdateStatus={handleUpdateStatus}
           />
         )}
 
@@ -496,7 +522,9 @@ const frameworksSortItems = [
             selectedControlFramework={selectedControlFramework}
             controls={controlsData}
             renderOnCreation={handleCreate}
-            searchPattern={selectedControlFramework === "MITRE" ? "" : searchPattern}
+            searchPattern={
+              selectedControlFramework === "MITRE" ? "" : searchPattern
+            }
             sort={sort}
           />
         )}

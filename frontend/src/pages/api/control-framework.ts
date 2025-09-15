@@ -174,7 +174,7 @@ export const updateFrameworkControlStatus = async (id: number, status: string) =
  */
 export const deleteFrameworkControl = async (id: number) => {
   if (!id) {
-    throw new Error("invalid Operation, failed to delete");
+    throw new Error("Invalid Operation, failed to delete");
   }
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`, {
     method: "DELETE",
@@ -197,7 +197,7 @@ export const deleteFrameworkControl = async (id: number) => {
  */
 export const updateFrameworkControl = async (id: number, data: ControlFrameworkForm) => {
   if (!id) {
-    throw new Error("invalid Operation, failed to update");
+    throw new Error("Invalid Operation, failed to update");
   }
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`, {
     method: "PUT",
