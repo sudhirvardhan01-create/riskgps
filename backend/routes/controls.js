@@ -122,7 +122,7 @@ router.get("/get-all-framework-control", async (req, res) => {
     }
 })
 
-router.patch("/framework-control/:id", async (req, res) => {
+router.put("/framework-control/:id", async (req, res) => {
     try {
         const id = req.params.id;
         if (!id) {
