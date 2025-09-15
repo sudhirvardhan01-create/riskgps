@@ -36,6 +36,10 @@ router.get("/get-controls", async (req, res) => {
     }
 })
 
+router.patch("/update-mitre-control", async (req, res) => {
+
+})
+
 router.patch("/update-mitre-control-status", async (req, res) => {
     try {
         const mitreControlId = req.query.mitreControlId ?? null;
@@ -128,7 +132,7 @@ router.put("/framework-control/:id", async (req, res) => {
         if (!id) {
             throw new Error("Invalid request, id required");
         }
-        const response = await ControlsService.updateFrameWorkControlStatus(id, req.body);
+        const response = await ControlsService.updateFrameworkControl(id, req.body);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "framework control updated"

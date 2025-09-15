@@ -130,7 +130,8 @@ module.exports = {
     MITRE_CONTROLS: {
         UPDATED_STATUS: "Status updated successfully",
         DELETED_SUCCESSFULLY: " Deleted successfully",
-        INVALID_MITRE_CONTROL_ID: "Mitre control ID required"
+        INVALID_MITRE_CONTROL_ID: "Mitre control ID required",
+        NOT_FOUND: "Mitre control not found"
 
     },
     FRAMEWORK_CONTROLS : {

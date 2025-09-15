@@ -70,6 +70,7 @@ class ControlsService {
 
                 // push sub-control details
                 acc[key].subControls.push({
+                    id: row.id,
                     mitreTechniqueId: row.mitreTechniqueId,
                     mitreTechniqueName: row.mitreTechniqueName,
                     subTechniqueId: row.subTechniqueId,
@@ -121,6 +122,67 @@ class ControlsService {
         return { message: Messages.MITRE_CONTROLS.UPDATED_STATUS };
     }
 
+
+    static async updateMitreControl(mitreControlId, mitreControlName, mitreControlType, data) {
+        if (!mitreControlId || !mitreControlName) {
+            console.log("Failed to update mitre Contol control id and name required")
+            throw new CustomError("Failed to update mitre Contol control id and name required");
+        }
+
+        if (!data) {
+            console.log("no update data found");
+            throw new Error("no update data found");
+        }
+
+        if (!Array.isArray(data.subControls) || data.subControls.length < 1) {
+            throw new Error("Invalid request, subcontrol required");
+        }
+        return await sequelize.transaction(async (t) => {
+            const payload = {
+                mitreControlId,
+                mitreControlName,
+                mitreControlType
+            }
+            const [mitreThreatControlUpdateCount] = await MitreThreatControl.update(
+                payload,
+                {
+                    where: { mitreControlId: mitreControlId, mitreControlName: mitreControlName },   
+                    transaction: t
+                }
+            );
+            if (!mitreThreatControlUpdateCount) {
+                console.log("No mitre control record found:", mitreControlId, mitreControlName);
+                throw new CustomError(Messages.MITRE_CONTROLS.NOT_FOUND, HttpStatus.NOT_FOUND);
+            }
+
+            this.validateProcessData(data);
+
+            const processData = this.handleProcessDataColumnMapping(data);
+            await process.update(processData, { transaction: t });
+
+            await ProcessAttribute.destroy({ where: { process_id: id }, transaction: t });
+            await ProcessRelationship.destroy({
+                where: {
+                    [Op.or]: [
+                        { source_process_id: id },
+                        { target_process_id: id }
+                    ]
+                },
+                transaction: t
+            });
+            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
+                await this.handleProcessDependencies("update", id, data.process_dependency, t);
+            }
+            console.log(data.attributes, "LOGGING ATTR");
+            if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+                console.log(data.attributes);
+                await this.handleProcessAttributes(id, data.attributes, t);
+            }
+
+            console.log("Process updated successfully:", id);
+        });
+
+    }
 
     static async updateMitreControlStatus(mitreControlId, mitreControlName, status) {
         const whereClause = { mitreControlId };
