@@ -1,4 +1,4 @@
-﻿const { Assessment } = require("../models");
+﻿const Assessment  = require("../models/assessment/assessment");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const { v4: uuidv4 } = require("uuid");

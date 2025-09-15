@@ -1,13 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const AssessmentService = require("../services/assessmentService");
-const asyncHandler = require("../utils/asyncHandler"); // optional helper to catch async errors
+const AssessmentService = require("../services/assessment_service");
 const HttpStatus = require("../constants/httpStatusCodes");
 
 // Route: Create a new assessment
 router.post(
     "/",
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const assessmentData = req.body;
 
         if (!assessmentData.userId) {
@@ -25,7 +24,7 @@ router.post(
             message: "Assessment created successfully",
             data: assessment,
         });
-    })
+    }
 );
 
 /**
@@ -33,7 +32,7 @@ router.post(
  */
 router.post(
     "/:id/processes-and-status",
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const { id } = req.params;
         const { processes, status, userId } = req.body;
 
@@ -51,7 +50,7 @@ router.post(
         );
 
         res.status(HttpStatus.OK).json(result);
-    })
+    }
 );
 
 /**
@@ -60,7 +59,7 @@ router.post(
  */
 router.post(
     "/",
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const { userId } = req.body; // userId comes in body
         const payload = req.body;
 
@@ -71,7 +70,7 @@ router.post(
             );
 
         res.status(HttpStatus.OK).json(result);
-    })
+    }
 );
 
 module.exports = router;

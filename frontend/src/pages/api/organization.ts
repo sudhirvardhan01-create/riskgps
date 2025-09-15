@@ -1,9 +1,8 @@
 export const getOrganization = async () => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization`,
     {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },

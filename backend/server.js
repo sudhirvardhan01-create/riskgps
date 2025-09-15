@@ -11,6 +11,7 @@ const errorHandler = require('./middleware/errorHandler');
 const mitreThreatsControlRoutes = require("./routes/mitre_theat_control");
 const controlsRoutes = require("./routes/controls")
 const organizationRoutes = require("./routes/organization");
+const assessmentRoutes = require("./routes/assessment");
 const cors = require('cors');
 app.use(express.json());
 
@@ -38,6 +39,7 @@ app.use("/library/asset", assetRoutes);
 app.use("/auth", authRoutes);
 // app.use('/users', userRoutes);
 app.use("/organization", organizationRoutes);
+app.use("/assessment", assessmentRoutes);
 app.use(errorHandler);
 
 module.exports = app;
