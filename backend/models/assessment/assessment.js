@@ -13,12 +13,12 @@ module.exports = (sequelize, DataTypes) => {
             assessmentName: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                field: "Assessment_Name",
+                field: "assessment_name",
             },
             assessmentDesc: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                field: "Assessment_Desc",
+                field: "assessment_desc",
             },
             runId: {
                 type: DataTypes.STRING,
@@ -75,11 +75,11 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "last_activity",
             },
-            userId: {
-                type: DataTypes.UUID,
-                allowNull: true,
-                field: "user_id",
-            },
+            // userId: {
+            //     type: DataTypes.UUID,
+            //     allowNull: true,
+            //     field: "user_id",
+            // },
             ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, tenantId, status, etc.
         },
         {
@@ -103,10 +103,10 @@ module.exports = (sequelize, DataTypes) => {
         });
 
         // User Relation
-        Assessment.belongsTo(models.User, {
-            foreignKey: "userId",
-            as: "user",
-        });
+        // Assessment.belongsTo(models.User, {
+        //     foreignKey: "userId",
+        //     as: "user",
+        // });
 
         // CreatedBy Relation
         Assessment.belongsTo(models.User, {

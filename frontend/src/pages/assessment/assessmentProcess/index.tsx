@@ -10,7 +10,11 @@ import AssignOrder from "@/components/Assessment/AssignOrder";
 import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
 import DragDropRiskScenarios from "@/components/Assessment/DragDropRiskScenarios";
-import { getOrganization } from "../../api/organization";
+import {
+  getOrganization,
+  getOrganizationProcess,
+} from "../../api/organization";
+import { saveAssessment, saveAssessmentProcess } from "@/pages/api/assessment";
 
 interface Organisation {
   organizationId: string;
@@ -24,20 +28,20 @@ interface BusinessUnit {
 }
 
 interface ProcessUnit {
-  id: string;
+  orgProcessId: string;
   name: string;
-  buId: string;
 }
 
 export default function BUProcessMappingPage() {
   const {
+    assessmentId,
     assessmentName,
     selectedOrg,
     selectedBU,
     selectedProcesses,
     setSelectedProcesses,
     orderedProcesses,
-    setOrderedProcesses
+    setOrderedProcesses,
   } = useAssessment();
   const router = useRouter();
 
@@ -60,49 +64,41 @@ export default function BUProcessMappingPage() {
   ];
 
   const [activeStep, setActiveStep] = useState(0); // main stepper (ArrowStepper)
-  const [activeTab, setActiveTab] = useState(0);   // inner tab (StepIndicator)
+  const [activeTab, setActiveTab] = useState(0); // inner tab (StepIndicator)
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-    const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
-    const [loading, setLoading] = useState(false);
+  const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
+  const [processes, setProcesses] = useState<ProcessUnit[]>([]);
+  const [loading, setLoading] = useState(false);
 
-   useEffect(() => {
-      const fetchOrgs = async () => {
-        try {
-          setLoading(true);
-          const res = await getOrganization();
-          setOrganisations(res.data.organizations);
-        } catch (error) {
-          console.error("Error fetching organisations:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchOrgs();
-    }, []);
-  
-    // Update businessUnits whenever selectedOrg changes
-    useEffect(() => {
-      if (!selectedOrg) {
-        setBusinessUnits([]);
-        return;
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      try {
+        setLoading(true);
+        const res = await getOrganization();
+        setOrganisations(res.data.organizations);
+
+        const response = await getOrganizationProcess(selectedOrg, selectedBU);
+        setProcesses(response.data);
+      } catch (error) {
+        console.error("Error fetching organisations:", error);
+      } finally {
+        setLoading(false);
       }
-  
-      const org = organisations.find(
-        (o) => o.organizationId === selectedOrg
-      );
-      setBusinessUnits(org?.businessUnits || []);
-    }, [selectedOrg, organisations]);
+    };
 
-  const processes: ProcessUnit[] = [
-    { id: "process1", name: "Electronic Banking", buId: "bu3" },
-    { id: "process2", name: "ACH", buId: "bu3" },
-    { id: "process3", name: "Wire Transfer", buId: "bu3" },
-    { id: "process4", name: "ATM Management", buId: "bu3" },
-    { id: "process5", name: "Fraud Monitoring", buId: "bu3" },
-    { id: "process6", name: "KYC", buId: "bu4" },
-    { id: "process7", name: "Loan Organisations", buId: "bu4" },
-  ];
+    fetchOrgs();
+  }, []);
+
+  // Update businessUnits whenever selectedOrg changes
+  useEffect(() => {
+    if (!selectedOrg) {
+      setBusinessUnits([]);
+      return;
+    }
+
+    const org = organisations.find((o) => o.organizationId === selectedOrg);
+    setBusinessUnits(org?.businessUnits || []);
+  }, [selectedOrg, organisations]);
 
   // Navigation
   const handlePrev = () => {
@@ -114,68 +110,99 @@ export default function BUProcessMappingPage() {
     }
   };
 
-  const handleSaveContinue = () => {
+  const handleSaveContinue = (status: string) => {
     if (activeTab < stepsTab.length - 1) {
       setActiveTab((prev) => prev + 1);
     } else {
-      // reached end of this module, go to next ArrowStepper step
       setActiveStep((prev) => prev + 1);
       setActiveTab(0);
+      saveAssessmentProcess({
+        id: assessmentId,
+        processes: selectedProcesses.map((item) => {
+          return {
+            processName: item.name,
+            order: orderedProcesses[item.orgProcessId],
+          };
+        }),
+        status: status,
+        userId: "2",
+      });
     }
   };
 
   return (
     <>
-      <Box sx={{ py: 3, px: 5 }}>
-        {/* Top Navigation Bar */}
-        <TopBar
-          title={assessmentName}
-          runId="1004"
-                  org={organisations.find((item) => item.organizationId === selectedOrg)?.name || ""}
-                  bu={businessUnits.find((item) => item.orgBusinessUnitId === selectedBU)?.businessUnitName || ""}
-          onBack={() => router.push("/assessment")}
-        />
-
-        {/* Stepper */}
-        <Box mt={3}>
-          <ArrowStepper steps={steps} activeStep={activeStep} />
-        </Box>
-
-        {activeStep === 0 && <Box mt={4}>
-          <StepIndicator steps={stepsTab} activeStep={activeTab} />
-        </Box>}
-
-        {/* Content Area */}
-        <Box my={4}>
-          {activeStep === 0 && activeTab === 0 && (
-            <SectionProcesses
-              processes={processes.filter((item) => item.buId === selectedBU)}
-              selected={selectedProcesses}
-              onSelectionChange={setSelectedProcesses}
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <>
+          <Box sx={{ py: 3, px: 5 }}>
+            {/* Top Navigation Bar */}
+            <TopBar
+              title={assessmentName}
+              runId="1004"
+              org={
+                organisations.find(
+                  (item) => item.organizationId === selectedOrg
+                )?.name || ""
+              }
+              bu={
+                businessUnits.find(
+                  (item) => item.orgBusinessUnitId === selectedBU
+                )?.businessUnitName || ""
+              }
+              onBack={() => router.push("/assessment")}
             />
-          )}
 
-          {activeStep === 0 && activeTab === 1 && (
-            <AssignOrder
-              processes={selectedProcesses}
-              onOrderChange={setOrderedProcesses}
-            />
-          )}
+            {/* Stepper */}
+            <Box mt={3}>
+              <ArrowStepper steps={steps} activeStep={activeStep} />
+            </Box>
 
-          {activeStep === 1 && (
-            <DragDropRiskScenarios />
-          )}
+            {activeStep === 0 && (
+              <Box mt={4}>
+                <StepIndicator steps={stepsTab} activeStep={activeTab} />
+              </Box>
+            )}
 
-        </Box>
-      </Box>
+            {/* Content Area */}
+            <Box my={4}>
+              {activeStep === 0 && activeTab === 0 && (
+                <SectionProcesses
+                  processes={processes}
+                  selected={selectedProcesses}
+                  onSelectionChange={setSelectedProcesses}
+                />
+              )}
 
-      {/* Bottom Action Bar */}
-      <BottomActionBar
-        onPrev={handlePrev}
-        onCancel={() => router.push("/assessment")}
-        onSaveDraft={() => console.log("Save Draft clicked")}
-        onSaveContinue={handleSaveContinue}
-      />
+              {activeStep === 0 && activeTab === 1 && (
+                <AssignOrder
+                  processes={selectedProcesses}
+                  onOrderChange={setOrderedProcesses}
+                />
+              )}
+
+              {activeStep === 1 && <DragDropRiskScenarios />}
+            </Box>
+          </Box>
+
+          {/* Bottom Action Bar */}
+          <BottomActionBar
+            onPrev={handlePrev}
+            onCancel={() => router.push("/assessment")}
+            onSaveDraft={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSaveContinue("draft")
+            }}
+            onSaveContinue={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSaveContinue("in_progress")
+            }}
+          />
+        </>
+      )}
     </>
   );
 }

@@ -4,9 +4,8 @@ import { useState } from "react";
 import ProcessCard from "./ProcessCard";
 
 interface ProcessUnit {
-  id: string;
+  orgProcessId: string;
   name: string;
-  buId: string;
 }
 
 interface SectionProcessesProps {
@@ -23,11 +22,11 @@ export default function SectionProcesses({
   const [search, setSearch] = useState("");
 
   const isSelected = (process: ProcessUnit) =>
-    selected.some((p) => p.id === process.id);
+    selected.some((p) => p.orgProcessId === process.orgProcessId);
 
   const toggleSelection = (process: ProcessUnit) => {
     const updated = isSelected(process)
-      ? selected.filter((p) => p.id !== process.id)
+      ? selected.filter((p) => p.orgProcessId !== process.orgProcessId)
       : [...selected, process];
 
     onSelectionChange(updated);
@@ -71,7 +70,7 @@ export default function SectionProcesses({
       {/* ✅ Process grid */}
       <Grid container spacing={2}>
         {filteredProcesses.map((process) => (
-          <Grid size={{ xs: 12, md: 6 }} key={process.id}>
+          <Grid size={{ xs: 12, md: 6 }} key={process.orgProcessId}>
             <ProcessCard
               label={process.name}
               checked={isSelected(process)}
