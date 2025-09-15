@@ -205,28 +205,38 @@ export default function ControlContainer() {
   };
 
   // Update
-  //   const handleUpdate = async (status: string) => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       const body = { ...selectedAsset, status };
-  //       await AssetService.update(selectedAsset.id as number, body);
-  //       setIsEditOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: "Asset updated",
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleUpdate = async (status: string) => {
+    try {
+      if (
+        !selectedControl?.mitreControlId ||
+        !selectedControl?.mitreControlName ||
+        !selectedControl?.mitreControlType
+      )
+        throw new Error("Invalid selection");
+      const body = { ...selectedControl, status };
+      await ControlService.update(
+        body,
+        selectedControl.mitreControlId,
+        selectedControl.mitreControlName,
+        selectedControl.mitreControlType
+      );
+      setIsEditOpen(false);
+      setSelectedControl(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Control updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update control",
+        severity: "error",
+      });
+    }
+  };
 
   // Update status only
   const handleUpdateStatus = async (
@@ -399,6 +409,9 @@ export default function ControlContainer() {
       isFileUploadOpen,
       selectedControlFramework,
       searchPattern,
+      setSearchPattern,
+      sort,
+      setSort
     ]
   );
 
@@ -445,7 +458,7 @@ export default function ControlContainer() {
               setSelectedControl(val);
             }
           }}
-          onSubmit={() => console.log("Updated")}
+          onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}

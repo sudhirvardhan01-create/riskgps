@@ -33,11 +33,16 @@ export const fetchControls = async (
 };
 
 //Function to update a control
-export const updateControl = async (id: number, data: ControlForm) => {
+export const updateControl = async (
+  data: ControlForm,
+  mitreControlId: string,
+  mitreControlName: string,
+  mitreControlType: string
+) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/${id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}&&mitreControlType=${mitreControlType}`,
     {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(data),
       headers: {
         "Content-Type": "application/json",

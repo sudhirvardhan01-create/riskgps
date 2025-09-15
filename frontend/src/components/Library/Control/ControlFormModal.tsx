@@ -283,7 +283,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                                   </TableCell>
                                   <TableCell>
                                     {control.subTechniqueId
-                                      ? control.mitreTechniqueId
+                                      ? control.subTechniqueId
                                       : "-"}
                                   </TableCell>
                                   <TableCell>

@@ -11,7 +11,10 @@ export const ControlService = {
     fetchControls(page, limit, searchPattern, sort),
   delete: (mitreControlId: string, mitreControlName: string) =>
     deleteControl(mitreControlId, mitreControlName),
-  update: (id: number, data: ControlForm) => updateControl(id, data),
+  update: (data: ControlForm,
+  mitreControlId: string,
+  mitreControlName: string,
+  mitreControlType: string) => updateControl(data, mitreControlId, mitreControlName, mitreControlType),
   updateStatus: (
     mitreControlId: string,
     mitreControlName: string,
