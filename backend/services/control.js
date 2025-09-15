@@ -146,7 +146,7 @@ class ControlsService {
             const [mitreThreatControlUpdateCount] = await MitreThreatControl.update(
                 payload,
                 {
-                    where: { mitreControlId: mitreControlId, mitreControlName: mitreControlName },   
+                    where: { mitreControlId: mitreControlId, mitreControlName: mitreControlName },
                     transaction: t
                 }
             );
@@ -155,31 +155,11 @@ class ControlsService {
                 throw new CustomError(Messages.MITRE_CONTROLS.NOT_FOUND, HttpStatus.NOT_FOUND);
             }
 
-            this.validateProcessData(data);
+            this.validateMitreControlData(data);
 
-            const processData = this.handleProcessDataColumnMapping(data);
-            await process.update(processData, { transaction: t });
+            this.handleMitreControlsTechniqueMapping(mitreControlId, mitreControlName, data.subControls, t);
 
-            await ProcessAttribute.destroy({ where: { process_id: id }, transaction: t });
-            await ProcessRelationship.destroy({
-                where: {
-                    [Op.or]: [
-                        { source_process_id: id },
-                        { target_process_id: id }
-                    ]
-                },
-                transaction: t
-            });
-            if (Array.isArray(data.process_dependency) && data.process_dependency.length > 0) {
-                await this.handleProcessDependencies("update", id, data.process_dependency, t);
-            }
-            console.log(data.attributes, "LOGGING ATTR");
-            if (Array.isArray(data.attributes) && data.attributes.length > 0) {
-                console.log(data.attributes);
-                await this.handleProcessAttributes(id, data.attributes, t);
-            }
-
-            console.log("Process updated successfully:", id);
+            console.log("Mitre Control updated successfully:", mitreControlId, mitreControlName);
         });
 
     }
@@ -537,6 +517,48 @@ class ControlsService {
             });
         }
         return conditions.length > 0 ? { [Op.and]: conditions } : {};
+    }
+
+    static validateMitreControlData(data) {
+        const {
+            subControls,
+        } = data;
+
+        if (!Array.isArray(subControls) || subControls.length < 1) {
+            throw new Error("Invalid subcontrols mapping required to threat technique");
+        }
+
+    }
+
+    static async handleMitreControlsTechniqueMapping(mitreControlId, mitreControlName, subControls, transaction) {
+        if (!mitreControlId || !mitreControlId || !subControls) {
+            throw new Error("Invalid request, required parameters not present");
+        }
+        for (const controls of subControls) {
+            const mitreTechniqueId = controls.mitreTechniqueId;
+            const subTechniqueId = controls.subTechniqueId;
+            const mitreControlDescription = controls.mitreControlDescription;
+            const bluOceanControlDescription = controls.bluOceanControlDescription;
+
+            const payload = {
+                mitreControlDescription,
+                bluOceanControlDescription
+            }
+            const whereClause = {
+                mitreTechniqueId,
+                subTechniqueId,
+                mitreControlId,
+                mitreControlName
+            }
+
+
+            const [affectedCount] = await MitreThreatControl.update(payload,{ where: whereClause, transaction: transaction});
+            
+            if (affectedCount < 1) {
+                throw new Error("Failed to update, no record found")
+            }
+
+        }
     }
 
     static validateFrameworkControls(data) {

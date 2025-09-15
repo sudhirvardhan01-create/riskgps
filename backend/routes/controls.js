@@ -6,15 +6,15 @@ const Messages = require("../constants/messages");
 const router = express.Router();
 
 const upload = multer({
-  dest: "uploads/",
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
-      cb(null, true);
-    } else {
-      cb(new Error("Only CSV files are allowed"));
-    }
-  },
+    dest: "uploads/",
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === "text/csv" || file.mimetype === "application/vnd.ms-excel") {
+            cb(null, true);
+        } else {
+            cb(new Error("Only CSV files are allowed"));
+        }
+    },
 });
 
 router.get("/get-controls", async (req, res) => {
@@ -26,7 +26,7 @@ router.get("/get-controls", async (req, res) => {
 
     try {
         const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder);
-        res.status(200).json({data});
+        res.status(200).json({ data });
 
     } catch (error) {
         res.status(400).json({
@@ -37,6 +37,28 @@ router.get("/get-controls", async (req, res) => {
 })
 
 router.patch("/update-mitre-control", async (req, res) => {
+    try {
+        const mitreControlId = req.query.mitreControlId;
+        const mitreControlName = req.query.mitreControlName;
+        const mitreControlType = req.query.mitreControlType;
+
+        if (!mitreControlId || !mitreControlName) {
+            throw new Error("Invalid request required parameters not passed");
+        }
+
+        const data = await ControlsService.updateMitreControl(mitreControlId, mitreControlName, mitreControlType, req.body);
+        res.status(HttpStatusCodes.CREATED).json({
+            data,
+            msg: "mitre control updated"
+        })
+
+    } catch (err) {
+        console.log("Failed to update mitre control");
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+            msg: err.message
+        })
+
+    }
 
 })
 
@@ -90,13 +112,13 @@ router.delete("/delete-mitre-control", async (req, res) => {
 
 router.post("/framework-control", async (req, res) => {
     try {
-        
+
         const response = await ControlsService.createFrameworkControl(req.body);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "framework control created"
         })
-    } catch(err) {
+    } catch (err) {
         console.log("Failed to create framework controls", err)
         res.status(HttpStatusCodes.BAD_REQUEST).json({
             msg: err.message
@@ -113,7 +135,7 @@ router.get("/get-all-framework-control", async (req, res) => {
         const page = parseInt(req.query?.page) || 0;
         const sortBy = req.query.sort_by || 'created_at';
         const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
-  
+
         const response = await ControlsService.getAllFrameworkControls(frameworkName, page, limit, searchPattern, sortBy, sortOrder);
         res.status(200).json({
             data: response
@@ -137,7 +159,7 @@ router.put("/framework-control/:id", async (req, res) => {
             data: response,
             msg: "framework control updated"
         })
-    } catch(err) {
+    } catch (err) {
         console.log("Failed to update framework control", err)
         res.status(HttpStatusCodes.BAD_REQUEST).json({
             msg: err.message
@@ -145,7 +167,7 @@ router.put("/framework-control/:id", async (req, res) => {
     }
 })
 
-router.patch("/framework-control-update-status/:id", async (req, res) =>{
+router.patch("/framework-control-update-status/:id", async (req, res) => {
     try {
         const id = req.params.id ?? null;
         const status = req.body.status ?? null;
@@ -167,11 +189,11 @@ router.patch("/framework-control-update-status/:id", async (req, res) =>{
 })
 
 
-router.delete("/framework-control/:id", async (req, res) =>{
+router.delete("/framework-control/:id", async (req, res) => {
     try {
         const id = req.params.id ?? null;
 
-        if (!id ) {
+        if (!id) {
             throw new Error("Failed, id required to delete framework control")
         }
         const response = await ControlsService.deleteFrameWorkControl(id);
@@ -188,7 +210,7 @@ router.delete("/framework-control/:id", async (req, res) =>{
 })
 
 
-router.get("/download-framework-template",  async (req, res) => {
+router.get("/download-framework-template", async (req, res) => {
     try {
         await ControlsService.downloadFrameworkControlsTemplateFile(res);
 
@@ -229,6 +251,6 @@ router.post("/import-framework-controls", upload.single("file"), async (req, res
         });
     }
 })
-   
+
 
 module.exports = router;
