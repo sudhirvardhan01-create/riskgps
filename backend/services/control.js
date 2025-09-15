@@ -357,7 +357,7 @@ class ControlsService {
             throw new Error("Invalid request id required");
         }
         const whereClause = { id };
-        const [deletedCount] = await FrameWorkControl.destroy({ where: whereClause });
+        const deletedCount = await FrameWorkControl.destroy({ where: whereClause });
 
         if (deletedCount < 1) {
             console.log("[deleteMitreControl] No mitre threat control recorod found:");
