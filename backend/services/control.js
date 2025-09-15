@@ -192,7 +192,7 @@ class ControlsService {
 
         const data = await FrameWorkControl.findAll({
             where: whereClause,
-             order: [[sortBy, sortOrder]],
+            order: [[sortBy, sortOrder]],
             include: [
                 {
                     model: sequelize.models.MitreThreatControl,
@@ -231,31 +231,70 @@ class ControlsService {
         };
     }
 
+    static async updateFrameWorkControlStatus(status, id) {
+        if (!status) {
+            throw new Error("Status required")
+        }
+
+        if (!id) {
+            throw new Error("Invalid request id required");
+        }
+
+        const whereClause = { id };
+
+
+        const [updatedCount] = await FrameWorkControl.update({ status }, { where: whereClause });
+
+        if (updatedCount < 1) {
+            console.log("[deleteMitreControl] No mitre threat control recorod found:");
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        return { message: "Framework control updated" };
+    }
+
+    static async updateFrameworkControl(id, data) {
+        try {
+            if (!id) {
+                throw new Error("Invalid request, ID required");
+            }
+
+            if (!data) {
+                throw new Error("Invalid request, update body required");
+            }
+
+            return await sequelize.transaction(async (t) => {
+                const frameworkControl = await FrameWorkControl.findByPk(id, { transaction: t });
+
+                if (!frameworkControl) {
+                    console.log("No control found:", id);
+                    throw new CustomError(Messages.FRAMEWORK_CONTROLS.NOT_FOUND, HttpStatus.NOT_FOUND);
+                }
+
+                this.validateFrameworkControls(data);
+
+                const frameworkControlData = this.handleFrameworkDataColumnMapping(data);
+                console.log("updating framework control with data:", frameworkControlData);
+
+                const updateControl = await frameworkControl.update(frameworkControlData, { transaction: t });
+
+                await MitreFrameworkControlMappings.destroy({ where: { framework_control_id: id }, transaction: t });
+
+                await this.handleFrameworkControlToMitreControlsMapping(id, data.mitreControls, t);
+
+                return updateControl;
+            });
+        } catch (err) {
+            console.error("[updateFrameworkControl] Error:", err);
+            throw err;
+        }
+    }
+
     static async deleteFrameWorkControl(id) {
         if (!id) {
             throw new Error("Invalid request id required");
         }
-        const whereClause ={ id };
-        // const whereClause = {
-        //     [Op.and]: [
-        //         { frameworkName },
-        //         { frameWorkControlCategoryId }
-        //     ]
-        // };
-
-        // // Add optional ones if present
-        // if (frameWorkControlCategory) {
-        //     whereClause[Op.and].push({ frameWorkControlCategory });
-        // }
-
-        // if (frameWorkControlSubCategoryId) {
-        //     whereClause[Op.and].push({ frameWorkControlSubCategoryId });
-        // }
-
-        // if (frameWorkControlSubCategory) {
-        //     whereClause[Op.and].push({ frameWorkControlSubCategory });
-        // }
-
+        const whereClause = { id };
         const [deletedCount] = await FrameWorkControl.destroy({ where: whereClause });
 
         if (deletedCount < 1) {
@@ -290,29 +329,7 @@ class ControlsService {
         csvStream.end();
     }
 
-    static async updateFrameWorkControlStatus(status, id) {
-        if (!status) {
-            throw new Error("Status required")
-        }
 
-        if (!id) {
-            throw new Error("Invalid request id required");
-        }
-
-        // Add optional ones if present
-
-        const whereClause = { id };
-
-
-        const [updatedCount] = await FrameWorkControl.update({ status }, { where: whereClause });
-
-        if (updatedCount < 1) {
-            console.log("[deleteMitreControl] No mitre threat control recorod found:");
-            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
-        }
-
-        return { message: "Framework control updated" };
-    }
 
 
     static async importFrameworkControlsFromCSV(filePath) {

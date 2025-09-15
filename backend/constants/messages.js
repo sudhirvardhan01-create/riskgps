@@ -134,6 +134,7 @@ module.exports = {
 
     },
     FRAMEWORK_CONTROLS : {
+        NO_FRAMEWORK_CONTROL_FOUND: "No framework control found",
         INVALID_FRAMEWORK_NAME_REQUIRED: "Invalid framework name required",
         INVALID_FRAMEWORK_INPUTS: "Invalid framework inputs",
         INVALID_FRAMEWORK_MITRE_MAPPING: "Invalid framework to mitre mapping",
