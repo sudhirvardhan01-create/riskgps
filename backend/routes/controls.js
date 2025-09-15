@@ -122,12 +122,12 @@ router.get("/get-all-framework-control", async (req, res) => {
     }
 })
 
-router.delete("/framework-control", async (req, res) =>{
+router.delete("/framework-control/:id", async (req, res) =>{
     try {
-        const id = req.query.id ?? null;
+        const id = req.params.id ?? null;
 
         if (!id ) {
-            throw new Error("Failed, id required")
+            throw new Error("Failed, id required to delete framework control")
         }
         const response = await ControlsService.deleteFrameWorkControl(id);
         res.status(200).json({
@@ -142,9 +142,9 @@ router.delete("/framework-control", async (req, res) =>{
     }
 })
 
-router.patch("/framework-control-update-status", async (req, res) =>{
+router.patch("/framework-control-update-status/:id", async (req, res) =>{
     try {
-        const id = req.query.id ?? null;
+        const id = req.params.id ?? null;
         const status = req.body.status ?? null;
 
         if (!id || !status) {

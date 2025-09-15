@@ -138,3 +138,53 @@ export const importFrameworkControls = async (file: File): Promise<any> => {
   console.log(response);
   return response;
 };
+
+
+/**
+ * Function to update status for a framework control
+ * @param id 
+ * @param status 
+ * @returns 
+ */
+export const updateFrameworkControlStatus = async (id: number, status: string) => {
+  if (!id || !status) {
+      throw new Error("Failed to perforom the operation, Invalid arguments");
+  }
+  const reqBody = {status};
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control-update-status/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(reqBody),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to Update framework control Status");
+  }
+  const res = await response.json();
+  return res.data;
+}
+
+
+/**
+ * Function to delete framework control based on ID
+ * @param id 
+ * @returns response body
+ */
+export const deleteFrameworkControl = async (id: number) => {
+  if (!id) {
+    throw new Error("invalid Operation, failed to delete");
+  }
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete framework control");
+  }
+  const res = await response.json();
+  return res.data;
+}
