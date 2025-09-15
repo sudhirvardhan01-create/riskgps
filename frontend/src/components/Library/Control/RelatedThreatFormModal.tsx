@@ -83,11 +83,7 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
           {/* MITRE Technique ID */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              slotProps={{
-                input: {
-                  readOnly: true,
-                },
-              }}
+            disabled
               label={labels.mitreTechniqueId}
               isTooltipRequired={true}
               tooltipTitle={tooltips.mitreTechniqueId}
@@ -103,11 +99,7 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
           {/* MITRE Technique Name */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              slotProps={{
-                input: {
-                  readOnly: true,
-                },
-              }}
+              disabled
               label={labels.mitreTechniqueName}
               isTooltipRequired={true}
               tooltipTitle={tooltips.mitreTechniqueName}
@@ -123,11 +115,7 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
           {/* Sub Technique ID */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              slotProps={{
-                input: {
-                  readOnly: true,
-                },
-              }}
+              disabled
               label={labels.subTechniqueId}
               isTooltipRequired={true}
               tooltipTitle={tooltips.subTechniqueId}
@@ -142,11 +130,7 @@ const RelatedThreatFormModal: React.FC<RelatedThreatFormModalProps> = ({
           {/* Sub Technique Name */}
           <Grid mt={1} size={{ xs: 6 }}>
             <TextFieldStyled
-              slotProps={{
-                input: {
-                  readOnly: true,
-                },
-              }}
+              disabled
               label={labels.subTechniqueName}
               isTooltipRequired={true}
               tooltipTitle={tooltips.subTechniqueName}

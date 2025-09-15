@@ -22,13 +22,7 @@ import {
   TableCell,
   TableBody,
 } from "@mui/material";
-import {
-  Add,
-  Close,
-  DeleteOutlineOutlined,
-  DoneOutlined,
-  EditOutlined,
-} from "@mui/icons-material";
+import { Close, DoneOutlined, EditOutlined } from "@mui/icons-material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
@@ -54,26 +48,20 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
   setFormData,
   onSubmit,
 }) => {
-  const initialRelatedThreatFormData: RelatedThreatForm = {
-    mitreTechniqueId: "",
-    mitreTechniqueName: "",
-    subTechniqueId: "",
-    subTechniqueName: "",
-    mitreControlDescription: "",
-    bluOceanControlDescription: "",
-  };
-  // const [isAddRelatedThreatModalOpen, setIsAddRelatedThreatModalOpen] =
-  //   useState<boolean>(false);
   const [isEditRelatedThreatModalOpen, setIsEditRelatedThreatModalOpen] =
     useState<boolean>(false);
-
-  // const [relatedThreatData, setRelatedThreatData] = useState<RelatedThreatForm>(
-  //   initialRelatedThreatFormData
-  // );
   const [selectedRelatedThreat, setSelectedRelatedThreat] =
     useState<RelatedThreatForm | null>(null);
-
   const [selectedRecordID, setSelectedRecordID] = useState<number | null>(null);
+
+  const editRelatedThreat = (id: number) => {
+    const updatedRelatedThreats = [...(formData?.subControls ?? [])];
+    updatedRelatedThreats[id].mitreControlDescription =
+      selectedRelatedThreat?.mitreControlDescription ?? "";
+    updatedRelatedThreats[id].bluOceanControlDescription =
+      selectedRelatedThreat?.bluOceanControlDescription ?? "";
+    setFormData((prev) => ({ ...prev, subControls: updatedRelatedThreats }));
+  };
 
   const handleChange = useCallback(
     (field: keyof ControlForm, value: any) => {
@@ -81,20 +69,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
     },
     [setFormData] // only depends on setter from props
   );
-
-  // const addRelatedThreat = () => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     subControls: [...(formData?.subControls ?? []), { ...relatedThreatData }],
-  //   }));
-  // };
-
-  // const deleteRelatedThreat = (id: number) => {
-  //   const updatedRelatedThreats = formData?.subControls?.filter(
-  //     (_, index) => index !== id
-  //   );
-  //   setFormData((prev) => ({ ...prev, subControls: updatedRelatedThreats }));
-  // };
 
   const getStatusComponent = () => {
     if (
@@ -136,22 +110,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
 
   return (
     <>
-      {/* Add Related Threat */}
-      {/* <RelatedThreatFormModal
-        operation="create"
-        open={isAddRelatedThreatModalOpen}
-        onClose={() => {
-          setIsAddRelatedThreatModalOpen(false);
-          setRelatedThreatData(initialRelatedThreatFormData);
-        }}
-        formData={relatedThreatData}
-        setFormData={setRelatedThreatData}
-        onSubmit={() => {
-          addRelatedThreat();
-          setIsAddRelatedThreatModalOpen(false);
-        }}
-      /> */}
-
       {/* Edit Related Threat */}
       {selectedRelatedThreat && (
         <RelatedThreatFormModal
@@ -168,7 +126,11 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               setSelectedRelatedThreat(val);
             }
           }}
-          onSubmit={() => console.log("Submitted")}
+          onSubmit={() => {
+            if (typeof selectedRecordID === "number")
+              editRelatedThreat(selectedRecordID);
+            setIsEditRelatedThreatModalOpen(false);
+          }}
         />
       )}
       <Dialog
@@ -217,6 +179,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             {/* MITRE Control ID */}
             <Grid mt={1} size={{ xs: 6 }}>
               <TextFieldStyled
+                disabled
                 required
                 label={labels.mitreControlId}
                 isTooltipRequired={true}
@@ -230,6 +193,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             {/* MITRE Control Name */}
             <Grid mt={1} size={{ xs: 6 }}>
               <TextFieldStyled
+                disabled
                 required
                 label={labels.mitreControlName}
                 isTooltipRequired={true}
@@ -245,6 +209,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             {/* MITRE Control Type */}
             <Grid mt={1} size={{ xs: 6 }}>
               <SelectStyled
+                disabled
                 required
                 value={formData.mitreControlType}
                 label={labels.mitreControlType}
@@ -291,18 +256,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                 <Typography variant="h6" fontWeight={600}>
                   Related Threats
                 </Typography>
-                {/* <Grid size={{ xs: 12 }}>
-                  <Button
-                    startIcon={<Add />}
-                    onClick={() => {
-                      setIsAddRelatedThreatModalOpen(true);
-                      setRelatedThreatData(initialRelatedThreatFormData);
-                    }}
-                    sx={{ paddingY: 0 }}
-                  >
-                    Add New Threat
-                  </Button>
-                </Grid> */}
                 {formData?.subControls && formData?.subControls?.length > 0 && (
                   <Grid size={{ xs: 12 }}>
                     <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -352,15 +305,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                                           sx={{ color: "primary.main" }}
                                         />
                                       </IconButton>
-                                      {/* <IconButton
-                                        onClick={() =>
-                                          deleteRelatedThreat(index)
-                                        }
-                                      >
-                                        <DeleteOutlineOutlined
-                                          sx={{ color: "#cd0303" }}
-                                        />
-                                      </IconButton> */}
                                     </Stack>
                                   </TableCell>
                                 </TableRow>
