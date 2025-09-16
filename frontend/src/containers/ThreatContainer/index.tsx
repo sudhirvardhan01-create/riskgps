@@ -20,11 +20,6 @@ const initialThreatFormData: ThreatForm = {
   ciaMapping: [],
   subTechniqueId: "",
   subTechniqueName: "",
-  mitreControlId: "",
-  mitreControlName: "",
-  mitreControlType: "",
-  mitreControlDescription: "",
-  bluOceanControlDescription: "",
 };
 
 const sortItems = [
@@ -140,92 +135,116 @@ export default function ThreatContainer() {
   }, []);
 
   // Create
-  //   const handleCreate = async (status: string) => {
-  //     try {
-  //       const req = { ...assetFormData, status };
-  //       await AssetService.create(req);
-  //       setAssetFormData(initialAssetFormData);
-  //       setIsAddOpen(false);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: `Success! Asset ${
-  //           status === "published" ? "published" : "saved as draft"
-  //         }`,
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to create asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleCreate = async (status: string) => {
+    try {
+      const req = { ...formData, status };
+      await ThreatService.create(req);
+      setFormData(initialThreatFormData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Success! Threat ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to create threat",
+        severity: "error",
+      });
+    }
+  };
 
   // Update
-  //   const handleUpdate = async (status: string) => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       const body = { ...selectedAsset, status };
-  //       await AssetService.update(selectedAsset.id as number, body);
-  //       setIsEditOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: "Asset updated",
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedThreat?.mitreTechniqueId)
+        throw new Error("Invalid selection");
+      const body = { ...selectedThreat, status };
+      if (selectedThreat?.subTechniqueId !== "") {
+        await ThreatService.update(
+          body,
+          selectedThreat.mitreTechniqueId as string,
+          selectedThreat.subTechniqueId as string
+        );
+      }else{
+        await ThreatService.update(
+          body,
+          selectedThreat?.mitreTechniqueId as string,
+          ""
+        );
+      }
+      setIsEditOpen(false);
+      setSelectedThreat(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Threat updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update threat",
+        severity: "error",
+      });
+    }
+  };
 
   // Update status only
-  //   const handleUpdateStatus = async (id: number, status: string) => {
-  //     try {
-  //       await AssetService.updateStatus(id, status);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({ open: true, message: "Status updated", severity: "success" });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to update status",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+    const handleUpdateStatus = async (status: string, mitreTechniqueId: string, subTechniqueId?: string) => {
+      try {
+        await ThreatService.updateStatus(status, mitreTechniqueId, subTechniqueId);
+        setRefreshTrigger((p) => p + 1);
+        setToast({ open: true, message: "Status updated", severity: "success" });
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to update status",
+          severity: "error",
+        });
+      }
+    };
 
   // Delete
-  //   const handleDelete = async () => {
-  //     try {
-  //       if (!selectedAsset?.id) throw new Error("Invalid selection");
-  //       await AssetService.delete(selectedAsset.id as number);
-  //       setIsDeleteConfirmOpen(false);
-  //       setSelectedAsset(null);
-  //       setRefreshTrigger((p) => p + 1);
-  //       setToast({
-  //         open: true,
-  //         message: `Deleted ${selectedAsset?.assetCode}`,
-  //         severity: "success",
-  //       });
-  //     } catch (err) {
-  //       console.error(err);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to delete asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
+  const handleDelete = async () => {
+    try {
+      if (!selectedThreat?.mitreTechniqueId)
+        throw new Error("Invalid selection");
+      if (selectedThreat?.subTechniqueId !== "") {
+        await ThreatService.delete(
+          selectedThreat.mitreTechniqueId as string,
+          selectedThreat.subTechniqueId as string
+        );
+      } else {
+        await ThreatService.delete(
+          selectedThreat.mitreTechniqueId as string,
+          ""
+        );
+      }
+      setIsDeleteConfirmOpen(false);
+      setSelectedThreat(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Deleted`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to delete threat",
+        severity: "error",
+      });
+    }
+  };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -333,37 +352,6 @@ export default function ThreatContainer() {
     [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
-  //Function for Form Validation
-  //   const handleFormValidation = async (status: string) => {
-  //     try {
-  //       const res = await AssetService.fetch(
-  //         0,
-  //         1,
-  //         assetFormData.applicationName.trim(),
-  //         "asset_code:asc"
-  //       );
-  //       if (
-  //         res.data?.length > 0 &&
-  //         res.data[0].applicationName === assetFormData.applicationName.trim()
-  //       ) {
-  //         setToast({
-  //           open: true,
-  //           message: `Asset Name already exists`,
-  //           severity: "error",
-  //         });
-  //       } else {
-  //         handleCreate(status);
-  //       }
-  //     } catch (error) {
-  //       console.error(error);
-  //       setToast({
-  //         open: true,
-  //         message: "Failed to create asset",
-  //         severity: "error",
-  //       });
-  //     }
-  //   };
-
   return (
     <>
       {/* View modal */}
@@ -380,41 +368,38 @@ export default function ThreatContainer() {
       )}
 
       {/* Add form */}
-      {/* {isAddOpen && (
-        <AssetFormModal
+      {isAddOpen && (
+        <ThreatFormModal
           operation={"create"}
           open={isAddOpen}
-          assetFormData={assetFormData}
-          setAssetFormData={setAssetFormData}
-          processes={processesData}
+          formData={formData}
+          setFormData={setFormData}
           metaDatas={metaDatas}
-          onSubmit={handleFormValidation}
-          // onSubmit={handleCreate}
+          onSubmit={handleCreate}
           onClose={() => {
             setIsAddConfirmOpen(true);
           }}
         />
-      )} */}
+      )}
 
       {/* Edit form */}
-      {/* {isEditOpen && selectedAsset && (
-        <AssetFormModal
+      {isEditOpen && selectedThreat && (
+        <ThreatFormModal
           operation="edit"
           open={isEditOpen}
-          assetFormData={selectedAsset}
-          setAssetFormData={(val: any) => {
+          formData={selectedThreat}
+          setFormData={(val: any) => {
             if (typeof val === "function") {
-              setSelectedAsset((prev) => val(prev as AssetForm));
+              setSelectedThreat((prev) => val(prev as ThreatForm));
             } else {
-              setSelectedAsset(val);
+              setSelectedThreat(val);
             }
           }}
-          processes={processesData}
           metaDatas={metaDatas}
           onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
-      )} */}
+      )}
 
       {/* Confirm dialogs */}
       <ConfirmDialog
@@ -445,15 +430,15 @@ export default function ThreatContainer() {
         confirmText="Yes, Cancel"
       />
 
-      {/* <ConfirmDialog
+      <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Confirm Asset Deletion?"
-        description={`Are you sure you want to delete Asset ${selectedAsset?.assetCode}? All associated data will be removed from the system.`}
+        title="Confirm Threat Deletion?"
+        description={`Are you sure you want to delete Threat ${selectedThreat?.mitreTechniqueId}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"
-      /> */}
+      />
 
       {/* Page content */}
       <Box p={5}>
@@ -470,7 +455,7 @@ export default function ThreatContainer() {
           setIsViewOpen={setIsViewOpen}
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-          handleUpdateStatus={() => console.log("Updated")}
+          handleUpdateStatus={handleUpdateStatus}
         />
       </Box>
 

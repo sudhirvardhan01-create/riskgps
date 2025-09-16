@@ -10,6 +10,7 @@ export interface RiskScenarioData {
   riskScenario: string;
   riskStatement: string;
   riskDescription: string;
+  ciaMapping: string[];
   industry?: string[];
   domain?: string[];
   tags?: number;

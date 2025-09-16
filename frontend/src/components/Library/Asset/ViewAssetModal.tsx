@@ -141,7 +141,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Asset Category
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {assetData.assetCategory ? assetData.assetCategory.join(", ") : "-"}
+                {assetData.assetCategory ? assetData.assetCategory : "-"}
               </Typography>
             </Box>
           </Grid>

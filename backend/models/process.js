@@ -64,7 +64,9 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       regulatory_and_compliance: {
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(
+          DataTypes.STRING
+        ),
         allowNull: true
       },
       criticality_of_data_processed: {

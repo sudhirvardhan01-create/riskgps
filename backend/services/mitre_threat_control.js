@@ -13,15 +13,34 @@ class MitreThreatControlService {
 
     static async createMitreThreatControlRecord(data) {
         return await sequelize.transaction(async (t) => {
-            console.log("[createAsset] Creating asset", data);
+            console.log("[createMitreThreatControlRecord] Creating mitre threat control", data);
 
             this.validateMitreThreatControlData(data);
 
-            const mitreThreatControlRecord = MitreThreatControl.create(assetData, {
+            const controls = data.controls ?? [];
+
+            const payloads = controls.map(control => ({
+                "platforms": data.platforms,
+                "mitreTechniqueId": data.mitreTechniqueId,
+                "mitreTechniqueName": data.mitreTechniqueName,
+                "ciaMapping": data.ciaMapping,
+                "subTechniqueId": data.subTechniqueId ?? null,
+                "subTechniqueName": data.subTechniqueName ?? null,
+                "mitreControlId": control.mitreControlId,
+                "mitreControlName": control.mitreControlName,
+                "mitreControlType": control.mitreControlType,
+                "mitreControlDescription": control.mitreControlDescription,
+                "bluOceanControlDescription": control.bluOceanControlDescription,
+                "status": data.status ?? "published"
+
+            }));
+
+            const mitreThreatControlRecord = await MitreThreatControl.bulkCreate(payloads, {
                 transaction: t,
             });
 
-            return mitreThreatControlRecord;
+            console.log(mitreThreatControlRecord.length);
+            return true;
         });
     }
 
@@ -44,22 +63,55 @@ class MitreThreatControlService {
 
         const whereClause = this.handleMitreThreatControlFilters(searchPattern);
 
-        const total = await MitreThreatControl.count({
-            where: whereClause,
-        });
-        const mitreThreatControl = await MitreThreatControl.findAll({
-            limit,
-            offset,
+        const data = await MitreThreatControl.findAll({
             order: [[sortBy, sortOrder]],
             where: whereClause,
         });
 
+        const grouped = Object.values(
+            data.reduce((acc, row) => {
+                const key = row.mitreTechniqueId + (row.subTechniqueId ? "." + row.subTechniqueId : "");
+                if (!acc[key]) {
+                    acc[key] = {
+                        id: row.id,
+                        platforms: row.platforms,
+                        mitreTechniqueId: row.mitreTechniqueId,
+                        mitreTechniqueName: row.mitreTechniqueName,
+                        ciaMapping: row.ciaMapping,
+                        subTechniqueId: row.subTechniqueId,
+                        subTechniqueName: row.subTechniqueName,
+                        controls: [],
+                        status: row.status,
+                        created_at: row.created_at,
+                        updated_at: row.updated_at,
+                    };
+                }
+
+                acc[key].controls.push({
+                    mitreControlId: row.mitreControlId,
+                    mitreControlName: row.mitreControlName,
+                    mitreControlType: row.mitreControlType,
+                    mitreControlDescription: row.mitreControlDescription,
+                    bluOceanControlDescription: row.bluOceanControlDescription,
+                });
+
+                return acc;
+            }, {})
+        );
+        const total = grouped.length;
+        const totalPages = Math.ceil(total / limit);
+
+        // slice based on zero-indexed page
+        const start = page * limit;
+        const end = start + limit;
+        const paginatedData = grouped.slice(start, end);
+
         return {
-            data: mitreThreatControl,
+            data: paginatedData,
             total,
             page,
             limit,
-            totalPages: Math.ceil(total / limit),
+            totalPages,
         };
     }
 
@@ -78,19 +130,115 @@ class MitreThreatControlService {
         return mitreThreatControl;
     }
 
-    static async deleteMitreThreatControlRecordById(id) {
-        const mitreThreatControl = await MitreThreatControl.findByPk(id);
 
-        if (!mitreThreatControl) {
-            console.log("[deleteMitreThreatControlRecordById] Not found:", id);
+
+    static async updateMitreThreatControlRecord(mitreTechniqueId, subTechniqueId, data) {
+        if (!mitreTechniqueId) {
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED, HttpStatus.BAD_REQUEST);
+        }
+        return await sequelize.transaction(async (t) => {
+            console.log("[updateMitreThreatControlRecord] Updating mitre threat control", data);
+
+            this.validateMitreThreatControlData(data);
+
+            const whereClause = { mitreTechniqueId };
+
+            if (subTechniqueId !== null) {
+                whereClause.subTechniqueId = subTechniqueId;
+            } else {
+                whereClause.subTechniqueId = {
+                    [Op.or]: [null, '']
+                };
+            }
+
+            const deletedCount = await MitreThreatControl.destroy({ where: whereClause });
+            console.log(deletedCount);
+
+            const controls = data.controls ?? [];
+
+            const payloads = controls.map(control => ({
+                "platforms": data.platforms,
+                "mitreTechniqueId": mitreTechniqueId,
+                "mitreTechniqueName": data.mitreTechniqueName,
+                "ciaMapping": data.ciaMapping,
+                "subTechniqueId": subTechniqueId ?? null,
+                "subTechniqueName": data.subTechniqueName ?? null,
+                "mitreControlId": control.mitreControlId,
+                "mitreControlName": control.mitreControlName,
+                "mitreControlType": control.mitreControlType,
+                "mitreControlDescription": control.mitreControlDescription,
+                "bluOceanControlDescription": control.bluOceanControlDescription,
+                "status": data.status ?? "published"
+            }));
+
+            const mitreThreatControlRecord = await MitreThreatControl.bulkCreate(payloads, {
+                transaction: t,
+            });
+
+            if (mitreThreatControlRecord === 0) {
+                throw new CustomError("Element not found with ID", HttpStatus.BAD_REQUEST);
+            }
+
+            return data;
+        });
+    }
+
+    static async deleteMitreThreatControlRecordById(mitreTechniqueId, mitreSubTechniqueId = null) {
+
+        if (!mitreTechniqueId) {
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED, HttpStatus.BAD_REQUEST);
+        }
+        const whereClause = { mitreTechniqueId };
+
+        if (mitreSubTechniqueId !== null) {
+            whereClause.subTechniqueId = mitreSubTechniqueId;
+        } else {
+            whereClause.subTechniqueId = {
+                [Op.or]: [null, '']
+            };
+        }
+
+        const deletedCount = await MitreThreatControl.destroy({ where: whereClause });
+
+        if (deletedCount === 0) {
+            console.log("[deleteMitreThreatControlRecordById] Not found:", whereClause);
             throw new CustomError(
-                Messages.MITRE_THREAT_CONTROL.NOT_FOUND(id),
+                Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
                 HttpStatus.NOT_FOUND
             );
         }
 
-        await mitreThreatControl.destroy();
-        return { message: Messages.MITRE_THREAT_CONTROL.DELETED };
+        return { data: deletedCount };
+    }
+
+    static async updateMitreThreatControlStatus(mitreTechniqueId, subTechniqueId = null, status) {
+        if (!GENERAL.STATUS_SUPPORTED_VALUES.includes(status)) {
+            console.log("[updateMitreThreatControlStatus] Invalid status:", status);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.INVALID_STATUS, HttpStatus.BAD_REQUEST);
+        }
+
+        const whereClause = { mitreTechniqueId };
+
+
+        if (subTechniqueId !== null) {
+            whereClause.subTechniqueId = subTechniqueId;
+        } else {
+            whereClause.subTechniqueId = {
+                [Op.or]: [null, '']
+            };
+        }
+
+        const [updatedRowsCount] = await MitreThreatControl.update({ status }, { where: whereClause });
+
+        console.log(updatedRowsCount);
+
+        if (updatedRowsCount === 0) {
+            console.log("[updateProcessStatus] No mitre threat control recorod found:", mitreTechniqueId, subTechniqueId);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        console.log("[updateProcessStatus] Status updated successfully:", mitreTechniqueId, subTechniqueId);
+        return { message: Messages.PROCESS.STATUS_UPDATED };
     }
 
     static async downloadMitreThreatControlImportTemplateFile(res) {
@@ -122,33 +270,31 @@ class MitreThreatControlService {
     }
 
     static async importMitreThreatControlRecordFromCSV(filePath) {
-
         function parsePlatforms(value) {
             if (!value) return [];
             return value
-                .split(",") // split by comma
-                .map((v) => v.trim()) // remove whitespace
+                .split(",")
+                .map((v) => v.trim())
                 .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
         }
 
         function parseCIAMapping(value) {
             if (!value) return [];
             return value
-                .split(",") // split by comma
-                .map((v) => v.trim()) 
-                .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v)); 
-
+                .split(",")
+                .map((v) => v.trim())
+                .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
         }
 
         return new Promise((resolve, reject) => {
-            const rows = [];
+            const grouped = {};
 
             fs.createReadStream(filePath)
                 .pipe(parse({ headers: true }))
                 .on("error", (error) => reject(error))
                 .on("data", (row) => {
-                    rows.push({
-                        platforms: parsePlatforms(row["Platforms"]),
+                    // Build the key (all fields except platforms)
+                    const key = JSON.stringify({
                         mitreTechniqueId: row["Mitre Technique Id"],
                         mitreTechniqueName: row["Mitre Technique Name"],
                         ciaMapping: parseCIAMapping(row["CIA Mapping"]),
@@ -161,18 +307,83 @@ class MitreThreatControlService {
                         bluOceanControlDescription: row["BluOcean Control Description"],
                         status: "published",
                     });
+
+                    if (!grouped[key]) {
+                        grouped[key] = { ...JSON.parse(key), platforms: [] };
+                    }
+
+                    // Merge platforms incrementally
+                    console.log(parsePlatforms(row["Platforms"]));
+                    grouped[key].platforms = [
+                        ...new Set([...grouped[key].platforms, ...parsePlatforms(row["Platforms"])])
+                    ];
                 })
                 .on("end", async () => {
                     try {
-                        await MitreThreatControl.bulkCreate(rows, { ignoreDuplicates: true });
+                        const finalRows = Object.values(grouped);
+                        await MitreThreatControl.bulkCreate(finalRows, { ignoreDuplicates: true });
                         fs.unlinkSync(filePath);
-                        resolve(rows.length);
+
+                        resolve(finalRows);
                     } catch (err) {
                         reject(err);
                     }
                 });
         });
     }
+
+    // static async importMitreThreatControlRecordFromCSV(filePath) {
+
+    //     function parsePlatforms(value) {
+    //         if (!value) return [];
+    //         return value
+    //             .split(",") // split by comma
+    //             .map((v) => v.trim()) // remove whitespace
+    //             .filter((v) => ASSETS.ASSET_CATEGORY.includes(v));
+    //     }
+
+    //     function parseCIAMapping(value) {
+    //         if (!value) return [];
+    //         return value
+    //             .split(",") // split by comma
+    //             .map((v) => v.trim())
+    //             .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
+
+    //     }
+
+    //     return new Promise((resolve, reject) => {
+    //         const rows = [];
+
+    //         fs.createReadStream(filePath)
+    //             .pipe(parse({ headers: true }))
+    //             .on("error", (error) => reject(error))
+    //             .on("data", (row) => {
+    //                 rows.push({
+    //                     platforms: parsePlatforms(row["Platforms"]),
+    //                     mitreTechniqueId: row["Mitre Technique Id"],
+    //                     mitreTechniqueName: row["Mitre Technique Name"],
+    //                     ciaMapping: parseCIAMapping(row["CIA Mapping"]),
+    //                     subTechniqueId: row["SubTechnique ID"],
+    //                     subTechniqueName: row["SubTechnique Name"],
+    //                     mitreControlId: row["Mitre Control ID"],
+    //                     mitreControlName: row["Mitre Control Name"],
+    //                     mitreControlType: row["Mitre Control Type"],
+    //                     mitreControlDescription: row["Mitre Control Description"],
+    //                     bluOceanControlDescription: row["BluOcean Control Description"],
+    //                     status: "published",
+    //                 });
+    //             })
+    //             .on("end", async () => {
+    //                 try {
+    //                     await MitreThreatControl.bulkCreate(rows, { ignoreDuplicates: true });
+    //                     fs.unlinkSync(filePath);
+    //                     resolve(rows.length);
+    //                 } catch (err) {
+    //                     reject(err);
+    //                 }
+    //             });
+    //     });
+    // }
 
     static async exportMitreThreatControlCSV(res) {
         const connection = await sequelize.connectionManager.getConnection();
@@ -223,14 +434,9 @@ class MitreThreatControlService {
 
     static validateMitreThreatControlData(data) {
         const {
-            mitreThreatControlId,
             platforms,
-            mitreTechniqueId,
-            mitreTechniqueName,
-            subTechniqueId,
+            controls,
             ciaMapping,
-            subTechniqueName,
-            mitreControlType,
         } = data;
 
         if (
@@ -250,6 +456,13 @@ class MitreThreatControlService {
                 HttpStatus.NOT_FOUND
             );
         }
+
+        if (!controls || controls.length < 1) {
+            throw new CustomError(
+                Messages.MITRE_THREAT_CONTROL.INVALID_CONTROLS_LIST_FOR_THREAT,
+                HttpStatus.NOT_FOUND
+            );
+        }
     }
 
     static handleMitreThreatControlFilters(
@@ -264,7 +477,6 @@ class MitreThreatControlService {
                 [Op.or]: [
                     { mitreTechniqueName: { [Op.iLike]: `%${searchPattern}%` } },
                     { subTechniqueName: { [Op.iLike]: `%${searchPattern}%` } },
-                    { mitreControlName: { [Op.iLike]: `%${searchPattern}%` } },
                 ],
             });
         }

@@ -6,7 +6,7 @@ module.exports = (sequelize) => {
     "Asset",
     {
       id: { 
-        type: DataTypes.INTEGER, 
+        type: DataTypes.INTEGER,
         primaryKey: true, 
         autoIncrement: true 
       },
@@ -74,9 +74,7 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       asset_category: {
-          type: DataTypes.ARRAY(
-          DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
-        ),
+          type: DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
         allowNull: false,
       },
       asset_name: {

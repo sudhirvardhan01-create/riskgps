@@ -9,6 +9,31 @@ import withAuth from "@/hoc/withAuth";
 
 const libs = [
   {
+    name: "Processes",
+    description:
+      "Streamline and optimize cybersecurity processes, enhancing overall efficiency and bolstering Bluocean's commitment to client cybersecurity.",
+    tags: [
+      {
+        label: "All Processes",
+        value: 40,
+      },
+      {
+        label: "Published",
+        value: 24,
+      },
+      {
+        label: "Disabled",
+        value: 16,
+      },
+      {
+        label: "Draft",
+        value: 0,
+      },
+    ],
+    icon: <ProcessCardIcon height={24} width={24} />,
+    href: "/library/process",
+  },
+  {
     name: "Risk Scenarios",
     description:
       "Anticipate and address potential cybersecurity threats through proactive exploration of impactful scenarios.",
@@ -32,31 +57,6 @@ const libs = [
     ],
     icon: <LibraryCardIcon height={24} width={24} />,
     href: "/library/risk-scenario",
-  },
-  {
-    name: "Threats",
-    description:
-      "Categorize and stay informed about diverse cyber threats to empower risk assessment strategies with up-to-date intelligence.",
-    tags: [
-      {
-        label: "All Threats",
-        value: 37,
-      },
-      {
-        label: "Published",
-        value: 32,
-      },
-      {
-        label: "Disabled",
-        value: 4,
-      },
-      {
-        label: "Draft",
-        value: 1,
-      },
-    ],
-    icon: <ThreatCardIcon height={24} width={24} />,
-    href: "/library/threats",
   },
   {
     name: "Assets",
@@ -84,6 +84,31 @@ const libs = [
     href: "/library/assets",
   },
   {
+    name: "Threats",
+    description:
+      "Categorize and stay informed about diverse cyber threats to empower risk assessment strategies with up-to-date intelligence.",
+    tags: [
+      {
+        label: "All Threats",
+        value: 37,
+      },
+      {
+        label: "Published",
+        value: 32,
+      },
+      {
+        label: "Disabled",
+        value: 4,
+      },
+      {
+        label: "Draft",
+        value: 1,
+      },
+    ],
+    icon: <ThreatCardIcon height={24} width={24} />,
+    href: "/library/threats",
+  },
+  {
     name: "Controls",
     description:
       "Implement and manage security controls strategically, fortifying client assets against potential threats within the risk assessment framework.",
@@ -107,31 +132,6 @@ const libs = [
     ],
     icon: <ControlCardIcon height={24} width={24} />,
     href: "/library/controls",
-  },
-  {
-    name: "Processes",
-    description:
-      "Streamline and optimize cybersecurity processes, enhancing overall efficiency and bolstering Bluocean's commitment to client cybersecurity.",
-    tags: [
-      {
-        label: "All Processes",
-        value: 40,
-      },
-      {
-        label: "Published",
-        value: 24,
-      },
-      {
-        label: "Disabled",
-        value: 16,
-      },
-      {
-        label: "Draft",
-        value: 0,
-      },
-    ],
-    icon: <ProcessCardIcon height={24} width={24} />,
-    href: "/library/process",
   },
 ];
 

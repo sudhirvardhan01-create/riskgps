@@ -17,7 +17,6 @@ const QueryStream = require("pg-query-stream");
 const fs = require("fs");
 const { parse } = require("fast-csv");
 
-
 class RiskScenarioService {
   static async createRiskScenario(data) {
     return await sequelize.transaction(async (t) => {
@@ -230,8 +229,8 @@ class RiskScenarioService {
     console.log("[updateRiskScenarioStatus] Updated:", id, status);
     return { message: Messages.RISK_SCENARIO.STATUS_UPDATED };
   }
+  
   static async downloadRiskScenarioTemplateFile(res) {
-
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
       "Content-Disposition",
@@ -246,44 +245,182 @@ class RiskScenarioService {
       "Risk Scenario": "Risk Scenario (Text)",
       "Risk Description": "Risk Scenario Description (Text)",
       "Risk Statement": "Risk Scenario Statement (Text)",
-
+      "CIA Mapping": "List separated by , eg: C,I,A",
+      "Industry": "List of Industries separated by Comma"
     });
 
     csvStream.end();
   }
 
+  // static async importRiskScenariosFromCSV(filePath) {
+  //   function parseCIAMapping(value) {
+  //     if (!value) return [];
+  //     return value
+  //       .split(",") // split by comma
+  //       .map((v) => v.trim())
+  //       .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
+  //   }
+  //   return new Promise((resolve, reject) => {
+  //     const rows = [];
+
+  //     fs.createReadStream(filePath)
+  //       .pipe(parse({ headers: true }))
+  //       .on("error", (error) => reject(error))
+  //       .on("data", (row) => {
+  //         rows.push({
+  //           risk_scenario: row["Risk Scenario"],
+  //           risk_description: row["Risk Description"] ?? null,
+  //           risk_statement: row["Risk Statement"] ?? null,
+  //           cia_mapping: parseCIAMapping(row["CIA Mapping"]),
+  //           status: "published",
+  //         });
+  //       })
+  //       .on("end", async () => {
+  //         try {
+  //           await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
+  //           await sequelize.query(`
+  //                       UPDATE "library_risk_scenarios"
+  //                       SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
+  //                       WHERE risk_code IS NULL;
+  //                       `);
+  //           fs.unlinkSync(filePath);
+  //           resolve(rows.length);
+  //         } catch (err) {
+  //           reject(err);
+  //         }
+  //       });
+  //   });
+  // }
+
   static async importRiskScenariosFromCSV(filePath) {
+    const [rows, details] = await sequelize.query(
+      `select * from library_meta_datas where name ILIKE 'industry'`
+    );
+
+    const industryMetaData = rows[0];
+
+    function parseCIAMapping(value) {
+      if (!value) return [];
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
+    }
+
+    function parseIndustry(value) {
+      if (!value) return [];
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter((v) =>
+          industryMetaData.supported_values.some(
+            (supported) => supported.toLowerCase() === v.toLowerCase()
+          )
+        );
+    }
+
     return new Promise((resolve, reject) => {
-      const rows = [];
+      const batchSize = 5000;
+      let batch = [];
+      let totalInserted = 0;
 
       fs.createReadStream(filePath)
         .pipe(parse({ headers: true }))
         .on("error", (error) => reject(error))
-        .on("data", (row) => {
-          rows.push({
+        .on("data", async (row) => {
+          batch.push({
             risk_scenario: row["Risk Scenario"],
-            risk_description: row["Risk Description"],
-            risk_statement: row["Risk Statement"],
+            risk_description: row["Risk Description"] ?? null,
+            risk_statement: row["Risk Statement"] ?? null,
+            cia_mapping: parseCIAMapping(row["CIA Mapping"]),
+            industry: parseIndustry(row["Industry"]),
             status: "published",
           });
+
+          if (batch.length >= batchSize) {
+            // pause stream while DB writes
+            this.pause();
+
+            try {
+              const inserted = await RiskScenario.bulkCreate(batch, {
+                returning: true,
+                ignoreDuplicates: true,
+              });
+
+              // Insert metadata
+              const metaRows = inserted.map((scenario) => {
+                console.log(scenario, "SCENARIO");
+                // find the matching item in batch by risk_scenario
+                const match = batch.find(
+                  (b) => b.risk_scenario === scenario.risk_scenario
+                );
+
+                return {
+                  risk_scenario_id: scenario.id,
+                  meta_data_key_id: industryMetaData.id,
+                  values: match ? match.industry : null, // safe in case no match
+                };
+              });
+              if (metaRows.length > 0) {
+                await RiskScenarioAttribute.bulkCreate(metaRows);
+              }
+
+              totalInserted += inserted.length;
+              batch = []; // reset
+            } catch (err) {
+              reject(err);
+            } finally {
+              // resume stream after DB insert
+              this.resume();
+            }
+          }
         })
         .on("end", async () => {
           try {
-            await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
+            // flush leftover rows
+            if (batch.length > 0) {
+              const inserted = await RiskScenario.bulkCreate(batch, {
+                returning: true,
+                ignoreDuplicates: true,
+              });
+
+              // Insert metadata
+              const metaRows = inserted.map((scenario) => {
+                // find the matching item in batch by risk_scenario
+
+                const match = batch.find(
+                  (b) => b.risk_scenario == scenario.risk_scenario
+                );
+                console.log(match.industry)
+
+                return {
+                  risk_scenario_id: scenario.id,
+                  meta_data_key_id: industryMetaData.id,
+                  values: match ? match.industry : null, // safe in case no match
+                };
+              });
+              if (metaRows.length > 0) {
+                await RiskScenarioAttribute.bulkCreate(metaRows);
+              }
+
+              totalInserted += inserted.length;
+            }
+
             await sequelize.query(`
-                        UPDATE "library_risk_scenarios"
-                        SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
-                        WHERE risk_code IS NULL;
-                        `);
+            UPDATE "library_risk_scenarios"
+            SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
+            WHERE risk_code IS NULL;
+          `);
+
             fs.unlinkSync(filePath);
-            resolve(rows.length);
+            resolve(totalInserted);
           } catch (err) {
             reject(err);
           }
         });
     });
   }
-
+  
   static async exportRiskScenariosCSV(res) {
     const connection = await sequelize.connectionManager.getConnection();
 
@@ -309,8 +446,9 @@ class RiskScenarioService {
           "Risk Scenario ID": row.risk_code,
           "Risk Scenario": row.risk_scenario,
           "Risk Description": row.risk_description,
+          "CIA Mapping": row.cia_mapping,
           "Risk Statement": row.risk_statement,
-          "Status": row.status,
+          Status: row.status,
           "Created At": row.created_at,
           "Updated At": row.updated_at,
         }),
@@ -338,7 +476,10 @@ class RiskScenarioService {
       );
     }
 
-    if (!status || (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))) {
+    if (
+      !status ||
+      (status && !GENERAL.STATUS_SUPPORTED_VALUES.includes(status))
+    ) {
       console.log("[createRiskScenario] Invalid status:", status);
       throw new CustomError(
         Messages.RISK_SCENARIO.INVALID_STATUS,
@@ -352,6 +493,7 @@ class RiskScenarioService {
       "risk_scenario",
       "risk_description",
       "risk_statement",
+      "cia_mapping",
       "status",
       "risk_field_1",
       "risk_field_2",
