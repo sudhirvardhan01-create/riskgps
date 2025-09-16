@@ -6,7 +6,7 @@ import { useDroppable } from "@dnd-kit/core";
 import DraggableRiskItem from "../DraggableRiskItem";
 
 interface RiskScenarioPoolProps {
-  riskPool: { id: string; title: string }[];
+  riskPool: { orgRiskId: string; name: string; description: string }[];
 }
 
 const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {
@@ -17,7 +17,7 @@ const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {
   const filteredRisks = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return riskPool;
-    return riskPool.filter((r) => r.title.toLowerCase().includes(q));
+    return riskPool.filter((r) => r.name.toLowerCase().includes(q));
   }, [riskPool, search]);
 
   return (
@@ -40,10 +40,7 @@ const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {
         >
           Risk Scenarios
         </Typography>
-        <Typography
-          variant="caption"
-          color="text.primary"
-        >
+        <Typography variant="caption" color="text.primary">
           Drag and drop risk scenarios into relevant processes
         </Typography>
       </Box>
@@ -65,13 +62,23 @@ const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {
         />
       </Box>
 
-      <Box ref={setNodeRef} sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+      <Box
+        ref={setNodeRef}
+        sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}
+      >
         {filteredRisks.length > 0 ? (
-          filteredRisks.map((risk) => <DraggableRiskItem key={risk.id} risk={risk} />)
+          filteredRisks.map((risk) => (
+            <DraggableRiskItem key={risk.orgRiskId} risk={risk} />
+          ))
         ) : (
           <Typography
             variant="body2"
-            sx={{ color: "#9CA3AF", textAlign: "center", mt: 2, fontSize: "13px" }}
+            sx={{
+              color: "#9CA3AF",
+              textAlign: "center",
+              mt: 2,
+              fontSize: "13px",
+            }}
           >
             No risk scenarios found
           </Typography>

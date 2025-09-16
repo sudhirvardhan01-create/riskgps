@@ -9,7 +9,7 @@ module.exports = {
         await queryInterface.bulkInsert("organization_risk_scenario", [
             {
                 org_risk_id: uuidv4(),
-                org_id: "11111111-1111-1111-1111-111111111111", // replace with valid orgId
+                org_id: "22222222-2222-2222-2222-222222222222", // replace with valid orgId
                 risk_code: "RS-001",
                 name: "Data Breach",
                 description: "Unauthorized access to sensitive customer data",
@@ -25,7 +25,7 @@ module.exports = {
             },
             {
                 org_risk_id: uuidv4(),
-                org_id: "11111111-1111-1111-1111-111111111111", // same orgId for grouping
+                org_id: "22222222-2222-2222-2222-222222222222", // same orgId for grouping
                 risk_code: "RS-002",
                 name: "System Downtime",
                 description: "Prolonged unavailability of core systems",

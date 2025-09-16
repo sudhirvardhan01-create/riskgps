@@ -13,21 +13,23 @@ import { AssessmentProvider } from "@/context/AssessmentContext";
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isLoginPage = router.pathname === "/login";
+  const isAssessmentProcess =
+    router.pathname === "/assessment/assessmentProcess";
 
   return (
     <AuthProvider>
       <AssessmentProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Grid container sx={{ height: "100vh" }}>
-          <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-          <Grid size={11}>
-            {!isLoginPage && <Header />}
-            <Component {...pageProps} />
-            {/* {!isLoginPage && <Footer />} */}
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Grid container sx={{ height: "100vh" }}>
+            <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+            <Grid size={11}>
+              {!isLoginPage && <Header />}
+              <Component {...pageProps} />
+              {!isLoginPage && !isAssessmentProcess && <Footer />}
+            </Grid>
           </Grid>
-        </Grid>
-      </ThemeProvider>
+        </ThemeProvider>
       </AssessmentProvider>
     </AuthProvider>
   );
