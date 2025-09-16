@@ -251,7 +251,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan, 2024
+                {controlData.updated_at ? new Date(controlData.updated_at as Date | string).toISOString().split("T")[0] : "" }
               </Typography>
             </Box>
           </Grid>

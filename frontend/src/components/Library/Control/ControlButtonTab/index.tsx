@@ -1,3 +1,4 @@
+import { MetaData } from "@/types/meta-data";
 import { Box, Button, Typography } from "@mui/material";
 import React from "react";
 
@@ -5,6 +6,7 @@ interface ControlButtonTabProps {
   selectedControlFramework: string;
   setSelectedControlFramework: React.Dispatch<React.SetStateAction<string>>;
   frameworks: string[];
+  metaData?: MetaData[];
 }
 
 const ControlButtonTab: React.FC<ControlButtonTabProps> = ({
