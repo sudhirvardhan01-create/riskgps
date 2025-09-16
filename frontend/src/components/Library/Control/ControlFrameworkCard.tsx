@@ -132,32 +132,6 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
             <Typography variant="body1" color={"text.primary"}>
               {rowID}
             </Typography>
-            <Chip
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography variant="body2" color="#91939A">
-                    Industry:
-                  </Typography>
-                  &nbsp;
-                  <Typography variant="body2" color="text.primary">
-                    {headerChip}
-                  </Typography>
-                </Box>
-              }
-              variant="outlined"
-              size="small"
-              sx={{
-                borderRadius: 0.5,
-                border: "1px solid #DDDDDD",
-                height: 24,
-              }}
-            />
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={0}>

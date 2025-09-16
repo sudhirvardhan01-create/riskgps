@@ -58,6 +58,7 @@ const ControlList: React.FC<Props> = ({
                 title={item.mitreControlName ?? ""}
                 status={item.status ?? ""}
                 lastUpdated={item.updated_at}
+                footerChips={[{label: "MITRE Control Type:", value: item.mitreControlType}]}
               />
             </div>
           ))

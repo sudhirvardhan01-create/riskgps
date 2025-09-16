@@ -6,137 +6,154 @@ import ProcessCardIcon from "@/icons/processes-card.svg";
 import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import withAuth from "@/hoc/withAuth";
-
-const libs = [
-  {
-    name: "Processes",
-    description:
-      "Streamline and optimize cybersecurity processes, enhancing overall efficiency and bolstering Bluocean's commitment to client cybersecurity.",
-    tags: [
-      {
-        label: "All Processes",
-        value: 40,
-      },
-      {
-        label: "Published",
-        value: 24,
-      },
-      {
-        label: "Disabled",
-        value: 16,
-      },
-      {
-        label: "Draft",
-        value: 0,
-      },
-    ],
-    icon: <ProcessCardIcon height={24} width={24} />,
-    href: "/library/process",
-  },
-  {
-    name: "Risk Scenarios",
-    description:
-      "Anticipate and address potential cybersecurity threats through proactive exploration of impactful scenarios.",
-    tags: [
-      {
-        label: "All Scenarios",
-        value: 40,
-      },
-      {
-        label: "Published",
-        value: 32,
-      },
-      {
-        label: "Disabled",
-        value: 3,
-      },
-      {
-        label: "Draft",
-        value: 5,
-      },
-    ],
-    icon: <LibraryCardIcon height={24} width={24} />,
-    href: "/library/risk-scenario",
-  },
-  {
-    name: "Assets",
-    description:
-      "Effectively catalog and manage digital assets, providing a clear overview of their significance in the risk assessment process.",
-    tags: [
-      {
-        label: "All Assets",
-        value: 68,
-      },
-      {
-        label: "Published",
-        value: 51,
-      },
-      {
-        label: "Disabled",
-        value: 11,
-      },
-      {
-        label: "Draft",
-        value: 6,
-      },
-    ],
-    icon: <AssetCardIcon height={24} width={24} />,
-    href: "/library/assets",
-  },
-  {
-    name: "Threats",
-    description:
-      "Categorize and stay informed about diverse cyber threats to empower risk assessment strategies with up-to-date intelligence.",
-    tags: [
-      {
-        label: "All Threats",
-        value: 37,
-      },
-      {
-        label: "Published",
-        value: 32,
-      },
-      {
-        label: "Disabled",
-        value: 4,
-      },
-      {
-        label: "Draft",
-        value: 1,
-      },
-    ],
-    icon: <ThreatCardIcon height={24} width={24} />,
-    href: "/library/threats",
-  },
-  {
-    name: "Controls",
-    description:
-      "Implement and manage security controls strategically, fortifying client assets against potential threats within the risk assessment framework.",
-    tags: [
-      {
-        label: "All Controls",
-        value: 29,
-      },
-      {
-        label: "Published",
-        value: 15,
-      },
-      {
-        label: "Disabled",
-        value: 8,
-      },
-      {
-        label: "Draft",
-        value: 6,
-      },
-    ],
-    icon: <ControlCardIcon height={24} width={24} />,
-    href: "/library/controls",
-  },
-];
+import { useEffect, useState } from "react";
+import { getLibraryData } from "../api/library";
 
 const LibraryPage = () => {
   const router = useRouter();
+
+  const [libData, setLibData] = useState();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getLibraryData();
+        setLibData(data);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    })();
+  }, []);
+
+  console.log(libData);
+
+  const libs = [
+    {
+      name: "Processes",
+      description:
+        "Streamline and optimize cybersecurity processes, enhancing overall efficiency and bolstering Bluocean's commitment to client cybersecurity.",
+      tags: [
+        {
+          label: "All Processes",
+          value: 40,
+        },
+        {
+          label: "Published",
+          value: 24,
+        },
+        {
+          label: "Disabled",
+          value: 16,
+        },
+        {
+          label: "Draft",
+          value: 0,
+        },
+      ],
+      icon: <ProcessCardIcon height={24} width={24} />,
+      href: "/library/process",
+    },
+    {
+      name: "Risk Scenarios",
+      description:
+        "Anticipate and address potential cybersecurity threats through proactive exploration of impactful scenarios.",
+      tags: [
+        {
+          label: "All Scenarios",
+          value: 40,
+        },
+        {
+          label: "Published",
+          value: 32,
+        },
+        {
+          label: "Disabled",
+          value: 3,
+        },
+        {
+          label: "Draft",
+          value: 5,
+        },
+      ],
+      icon: <LibraryCardIcon height={24} width={24} />,
+      href: "/library/risk-scenario",
+    },
+    {
+      name: "Assets",
+      description:
+        "Effectively catalog and manage digital assets, providing a clear overview of their significance in the risk assessment process.",
+      tags: [
+        {
+          label: "All Assets",
+          value: 68,
+        },
+        {
+          label: "Published",
+          value: 51,
+        },
+        {
+          label: "Disabled",
+          value: 11,
+        },
+        {
+          label: "Draft",
+          value: 6,
+        },
+      ],
+      icon: <AssetCardIcon height={24} width={24} />,
+      href: "/library/assets",
+    },
+    {
+      name: "Threats",
+      description:
+        "Categorize and stay informed about diverse cyber threats to empower risk assessment strategies with up-to-date intelligence.",
+      tags: [
+        {
+          label: "All Threats",
+          value: 37,
+        },
+        {
+          label: "Published",
+          value: 32,
+        },
+        {
+          label: "Disabled",
+          value: 4,
+        },
+        {
+          label: "Draft",
+          value: 1,
+        },
+      ],
+      icon: <ThreatCardIcon height={24} width={24} />,
+      href: "/library/threats",
+    },
+    {
+      name: "Controls",
+      description:
+        "Implement and manage security controls strategically, fortifying client assets against potential threats within the risk assessment framework.",
+      tags: [
+        {
+          label: "All Controls",
+          value: 29,
+        },
+        {
+          label: "Published",
+          value: 15,
+        },
+        {
+          label: "Disabled",
+          value: 8,
+        },
+        {
+          label: "Draft",
+          value: 6,
+        },
+      ],
+      icon: <ControlCardIcon height={24} width={24} />,
+      href: "/library/controls",
+    },
+  ];
 
   return (
     <Box sx={{ p: 5, mb: 8 }}>
