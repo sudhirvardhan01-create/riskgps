@@ -36,7 +36,7 @@ const AssetList: React.FC<Props> = ({
     <>
       <Stack
         spacing={2}
-        sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}
       >
         {data && data.length > 0 ? (
           data.map((item) => (
@@ -50,16 +50,19 @@ const AssetList: React.FC<Props> = ({
                 handleUpdateStatus={handleUpdateStatus}
                 title={item.assetCode ?? ""}
                 desc={item.applicationName ?? ""}
-                chip={
-                  item.industry?.length
-                    ? item.industry.join(",")
-                    : "Not Defined"
-                }
+                chip={item.assetCategory ? item.assetCategory : "Not Defined"}
                 status={item.status ?? ""}
                 lastUpdated={item.updatedAt ?? ""}
                 tagItems={[
-                  { label: "Processes", value: item.relatedProcesses?.length === 0 ? "0" : item.relatedProcesses },
+                  {
+                    label: "Processes",
+                    value:
+                      item.relatedProcesses?.length === 0
+                        ? "0"
+                        : item.relatedProcesses,
+                  },
                 ]}
+                module="Asset"
               />
             </div>
           ))
@@ -74,7 +77,8 @@ const AssetList: React.FC<Props> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          mt: 2,
+          position: "sticky",
+          bottom: 55,
         }}
       >
         <TablePagination
