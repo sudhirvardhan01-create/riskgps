@@ -111,7 +111,7 @@ class ControlsService {
             };
         }
 
-        const [deletedCount] = await MitreThreatControl.destroy({ where: whereClause });
+        const deletedCount = await MitreThreatControl.destroy({ where: whereClause });
 
         if (deletedCount === 0) {
             console.log("[deleteMitreControl] No mitre threat control recorod found:", mitreControlId, mitreControlName);
@@ -157,9 +157,11 @@ class ControlsService {
 
             this.validateMitreControlData(data);
 
-            this.handleMitreControlsTechniqueMapping(mitreControlId, mitreControlName, data.subControls, t);
+            await this.handleMitreControlsTechniqueMapping(mitreControlId, mitreControlName, data.subControls, t);
 
             console.log("Mitre Control updated successfully:", mitreControlId, mitreControlName);
+
+            return data;
         });
 
     }

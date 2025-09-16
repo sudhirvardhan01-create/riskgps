@@ -97,13 +97,13 @@ router.delete("/delete-mitre-control", async (req, res) => {
             throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatus.BAD_REQUEST);
         }
 
-        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlName);
+        const response = await ControlsService.deleteMitreControl(mitreControlId, mitreControlName);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "mitre control deleted "
         })
     } catch (err) {
-        console.log("Failed to  framework controls delete", err)
+        console.log("Failed to  mitre controls delete", err)
         res.status(HttpStatusCodes.BAD_REQUEST).json({
             msg: err.message
         })
