@@ -25,9 +25,7 @@ const LibraryPage = () => {
       }
     })();
   }, []);
-
-  console.log(libData);
-
+  
   const libs = [
     {
       name: "Processes",
@@ -69,7 +67,7 @@ const LibraryPage = () => {
         },
         {
           label: "Disabled",
-          value:libData?.riskScenario.not_published,
+          value: libData?.riskScenario.not_published,
         },
         {
           label: "Draft",
