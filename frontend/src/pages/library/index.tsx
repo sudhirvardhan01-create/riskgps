@@ -8,11 +8,12 @@ import { useRouter } from "next/router";
 import withAuth from "@/hoc/withAuth";
 import { useEffect, useState } from "react";
 import { getLibraryData } from "../api/library";
+import { LibraryData } from "@/types/library";
 
 const LibraryPage = () => {
   const router = useRouter();
 
-  const [libData, setLibData] = useState();
+  const [libData, setLibData] = useState<LibraryData>();
 
   useEffect(() => {
     (async () => {
@@ -35,19 +36,19 @@ const LibraryPage = () => {
       tags: [
         {
           label: "All Processes",
-          value: 40,
+          value: libData?.process.total_count,
         },
         {
           label: "Published",
-          value: 24,
+          value: libData?.process.published,
         },
         {
           label: "Disabled",
-          value: 16,
+          value: libData?.process.not_published,
         },
         {
           label: "Draft",
-          value: 0,
+          value: libData?.process.draft,
         },
       ],
       icon: <ProcessCardIcon height={24} width={24} />,
@@ -60,19 +61,19 @@ const LibraryPage = () => {
       tags: [
         {
           label: "All Scenarios",
-          value: 40,
+          value: libData?.riskScenario.total_count,
         },
         {
           label: "Published",
-          value: 32,
+          value: libData?.riskScenario.published,
         },
         {
           label: "Disabled",
-          value: 3,
+          value:libData?.riskScenario.not_published,
         },
         {
           label: "Draft",
-          value: 5,
+          value: libData?.riskScenario.draft,
         },
       ],
       icon: <LibraryCardIcon height={24} width={24} />,
@@ -85,19 +86,19 @@ const LibraryPage = () => {
       tags: [
         {
           label: "All Assets",
-          value: 68,
+          value: libData?.asset.total_count,
         },
         {
           label: "Published",
-          value: 51,
+          value: libData?.asset.published,
         },
         {
           label: "Disabled",
-          value: 11,
+          value: libData?.asset.not_published,
         },
         {
           label: "Draft",
-          value: 6,
+          value: libData?.asset.draft,
         },
       ],
       icon: <AssetCardIcon height={24} width={24} />,
@@ -110,19 +111,19 @@ const LibraryPage = () => {
       tags: [
         {
           label: "All Threats",
-          value: 37,
+          value: libData?.mitreThreats.total_count,
         },
         {
           label: "Published",
-          value: 32,
+          value: libData?.mitreThreats.published,
         },
         {
           label: "Disabled",
-          value: 4,
+          value: libData?.mitreThreats.not_published,
         },
         {
           label: "Draft",
-          value: 1,
+          value: libData?.mitreThreats.draft,
         },
       ],
       icon: <ThreatCardIcon height={24} width={24} />,
@@ -135,19 +136,19 @@ const LibraryPage = () => {
       tags: [
         {
           label: "All Controls",
-          value: 29,
+          value: libData?.mitreControls.total_count,
         },
         {
           label: "Published",
-          value: 15,
+          value: libData?.mitreControls.published,
         },
         {
           label: "Disabled",
-          value: 8,
+          value: libData?.mitreControls.not_published,
         },
         {
           label: "Draft",
-          value: 6,
+          value: libData?.mitreControls.draft,
         },
       ],
       icon: <ControlCardIcon height={24} width={24} />,
