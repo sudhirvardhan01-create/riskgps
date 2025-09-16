@@ -32,7 +32,7 @@ const ProcessList: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <Stack spacing={2} sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}>
+      <Stack spacing={2} sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}>
         {data && data.length > 0 ? (
           data.map((item) => (
             <div key={item.id ?? item.processCode ?? JSON.stringify(item)}>
@@ -45,14 +45,12 @@ const ProcessList: React.FC<Props> = ({
                 handleUpdateStatus={handleUpdateStatus}
                 title={item.processCode ?? ""}
                 desc={item.processName ?? ""}
-                chip={item.industry?.length ? item.industry.join(",") : "Not Defined"}
+                chip={item.industry?.length ? item.industry.join(", ") : "Not Defined"}
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
                   { label: "Tags", value: item.attributes?.length },
                   { label: "Processes", value: item.processDependency?.length },
-                  // { label: "Assets", value: item. },
-                  // { label: "Threats", value: item.threats },
                 ]}
               />
             </div>
@@ -63,7 +61,7 @@ const ProcessList: React.FC<Props> = ({
         )}
       </Stack>
 
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mt: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "sticky", bottom: 55 }}>
         <TablePagination
           component="div"
           count={totalRows}
