@@ -9,8 +9,12 @@ interface Props {
   page: number;
   rowsPerPage: number;
   onPageChange: (e: any, page: number) => void;
-  onRowsPerPageChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setSelectedRiskScenario: React.Dispatch<React.SetStateAction<RiskScenarioData | null>>;
+  onRowsPerPageChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  setSelectedRiskScenario: React.Dispatch<
+    React.SetStateAction<RiskScenarioData | null>
+  >;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -32,7 +36,10 @@ const RiskScenarioList: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <Stack spacing={2} sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}>
+      <Stack
+        spacing={2}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}
+      >
         {data && data.length > 0 ? (
           data.map((item) => (
             <div key={item.id ?? item.risk_code ?? JSON.stringify(item)}>
@@ -45,7 +52,11 @@ const RiskScenarioList: React.FC<Props> = ({
                 handleUpdateStatus={handleUpdateStatus}
                 title={item.risk_code ?? ""}
                 desc={item.riskScenario ?? ""}
-                chip={item.industry?.length ? item.industry.join(", ") : "Not Defined"}
+                chip={
+                  item.industry?.length
+                    ? item.industry.join(", ")
+                    : "Not Defined"
+                }
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
@@ -61,7 +72,17 @@ const RiskScenarioList: React.FC<Props> = ({
         )}
       </Stack>
 
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "sticky", bottom: 55 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+          bottom: 55,
+          left: "50%", // place horizontally at 50%
+          transform: "translateX(-50%)",
+        }}
+      >
         <TablePagination
           component="div"
           count={totalRows}

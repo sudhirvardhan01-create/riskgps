@@ -77,8 +77,10 @@ const AssetList: React.FC<Props> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          position: "sticky",
+          position: "absolute",
           bottom: 55,
+          left: "50%", // place horizontally at 50%
+          transform: "translateX(-50%)",
         }}
       >
         <TablePagination
