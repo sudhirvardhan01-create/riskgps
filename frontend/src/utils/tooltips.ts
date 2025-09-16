@@ -51,6 +51,8 @@ export const tooltips = {
   criticalityOfDataProcessed: "Criticality of Data Processed",
   dataProcessed: "Data Processed",
   financialMateriality: "Financial Materiality",
+  selectProcess: "Select Process",
+  processRelationshipType: "Select Relationship Type",
 
   //Threat
   mitrePlatforms: "MITRE Platforms",

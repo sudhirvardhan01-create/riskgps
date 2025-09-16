@@ -7,10 +7,8 @@ import {
   Box,
   Grid,
   Button,
-  Select,
   MenuItem,
   IconButton,
-  InputLabel,
   FormControl,
   Typography,
   DialogActions,
@@ -44,7 +42,7 @@ interface ProcessFormModalProps {
   onClose: () => void;
   processData: ProcessData;
   processes: ProcessData[];
-  processForListing: ProcessData[],
+  processForListing: ProcessData[];
   metaDatas: any[];
   setProcessData: React.Dispatch<React.SetStateAction<ProcessData>>;
   onSubmit: (status: string) => void;
@@ -61,7 +59,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-
   console.log(processForListing);
 
   const [newDependentProcess, setNewDependentProcess] = React.useState<{
@@ -284,7 +281,6 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               label={labels.operationsOwnerName}
               placeholder="Operations Owner Name"
               value={processData.operationsOwnerName}
-      
               isTooltipRequired={true}
               tooltipTitle={tooltips.operationsOwnerName}
               onChange={(e) =>
@@ -452,7 +448,10 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               tooltipTitle={tooltips.regulatoryAndCompliance}
               displayEmpty
               onChange={(e) =>
-                handleChange("requlatoryAndCompliance", e.target.value as string)
+                handleChange(
+                  "requlatoryAndCompliance",
+                  e.target.value as string
+                )
               }
               renderValue={(selected: any) => {
                 if (!selected || selected.length === 0) {
@@ -495,7 +494,12 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
               isTooltipRequired={true}
               tooltipTitle={tooltips.criticalityOfDataProcessed}
               displayEmpty
-              onChange={(e) => handleChange("criticalityOfDataProcessed", e.target.value as string)}
+              onChange={(e) =>
+                handleChange(
+                  "criticalityOfDataProcessed",
+                  e.target.value as string
+                )
+              }
               renderValue={(selected: any) => {
                 if (!selected) {
                   return (
@@ -650,7 +654,9 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                         relationType: null,
                       });
                     }}
-                    options={processForListing.filter(p => p.id !== processData.id)}
+                    options={processForListing.filter(
+                      (p) => p.id !== processData.id
+                    )}
                     getOptionLabel={(option) => option.processName}
                     isOptionEqualToValue={(option, value) =>
                       option.id === value.id
@@ -671,9 +677,9 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                               color="#121212"
                               fontWeight={500}
                             >
-                              Select Process
+                              {labels.selectProcess}
                             </Typography>
-                            <TooltipComponent title={"Select Process"} />
+                            <TooltipComponent title={tooltips.selectProcess} />
                           </Box>
                         }
                         placeholder="Type to search processes..."
@@ -732,77 +738,40 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
                 {/* Relationship Type Selection */}
                 <Grid size={{ xs: 5.5 }}>
-                  <FormControl fullWidth>
-                    <InputLabel
-                      shrink
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#000000",
-                        "&.Mui-focused": {
-                          color: "#000000",
-                        },
-                        "&.MuiInputLabel-shrink": {
-                          transform: "translate(14px, -9px) scale(0.75)",
-                        },
-                      }}
-                    >
-                      Relationship Type
-                    </InputLabel>
-                    <Select
-                      value={newDependentProcess?.relationType ?? ''}
-                      label="Relationship Type"
-                      onChange={(e) => {
-                        setNewDependentProcess((prev) => {
-                          if (!prev || prev.targetProcessId === null) {
-                            alert(
-                              "Process ID is required before setting relation type."
-                            );
-                            return prev;
-                          }
-
-                          return {
-                            ...prev,
-                            relationType: e.target.value,
-                          };
-                        });
-                      }}
-                      renderValue={(selected) => {
-                        if (!selected) {
-                          return (
-                            <span style={{ color: "#9e9e9e" }}>
-                              Select Relationship Type
-                            </span>
+                  <SelectStyled
+                    isTooltipRequired={true}
+                    tooltipTitle={tooltips.processRelationshipType}
+                    value={newDependentProcess?.relationType ?? ""}
+                    label={labels.processRelationshipType}
+                    onChange={(e) => {
+                      setNewDependentProcess((prev: any) => {
+                        if (!prev || prev.targetProcessId === null) {
+                          alert(
+                            "Process ID is required before setting relation type."
                           );
+                          return prev;
                         }
-                        return selected;
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        backgroundColor: "#ffffff",
-                        fontSize: "14px",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1px",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "& .MuiSelect-select": {
-                          padding: "14px 16px",
-                          fontSize: "14px",
-                        },
-                      }}
-                    >
-                      <MenuItem value="follows">Follows</MenuItem>
-                      <MenuItem value="precedes">Precedes</MenuItem>
-                    </Select>
-                  </FormControl>
+
+                        return {
+                          ...prev,
+                          relationType: e.target.value,
+                        };
+                      });
+                    }}
+                    renderValue={(selected: any) => {
+                      if (!selected) {
+                        return (
+                          <span style={{ color: "#9e9e9e" }}>
+                            Select Relationship Type
+                          </span>
+                        );
+                      }
+                      return selected;
+                    }}
+                  >
+                    <MenuItem value="follows">Follows</MenuItem>
+                    <MenuItem value="precedes">Precedes</MenuItem>
+                  </SelectStyled>
                 </Grid>
 
                 {/* Add Button */}
@@ -831,77 +800,85 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                   <Box
                     sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}
                   >
-                    {processData?.processDependency?.map((relation, index) => { 
+                    {processData?.processDependency?.map((relation, index) => {
                       let process = null;
                       let relationType = null;
                       let key = null;
                       if (relation.targetProcessId === processData.id) {
-                            key = relation.sourceProcessId;
-                            process = processForListing?.find((p) => p.id === relation.sourceProcessId);
-                            relationType = relation.relationshipType === "follows" ? "precedes" : "follows";
+                        key = relation.sourceProcessId;
+                        process = processForListing?.find(
+                          (p) => p.id === relation.sourceProcessId
+                        );
+                        relationType =
+                          relation.relationshipType === "follows"
+                            ? "precedes"
+                            : "follows";
                       } else {
-                            console.log(processData.id, relation);
-                            key = relation.targetProcessId;
-                            process = processForListing?.find((p) => p.id === relation.targetProcessId);
-                            console.log(process)
-                            relationType = relation.relationshipType;
+                        console.log(processData.id, relation);
+                        key = relation.targetProcessId;
+                        process = processForListing?.find(
+                          (p) => p.id === relation.targetProcessId
+                        );
+                        console.log(process);
+                        relationType = relation.relationshipType;
                       }
                       return (
-                      <Chip
-                        key={key}
-                        label={
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 0.5,
-                            }}
-                          >
-                            <Typography
-                              variant="body2"
-                              component="span"
-                              sx={{ fontWeight: 500 }}
-                            >
-                              {process?.processName}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              component="span"
+                        <Chip
+                          key={key}
+                          label={
+                            <Box
                               sx={{
-                                color: "#666",
-                                fontSize: "0.75rem",
-                                fontStyle: "italic",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
                               }}
                             >
-                              ({relationType?.replace("_", " ")})
-                            </Typography>
-                          </Box>
-                        }
-                        onDelete={() =>
-                          removeRelatedProcess(
-                            relation.sourceProcessId ?? null,
-                            relation.targetProcessId as number
-                          )
-                        }
-                        sx={{
-                          backgroundColor: "#e8f5e8",
-                          color: "#2e7d32",
-                          height: "auto",
-                          minHeight: "32px",
-                          "& .MuiChip-label": {
-                            padding: "6px 12px",
-                            whiteSpace: "normal",
-                            wordBreak: "break-word",
-                          },
-                          "& .MuiChip-deleteIcon": {
+                              <Typography
+                                variant="body2"
+                                component="span"
+                                sx={{ fontWeight: 500 }}
+                              >
+                                {process?.processName}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                component="span"
+                                sx={{
+                                  color: "#666",
+                                  fontSize: "0.75rem",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                ({relationType?.replace("_", " ")})
+                              </Typography>
+                            </Box>
+                          }
+                          onDelete={() =>
+                            removeRelatedProcess(
+                              relation.sourceProcessId ?? null,
+                              relation.targetProcessId as number
+                            )
+                          }
+                          sx={{
+                            backgroundColor: "#e8f5e8",
                             color: "#2e7d32",
-                            "&:hover": {
-                              color: "#cd0303",
+                            height: "auto",
+                            minHeight: "32px",
+                            "& .MuiChip-label": {
+                              padding: "6px 12px",
+                              whiteSpace: "normal",
+                              wordBreak: "break-word",
                             },
-                          },
-                        }}
-                      />
-                    )})}
+                            "& .MuiChip-deleteIcon": {
+                              color: "#2e7d32",
+                              "&:hover": {
+                                color: "#cd0303",
+                              },
+                            },
+                          }}
+                        />
+                      );
+                    })}
                   </Box>
                 )}
             </Box>
@@ -922,159 +899,81 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 key={index}
               >
                 <Grid size={{ xs: 5.5 }}>
-                  <FormControl fullWidth>
-                    <InputLabel
-                      shrink
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#000000",
-                        "&.Mui-focused": {
-                          color: "#000000",
-                        },
-                        "&.MuiInputLabel-shrink": {
-                          transform: "translate(14px, -9px) scale(0.75)",
-                        },
-                      }}
-                    >
-                      Key
-                    </InputLabel>
-                    <Select
-                      value={kv.meta_data_key_id}
-                      label="Key"
-                      displayEmpty
-                      onChange={(e) =>
-                        handleKeyValueChange(
-                          index,
-                          "meta_data_key_id",
-                          e.target.value as number
-                        )
-                      }
-                      renderValue={(selected) => {
-                        if (!selected || selected < 0) {
-                          return (
+                  <SelectStyled
+                    value={kv.meta_data_key_id}
+                    label={labels.key}
+                    isTooltipRequired={true}
+                    tooltipTitle={tooltips.key}
+                    displayEmpty
+                    onChange={(e) =>
+                      handleKeyValueChange(
+                        index,
+                        "meta_data_key_id",
+                        e.target.value as number
+                      )
+                    }
+                    renderValue={(selected: any) => {
+                      if (!selected || selected < 0) {
+                        return (
+                          <span style={{ color: "#9e9e9e" }}>Select Key</span>
+                        );
+                      } else {
+                        const label = metaDatas.find(
+                          (m) => m.id === selected
+                        )?.label;
+                        return (
+                          label ?? (
                             <span style={{ color: "#9e9e9e" }}>Select Key</span>
-                          );
-                        } else {
-                          const label = metaDatas.find(
-                            (m) => m.id === selected
-                          )?.label;
-                          return (
-                            label ?? (
-                              <span style={{ color: "#9e9e9e" }}>
-                                Select Key
-                              </span>
-                            )
-                          );
-                        }
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        backgroundColor: "#ffffff",
-                        fontSize: "14px",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1px",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "& .MuiSelect-select": {
-                          padding: "14px 16px",
-                          fontSize: "14px",
-                        },
-                      }}
-                    >
-                      {metaDatas.map((metaData, index) => (
-                        <MenuItem key={index} value={metaData.id}>
-                          {metaData.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                          )
+                        );
+                      }
+                    }}
+                  >
+                    {metaDatas.map((metaData, index) => (
+                      <MenuItem key={index} value={metaData.id}>
+                        {metaData.label}
+                      </MenuItem>
+                    ))}
+                  </SelectStyled>
                 </Grid>
                 <Grid size={{ xs: 5.5 }}>
-                  <FormControl fullWidth>
-                    <InputLabel
-                      shrink
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#000000",
-                        "&.Mui-focused": {
-                          color: "#000000",
-                        },
-                        "&.MuiInputLabel-shrink": {
-                          transform: "translate(14px, -9px) scale(0.75)",
-                        },
-                      }}
-                    >
-                      Value
-                    </InputLabel>
-                    <Select
-                      multiple
-                      value={kv.values || []}
-                      label="Value"
-                      displayEmpty
-                      onChange={(e) =>
-                        handleKeyValueChange(
-                          index,
-                          "values",
-                          e.target.value as string[]
-                        )
+                  <SelectStyled
+                    multiple
+                    value={kv.values || []}
+                    label={labels.value}
+                    isTooltipRequired={true}
+                    tooltipTitle={tooltips.value}
+                    displayEmpty
+                    onChange={(e) =>
+                      handleKeyValueChange(
+                        index,
+                        "values",
+                        e.target.value as string[]
+                      )
+                    }
+                    renderValue={(selected: any) => {
+                      if (!selectedMeta) {
+                        return (
+                          <span style={{ color: "#9e9e9e" }}>
+                            Please Select Key First
+                          </span>
+                        );
+                      } else if (!selected || selected.length < 1) {
+                        return (
+                          <span style={{ color: "#9e9e9e" }}>Enter Value</span>
+                        );
                       }
-                      renderValue={(selected) => {
-                        if (!selectedMeta) {
-                          return (
-                            <span style={{ color: "#9e9e9e" }}>
-                              Please Select Key First
-                            </span>
-                          );
-                        } else if (!selected || selected.length < 1) {
-                          return (
-                            <span style={{ color: "#9e9e9e" }}>
-                              Enter Value
-                            </span>
-                          );
-                        }
-                        return selected.join(", ");
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        backgroundColor: "#ffffff",
-                        fontSize: "14px",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1px",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#cecfd2",
-                          borderWidth: "1.5px",
-                        },
-                        "& .MuiSelect-select": {
-                          padding: "14px 16px",
-                          fontSize: "14px",
-                        },
-                      }}
-                    >
-                      {selectedMeta?.supported_values?.map(
-                        (val: string | number, i: number) => (
-                          <MenuItem key={i} value={val}>
-                            {val}
-                          </MenuItem>
-                        )
-                      )}
-                    </Select>
-                  </FormControl>
+                      return selected.join(", ");
+                    }}
+                  >
+                    {selectedMeta?.supported_values?.map(
+                      (val: string | number, i: number) => (
+                        <MenuItem key={i} value={val}>
+                          {val}
+                        </MenuItem>
+                      )
+                    )}
+                  </SelectStyled>
                 </Grid>
                 <Grid size={{ xs: 1 }}>
                   <IconButton onClick={() => removeKeyValue(index)}>
@@ -1119,7 +1018,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
           <Button
             sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
             variant="contained"
-              disabled={
+            disabled={
               processData.processName === "" ||
               processData.processDescription === ""
             }

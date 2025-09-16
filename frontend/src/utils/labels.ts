@@ -50,6 +50,8 @@ export const labels = {
   criticalityOfDataProcessed: "Criticality of Data Processed",
   dataProcessed: "Data Processed",
   financialMateriality: "Financial Materiality",
+  selectProcess: "Select Process",
+  processRelationshipType: "Relationship Type",
 
   //Threat
   mitrePlatforms: "MITRE Platforms",
