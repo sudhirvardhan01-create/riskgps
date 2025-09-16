@@ -12,6 +12,7 @@ const mitreThreatsControlRoutes = require("./routes/mitre_theat_control");
 const controlsRoutes = require("./routes/controls")
 const organizationRoutes = require("./routes/organization");
 const assessmentRoutes = require("./routes/assessment");
+const libraryRoutes = require("./routes/library")
 const cors = require('cors');
 app.use(express.json());
 
@@ -36,10 +37,14 @@ app.use("/library/mitre-threats-controls", mitreThreatsControlRoutes);
 app.use("/library/controls", controlsRoutes);
 
 app.use("/library/asset", assetRoutes);
+
+app.use("/library/", libraryRoutes);
+
 app.use("/auth", authRoutes);
 // app.use('/users', userRoutes);
 app.use("/organization", organizationRoutes);
 app.use("/assessment", assessmentRoutes);
+
 app.use(errorHandler);
 
 module.exports = app;
