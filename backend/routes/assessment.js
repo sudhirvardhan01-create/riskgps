@@ -58,13 +58,13 @@ router.post(
  * @desc Save risk scenarios for an assessment process and update assessment status
  */
 router.post(
-    "/",
+    "/assessment-process-risk-scenarios",
     async (req, res) => {
         const { userId } = req.body; // userId comes in body
         const payload = req.body;
 
         const result =
-            await AssessmentProcessRiskScenarioService.addRiskScenariosAndUpdateStatus(
+            await AssessmentService.addRiskScenariosAndUpdateStatus(
                 payload,
                 userId
             );

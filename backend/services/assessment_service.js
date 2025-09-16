@@ -1,4 +1,4 @@
-﻿const {Assessment, AssessmentProcess}  = require("../models");
+﻿const {Assessment, AssessmentProcess, AssessmentProcessRiskScenario, sequelize}  = require("../models");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const { v4: uuidv4 } = require("uuid");
@@ -109,7 +109,6 @@ class AssessmentService {
 
             return {
                 message: "Processes added and status updated successfully",
-                assessment,
                 processes: processRecords,
             };
         } catch (err) {
@@ -134,11 +133,11 @@ class AssessmentService {
     static async addRiskScenariosAndUpdateStatus(payload, userId) {
         const transaction = await sequelize.transaction();
         try {
-            const { assessmentId, assessmentProcessId, riskScenarios, status } = payload;
+            const { assessmentId, riskScenarios, status } = payload;
 
-            if (!assessmentId || !assessmentProcessId) {
+            if (!assessmentId) {
                 throw new CustomError(
-                    "assessmentId and assessmentProcessId are required",
+                    "assessmentId is required",
                     HttpStatus.BAD_REQUEST
                 );
             }
@@ -153,7 +152,7 @@ class AssessmentService {
             // Prepare scenarios
             const scenariosToInsert = riskScenarios.map((rs) => ({
                 assessmentProcessRiskId: uuidv4(),
-                assessmentProcessId,
+                assessmentProcessId: rs.assessmentProcessId,
                 assessmentId,
                 riskScenarioName: rs.riskScenarioName,
                 riskScenarioDesc: rs.riskScenarioDesc || null,
@@ -161,7 +160,7 @@ class AssessmentService {
                 modifiedBy: userId,
                 createdDate: new Date(),
                 modifiedDate: new Date(),
-                isDeleted: false,
+                isDeleted: false
             }));
 
             // Insert scenarios

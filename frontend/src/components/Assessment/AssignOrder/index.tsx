@@ -1,18 +1,30 @@
 import { Box, Grid, MenuItem, Select, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
-export interface ProcessUnit {
+interface Risk {
+  orgRiskId: string;
+  name: string;
+  description: string;
+}
+
+interface ProcessUnit {
   orgProcessId: string;
   name: string;
+  risks: Risk[];
 }
 
 interface AssignOrderProps {
-  processes: ProcessUnit[]; 
-  onOrderChange?: (mapping: { [key: string]: number }) => void; 
+  processes: ProcessUnit[];
+  onOrderChange?: (mapping: { [key: string]: number }) => void;
 }
 
-export default function AssignOrder({ processes, onOrderChange }: AssignOrderProps) {
-  const [orderMapping, setOrderMapping] = useState<{ [key: string]: number }>({});
+export default function AssignOrder({
+  processes,
+  onOrderChange,
+}: AssignOrderProps) {
+  const [orderMapping, setOrderMapping] = useState<{ [key: string]: number }>(
+    {}
+  );
 
   // Initialize mapping when processes change
   useEffect(() => {
@@ -52,7 +64,12 @@ export default function AssignOrder({ processes, onOrderChange }: AssignOrderPro
               {/* Order Dropdown */}
               <Select
                 value={orderMapping[process.orgProcessId] || ""}
-                onChange={(e) => handleOrderChange(process.orgProcessId, Number(e.target.value))}
+                onChange={(e) =>
+                  handleOrderChange(
+                    process.orgProcessId,
+                    Number(e.target.value)
+                  )
+                }
                 displayEmpty
                 size="small"
                 sx={{
@@ -79,7 +96,7 @@ export default function AssignOrder({ processes, onOrderChange }: AssignOrderPro
                   borderLeft: "4px solid #04139A",
                   boxShadow: "0px 2px 4px rgba(0,0,0,0.08)",
                   maxWidth: 680,
-                  height: 48
+                  height: 48,
                 }}
               >
                 <Typography sx={{ fontWeight: 500, color: "#484848" }}>

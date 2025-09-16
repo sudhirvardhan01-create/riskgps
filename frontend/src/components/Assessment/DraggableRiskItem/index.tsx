@@ -4,10 +4,14 @@ import React from "react";
 import { Paper, Typography } from "@mui/material";
 import { useDraggable } from "@dnd-kit/core";
 
-const DraggableRiskItem = ({ risk }: { risk: { id: string; title: string } }) => {
+const DraggableRiskItem = ({
+  risk,
+}: {
+  risk: { orgRiskId: string; name: string; description: string };
+}) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
-      id: risk.id,
+      id: risk.orgRiskId,
       data: { type: "risk", risk },
     });
 
@@ -37,9 +41,9 @@ const DraggableRiskItem = ({ risk }: { risk: { id: string; title: string } }) =>
       style={style}
     >
       <Typography variant="body2">
-        {risk.title.length > 60
-          ? risk.title.substring(0, 60) + " read more"
-          : risk.title}
+        {risk?.description?.length > 60
+          ? risk.description.substring(0, 60) + " read more"
+          : risk?.description}
       </Typography>
     </Paper>
   );
