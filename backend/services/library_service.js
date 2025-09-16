@@ -4,7 +4,7 @@ const { sequelize } = require("../models");
 class LibraryService {
 
     static async getLibraryModules() {
-        const [riskScenariosSummary] = await sequelize.query(`
+        const [riskScenariosSummaryData] = await sequelize.query(`
             SELECT 
             COUNT(*) AS total_count,
             SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft,
@@ -13,7 +13,14 @@ class LibraryService {
             FROM "library_risk_scenarios";
   `     );
 
-        const [processSummary] = await sequelize.query(`
+        const riskScenariosSummary = {
+                total_count: parseInt(riskScenariosSummaryData[0].total_count, 10),
+                draft: parseInt(riskScenariosSummaryData[0].draft, 10),
+                published: parseInt(riskScenariosSummaryData[0].published, 10),
+                not_published: parseInt(riskScenariosSummaryData[0].not_published, 10),
+        };
+
+        const [processSummaryData] = await sequelize.query(`
             SELECT 
             COUNT(*) AS total_count,
             SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft,
@@ -22,7 +29,14 @@ class LibraryService {
             FROM "library_processes";
   `     );
 
-        const [assetSummary] = await sequelize.query(`
+          const processSummary = {
+                total_count: parseInt(processSummaryData[0].total_count, 10),
+                draft: parseInt(processSummaryData[0].draft, 10),
+                published: parseInt(processSummaryData[0].published, 10),
+                not_published: parseInt(processSummaryData[0].not_published, 10),
+        };
+
+        const [assetSummaryData] = await sequelize.query(`
             SELECT 
             COUNT(*) AS total_count,
             SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft,
@@ -30,6 +44,13 @@ class LibraryService {
             SUM(CASE WHEN status = 'not_published' THEN 1 ELSE 0 END) AS not_published
             FROM "library_assets";
   `     );
+
+        const assetSummary = {
+                total_count: parseInt(assetSummaryData[0].total_count, 10),
+                draft: parseInt(assetSummaryData[0].draft, 10),
+                published: parseInt(assetSummaryData[0].published, 10),
+                not_published: parseInt(assetSummaryData[0].not_published, 10),
+        };
 
         const [mitreThreatsCountByStatusData] = await sequelize.query(`
                 SELECT status,
@@ -77,9 +98,9 @@ class LibraryService {
 
 
         return {
-            riskScenario: riskScenariosSummary[0],
-            asset: assetSummary[0],
-            process: processSummary[0],
+            riskScenario: riskScenariosSummary,
+            asset: assetSummary,
+            process: processSummary,
             mitreThreats: mitreThreatsCountByStatus,
             mitreControls: mitreControlsCountByStatus
         };
