@@ -249,12 +249,14 @@ export default function BUProcessMappingPage() {
               e.preventDefault();
               e.stopPropagation();
               handleSaveContinue("draft");
+              router.push("/assessment");
             }}
             onSaveContinue={(e) => {
               e.preventDefault();
               e.stopPropagation();
               handleSaveContinue("in_progress");
             }}
+            activeStep={activeStep}
           />
         </>
       )}
