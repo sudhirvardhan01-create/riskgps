@@ -17,7 +17,7 @@ export default function StepCapsule({
 }: StepCapsuleProps) {
   const bgColor = active ? "#04139A" : completed ? "#E7E9FB" : "#FFFFFF";
   const textColor = active ? "#FFFFFF" : completed ? "#04139A" : "#91939A";
-  const borderColor = active ? "#04139A" : completed ? "#04139A" : "#E7E7E8"
+  const borderColor = active ? "#04139A" : completed ? "#04139A" : "#E7E7E8";
 
   return (
     <Box
@@ -39,20 +39,24 @@ export default function StepCapsule({
               content: '""',
               position: "absolute",
               right: -20,
-              top: -1,
+              top: -3,
               width: 0,
               height: 66,
-              borderTop: "24px solid transparent",
-              borderBottom: "24px solid transparent",
-              borderLeft: `20px solid ${borderColor}`,
+              borderTop: "35px solid transparent",
+              borderBottom: "35px solid transparent",
+              borderLeft: `20px solid ${active ? borderColor : "transparent"}`,
               zIndex: 1,
             }
           : {},
       }}
     >
       {/* Icon logic */}
-      {active && <AccessTimeIcon sx={{ fontSize: 20, mr: 1, color: textColor }} />}
-      {completed && <CheckCircleIcon sx={{ fontSize: 20, mr: 1, color: textColor }} />}
+      {active && (
+        <AccessTimeIcon sx={{ fontSize: 20, mr: 1, color: textColor }} />
+      )}
+      {completed && (
+        <CheckCircleIcon sx={{ fontSize: 20, mr: 1, color: textColor }} />
+      )}
 
       <Typography variant="body2" sx={{ fontWeight: active ? 600 : 400 }}>
         {label}

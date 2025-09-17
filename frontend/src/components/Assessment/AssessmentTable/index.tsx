@@ -29,6 +29,7 @@ interface Assessment {
 interface Props {
   data: Assessment[];
   onMenuClick: (event: React.MouseEvent<HTMLElement>, runId: string) => void;
+  onCardClick: (runId: string) => void;
 }
 
 const columnTemplate = "42px 160px 260px 80px 80px 80px 130px 160px 20px";
@@ -42,7 +43,8 @@ const userData = {
 const AssessmentRow: React.FC<{
   assessment: Assessment;
   onMenuClick: Props["onMenuClick"];
-}> = ({ assessment, onMenuClick }) => {
+  onCardClick: Props["onCardClick"];
+}> = ({ assessment, onMenuClick, onCardClick }) => {
   const [expanded, setExpanded] = useState(false);
   const desc = assessment.assessmentDesc || "";
 
@@ -67,6 +69,7 @@ const AssessmentRow: React.FC<{
         width: "100%",
         cursor: "pointer",
       }}
+      onClick={() => onCardClick(assessment.runId)}
     >
       {/* Run ID */}
       <Typography>{assessment.runId}</Typography>
@@ -148,7 +151,11 @@ const AssessmentRow: React.FC<{
 };
 
 // ✅ Main table
-const AssessmentTable: React.FC<Props> = ({ data, onMenuClick }) => {
+const AssessmentTable: React.FC<Props> = ({
+  data,
+  onMenuClick,
+  onCardClick,
+}) => {
   return (
     <Box>
       {/* Header */}
@@ -188,12 +195,13 @@ const AssessmentTable: React.FC<Props> = ({ data, onMenuClick }) => {
       </Box>
 
       {/* Body */}
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ mt: 2, overflow: "auto", maxHeight: "calc(100vh - 380px)" }}>
         {data.map((assessment) => (
           <AssessmentRow
             key={assessment.runId}
             assessment={assessment}
             onMenuClick={onMenuClick}
+            onCardClick={onCardClick}
           />
         ))}
       </Box>

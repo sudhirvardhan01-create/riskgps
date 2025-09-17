@@ -4,6 +4,7 @@ import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { Box, Button, Menu, MenuItem, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { getAssessment } from "../api/assessment";
+import { useRouter } from "next/router";
 
 interface Assessment {
   assessmentId: string;
@@ -30,6 +31,7 @@ const options = [
 ];
 
 const AssessmentDashboard = () => {
+  const router = useRouter();
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedAssessment, setSelectedAssessment] = useState<string | null>(
@@ -56,6 +58,11 @@ const AssessmentDashboard = () => {
   ) => {
     setAnchorEl(event.currentTarget);
     setSelectedAssessment(runId);
+  };
+
+  const handleCardClick = (runId: string) => {
+    setSelectedAssessment(runId);
+    router.push("/assessment/assessmentProcess");
   };
 
   const handleMenuClose = () => {
@@ -160,6 +167,7 @@ const AssessmentDashboard = () => {
         <AssessmentTable
           data={assessmentStatusFilter}
           onMenuClick={handleMenuClick}
+          onCardClick={handleCardClick}
         />
 
         <Menu
