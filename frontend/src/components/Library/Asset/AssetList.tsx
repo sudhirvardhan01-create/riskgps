@@ -59,7 +59,7 @@ const AssetList: React.FC<Props> = ({
                     value:
                       item.relatedProcesses?.length === 0
                         ? "0"
-                        : item.relatedProcesses,
+                        : item.relatedProcesses?.length,
                   },
                 ]}
                 module="Asset"

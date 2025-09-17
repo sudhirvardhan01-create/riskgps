@@ -60,7 +60,6 @@ const RiskScenarioList: React.FC<Props> = ({
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
-                  { label: "Tags", value: item.attributes?.length },
                   { label: "Processes", value: item.related_processes?.length },
                 ]}
               />

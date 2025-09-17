@@ -38,7 +38,6 @@ const Index = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-
   const [searchPattern, setSearchPattern] = useState("");
   const [sort, setSort] = useState(sortItems[0].value);
   const [loading, setLoading] = useState(false);
@@ -73,7 +72,9 @@ const Index = () => {
     const getMetaDatas = async () => {
       try {
         setLoading(true);
-        const [meta] = await Promise.all([MetaDataService.fetch(0, 0, searchPattern, sort)]);
+        const [meta] = await Promise.all([
+          MetaDataService.fetch(0, 0, searchPattern, sort),
+        ]);
         setMetaDatas(meta.data ?? []);
       } catch (error) {
         console.error("Error while fetching metadata:", error);
@@ -171,27 +172,32 @@ const Index = () => {
   };
 
   //Function for Form Validation
-    const handleFormValidation = async () => {
-      try{
-        const res = await MetaDataService.fetch(0, 1, formData.name.trim(), "id:asc");
-        if(res.data?.length > 0 && res.data[0].name === formData.name.trim()){
+  const handleFormValidation = async () => {
+    try {
+      const res = await MetaDataService.fetch(
+        0,
+        1,
+        formData.name.trim(),
+        "id:asc"
+      );
+      if (res.data?.length > 0 && res.data[0].name === formData.name.trim()) {
         setToast({
           open: true,
           message: `Key already exists`,
           severity: "error",
         });
-        }else{
-          handleCreateMetaData()
-        }
-      } catch (error) {
-        console.error(error);
-        setToast({
-          open: true,
-          message: "Failed to create metadata",
-          severity: "error",
-        });
-      } 
+      } else {
+        handleCreateMetaData();
+      }
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Failed to create metadata",
+        severity: "error",
+      });
     }
+  };
 
   return (
     <>
@@ -293,8 +299,8 @@ const Index = () => {
       />
 
       {/* Landing Page code*/}
-      <Box p={5} paddingBottom={10}>
-        <Box mb={5} display={"flex"} flexDirection={"column"} gap={5}>
+      <Box p={5}>
+        <Stack display={"flex"} flexDirection={"column"} gap={5}>
           {/* Row 1: Breadcrumb + Add Button */}
           <Stack
             direction="row"
@@ -363,7 +369,14 @@ const Index = () => {
               flexWrap="wrap"
               justifyContent={isMobile ? "flex-start" : "flex-end"}
             >
-              <FormControl sx={{ backgroundColor: "#FFFFFF", borderRadius: 1, width: 271, height: "40px", }}>
+              <FormControl
+                sx={{
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 1,
+                  width: 271,
+                  height: "40px",
+                }}
+              >
                 <InputLabel id="sort-metadata">Sort</InputLabel>
                 <Select
                   size="small"
@@ -373,7 +386,11 @@ const Index = () => {
                   onChange={(e) => setSort(e.target.value)}
                 >
                   {sortItems.map((item) => {
-                    return (<MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>)
+                    return (
+                      <MenuItem key={item.value} value={item.value}>
+                        {item.label}
+                      </MenuItem>
+                    );
                   })}
                 </Select>
               </FormControl>
@@ -393,9 +410,9 @@ const Index = () => {
               </Button> */}
             </Stack>
           </Stack>
-        </Box>
+        </Stack>
 
-        <Stack spacing={3}>
+        <Stack spacing={3} pt={5} paddingBottom={10} sx={{ overflow: "auto" }}>
           {metaDatas &&
             metaDatas?.length > 0 &&
             metaDatas?.map((item, index) => (
