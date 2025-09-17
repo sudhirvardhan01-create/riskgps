@@ -37,9 +37,9 @@ class AssessmentService {
                 businessUnitId: assessmentData.businessUnitId || null,
                 businessUnitName: assessmentData.businessUnitName || null,
                 businessUnitDesc: assessmentData.businessUnitDesc || null,
-                status: assessmentData.status || "Pending",
-                startDate: assessmentData.startDate || null,
-                endDate: assessmentData.endDate || null,
+                status: assessmentData.status || "pending",
+                startDate: new Date(),
+                endDate: assessmentData.status === "closed" ? new Date() : null,
                 lastActivity: assessmentData.lastActivity || null,
                 userId: assessmentData.userId || null,
                 createdBy: userId,
@@ -188,6 +188,59 @@ class AssessmentService {
             );
         }
     }
+
+    /**
+ * Get all assessments with pagination, search, and sorting
+ */
+    static async getAllAssessments(page = 1, limit = 10) {
+        try {
+            const offset = (page - 1) * limit;
+
+            const { count, rows } = await Assessment.findAndCountAll({
+                limit,
+                offset
+            });
+
+            return {
+                total: count,
+                page,
+                limit,
+                data: rows,
+            };
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to fetch assessments",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+     * Get assessment by ID
+     */
+    static async getAssessmentById(assessmentId) {
+        try {
+            if (!assessmentId) {
+                throw new CustomError("Assessment ID is required", HttpStatus.BAD_REQUEST);
+            }
+
+            const assessment = await Assessment.findOne({
+                where: { assessmentId }
+            });
+
+            if (!assessment) {
+                throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
+            }
+
+            return assessment;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to fetch assessment",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
 }
 
 module.exports = AssessmentService;
