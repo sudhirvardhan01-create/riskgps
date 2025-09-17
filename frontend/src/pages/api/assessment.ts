@@ -52,6 +52,22 @@ export const saveAssessment = async (data: AssessmentData) => {
   return response.json();
 };
 
+export const getAssessment = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/assessment`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch api data");
+  }
+  return response.json();
+};
+
 export const saveAssessmentProcess = async (data: AssessmentProcess) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/assessment/${data.id}/save_processes`,

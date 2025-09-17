@@ -73,4 +73,35 @@ router.post(
     }
 );
 
+/**
+ * @route GET /assessments
+ * @desc Get all assessments with pagination, search & sorting
+ */
+router.get("/", async (req, res) => {
+    const { page, limit, search, sortBy, sortOrder } = req.query;
+
+    const result = await AssessmentService.getAllAssessments(
+        parseInt(page) || 1,
+        parseInt(limit) || 10
+    );
+
+    res.status(HttpStatus.OK).json(result);
+});
+
+/**
+ * @route GET /assessments/:id
+ * @desc Get assessment by ID
+ */
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const result = await AssessmentService.getAssessmentById(id);
+
+    res.status(HttpStatus.OK).json({
+        message: "Assessment fetched successfully",
+        data: result,
+    });
+});
+
+
 module.exports = router;

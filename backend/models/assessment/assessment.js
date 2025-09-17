@@ -107,18 +107,6 @@ module.exports = (sequelize, DataTypes) => {
         //     foreignKey: "userId",
         //     as: "user",
         // });
-
-        // CreatedBy Relation
-        Assessment.belongsTo(models.User, {
-            foreignKey: "createdBy",
-            as: "creator",
-        });
-
-        // ModifiedBy Relation
-        Assessment.belongsTo(models.User, {
-            foreignKey: "modifiedBy",
-            as: "modifier",
-        });
     };
 
     return Assessment;
