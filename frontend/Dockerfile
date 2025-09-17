@@ -15,9 +15,8 @@ RUN npm run build
 FROM node:21-alpine AS runner
 WORKDIR /app
 
-# Use a non-root user for security
+# Security: create non-root user
 RUN addgroup -g 1001 -S nextjs && adduser -S nextjs -u 1001
-USER nextjs
 
 # Copy built application files
 COPY --from=builder /app/public ./public
@@ -25,12 +24,16 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# Copy entrypoint script
-COPY entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
-
 # Expose port
 EXPOSE 3000
 ENV NODE_ENV=production
 
-ENTRYPOINT ["./entrypoint.sh"]
+# Inline script: replace NEXT_PUBLIC_* placeholders in built JS before starting Next.js
+CMD sh -c '\
+  for var in $(env | grep ^NEXT_PUBLIC_); do \
+    key=$(echo "$var" | cut -d= -f1); \
+    val=$(echo "$var" | cut -d= -f2-); \
+    echo "Injecting $key=$val"; \
+    find /app/.next -type f -name "*.js" -exec sed -i "s|${key}_PLACEHOLDER|$val|g" {} +; \
+  done && \
+  npm start'
