@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { RiskScenarioData } from "@/types/risk-scenario";
+import { formatDate } from "@/utils/utility";
 
 interface ViewRiskScenarioModalProps {
   open: boolean;
@@ -290,7 +291,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan 2024
+                {riskScenarioData.createdAt ? formatDate(riskScenarioData.createdAt) : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -300,7 +301,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan 2024
+                {riskScenarioData.lastUpdated ? formatDate(riskScenarioData.lastUpdated) : "-"}
               </Typography>
             </Box>
           </Grid>

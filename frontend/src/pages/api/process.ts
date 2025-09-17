@@ -57,6 +57,7 @@ const transformProcessData = (data: any[]): ProcessData[] => {
       : [],
     status: item.status,
     lastUpdated: item.updated_at,
+    createdAt: item.created_at,
     }));
     };
 

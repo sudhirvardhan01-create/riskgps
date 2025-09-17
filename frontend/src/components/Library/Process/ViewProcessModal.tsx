@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { ProcessData } from "@/types/process";
+import { formatDate } from "@/utils/utility";
 
 interface ViewProcessModalProps {
   open: boolean;
@@ -394,7 +395,7 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan 2024
+                {processData.createdAt ? formatDate(processData.createdAt) : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -404,7 +405,7 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan 2024
+                {processData.lastUpdated ? formatDate(processData.lastUpdated) : "-"}
               </Typography>
             </Box>
           </Grid>

@@ -32,5 +32,6 @@ export interface ProcessData {
     attributes?: ProcessAttributes[],
     industry?: string[],
     domain?: string[],
-    lastUpdated?: Date
+    lastUpdated?: Date,
+    createdAt?: Date | string;
 }

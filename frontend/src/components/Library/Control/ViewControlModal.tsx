@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { ControlForm } from "@/types/control";
+import { formatDate } from "@/utils/utility";
 
 interface ViewControlModalProps {
   open: boolean;
@@ -215,7 +216,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
         </Grid>
       </DialogContent>
 
-      <DialogContent sx={{ paddingTop: 3, paddingBottom: 4.5 }}>
+      <DialogContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
         <Grid
           container
           spacing={3}
@@ -241,7 +242,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan, 2024
+                {controlData.created_at ? formatDate(controlData.created_at) : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -251,7 +252,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {controlData.updated_at ? new Date(controlData.updated_at as Date | string).toISOString().split("T")[0] : "" }
+                {controlData.updated_at ? formatDate(controlData.updated_at) : "-"}
               </Typography>
             </Box>
           </Grid>
