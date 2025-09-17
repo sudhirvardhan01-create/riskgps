@@ -66,6 +66,7 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
     riskField2: item.risk_field_2,
     attributes: item.attributes,
     lastUpdated: item.updated_at,
+    createdAt: item.created_at,
     status: item.status,
   }));
 };

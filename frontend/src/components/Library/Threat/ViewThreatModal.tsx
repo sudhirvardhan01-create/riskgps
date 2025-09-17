@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { ThreatForm } from "@/types/threat";
+import { formatDate } from "@/utils/utility";
 
 interface ViewThreatModalProps {
   open: boolean;
@@ -265,7 +266,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
         </Grid>
       </DialogContent>
 
-      <DialogContent sx={{ paddingTop: 3, paddingBottom: 4.5 }}>
+      <DialogContent sx={{ paddingTop: 3, paddingBottom: 5.75 }}>
         <Grid
           container
           spacing={3}
@@ -291,7 +292,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan, 2024
+                {threatData.created_at ? formatDate(threatData.created_at) : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -301,7 +302,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan, 2024
+                {threatData.updated_at? formatDate(threatData.updated_at) : "-"}
               </Typography>
             </Box>
           </Grid>

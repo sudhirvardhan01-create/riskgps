@@ -148,34 +148,34 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
             <Typography variant="body1" color={"text.primary"}>
               {rowID}
             </Typography>
-            <Chip
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography variant="body2" color="#91939A">
-                    {module === "threat"
-                      ? "MITRE Platform:"
-                      : "MITRE Control Type:"}
-                  </Typography>
-                  &nbsp;
-                  <Typography variant="body2" color="text.primary">
-                    {headerChip}
-                  </Typography>
-                </Box>
-              }
-              variant="outlined"
-              size="small"
-              sx={{
-                borderRadius: 0.5,
-                border: "1px solid #DDDDDD",
-                height: 24,
-              }}
-            />
+            {module === "threat" && (
+              <Chip
+                label={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="#91939A">
+                      MITRE Platform:
+                    </Typography>
+                    &nbsp;
+                    <Typography variant="body2" color="text.primary">
+                      {headerChip}
+                    </Typography>
+                  </Box>
+                }
+                variant="outlined"
+                size="small"
+                sx={{
+                  borderRadius: 0.5,
+                  border: "1px solid #DDDDDD",
+                  height: 24,
+                }}
+              />
+            )}
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={0}>
@@ -203,7 +203,6 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
         </Typography>
 
         {/* Meta Info */}
-        {module === "threat" && (
           <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
             {footerChips?.map((item, index) => (
               <Box
@@ -259,29 +258,10 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
             >
               <Typography color="#D9D9D9">•</Typography>
               <Typography variant="body2" color="text.primary">
-                {threatControlData.controls?.length} Controls
+                {module === "threat" ? `${threatControlData.controls?.length} Controls` : `${threatControlData?.subControls?.length} Threats`}
               </Typography>
             </Box>
           </Stack>
-        )}
-        {module === "control" && (
-          <Box
-            sx={{
-              pb: 1,
-              display: "flex",
-              alignItems: "center",
-              mt: 1,
-              mb: 1.5,
-              gap: 1.25,
-              ml: 3,
-            }}
-          >
-            <Typography color="#D9D9D9">•</Typography>
-            <Typography variant="body2" color="text.primary">
-              {threatControlData.subControls?.length} Threats
-            </Typography>
-          </Box>
-        )}
       </Box>
     </Box>
   );

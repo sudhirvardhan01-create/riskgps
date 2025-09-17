@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { AssetForm } from "@/types/asset";
+import { formatDate } from "@/utils/utility";
 
 interface ViewAssetModalProps {
   open: boolean;
@@ -397,7 +398,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan, 2024
+                {assetData.createdAt ? formatDate(assetData.createdAt) : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -407,7 +408,7 @@ const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan, 2024
+                 {assetData.updatedAt ? formatDate(assetData.updatedAt) : "-"}
               </Typography>
             </Box>
           </Grid>

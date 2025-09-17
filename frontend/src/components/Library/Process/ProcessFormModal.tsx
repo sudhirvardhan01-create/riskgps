@@ -237,8 +237,10 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
           </Grid>
 
           {/* Process Description field */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled /// text
+              multiline
+              minRows={1}
               label={labels.processDescription}
               placeholder="Enter Process Description"
               value={processData.processDescription}
@@ -984,7 +986,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
             );
           })}
 
-          <Grid size={{ xs: 12 }}>
+          <Grid mt={-2} size={{ xs: 12 }}>
             <Button startIcon={<Add />} onClick={addKeyValue}>
               Add New Key
             </Button>
@@ -995,7 +997,13 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
         <Divider sx={{ width: "100%" }} />
       </Box>
       <DialogActions
-        sx={{ px: 3, py: 2, display: "flex", justifyContent: "space-between" }}
+        sx={{
+          pt: 4,
+          display: "flex",
+          justifyContent: "space-between",
+          pb: 0,
+          px: 0,
+        }}
       >
         <Button
           sx={{ width: 160, height: 40, borderRadius: 1 }}
@@ -1005,18 +1013,18 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
         >
           Cancel
         </Button>
-        <Box>
+        <Box display={"flex"} gap={3}>
           <Button
             onClick={() => {
               onSubmit("draft");
             }}
-            sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
+            sx={{ width: 161, height: 40, borderRadius: 1 }}
             variant="outlined"
           >
             Save as Draft
           </Button>
           <Button
-            sx={{ width: 160, height: 40, borderRadius: 1, margin: 1 }}
+            sx={{ width: 132, height: 40, borderRadius: 1 }}
             variant="contained"
             disabled={
               processData.processName === "" ||

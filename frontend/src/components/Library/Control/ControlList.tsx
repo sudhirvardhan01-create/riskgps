@@ -16,7 +16,11 @@ interface Props {
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (status: string, mitreControlId: string, mitreControlName?: string) => void;
+  handleUpdateStatus: (
+    status: string,
+    mitreControlId: string,
+    mitreControlName?: string
+  ) => void;
 }
 
 const ControlList: React.FC<Props> = ({
@@ -34,55 +38,56 @@ const ControlList: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <Box
-        display={"flex"}
-        flexDirection={"column"}
-        sx={{ maxHeight: "calc(100vh - 290px)" }}
+      <Stack
+        spacing={2}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 390px)" }}
       >
-        <Stack spacing={2} sx={{ overflow: "auto" }}>
-          {data && data.length > 0 ? (
-            data.map((item) => (
-              <div key={item.id ?? JSON.stringify(item)}>
-                <ThreatControlCard
-                  module="control"
-                  threatControlData={item}
-                  setSelectedData={setSelectedControl}
-                  setIsViewOpen={setIsViewOpen}
-                  setIsEditOpen={setIsEditOpen}
-                  setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
-                  handleUpdateStatus={handleUpdateStatus}
-                  rowID={item.mitreControlId ?? ""}
-                  headerChip={item.mitreControlType ?? ""}
-                  title={item.mitreControlName ?? ""}
-                  status={item.status ?? ""}
-                  lastUpdated={item.updated_at}
-                />
-              </div>
-            ))
-          ) : (
-            // empty state could be enhanced
-            <div>No controls found</div>
-          )}
-        </Stack>
+        {data && data.length > 0 ? (
+          data.map((item) => (
+            <div key={item.id ?? JSON.stringify(item)}>
+              <ThreatControlCard
+                module="control"
+                threatControlData={item}
+                setSelectedData={setSelectedControl}
+                setIsViewOpen={setIsViewOpen}
+                setIsEditOpen={setIsEditOpen}
+                setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
+                handleUpdateStatus={handleUpdateStatus}
+                rowID={item.mitreControlId ?? ""}
+                headerChip={item.mitreControlType ?? ""}
+                title={item.mitreControlName ?? ""}
+                status={item.status ?? ""}
+                lastUpdated={item.updated_at}
+                footerChips={[{label: "MITRE Control Type:", value: item.mitreControlType}]}
+              />
+            </div>
+          ))
+        ) : (
+          // empty state could be enhanced
+          <div>No controls found</div>
+        )}
+      </Stack>
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mb: -0.5,
-          }}
-        >
-          <TablePagination
-            component="div"
-            count={totalRows}
-            page={page}
-            onPageChange={onPageChange}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={onRowsPerPageChange}
-            rowsPerPageOptions={[6, 12, 18, 24, 30]}
-          />
-        </Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+          bottom: 55,
+          left: "50%", // place horizontally at 50%
+          transform: "translateX(-50%)",
+        }}
+      >
+        <TablePagination
+          component="div"
+          count={totalRows}
+          page={page}
+          onPageChange={onPageChange}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={onRowsPerPageChange}
+          rowsPerPageOptions={[6, 12, 18, 24, 30]}
+        />
       </Box>
     </>
   );
