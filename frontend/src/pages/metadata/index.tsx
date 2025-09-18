@@ -299,8 +299,8 @@ const Index = () => {
       />
 
       {/* Landing Page code*/}
-      <Box p={5}>
-        <Stack display={"flex"} flexDirection={"column"} gap={5}>
+      <Box p={5} mb={5}>
+        <Stack display={"flex"} flexDirection={"column"} gap={5} mb={5}>
           {/* Row 1: Breadcrumb + Add Button */}
           <Stack
             direction="row"
@@ -412,7 +412,13 @@ const Index = () => {
           </Stack>
         </Stack>
 
-        <Stack spacing={3} pt={5} paddingBottom={10} sx={{ overflow: "auto" }}>
+        <Stack
+          spacing={3}
+          sx={{
+            overflow: "auto",
+            maxHeight: "calc(100vh - 350px)",
+          }}
+        >
           {metaDatas &&
             metaDatas?.length > 0 &&
             metaDatas?.map((item, index) => (
