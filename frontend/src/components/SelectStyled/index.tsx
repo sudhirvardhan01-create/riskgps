@@ -51,7 +51,7 @@ const SelectStyled = ({
           <Typography variant="body1" color="#121212" fontWeight={500}>
             {label}
           </Typography>
-          {required && <Typography color="#FB2020">*</Typography>}
+          {required && <Typography color="#FB2020" variant="body1" fontWeight={600}>*</Typography>}
           {isTooltipRequired && <TooltipComponent title={tooltipTitle} />}
         </Box>
       </InputLabel>

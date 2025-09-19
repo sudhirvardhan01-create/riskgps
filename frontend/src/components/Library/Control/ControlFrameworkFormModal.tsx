@@ -307,7 +307,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                             >
                               {labels.mitreControlId}
                             </Typography>
-                            <Typography color="#FB2020">*</Typography>
+                            <Typography color="#FB2020" variant="body1" fontWeight={600}>*</Typography>
                             <TooltipComponent title={tooltips.mitreControlId} />
                           </Box>
                         }
