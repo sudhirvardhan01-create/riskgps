@@ -512,7 +512,7 @@ class ProcessService {
 
                         await sequelize.query(`
                 UPDATE "library_processes"
-                SET process_code = '#BP-' || LPAD(id::text, 5, '0')
+                SET process_code = 'BP' || LPAD(id::text, 5, '0')
                 WHERE process_code IS NULL;
               `);
 

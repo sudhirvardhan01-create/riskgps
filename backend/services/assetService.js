@@ -307,7 +307,7 @@ class AssetService {
             await Asset.bulkCreate(rows, { ignoreDuplicates: true });
             await sequelize.query(`
                         UPDATE "library_assets"
-                        SET asset_code = '#A-' || LPAD(id::text, 5, '0')
+                        SET asset_code = 'AT' || LPAD(id::text, 5, '0')
                         WHERE asset_code IS NULL;
                         `);
             fs.unlinkSync(filePath);

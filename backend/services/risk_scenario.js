@@ -408,7 +408,7 @@ class RiskScenarioService {
 
             await sequelize.query(`
             UPDATE "library_risk_scenarios"
-            SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
+            SET risk_code = 'RS' || LPAD(id::text, 5, '0')
             WHERE risk_code IS NULL;
           `);
 
