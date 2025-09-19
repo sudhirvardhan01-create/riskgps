@@ -23,9 +23,10 @@ router.get("/get-controls", async (req, res) => {
     const page = parseInt(req.query?.page) || 0;
     const sortBy = req.query.sort_by || 'created_at';
     const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+    const fields = req.query.fields?.split(",") || null;
 
     try {
-        const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder);
+        const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder, fields);
         res.status(200).json({ data });
 
     } catch (error) {
@@ -35,6 +36,7 @@ router.get("/get-controls", async (req, res) => {
         console.log(error)
     }
 })
+
 
 router.patch("/update-mitre-control", async (req, res) => {
     try {

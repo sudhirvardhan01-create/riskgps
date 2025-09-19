@@ -16,6 +16,7 @@ class ControlsService {
         searchPattern = null,
         sortBy = "created_at",
         sortOrder = "ASC",
+        fields = null,
     ) {
 
         if (!MITRE_CONTROLS.ALLOWED_SORT_FILED.includes(sortBy)) {
@@ -34,6 +35,19 @@ class ControlsService {
             where: whereClause,
             include: includeRelation
         });
+
+        if (fields) {
+            const uniqueValues = {};
+            const fieldList = Array.isArray(fields) ? fields : [fields];
+
+            fieldList.forEach((field) => {
+                uniqueValues[field] = [
+                    ...new Set(data.map((row) => row[field]).filter((v) => v !== null)),
+                ];
+            });
+
+            return uniqueValues;
+        }
 
         const grouped = Object.values(
             data.reduce((acc, row) => {
