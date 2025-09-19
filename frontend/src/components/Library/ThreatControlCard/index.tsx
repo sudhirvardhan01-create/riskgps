@@ -258,8 +258,9 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
             >
               <Typography color="#D9D9D9">•</Typography>
               <Typography variant="body2" color="text.primary">
-                {module === "threat" ? `${threatControlData.controls?.length} Controls` : `${threatControlData?.subControls?.length} Threats`}
+                {module === "threat" ? `Controls: ` : `Threats: `}
               </Typography>
+              <Typography variant="body2" color="text.primary" fontWeight={600}>{module === "threat" ? `${threatControlData.controls?.length}` : `${threatControlData?.subControls?.length}`}</Typography>
             </Box>
           </Stack>
       </Box>
