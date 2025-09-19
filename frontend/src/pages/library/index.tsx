@@ -9,6 +9,7 @@ import withAuth from "@/hoc/withAuth";
 import { useEffect, useState } from "react";
 import { getLibraryData } from "../api/library";
 import { LibraryData } from "@/types/library";
+import { constants } from "@/utils/constants";
 
 const LibraryPage = () => {
   const router = useRouter();
@@ -28,24 +29,24 @@ const LibraryPage = () => {
   
   const libs = [
     {
-      name: "Processes",
+      name: constants.libProcessTitle,
       description:
-        "Streamline and optimize cybersecurity processes, enhancing overall efficiency and bolstering Bluocean's commitment to client cybersecurity.",
+        constants.libProcessDescription,
       tags: [
         {
-          label: "All Processes",
+          label: constants.allProcessesTitle,
           value: libData?.process.total_count,
         },
         {
-          label: "Published",
+          label: constants.publishedStatus,
           value: libData?.process.published,
         },
         {
-          label: "Disabled",
+          label: constants.disabledStatus,
           value: libData?.process.not_published,
         },
         {
-          label: "Draft",
+          label: constants.draftStatus,
           value: libData?.process.draft,
         },
       ],
@@ -53,24 +54,24 @@ const LibraryPage = () => {
       href: "/library/process",
     },
     {
-      name: "Risk Scenarios",
+      name: constants.libRiskScenarioTitle,
       description:
-        "Anticipate and address potential cybersecurity threats through proactive exploration of impactful scenarios.",
+        constants.libRiskScenarioDescription,
       tags: [
         {
-          label: "All Scenarios",
+          label: constants.allRiskScenariosTitle,
           value: libData?.riskScenario.total_count,
         },
         {
-          label: "Published",
+          label: constants.publishedStatus,
           value: libData?.riskScenario.published,
         },
         {
-          label: "Disabled",
+          label: constants.disabledStatus,
           value: libData?.riskScenario.not_published,
         },
         {
-          label: "Draft",
+          label: constants.draftStatus,
           value: libData?.riskScenario.draft,
         },
       ],
@@ -78,24 +79,24 @@ const LibraryPage = () => {
       href: "/library/risk-scenario",
     },
     {
-      name: "Assets",
+      name: constants.libAssetTitle,
       description:
-        "Effectively catalog and manage digital assets, providing a clear overview of their significance in the risk assessment process.",
+        constants.libAssetDescription,
       tags: [
         {
-          label: "All Assets",
+          label: constants.allAssetsTitle,
           value: libData?.asset.total_count,
         },
         {
-          label: "Published",
+          label: constants.publishedStatus,
           value: libData?.asset.published,
         },
         {
-          label: "Disabled",
+          label: constants.disabledStatus,
           value: libData?.asset.not_published,
         },
         {
-          label: "Draft",
+          label: constants.draftStatus,
           value: libData?.asset.draft,
         },
       ],
@@ -103,24 +104,24 @@ const LibraryPage = () => {
       href: "/library/assets",
     },
     {
-      name: "Threats",
+      name: constants.libThreatTitle,
       description:
-        "Categorize and stay informed about diverse cyber threats to empower risk assessment strategies with up-to-date intelligence.",
+        constants.libThreatDescription,
       tags: [
         {
-          label: "All Threats",
+          label: constants.allThreatsTitle,
           value: libData?.mitreThreats.total_count,
         },
         {
-          label: "Published",
+          label: constants.publishedStatus,
           value: libData?.mitreThreats.published,
         },
         {
-          label: "Disabled",
+          label: constants.disabledStatus,
           value: libData?.mitreThreats.not_published,
         },
         {
-          label: "Draft",
+          label: constants.draftStatus,
           value: libData?.mitreThreats.draft,
         },
       ],
@@ -128,24 +129,24 @@ const LibraryPage = () => {
       href: "/library/threats",
     },
     {
-      name: "Controls",
+      name: constants.libControlTitle,
       description:
-        "Implement and manage security controls strategically, fortifying client assets against potential threats within the risk assessment framework.",
+        constants.libControlDescription,
       tags: [
         {
-          label: "All Controls",
+          label: constants.allControlsTitle,
           value: libData?.mitreControls.total_count,
         },
         {
-          label: "Published",
+          label: constants.publishedStatus,
           value: libData?.mitreControls.published,
         },
         {
-          label: "Disabled",
+          label: constants.disabledStatus,
           value: libData?.mitreControls.not_published,
         },
         {
-          label: "Draft",
+          label: constants.draftStatus,
           value: libData?.mitreControls.draft,
         },
       ],
