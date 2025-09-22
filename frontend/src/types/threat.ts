@@ -4,6 +4,7 @@ export interface RelatedControlForm {
   mitreControlType: string;
   mitreControlDescription?: string;
   bluOceanControlDescription?: string;
+  controlPriority: number | null;
 }
 
 export interface ThreatForm {

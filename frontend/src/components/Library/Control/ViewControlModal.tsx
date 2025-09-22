@@ -22,6 +22,7 @@ import {
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { ControlForm } from "@/types/control";
 import { formatDate } from "@/utils/utility";
+import { labels } from "@/utils/labels";
 
 interface ViewControlModalProps {
   open: boolean;
@@ -159,7 +160,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
           </Grid>
 
           {/* MITRE Control Type */}
-          <Grid size={{ xs: 12 }}>
+          <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 MITRE Control Type
@@ -167,6 +168,20 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
               <Typography variant="body1" color="text.primary" fontWeight={500}>
                 {controlData.mitreControlType
                   ? controlData.mitreControlType
+                  : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* Control Priority */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                {labels.controlPriority}
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {controlData.controlPriority
+                  ? controlData.controlPriority
                   : "-"}
               </Typography>
             </Box>

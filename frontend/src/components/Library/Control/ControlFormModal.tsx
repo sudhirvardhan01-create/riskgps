@@ -250,6 +250,48 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               </SelectStyled>
             </Grid>
 
+            {/* Control Priority */}
+            <Grid mt={1} size={{ xs: 6 }}>
+              <SelectStyled
+                disabled
+                required
+                value={formData.controlPriority}
+                label={labels.controlPriority}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.controlPriority}
+                displayEmpty
+                onChange={(e) =>
+                  handleChange("controlPriority", e.target.value)
+                }
+                renderValue={(selected: any) => {
+                  if (!selected) {
+                    return (
+                      <Typography variant="body2" sx={{ color: "#9E9FA5" }}>
+                        {tooltips.controlPriority}
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                        }}
+                      >
+                        {selected}
+                      </Typography>
+                    );
+                  }
+                }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
+                  <MenuItem value={item} key={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </SelectStyled>
+            </Grid>
+
             {/* RELATED THREATS SECTION */}
             <Grid mt={1} size={{ xs: 12 }}>
               <Stack display={"flex"} flexDirection={"column"} gap={2}>

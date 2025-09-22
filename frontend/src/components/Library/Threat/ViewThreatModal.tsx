@@ -22,6 +22,7 @@ import {
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { ThreatForm } from "@/types/threat";
 import { formatDate } from "@/utils/utility";
+import { labels } from "@/utils/labels";
 
 interface ViewThreatModalProps {
   open: boolean;
@@ -235,6 +236,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                       <TableCell>MITRE Control Type</TableCell>
                       <TableCell>MITRE Control Description</TableCell>
                       <TableCell>BluOcean Control Description</TableCell>
+                      <TableCell>{labels.controlPriority}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -254,6 +256,9 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                           </TableCell>
                           <TableCell>
                             {control.bluOceanControlDescription}
+                          </TableCell>
+                          <TableCell>
+                            {control?.controlPriority ? control?.controlPriority : "-" }
                           </TableCell>
                         </TableRow>
                       );

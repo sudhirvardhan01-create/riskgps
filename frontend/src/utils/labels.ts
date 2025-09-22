@@ -66,6 +66,7 @@ export const labels = {
   mitreControlType: "MITRE Control Type",
   mitreControlDescription: "MITRE Control Description",
   bluoceanControlDescription: "BluOcean Control Description",
+  controlPriority: "BluOcean Control Priority",
   framework: "Control Framework",
   frameworkControlCategoryId: "Control Category ID",
   frameworkControlCategory: "Control Category",
