@@ -8,13 +8,15 @@ const Footer = () => {
   return (
     <Box
       sx={{
-        textAlign: "center",
-        padding: "20px",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "right",
+        padding: "20px 15px",
         backgroundColor: "#f5f5f5",
         color: "#000000",
         position: "absolute",
         bottom: 0,
-        width: "100%",
+        width: "90vw"
       }}
     >
       <Typography>{constants.footerDescription}</Typography>
