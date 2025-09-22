@@ -26,7 +26,7 @@ import {
 import TextFieldStyled from "@/components/TextFieldStyled";
 import { labels } from "@/utils/labels";
 import { tooltips } from "@/utils/tooltips";
-import { ControlForm, ControlFrameworkForm } from "@/types/control";
+import { ControlFrameworkForm } from "@/types/control";
 import SelectStyled from "@/components/SelectStyled";
 import TooltipComponent from "@/components/TooltipComponent";
 
@@ -34,7 +34,7 @@ interface ControlFrameworkFormModalProps {
   operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
-  controls: ControlForm[];
+  controls: any[];
   formData: ControlFrameworkForm;
   setFormData: React.Dispatch<React.SetStateAction<ControlFrameworkForm>>;
   onSubmit: (status: string) => void;
@@ -52,9 +52,11 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
   const [selectedMITREControlID, setSelectedMITREControlID] = useState<
     string | null
   >(null);
-  const distictMITREControlIDs = [
-    ...new Set(controls.map((item) => item.mitreControlId)),
-  ];
+
+  // const distictMITREControlIDs = [
+  //   ...new Set(controls.map((item) => item.mitreControlId)),
+  // ];
+
   //Function to handle the Field change
   const handleFieldChange = (field: keyof typeof formData, value: any) => {
     setFormData((prev) => {
@@ -242,7 +244,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                 <Grid size={{ xs: 10 }}>
                   <Autocomplete
                     disablePortal
-                    options={distictMITREControlIDs}
+                    options={controls}
                     value={selectedMITREControlID}
                     onChange={(event: any, newValue: string | null) => {
                       setSelectedMITREControlID(newValue);
