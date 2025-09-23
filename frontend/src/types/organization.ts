@@ -28,6 +28,16 @@ export interface Organization {
     insuranceCarrier?: string;
     claimsCount?: string;
     claimsValue?: string;
+    regulators?: string;
+    regulatoryRequirements?: string;
+    additionalInformation?: string;
+    recordTypes?: string[];
+    piiRecordsCount?: string;
+    pfiRecordsCount?: string;
+    phiRecordsCount?: string;
+    governmentRecordsCount?: string;
+    certifications?: string[];
+    intellectualPropertyPercentage?: string;
   };
 }
 

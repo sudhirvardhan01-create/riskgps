@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Box, Typography, Button } from "@mui/material";
+import { useRouter } from "next/router";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import OrgList from "@/components/Organization/OrgList";
@@ -95,6 +96,7 @@ const mockOrganizations: Organization[] = [
 ];
 
 export default function OrgManagementContainer() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
@@ -378,8 +380,7 @@ export default function OrgManagementContainer() {
               },
             }}
             onClick={() => {
-              // TODO: Add create new org functionality
-              console.log("Create New Org clicked");
+              router.push('/org-management/create');
             }}
           >
             Create New Org
