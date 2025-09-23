@@ -26,19 +26,7 @@ import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
 import { getOrganization } from "@/pages/api/organization";
 import { saveAssessment } from "@/pages/api/assessment";
-
-interface Organisation {
-  organizationId: string;
-  name: string;
-  desc: string;
-  businessUnits: BusinessUnit[];
-}
-
-interface BusinessUnit {
-  orgBusinessUnitId: string;
-  businessUnitName: string;
-  businessUnitDesc: string;
-}
+import { BusinessUnit, Organisation } from "@/types/assessment";
 
 interface StartAssessmentModalProps {
   open: boolean;
