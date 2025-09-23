@@ -9,18 +9,26 @@ import ViewThreatModal from "@/components/Library/Threat/ViewThreatModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ThreatList from "@/components/Library/Threat/ThreatList";
-import { ThreatForm } from "@/types/threat";
+import { ThreatBundleForm, ThreatForm } from "@/types/threat";
 import { ThreatService } from "@/services/threatService";
 import { FileService } from "@/services/fileService";
+import ThreatBundleFormModal from "@/components/Library/Threat/ThreatBundleFormModal";
+import ButtonTabs from "@/components/ButtonTabs";
 
-const initialThreatFormData: ThreatForm = {
-  platforms: [],
-  mitreTechniqueId: "",
-  mitreTechniqueName: "",
-  ciaMapping: [],
-  subTechniqueId: "",
-  subTechniqueName: "",
-};
+// const initialThreatFormData: ThreatForm = {
+//   platforms: [],
+//   mitreTechniqueId: "",
+//   mitreTechniqueName: "",
+//   ciaMapping: [],
+//   subTechniqueId: "",
+//   subTechniqueName: "",
+// };
+
+//Initial Threat Bundle Form
+const initialThreatBundleFormData: ThreatBundleForm = {
+  threatBundleName: "",
+  mitreThreatTechnique: [],
+}
 
 const sortItems = [
   { label: "ID (Ascending)", value: "id:asc" },
@@ -78,11 +86,22 @@ export default function ThreatContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [formData, setFormData] = useState<ThreatForm>(initialThreatFormData);
+  // const [formData, setFormData] = useState<ThreatForm>(initialThreatFormData);
+  const [formData, setFormData] = useState<ThreatBundleForm>(initialThreatBundleFormData); //Form Data for Threat Bundle
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
+
+  //Threat Bundles Array
+  const threatBundles = ["TOP10", "FSI"];
+  const [selectedTab, setSelectedTab] =
+    useState("MITRE");
+
+  //Threat Techniques Array
+  const threatTechniques = [{mitreTechniqueId: "ID1", mitreTechniqueName: "Name1"},
+    {mitreTechniqueId: "ID2", mitreTechniqueName: "Name2"}
+  ];
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -135,29 +154,29 @@ export default function ThreatContainer() {
   }, []);
 
   // Create
-  const handleCreate = async (status: string) => {
-    try {
-      const req = { ...formData, status };
-      await ThreatService.create(req);
-      setFormData(initialThreatFormData);
-      setIsAddOpen(false);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: `Success! Threat ${
-          status === "published" ? "published" : "saved as draft"
-        }`,
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to create threat",
-        severity: "error",
-      });
-    }
-  };
+  // const handleCreate = async (status: string) => {
+  //   try {
+  //     const req = { ...formData, status };
+  //     await ThreatService.create(req);
+  //     setFormData(initialThreatFormData);
+  //     setIsAddOpen(false);
+  //     setRefreshTrigger((p) => p + 1);
+  //     setToast({
+  //       open: true,
+  //       message: `Success! Threat ${
+  //         status === "published" ? "published" : "saved as draft"
+  //       }`,
+  //       severity: "success",
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     setToast({
+  //       open: true,
+  //       message: "Failed to create threat",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
   // Update
   const handleUpdate = async (status: string) => {
@@ -326,7 +345,7 @@ export default function ThreatContainer() {
     () => ({
       breadcrumbItems,
       metaDatas,
-      addButtonText: "Add Threat",
+      addButtonText: "Add Threat Bundle",
       addAction: () => setIsAddOpen(true),
       sortItems,
       onImport: () => setIsFileUploadOpen(true),
@@ -369,6 +388,18 @@ export default function ThreatContainer() {
 
       {/* Add form */}
       {isAddOpen && (
+        <ThreatBundleFormModal 
+        operation="create"
+        open={isAddOpen}
+        onClose={() => setIsAddConfirmOpen(true)}
+        threats={threatTechniques}
+        threatBundles={threatBundles}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={() => console.log("Created")}
+        /> 
+      )}
+      {/* {isAddOpen && (
         <ThreatFormModal
           operation={"create"}
           open={isAddOpen}
@@ -380,7 +411,7 @@ export default function ThreatContainer() {
             setIsAddConfirmOpen(true);
           }}
         />
-      )}
+      )} */}
 
       {/* Edit form */}
       {isEditOpen && selectedThreat && (
@@ -405,11 +436,11 @@ export default function ThreatContainer() {
       <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Threat Creation?"
-        description="Are you sure you want to cancel the threat creation? Any unsaved changes will be lost."
+        title="Cancel Threat Bundle Creation?"
+        description="Are you sure you want to cancel the threat bundle creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
-          setFormData(initialThreatFormData);
+          setFormData(initialThreatBundleFormData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
@@ -443,7 +474,17 @@ export default function ThreatContainer() {
       {/* Page content */}
       <Box p={5}>
         <LibraryHeader {...headerProps} />
-        <ThreatList
+
+        {/* Tabs to select the Control Framework */}
+        <ButtonTabs
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
+          items={threatBundles}
+          mitreTabTitle="MITRE"
+          isMITRETabRequired={true}
+        />
+
+        {selectedTab === "MITRE" && <ThreatList
           loading={loading}
           data={threatsData}
           totalRows={totalRows}
@@ -456,7 +497,7 @@ export default function ThreatContainer() {
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
           handleUpdateStatus={handleUpdateStatus}
-        />
+        />}
       </Box>
 
       <ToastComponent

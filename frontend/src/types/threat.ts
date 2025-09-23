@@ -20,3 +20,15 @@ export interface ThreatForm {
   updated_at?: Date;
   created_at?: Date;
 }
+
+export interface ThreatBundleForm {
+  threatBundleName: string;
+  mitreThreatTechnique: {
+    threatBundleId?: string;
+    mitreTechniqueId: string;
+    mitreTechniqueName: string;
+    status?: string;
+    createdDate?: Date;
+    modifiedDate?: Date;
+  }[];
+}

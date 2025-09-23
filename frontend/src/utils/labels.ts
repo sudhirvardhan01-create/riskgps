@@ -59,6 +59,8 @@ export const labels = {
   mitreTechniqueName: "MITRE Technique Name",
   subTechniqueId: "Sub Technique ID",
   subTechniqueName: "Sub Technique Name",
+  mitreThreatTechnique: "MITRE Threat Technique",
+  threatBundleName: "Threat Bundle",
 
   //Control
   mitreControlId: "MITRE Control ID",

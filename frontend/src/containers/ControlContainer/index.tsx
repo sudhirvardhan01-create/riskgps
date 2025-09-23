@@ -11,7 +11,7 @@ import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
 import { ControlForm, ControlFrameworkForm } from "@/types/control";
 import { ControlService } from "@/services/controlService";
-import ControlButtonTab from "@/components/Library/Control/ControlButtonTab";
+import ButtonTabs from "@/components/ButtonTabs";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
 import { ControlFrameworkService } from "@/services/controlFrameworkService";
@@ -528,10 +528,12 @@ export default function ControlContainer() {
         <LibraryHeader {...headerProps} />
 
         {/* Tabs to select the Control Framework */}
-        <ControlButtonTab
-          selectedControlFramework={selectedControlFramework}
-          setSelectedControlFramework={setSelectedControlFramework}
-          frameworks={frameworks}
+        <ButtonTabs
+          selectedTab={selectedControlFramework}
+          setSelectedTab={setSelectedControlFramework}
+          items={frameworks}
+          mitreTabTitle="MITRE"
+          isMITRETabRequired={true}
         />
 
         {selectedControlFramework === "MITRE" && (

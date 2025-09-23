@@ -60,6 +60,8 @@ export const tooltips = {
   mitreTechniqueName: "MITRE Technique Name",
   subTechniqueId: "Sub Technique ID",
   subTechniqueName: "Sub Technique Name",
+  mitreThreatTechnique: "Select MITRE Threat Techniques",
+  threatBundleName: "Select Threat Bundle",
 
   //Control
   mitreControlId: "Enter MITRE Control ID",
