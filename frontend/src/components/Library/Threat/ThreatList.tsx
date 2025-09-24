@@ -40,7 +40,7 @@ const ThreatList: React.FC<Props> = ({
     <>
       <Stack
         spacing={2}
-        sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 390px)" }}
       >
         {data && data.length > 0 ? (
           data.map((item) => (

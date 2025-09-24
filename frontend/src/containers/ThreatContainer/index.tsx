@@ -14,6 +14,8 @@ import { ThreatService } from "@/services/threatService";
 import { FileService } from "@/services/fileService";
 import ThreatBundleFormModal from "@/components/Library/Threat/ThreatBundleFormModal";
 import ButtonTabs from "@/components/ButtonTabs";
+import ThreatBundleContainer from "../ThreatBundleContainer";
+import { ThreatBundleService } from "@/services/threatBundleService";
 
 // const initialThreatFormData: ThreatForm = {
 //   platforms: [],
@@ -28,7 +30,7 @@ import ButtonTabs from "@/components/ButtonTabs";
 const initialThreatBundleFormData: ThreatBundleForm = {
   threatBundleName: "",
   mitreThreatTechnique: [],
-}
+};
 
 const sortItems = [
   { label: "ID (Ascending)", value: "id:asc" },
@@ -87,7 +89,9 @@ export default function ThreatContainer() {
   });
 
   // const [formData, setFormData] = useState<ThreatForm>(initialThreatFormData);
-  const [formData, setFormData] = useState<ThreatBundleForm>(initialThreatBundleFormData); //Form Data for Threat Bundle
+  const [formData, setFormData] = useState<ThreatBundleForm>(
+    initialThreatBundleFormData
+  ); //Form Data for Threat Bundle
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
@@ -95,12 +99,18 @@ export default function ThreatContainer() {
 
   //Threat Bundles Array
   const threatBundles = ["TOP10", "FSI"];
-  const [selectedTab, setSelectedTab] =
-    useState("MITRE");
+  const [selectedTab, setSelectedTab] = useState("MITRE");
 
   //Threat Techniques Array
-  const threatTechniques = [{mitreTechniqueId: "ID1", mitreTechniqueName: "Name1"},
-    {mitreTechniqueId: "ID2", mitreTechniqueName: "Name2"}
+  const threatTechniques = [
+    { mitreTechniqueId: "T1535", mitreTechniqueName: "Unused/Unsupported Cloud Regions" },
+    { mitreTechniqueId: "T1562", mitreTechniqueName: "Impair Defenses" },
+    { mitreTechniqueId: "T1619", mitreTechniqueName: "Cloud Storage Object Discovery" },
+    { mitreTechniqueId: "T1555", mitreTechniqueName: "Credentials from Password Stores" },
+    { mitreTechniqueId: "T1578", mitreTechniqueName: "Modify Cloud Compute Infrastructure" },
+    { mitreTechniqueId: "T1651", mitreTechniqueName: "Cloud Administration Command" },
+    { mitreTechniqueId: "T1021", mitreTechniqueName: "Remote Services" },
+    { mitreTechniqueId: "T1213", mitreTechniqueName: "Data from Information Repositories" },
   ];
 
   // fetch list
@@ -154,29 +164,26 @@ export default function ThreatContainer() {
   }, []);
 
   // Create
-  // const handleCreate = async (status: string) => {
-  //   try {
-  //     const req = { ...formData, status };
-  //     await ThreatService.create(req);
-  //     setFormData(initialThreatFormData);
-  //     setIsAddOpen(false);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: `Success! Threat ${
-  //         status === "published" ? "published" : "saved as draft"
-  //       }`,
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to create threat",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleCreate = async () => {
+    try {
+      await ThreatBundleService.create(formData);
+      setFormData(initialThreatBundleFormData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Success! Threat Bundle records created`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to create threat bundle records",
+        severity: "error",
+      });
+    }
+  };
 
   // Update
   const handleUpdate = async (status: string) => {
@@ -190,7 +197,7 @@ export default function ThreatContainer() {
           selectedThreat.mitreTechniqueId as string,
           selectedThreat.subTechniqueId as string
         );
-      }else{
+      } else {
         await ThreatService.update(
           body,
           selectedThreat?.mitreTechniqueId as string,
@@ -216,20 +223,28 @@ export default function ThreatContainer() {
   };
 
   // Update status only
-    const handleUpdateStatus = async (status: string, mitreTechniqueId: string, subTechniqueId?: string) => {
-      try {
-        await ThreatService.updateStatus(status, mitreTechniqueId, subTechniqueId);
-        setRefreshTrigger((p) => p + 1);
-        setToast({ open: true, message: "Status updated", severity: "success" });
-      } catch (err) {
-        console.error(err);
-        setToast({
-          open: true,
-          message: "Failed to update status",
-          severity: "error",
-        });
-      }
-    };
+  const handleUpdateStatus = async (
+    status: string,
+    mitreTechniqueId: string,
+    subTechniqueId?: string
+  ) => {
+    try {
+      await ThreatService.updateStatus(
+        status,
+        mitreTechniqueId,
+        subTechniqueId
+      );
+      setRefreshTrigger((p) => p + 1);
+      setToast({ open: true, message: "Status updated", severity: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update status",
+        severity: "error",
+      });
+    }
+  };
 
   // Delete
   const handleDelete = async () => {
@@ -388,16 +403,16 @@ export default function ThreatContainer() {
 
       {/* Add form */}
       {isAddOpen && (
-        <ThreatBundleFormModal 
-        operation="create"
-        open={isAddOpen}
-        onClose={() => setIsAddConfirmOpen(true)}
-        threats={threatTechniques}
-        threatBundles={threatBundles}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={() => console.log("Created")}
-        /> 
+        <ThreatBundleFormModal
+          operation="create"
+          open={isAddOpen}
+          onClose={() => setIsAddConfirmOpen(true)}
+          threats={threatTechniques}
+          threatBundles={threatBundles}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreate}
+        />
       )}
       {/* {isAddOpen && (
         <ThreatFormModal
@@ -484,20 +499,29 @@ export default function ThreatContainer() {
           isMITRETabRequired={true}
         />
 
-        {selectedTab === "MITRE" && <ThreatList
-          loading={loading}
-          data={threatsData}
-          totalRows={totalRows}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          setSelectedThreat={setSelectedThreat}
-          setIsViewOpen={setIsViewOpen}
-          setIsEditOpen={setIsEditOpen}
-          setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-          handleUpdateStatus={handleUpdateStatus}
-        />}
+        {selectedTab === "MITRE" && (
+          <ThreatList
+            loading={loading}
+            data={threatsData}
+            totalRows={totalRows}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            setSelectedThreat={setSelectedThreat}
+            setIsViewOpen={setIsViewOpen}
+            setIsEditOpen={setIsEditOpen}
+            setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
+            handleUpdateStatus={handleUpdateStatus}
+          />
+        )}
+
+        {selectedTab !== "MITRE" && (
+          <ThreatBundleContainer
+            selectedTab={selectedTab}
+            renderOnCreation={handleCreate}
+          />
+        )}
       </Box>
 
       <ToastComponent

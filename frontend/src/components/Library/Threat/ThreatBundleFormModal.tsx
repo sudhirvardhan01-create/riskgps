@@ -37,7 +37,7 @@ interface ThreatBundleFormModalProps {
   threatBundles: string[];
   formData: ThreatBundleForm;
   setFormData: React.Dispatch<React.SetStateAction<ThreatBundleForm>>;
-  onSubmit: (status: string) => void;
+  onSubmit: () => void;
 }
 
 const ThreatBundleFormModal: React.FC<ThreatBundleFormModalProps> = ({
@@ -377,21 +377,10 @@ const ThreatBundleFormModal: React.FC<ThreatBundleFormModalProps> = ({
         </Button>
         <Box display={"flex"} gap={3}>
           <Button
-            onClick={() => {
-              onSubmit("draft");
-            }}
-            sx={{ width: 161, height: 40, borderRadius: 1 }}
-            variant="outlined"
-          >
-            <Typography variant="body1" color="#04139A" fontWeight={500}>
-              Save as Draft
-            </Typography>
-          </Button>
-          <Button
             sx={{ width: 132, height: 40, borderRadius: 1 }}
             variant="contained"
             onClick={() => {
-              onSubmit("published");
+              onSubmit();
             }}
             disabled={
               formData.threatBundleName === "" ||
