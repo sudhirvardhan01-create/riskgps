@@ -73,7 +73,7 @@ const Index = () => {
       try {
         setLoading(true);
         const [meta] = await Promise.all([
-          MetaDataService.fetch(0, 0, searchPattern, sort),
+          MetaDataService.fetch(0, -1, searchPattern, sort),
         ]);
         setMetaDatas(meta.data ?? []);
       } catch (error) {
