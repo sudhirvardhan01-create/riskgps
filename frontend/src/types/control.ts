@@ -15,6 +15,7 @@ export interface ControlForm {
   mitreControlType: string;
   mitreControlDescription?: string;
   bluOceanControlDescription?: string;
+  controlPriority: number | null;
   subControls?: RelatedThreatForm[];
   status?: string;
   updated_at?: Date;

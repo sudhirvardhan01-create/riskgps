@@ -175,6 +175,47 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
               }
             />
           </Grid>
+
+          {/* Control Priority */}
+          <Grid mt={1} size={{ xs: 12 }}>
+            <SelectStyled
+              required
+              value={formData.controlPriority}
+              label={labels.controlPriority}
+              isTooltipRequired={true}
+              tooltipTitle={tooltips.controlPriority}
+              displayEmpty
+              onChange={(e) =>
+                handleFieldChange("controlPriority", e.target.value)
+              }
+              renderValue={(selected: any) => {
+                if (!selected) {
+                  return (
+                    <Typography variant="body2" sx={{ color: "#9E9FA5" }}>
+                      {tooltips.controlPriority}
+                    </Typography>
+                  );
+                } else {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: "text.primary",
+                      }}
+                    >
+                      {selected}
+                    </Typography>
+                  );
+                }
+              }}
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
+                <MenuItem value={item} key={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </SelectStyled>
+          </Grid>
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", my: 2.5, mx: 3 }}>

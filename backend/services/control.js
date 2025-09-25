@@ -51,16 +51,13 @@ class ControlsService {
 
         const grouped = Object.values(
             data.reduce((acc, row) => {
-                const key = row.mitreControlId + row.mitreControlName;
+                const key = row.mitreControlId;
 
                 if (!acc[key]) {
                     acc[key] = {
-                        id: row.id,
                         mitreControlId: row.mitreControlId,
-                        mitreControlName: row.mitreControlName,
-                        mitreControlType: row.mitreControlType,
                         controlPriority: row.controlPriority,
-                        subControls: [],
+                        controlDetails: [],
                         nistControls: [],
                         status: row.status,
                         created_at: row.created_at,
@@ -68,23 +65,24 @@ class ControlsService {
                     };
                 }
 
-                // loop through framework_controls if present
-                if (row.framework_controls && row.framework_controls.length > 0) {
-                    row.framework_controls.forEach(fc => {
-                        acc[key].nistControls.push({
-                            id: fc.id,
-                            frameWorkName: fc.frameWorkName,
-                            frameWorkControlCategoryId: fc.frameWorkControlCategoryId,
-                            frameWorkControlCategory: fc.frameWorkControlCategory,
-                            frameWorkControlDescription: fc.frameWorkControlDescription,
-                            frameWorkControlSubCategoryId: fc.frameWorkControlSubCategoryId,
-                            frameWorkControlSubCategory: fc.frameWorkControlSubCategory
-                        });
-                    });
+                // Look for existing controlDetail with same name + type
+                let controlDetail = acc[key].controlDetails.find(
+                    (cd) =>
+                        cd.mitreControlName === row.mitreControlName &&
+                        cd.mitreControlType === row.mitreControlType
+                );
+
+                if (!controlDetail) {
+                    controlDetail = {
+                        mitreControlName: row.mitreControlName,
+                        mitreControlType: row.mitreControlType,
+                        subControls: [],
+                    };
+                    acc[key].controlDetails.push(controlDetail);
                 }
 
-                // push sub-control details
-                acc[key].subControls.push({
+                // Push into subControls
+                controlDetail.subControls.push({
                     id: row.id,
                     mitreTechniqueId: row.mitreTechniqueId,
                     mitreTechniqueName: row.mitreTechniqueName,
@@ -570,8 +568,8 @@ class ControlsService {
             }
 
 
-            const [affectedCount] = await MitreThreatControl.update(payload,{ where: whereClause, transaction: transaction});
-            
+            const [affectedCount] = await MitreThreatControl.update(payload, { where: whereClause, transaction: transaction });
+
             if (affectedCount < 1) {
                 throw new Error("Failed to update, no record found")
             }

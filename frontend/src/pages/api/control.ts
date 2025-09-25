@@ -106,3 +106,25 @@ export const updateControlStatus = async (
   console.log(res);
   return res.data;
 };
+
+//Function to fetch all the controls for listing without pagination
+export const fetchControlsForListing = async (fields?: string) => {
+  const params = new URLSearchParams();
+  params.append("fields", fields ?? "");
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/get-controls?${params}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch controls data");
+  }
+  const res = await response.json();
+  console.log(res.data);
+  return res.data;
+};

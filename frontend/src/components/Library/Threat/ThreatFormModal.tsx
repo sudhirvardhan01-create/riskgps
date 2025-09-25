@@ -62,6 +62,7 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
     mitreControlType: "",
     mitreControlDescription: "",
     bluOceanControlDescription: "",
+    controlPriority: null
   };
 
   const [isAddRelatedControlOpen, setIsAddRelatedControlOpen] =

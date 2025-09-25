@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { ControlForm, ControlFrameworkForm } from "@/types/control";
+import { ControlFrameworkForm } from "@/types/control";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkList from "@/components/Library/Control/ControlFrameworkList";
 import ViewControlFrameworkModal from "@/components/Library/Control/ViewControlFrameworkModal";
@@ -10,7 +10,7 @@ import { ControlFrameworkService } from "@/services/controlFrameworkService";
 
 interface ControlFrameworkContainerProps {
   selectedControlFramework: string;
-  controls: ControlForm[];
+  controls: any[];
   renderOnCreation: any;
   searchPattern?: string;
   sort: string;

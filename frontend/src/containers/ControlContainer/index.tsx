@@ -11,7 +11,7 @@ import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
 import { ControlForm, ControlFrameworkForm } from "@/types/control";
 import { ControlService } from "@/services/controlService";
-import ControlButtonTab from "@/components/Library/Control/ControlButtonTab";
+import ButtonTabs from "@/components/ButtonTabs";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
 import { ControlFrameworkService } from "@/services/controlFrameworkService";
@@ -44,6 +44,7 @@ export default function ControlContainer() {
   const [sort, setSort] = useState<string>("id:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
   const [controlsData, setControlsData] = useState<ControlForm[]>([]);
+  const [controlsForListing, setControlsForListing] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
@@ -158,6 +159,26 @@ export default function ControlContainer() {
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
+
+  // fetch controls for Listing
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ControlService.fetchControlsForListing("mitreControlId");
+        setControlsForListing(data.mitreControlId ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch controls for Listing purposes",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   // fetch metadata
   useEffect(() => {
@@ -435,7 +456,7 @@ export default function ControlContainer() {
         <ControlFrameworkFormModal
           operation={"create"}
           open={isAddOpen}
-          controls={controlsData}
+          controls={controlsForListing}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -507,10 +528,12 @@ export default function ControlContainer() {
         <LibraryHeader {...headerProps} />
 
         {/* Tabs to select the Control Framework */}
-        <ControlButtonTab
-          selectedControlFramework={selectedControlFramework}
-          setSelectedControlFramework={setSelectedControlFramework}
-          frameworks={frameworks}
+        <ButtonTabs
+          selectedTab={selectedControlFramework}
+          setSelectedTab={setSelectedControlFramework}
+          items={frameworks}
+          mitreTabTitle="MITRE"
+          isMITRETabRequired={true}
         />
 
         {selectedControlFramework === "MITRE" && (
@@ -533,7 +556,7 @@ export default function ControlContainer() {
         {selectedControlFramework !== "MITRE" && (
           <ControlFrameworkContainer
             selectedControlFramework={selectedControlFramework}
-            controls={controlsData}
+            controls={controlsForListing}
             renderOnCreation={handleCreate}
             searchPattern={
               selectedControlFramework === "MITRE" ? "" : searchPattern

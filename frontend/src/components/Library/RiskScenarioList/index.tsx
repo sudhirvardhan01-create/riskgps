@@ -60,8 +60,11 @@ const RiskScenarioList: React.FC<Props> = ({
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
-                  { label: "Processes", value: item.related_processes?.length },
+                  { label: "Linked Processes", value: item.related_processes?.length },
                 ]}
+                module="Risk Scenario"
+                footerChipKey="CIA Mapping"
+                footerChipValue={item.ciaMapping.join(", ")}
               />
             </div>
           ))

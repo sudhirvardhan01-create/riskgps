@@ -4,6 +4,7 @@ export interface RelatedControlForm {
   mitreControlType: string;
   mitreControlDescription?: string;
   bluOceanControlDescription?: string;
+  controlPriority: number | null;
 }
 
 export interface ThreatForm {
@@ -18,4 +19,16 @@ export interface ThreatForm {
   status?: string;
   updated_at?: Date;
   created_at?: Date;
+}
+
+export interface ThreatBundleForm {
+  threatBundleName: string;
+  mitreThreatTechnique: {
+    threatBundleId?: string;
+    mitreTechniqueId: string;
+    mitreTechniqueName: string;
+    status?: string;
+    createdDate?: Date;
+    modifiedDate?: Date;
+  }[];
 }
