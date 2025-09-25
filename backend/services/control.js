@@ -57,8 +57,8 @@ class ControlsService {
                     acc[key] = {
                         mitreControlId: row.mitreControlId,
                         controlPriority: row.controlPriority,
+                        mitreControlType: row.mitreControlType,
                         controlDetails: [],
-                        nistControls: [],
                         status: row.status,
                         created_at: row.created_at,
                         updated_at: row.updated_at,
@@ -75,8 +75,6 @@ class ControlsService {
                 if (!controlDetail) {
                     controlDetail = {
                         mitreControlName: row.mitreControlName,
-                        mitreControlType: row.mitreControlType,
-                        subControls: [],
                     };
                     acc[key].controlDetails.push(controlDetail);
                 }
