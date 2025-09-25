@@ -199,7 +199,7 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
 
         {/* Meta Info */}
         <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
-        <Chip
+        {module === "Risk Scenario" && <Chip
           label={
             <Box
               sx={{
@@ -223,7 +223,7 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
             height: 24,
             backgroundColor: "#FFF9C7",
           }}
-        />
+        />}
         <Box sx={{pb: 1, display: "flex", gap: 1.25 }}>
           {tagItems.map((item, index) => (
             <Stack
