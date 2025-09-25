@@ -6,6 +6,7 @@ import withAuth from "@/hoc/withAuth";
 import { Organization } from "@/types/organization";
 import Image from "next/image";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
+import { BusinessUnits } from "@/components/Organization/BusinessUnit";
 
 // Mock data for organizations (same as in container)
 const mockOrganizations: Organization[] = [
@@ -880,10 +881,7 @@ function OrgDetailsPage() {
         </TabPanel>
 
         <TabPanel value={tabValue} index={2}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Business Units</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Business Units will be displayed here.
-          </Typography>
+          <BusinessUnits />
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
