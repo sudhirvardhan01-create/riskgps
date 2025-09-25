@@ -55,6 +55,7 @@ class ControlsService {
 
                 if (!acc[key]) {
                     acc[key] = {
+
                         mitreControlId: row.mitreControlId,
                         controlPriority: row.controlPriority,
                         mitreControlType: row.mitreControlType,
@@ -68,13 +69,13 @@ class ControlsService {
                 // Look for existing controlDetail with same name + type
                 let controlDetail = acc[key].controlDetails.find(
                     (cd) =>
-                        cd.mitreControlName === row.mitreControlName &&
-                        cd.mitreControlType === row.mitreControlType
+                        cd.mitreControlName === row.mitreControlName
                 );
 
                 if (!controlDetail) {
                     controlDetail = {
                         mitreControlName: row.mitreControlName,
+                        subControls: [],
                     };
                     acc[key].controlDetails.push(controlDetail);
                 }
