@@ -59,6 +59,7 @@ class ControlsService {
                         mitreControlId: row.mitreControlId,
                         mitreControlName: row.mitreControlName,
                         mitreControlType: row.mitreControlType,
+                        controlPriority: row.controlPriority,
                         subControls: [],
                         nistControls: [],
                         status: row.status,
@@ -148,6 +149,7 @@ class ControlsService {
             throw new Error("no update data found");
         }
 
+        controlPriority
         if (!Array.isArray(data.subControls) || data.subControls.length < 1) {
             throw new Error("Invalid request, subcontrol required");
         }
@@ -155,7 +157,7 @@ class ControlsService {
             const payload = {
                 mitreControlId,
                 mitreControlName,
-                mitreControlType
+                mitreControlType,
             }
             const [mitreThreatControlUpdateCount] = await MitreThreatControl.update(
                 payload,

@@ -54,6 +54,10 @@ module.exports = (sequelize) => {
         type: DataTypes.TEXT,
         field: "mitre_control_description",
       },
+      controlPriority: {
+        type: DataTypes.NUMBER,
+        field: "control_priority"
+      },
       bluOceanControlDescription: {
         type: DataTypes.TEXT,
         field: "bluocean_control_description",

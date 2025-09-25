@@ -29,6 +29,7 @@ class MitreThreatControlService {
                 "mitreControlId": control.mitreControlId,
                 "mitreControlName": control.mitreControlName,
                 "mitreControlType": control.mitreControlType,
+                "controlPriority": control.controlPriority,
                 "mitreControlDescription": control.mitreControlDescription,
                 "bluOceanControlDescription": control.bluOceanControlDescription,
                 "status": data.status ?? "published"
@@ -91,6 +92,7 @@ class MitreThreatControlService {
                     mitreControlId: row.mitreControlId,
                     mitreControlName: row.mitreControlName,
                     mitreControlType: row.mitreControlType,
+                    controlPriority: row.controlPriority,
                     mitreControlDescription: row.mitreControlDescription,
                     bluOceanControlDescription: row.bluOceanControlDescription,
                 });
@@ -167,6 +169,7 @@ class MitreThreatControlService {
                 "mitreControlName": control.mitreControlName,
                 "mitreControlType": control.mitreControlType,
                 "mitreControlDescription": control.mitreControlDescription,
+                "controlPriority": control.controlPriority,
                 "bluOceanControlDescription": control.bluOceanControlDescription,
                 "status": data.status ?? "published"
             }));
@@ -262,6 +265,7 @@ class MitreThreatControlService {
             "Mitre Control ID": "Mite Control ID",
             "Mitre Control Name": "Mite Control name",
             "Mitre Control Type": "Mite Control type",
+            "Control Priority": "Control Priority Number between (1-10) ",
             "Mitre Control Description": "Mitre Control Description",
             "BluOcean Control Description": "BluOcean Control Description text",
         });
@@ -286,6 +290,7 @@ class MitreThreatControlService {
                 .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
         }
 
+
         return new Promise((resolve, reject) => {
             const grouped = {};
 
@@ -303,6 +308,7 @@ class MitreThreatControlService {
                         mitreControlId: row["Mitre Control ID"],
                         mitreControlName: row["Mitre Control Name"],
                         mitreControlType: row["Mitre Control Type"],
+                        controlPriority: parseInt(row["Control Priority"]),
                         mitreControlDescription: row["Mitre Control Description"],
                         bluOceanControlDescription: row["BluOcean Control Description"],
                         status: "published",
@@ -414,6 +420,7 @@ class MitreThreatControlService {
                     "Mitre Control ID": row.mitre_control_id,
                     "Mitre Control Name": row.mitre_control_name,
                     "Mitre Control Type": row.mitre_control_type,
+                    "Control Priority": row.controlPriority,
                     "Mitre Control Description": row.mitre_control_description,
                     "BluOcean Control Description": row.blu_ocean_control_description,
                     "Created At": row.created_at,
