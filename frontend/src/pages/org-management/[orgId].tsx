@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Box, Typography, Tabs, Tab, Chip, Stack, Avatar, IconButton, Divider, Dialog, DialogContent } from "@mui/material";
+import { Box, Typography, Tabs, Tab, Chip, Stack, IconButton, Divider, Dialog, DialogContent } from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { Organization } from "@/types/organization";
@@ -744,7 +744,7 @@ function OrgDetailsPage() {
               {/* Question 7: Intellectual property value */}
               <Box sx={{ mb: 3 }}>
                 <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                  How much is the company's intellectual property and trade secrets worth as a percentage of its yearly revenue?
+                  How much is the company&apos;s intellectual property and trade secrets worth as a percentage of its yearly revenue?
                 </Typography>
                 <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
                   {formData.businessContext?.intellectualPropertyPercentage || "30"}%

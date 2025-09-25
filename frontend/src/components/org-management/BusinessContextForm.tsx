@@ -628,7 +628,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   mt: 3,
                 }}
               >
-                3. How much is the company's intellectual property and trade secrets worth as a percentage of its yearly revenue?
+                3. How much is the company&apos;s intellectual property and trade secrets worth as a percentage of its yearly revenue?
               </Typography>
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
