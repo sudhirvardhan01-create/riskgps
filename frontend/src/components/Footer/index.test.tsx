@@ -7,21 +7,23 @@ describe("Footer", () => {
   it("renders the copyright text", () => {
     render(<Footer />);
     expect(
-      screen.getByText(/@copyright 2025 RiskGPS. All rights reserved./i)
+      screen.getByText(/©2025 BluOcean Cyber. All rights reserved./i)
     ).toBeInTheDocument();
   });
 
   it("has correct styles applied", () => {
     render(<Footer />);
-    const footerBox = screen.getByText(/RiskGPS/).parentElement;
+    const footerBox = screen.getByText(/BluOcean/).parentElement;
     expect(footerBox).toHaveStyle({
-      textAlign: "center",
-      padding: "20px",
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "right",
+      padding: "20px 15px",
       backgroundColor: "#f5f5f5",
       color: "#000000",
       position: "absolute",
       bottom: "0",
-      width: "100%",
+      width: "90vw",
     });
   });
 });
