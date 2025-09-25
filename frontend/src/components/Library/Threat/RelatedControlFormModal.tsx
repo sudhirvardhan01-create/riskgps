@@ -191,7 +191,7 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
               renderValue={(selected: any) => {
                 if (!selected) {
                   return (
-                    <Typography variant="body2" sx={{ color: "#9E9FA5" }}>
+                    <Typography variant="body1" sx={{ color: "#9E9FA5" }}>
                       {tooltips.controlPriority}
                     </Typography>
                   );

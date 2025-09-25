@@ -203,50 +203,10 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
         </Typography>
 
         {/* Meta Info */}
-          <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
-            {footerChips?.map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  pb: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  mt: 1,
-                  mb: 1.5,
-                  gap: 1.25,
-                }}
-              >
-                <Chip
-                  label={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Typography variant="body2" color="#91939A">
-                        {item.label}
-                      </Typography>
-                      &nbsp;
-                      <Typography variant="body2" color="text.primary">
-                        {item.value}
-                      </Typography>
-                    </Box>
-                  }
-                  size="small"
-                  sx={{
-                    borderRadius: 0.5,
-                    height: 24,
-                    backgroundColor: "#FFF9C7",
-                  }}
-                />
-                {index !== footerChips?.length - 1 && (
-                  <Typography color="#D9D9D9">•</Typography>
-                )}
-              </Box>
-            ))}
+        <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
+          {footerChips?.map((item, index) => (
             <Box
+              key={index}
               sx={{
                 pb: 1,
                 display: "flex",
@@ -256,13 +216,63 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
                 gap: 1.25,
               }}
             >
-              <Typography color="#D9D9D9">•</Typography>
-              <Typography variant="body2" color="text.primary">
-                {module === "threat" ? `Controls: ` : `Threats: `}
-              </Typography>
-              <Typography variant="body2" color="text.primary" fontWeight={600}>{module === "threat" ? `${threatControlData.controls?.length}` : `${threatControlData?.subControls?.length}`}</Typography>
+              <Chip
+                label={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="#91939A">
+                      {item.label}
+                    </Typography>
+                    &nbsp;
+                    <Typography variant="body2" color="text.primary">
+                      {item.value}
+                    </Typography>
+                  </Box>
+                }
+                size="small"
+                sx={{
+                  borderRadius: 0.5,
+                  height: 24,
+                  backgroundColor: "#FFF9C7",
+                }}
+              />
+              {index !== footerChips?.length - 1 && (
+                <Typography color="#D9D9D9">•</Typography>
+              )}
             </Box>
-          </Stack>
+          ))}
+          <Box
+            sx={{
+              pb: 1,
+              display: "flex",
+              alignItems: "center",
+              mt: 1,
+              mb: 1.5,
+              gap: 1.25,
+            }}
+          >
+            <Typography color="#D9D9D9">•</Typography>
+            <Typography variant="body2" color="text.primary">
+              {module === "threat" ? `Controls: ` : `Threats: `}
+            </Typography>
+            <Typography variant="body2" color="text.primary" fontWeight={600}>
+              {module === "threat"
+                ? `${threatControlData.controls?.length}`
+                : `${threatControlData.controlDetails
+                    .map((item: any) => item.subControls?.length)
+                    .reduce(
+                      (accumulator: number, currentValue: number) =>
+                        accumulator + currentValue,
+                      0
+                    )}`}
+            </Typography>
+          </Box>
+        </Stack>
       </Box>
     </Box>
   );

@@ -1,10 +1,10 @@
 import { Box, Stack, TablePagination } from "@mui/material";
-import { ControlForm } from "@/types/control";
+import { ControlForm, MITREControlForm } from "@/types/control";
 import ThreatControlCard from "../ThreatControlCard";
 
 interface Props {
   loading: boolean;
-  data: ControlForm[];
+  data: MITREControlForm[];
   totalRows: number;
   page: number;
   rowsPerPage: number;
@@ -54,11 +54,11 @@ const ControlList: React.FC<Props> = ({
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
                 rowID={item.mitreControlId ?? ""}
-                headerChip={item.mitreControlType ?? ""}
-                title={item.mitreControlName ?? ""}
+                headerChip={""}
+                title={item.controlDetails.map((item) => item.mitreControlName).join(", ") ?? ""}
                 status={item.status ?? ""}
                 lastUpdated={item.updated_at}
-                footerChips={[{label: "MITRE Control Type:", value: item.mitreControlType}]}
+                footerChips={[{label: "MITRE Control Type:", value: item.mitreControlType ?? ""}]}
               />
             </div>
           ))

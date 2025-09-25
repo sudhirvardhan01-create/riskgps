@@ -69,7 +69,7 @@ export const tooltips = {
   mitreControlType: "Enter MITRE Control Type",
   mitreControlDescription: "Enter MITRE Control Description",
   bluoceanControlDescription: "Enter BluOcean Control Description",
-  controlPriority: "Select BluOcean Control Priority",
+  controlPriority: "Select Control Priority",
   framework: "Select Control Framework",
   frameworkControlCategoryId: "Enter Control Category ID",
   frameworkControlCategory: "Enter Control Category",
