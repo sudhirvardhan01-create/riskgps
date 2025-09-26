@@ -11,12 +11,15 @@ import {
   IconButton,
   Paper,
   Stack,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tabs,
+  tabsClasses,
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
@@ -30,7 +33,9 @@ interface ViewControlModalProps {
   open: boolean;
   controlData: MITREControlForm;
   setIsEditControlOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedControl: React.Dispatch<React.SetStateAction<ControlForm | null>>;
+  setSelectedControl: React.Dispatch<
+    React.SetStateAction<MITREControlForm | null>
+  >;
   onClose: () => void;
 }
 const ViewControlModal: React.FC<ViewControlModalProps> = ({
@@ -46,6 +51,10 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
   const selectedSubControls = controlData.controlDetails.find(
     (item) => item.mitreControlName === selectedTab
   )?.subControls;
+
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setSelectedTab(newValue);
+  };
 
   const getStatusComponent = () => {
     if (
@@ -182,7 +191,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
             </Box>
           </Grid>
 
-          {controlData.controlDetails.length > 1 && (
+          {/* {controlData.controlDetails.length > 1 && (
             <Grid size={{ xs: 12 }} mb={-2}>
               <ButtonTabs
                 selectedTab={selectedTab}
@@ -191,6 +200,30 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                   (item) => item.mitreControlName
                 )}
               />
+            </Grid>
+          )} */}
+
+          {controlData.controlDetails.length > 1 && (
+            <Grid size={{ xs: 12 }} mt={-1}>
+              <Tabs
+                value={selectedTab}
+                onChange={handleChange}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  [`& .${tabsClasses.scrollButtons}`]: {
+                    "&.Mui-disabled": { opacity: 0.3 },
+                  },
+                }}
+              >
+                {controlData.controlDetails.map((item) => (
+                  <Tab
+                    label={item.mitreControlName}
+                    key={item.mitreControlName}
+                    value={item.mitreControlName}
+                  />
+                ))}
+              </Tabs>
             </Grid>
           )}
 

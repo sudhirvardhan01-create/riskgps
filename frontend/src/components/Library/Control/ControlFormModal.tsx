@@ -21,6 +21,9 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  tabsClasses,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import { Close, DoneOutlined, EditOutlined } from "@mui/icons-material";
 import TextFieldStyled from "@/components/TextFieldStyled";
@@ -28,15 +31,19 @@ import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
-import { ControlForm, RelatedThreatForm } from "@/types/control";
+import {
+  ControlForm,
+  MITREControlForm,
+  RelatedThreatForm,
+} from "@/types/control";
 import RelatedThreatFormModal from "./RelatedThreatFormModal";
 
 interface ControlFormModalProps {
   operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
-  formData: ControlForm;
-  setFormData: React.Dispatch<React.SetStateAction<ControlForm>>;
+  formData: MITREControlForm;
+  setFormData: React.Dispatch<React.SetStateAction<MITREControlForm>>;
   onSubmit: (status: string) => void;
 }
 
@@ -48,23 +55,34 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
   setFormData,
   onSubmit,
 }) => {
+  const [selectedTab, setSelectedTab] = useState<string>(
+    formData.controlDetails[0]?.mitreControlName
+  );
+  const selectedSubControls = formData.controlDetails.find(
+    (item) => item.mitreControlName === selectedTab
+  )?.subControls;
+
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: string) => {
+    setSelectedTab(newValue);
+  };
+
   const [isEditRelatedThreatModalOpen, setIsEditRelatedThreatModalOpen] =
     useState<boolean>(false);
   const [selectedRelatedThreat, setSelectedRelatedThreat] =
     useState<RelatedThreatForm | null>(null);
   const [selectedRecordID, setSelectedRecordID] = useState<number | null>(null);
 
-  const editRelatedThreat = (id: number) => {
-    const updatedRelatedThreats = [...(formData?.subControls ?? [])];
-    updatedRelatedThreats[id].mitreControlDescription =
-      selectedRelatedThreat?.mitreControlDescription ?? "";
-    updatedRelatedThreats[id].bluOceanControlDescription =
-      selectedRelatedThreat?.bluOceanControlDescription ?? "";
-    setFormData((prev) => ({ ...prev, subControls: updatedRelatedThreats }));
-  };
+  // const editRelatedThreat = (id: number) => {
+  //   const updatedRelatedThreats = [...(formData?.subControls ?? [])];
+  //   updatedRelatedThreats[id].mitreControlDescription =
+  //     selectedRelatedThreat?.mitreControlDescription ?? "";
+  //   updatedRelatedThreats[id].bluOceanControlDescription =
+  //     selectedRelatedThreat?.bluOceanControlDescription ?? "";
+  //   setFormData((prev) => ({ ...prev, subControls: updatedRelatedThreats }));
+  // };
 
   const handleChange = useCallback(
-    (field: keyof ControlForm, value: any) => {
+    (field: keyof MITREControlForm, value: any) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
     [setFormData] // only depends on setter from props
@@ -127,9 +145,10 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             }
           }}
           onSubmit={() => {
-            if (typeof selectedRecordID === "number")
-              editRelatedThreat(selectedRecordID);
-            setIsEditRelatedThreatModalOpen(false);
+            // if (typeof selectedRecordID === "number")
+            //   editRelatedThreat(selectedRecordID);
+            // setIsEditRelatedThreatModalOpen(false);
+            console.log("Submitted");
           }}
         />
       )}
@@ -190,22 +209,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               />
             </Grid>
 
-            {/* MITRE Control Name */}
-            <Grid mt={1} size={{ xs: 6 }}>
-              <TextFieldStyled
-                disabled
-                required
-                label={labels.mitreControlName}
-                isTooltipRequired={true}
-                tooltipTitle={tooltips.mitreControlName}
-                placeholder="Enter MITRE Control Name"
-                value={formData.mitreControlName}
-                onChange={(e) =>
-                  handleChange("mitreControlName", e.target.value)
-                }
-              />
-            </Grid>
-
             {/* MITRE Control Type */}
             <Grid mt={1} size={{ xs: 6 }}>
               <SelectStyled
@@ -253,7 +256,6 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             {/* Control Priority */}
             <Grid mt={1} size={{ xs: 6 }}>
               <SelectStyled
-                disabled
                 required
                 value={formData.controlPriority}
                 label={labels.controlPriority}
@@ -292,13 +294,55 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
               </SelectStyled>
             </Grid>
 
+            {/* MITRE Control Name */}
+            {formData.controlDetails.length === 1 && (
+              <Grid mt={1} size={{ xs: 6.001 }}>
+                <TextFieldStyled
+                  disabled
+                  required
+                  label={labels.mitreControlName}
+                  isTooltipRequired={true}
+                  tooltipTitle={tooltips.mitreControlName}
+                  placeholder="Enter MITRE Control Name"
+                  value={formData.controlDetails[0]?.mitreControlName}
+                  // onChange={(e) =>
+                  //   handleChange("mitreControlName", e.target.value)
+                  // }
+                />
+              </Grid>
+            )}
+
+            {formData.controlDetails.length > 1 && (
+              <Grid size={{ xs: 12 }} mt={-1}>
+                <Tabs
+                  value={selectedTab}
+                  onChange={handleChangeTab}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{
+                    [`& .${tabsClasses.scrollButtons}`]: {
+                      "&.Mui-disabled": { opacity: 0.3 },
+                    },
+                  }}
+                >
+                  {formData.controlDetails.map((item) => (
+                    <Tab
+                      label={item.mitreControlName}
+                      key={item.mitreControlName}
+                      value={item.mitreControlName}
+                    />
+                  ))}
+                </Tabs>
+              </Grid>
+            )}
+
             {/* RELATED THREATS SECTION */}
             <Grid mt={1} size={{ xs: 12 }}>
               <Stack display={"flex"} flexDirection={"column"} gap={2}>
                 <Typography variant="h6" fontWeight={600}>
                   Related Threats
                 </Typography>
-                {formData?.subControls && formData?.subControls?.length > 0 && (
+                {selectedSubControls && selectedSubControls?.length > 0 && (
                   <Grid size={{ xs: 12 }}>
                     <Paper sx={{ width: "100%", overflow: "hidden" }}>
                       <TableContainer sx={{ maxHeight: 440 }}>
@@ -312,7 +356,7 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {formData.subControls?.map((control, index) => {
+                            {selectedSubControls?.map((control, index) => {
                               return (
                                 <TableRow
                                   hover

@@ -9,12 +9,17 @@ import ViewControlModal from "@/components/Library/Control/ViewControlModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
-import { ControlForm, ControlFrameworkForm } from "@/types/control";
+import {
+  ControlForm,
+  ControlFrameworkForm,
+  MITREControlForm,
+} from "@/types/control";
 import { ControlService } from "@/services/controlService";
 import ButtonTabs from "@/components/ButtonTabs";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
 import { ControlFrameworkService } from "@/services/controlFrameworkService";
+import DeleteMultipleControls from "@/components/Library/Control/DeleteMultipleControls";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
   frameWorkName: "",
@@ -43,15 +48,17 @@ export default function ControlContainer() {
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [sort, setSort] = useState<string>("id:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
-  const [controlsData, setControlsData] = useState<ControlForm[]>([]);
+  const [controlsData, setControlsData] = useState<MITREControlForm[]>([]);
   const [controlsForListing, setControlsForListing] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
-  const [selectedControl, setSelectedControl] = useState<ControlForm | null>(
-    null
-  );
+  const [selectedControl, setSelectedControl] =
+    useState<MITREControlForm | null>(null);
+  const [selectedControlsToDelete, setSelectedControlsToDelete] = useState<
+    string[]
+  >([]);
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -60,6 +67,8 @@ export default function ControlContainer() {
   const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isSelectControlsToDeleteOpen, setIsSelectControlsToDeleteOpen] =
+    useState(false);
 
   const [toast, setToast] = useState({
     open: false,
@@ -165,7 +174,9 @@ export default function ControlContainer() {
     (async () => {
       try {
         setLoading(true);
-        const data = await ControlService.fetchControlsForListing("mitreControlId");
+        const data = await ControlService.fetchControlsForListing(
+          "mitreControlId"
+        );
         setControlsForListing(data.mitreControlId ?? []);
       } catch (err) {
         console.error(err);
@@ -226,38 +237,38 @@ export default function ControlContainer() {
   };
 
   // Update
-  const handleUpdate = async (status: string) => {
-    try {
-      if (
-        !selectedControl?.mitreControlId ||
-        !selectedControl?.mitreControlName ||
-        !selectedControl?.mitreControlType
-      )
-        throw new Error("Invalid selection");
-      const body = { ...selectedControl, status };
-      await ControlService.update(
-        body,
-        selectedControl.mitreControlId,
-        selectedControl.mitreControlName,
-        selectedControl.mitreControlType
-      );
-      setIsEditOpen(false);
-      setSelectedControl(null);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: "Control updated",
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to update control",
-        severity: "error",
-      });
-    }
-  };
+  // const handleUpdate = async (status: string) => {
+  //   try {
+  //     if (
+  //       !selectedControl?.mitreControlId ||
+  //       !selectedControl?.mitreControlName ||
+  //       !selectedControl?.mitreControlType
+  //     )
+  //       throw new Error("Invalid selection");
+  //     const body = { ...selectedControl, status };
+  //     await ControlService.update(
+  //       body,
+  //       selectedControl.mitreControlId,
+  //       selectedControl.mitreControlName,
+  //       selectedControl.mitreControlType
+  //     );
+  //     setIsEditOpen(false);
+  //     setSelectedControl(null);
+  //     setRefreshTrigger((p) => p + 1);
+  //     setToast({
+  //       open: true,
+  //       message: "Control updated",
+  //       severity: "success",
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     setToast({
+  //       open: true,
+  //       message: "Failed to update control",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
   // Update status only
   const handleUpdateStatus = async (
@@ -286,34 +297,34 @@ export default function ControlContainer() {
   };
 
   // Delete
-  const handleDelete = async () => {
-    try {
-      if (
-        !selectedControl?.mitreControlId ||
-        !selectedControl?.mitreControlName
-      )
-        throw new Error("Invalid selection");
-      await ControlService.delete(
-        selectedControl.mitreControlId as string,
-        selectedControl.mitreControlName as string
-      );
-      setIsDeleteConfirmOpen(false);
-      setSelectedControl(null);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: `Deleted control ${selectedControl?.mitreControlName}`,
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to delete control",
-        severity: "error",
-      });
-    }
-  };
+  // const handleDelete = async () => {
+  //   try {
+  //     if (
+  //       !selectedControl?.mitreControlId ||
+  //       !selectedControl?.mitreControlName
+  //     )
+  //       throw new Error("Invalid selection");
+  //     await ControlService.delete(
+  //       selectedControl.mitreControlId as string,
+  //       selectedControl.mitreControlName as string
+  //     );
+  //     setIsDeleteConfirmOpen(false);
+  //     setSelectedControl(null);
+  //     setRefreshTrigger((p) => p + 1);
+  //     setToast({
+  //       open: true,
+  //       message: `Deleted control ${selectedControl?.mitreControlName}`,
+  //       severity: "success",
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     setToast({
+  //       open: true,
+  //       message: "Failed to delete control",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -432,7 +443,7 @@ export default function ControlContainer() {
       searchPattern,
       setSearchPattern,
       sort,
-      setSort
+      setSort,
     ]
   );
 
@@ -474,12 +485,13 @@ export default function ControlContainer() {
           formData={selectedControl}
           setFormData={(val: any) => {
             if (typeof val === "function") {
-              setSelectedControl((prev) => val(prev as ControlForm));
+              setSelectedControl((prev) => val(prev as MITREControlForm));
             } else {
               setSelectedControl(val);
             }
           }}
-          onSubmit={handleUpdate}
+          // onSubmit={handleUpdate}
+          onSubmit={() => console.log("Updated")}
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
@@ -518,10 +530,29 @@ export default function ControlContainer() {
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Control Deletion?"
         description={`Are you sure you want to delete Control ${selectedControl?.mitreControlId}? All associated data will be removed from the system.`}
-        onConfirm={() => handleDelete()}
+        // onConfirm={() => handleDelete()}
+        onConfirm={() => console.log(selectedControl?.mitreControlId, selectedControl?.controlDetails[0].mitreControlName)}
         cancelText="Cancel"
         confirmText="Yes, Delete"
       />
+
+      {selectedControl && selectedControl.controlDetails.length > 1 && (
+        <DeleteMultipleControls
+          open={isSelectControlsToDeleteOpen}
+          onClose={() => setIsSelectControlsToDeleteOpen(false)}
+          mitreControlNames={selectedControl?.controlDetails?.map(
+            (item) => item.mitreControlName
+          )}
+          selectedControlsToDelete={selectedControlsToDelete}
+          setSelectedControlsToDelete={setSelectedControlsToDelete}
+          onDelete={() => {
+            selectedControlsToDelete.map((selected) =>
+              console.log(selectedControl.mitreControlId, selected)
+            );
+            setSelectedControlsToDelete([]);
+          }}
+        />
+      )}
 
       {/* Page content */}
       <Box p={5}>
@@ -550,6 +581,7 @@ export default function ControlContainer() {
             setIsEditOpen={setIsEditOpen}
             setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
             handleUpdateStatus={handleUpdateStatus}
+            setIsSelectControlsToDeleteOpen={setIsSelectControlsToDeleteOpen}
           />
         )}
 

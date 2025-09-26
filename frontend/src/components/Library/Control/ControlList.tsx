@@ -12,7 +12,7 @@ interface Props {
   onRowsPerPageChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  setSelectedControl: React.Dispatch<React.SetStateAction<ControlForm | null>>;
+  setSelectedControl: React.Dispatch<React.SetStateAction<MITREControlForm | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,6 +21,7 @@ interface Props {
     mitreControlId: string,
     mitreControlName?: string
   ) => void;
+  setIsSelectControlsToDeleteOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ControlList: React.FC<Props> = ({
@@ -35,6 +36,7 @@ const ControlList: React.FC<Props> = ({
   setIsEditOpen,
   setIsDeleteConfirmOpen,
   handleUpdateStatus,
+  setIsSelectControlsToDeleteOpen,
 }) => {
   return (
     <>
@@ -59,6 +61,7 @@ const ControlList: React.FC<Props> = ({
                 status={item.status ?? ""}
                 lastUpdated={item.updated_at}
                 footerChips={[{label: "MITRE Control Type:", value: item.mitreControlType ?? ""}]}
+                setIsSelectControlsToDeleteOpen={setIsSelectControlsToDeleteOpen}
               />
             </div>
           ))

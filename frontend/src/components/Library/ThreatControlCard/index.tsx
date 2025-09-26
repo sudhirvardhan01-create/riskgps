@@ -30,6 +30,9 @@ interface ThreatControlCardProps {
   lastUpdated?: string | Date;
   status: string;
   footerChips?: FooterChip[];
+  setIsSelectControlsToDeleteOpen?: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 }
 
 const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
@@ -46,6 +49,7 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
   status,
   lastUpdated,
   footerChips,
+  setIsSelectControlsToDeleteOpen,
 }) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
@@ -103,10 +107,23 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
       icon: <EditOutlined fontSize="small" />,
     },
     {
-      onAction: () => {
-        setSelectedData(threatControlData);
-        setIsDeleteConfirmPopupOpen(true);
-      },
+      onAction:
+        module === "threat"
+          ? () => {
+              setSelectedData(threatControlData);
+              setIsDeleteConfirmPopupOpen(true);
+            }
+          : () => {
+              if (threatControlData?.controlDetails?.length === 1) {
+                setSelectedData(threatControlData);
+                setIsDeleteConfirmPopupOpen(true);
+              } else {
+                if (setIsSelectControlsToDeleteOpen) {
+                  setSelectedData(threatControlData);
+                  setIsSelectControlsToDeleteOpen(true);
+                }
+              }
+            },
       color: "#CD0303",
       action: "Delete",
       icon: <DeleteOutlineOutlined fontSize="small" />,
