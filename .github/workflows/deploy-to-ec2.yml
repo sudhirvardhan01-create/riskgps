@@ -18,7 +18,7 @@ env:
   SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
   SSM_CREDS: /bluocean/creds
 
-jobs:
+jobs: 
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
