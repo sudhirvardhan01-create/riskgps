@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
+import { COMPLIANCE_FRAMEWORKS, RECORD_TYPES, COUNTRIES } from "@/constants/constant";
 
 interface BusinessContextData {
   industryVertical: string;
@@ -87,14 +88,11 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                     onFieldChange("regionOfOperation", e.target.value as string)
                   }
                 >
-                  <MenuItem value="">Select country</MenuItem>
-                  <MenuItem value="US">United States</MenuItem>
-                  <MenuItem value="UK">United Kingdom</MenuItem>
-                  <MenuItem value="CA">Canada</MenuItem>
-                  <MenuItem value="AU">Australia</MenuItem>
-                  <MenuItem value="DE">Germany</MenuItem>
-                  <MenuItem value="FR">France</MenuItem>
-                  <MenuItem value="IN">India</MenuItem>
+                  {COUNTRIES.map((country) => (
+                    <MenuItem key={country.value} value={country.value}>
+                      {country.label}
+                    </MenuItem>
+                  ))}
                 </SelectStyled>
               </Grid>
             </Grid>
@@ -383,14 +381,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               </Typography>
 
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {[
-                  "PII",
-                  "PIII",
-                  "PFI",
-                  "PHI",
-                  "Intellectual Property",
-                  "Government Records"
-                ].map((recordType) => {
+                {RECORD_TYPES.map((recordType) => {
                   const isSelected = businessContext.recordTypes?.includes(recordType) || false;
                   return (
                     <Button
@@ -552,11 +543,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                 2. Did the organization obtain PCI DSS, ISO 27001, or SOC2 certification in the past year? Please check the appropriate boxes if any.
               </Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {[
-                  "PCI DSS",
-                  "ISO 27001",
-                  "SOC 2",
-                ].map((certification) => {
+                {COMPLIANCE_FRAMEWORKS.map((certification) => {
                   const isSelected = businessContext.certifications?.includes(certification) || false;
                   return (
                     <Button
