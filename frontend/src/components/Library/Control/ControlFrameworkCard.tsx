@@ -6,40 +6,41 @@ import {
 } from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
+import { ControlFrameworkForm } from "@/types/control";
 
-interface TagItem {
+interface FooterChip {
   label: string;
-  value: any;
+  value: string;
 }
 
-interface ThreatCardProps {
-  threatData: any;
-  setSelectedThreatData: React.Dispatch<React.SetStateAction<any>>;
-  setIsViewThreatOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsEditThreatOpen: React.Dispatch<React.SetStateAction<boolean>>;
+interface ControlFrameworkCardProps {
+  controlFrameworkRecord: ControlFrameworkForm;
+  setSelectedControlFrameworkRecord: React.Dispatch<React.SetStateAction<any>>;
+  setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  rowID: string;
+  headerChip?: string;
+  title: string;
   handleUpdateStatus: (id: number, status: string) => void;
-  threatTechniqueID: string;
-  mitrePlatform?: string;
-  threatTechniqueName: string;
+  lastUpdated?: string | Date;
   status: string;
-  ciaMapping?: string[];
-  tagItems: TagItem[];
+  footerChips?: FooterChip[];
 }
 
-const ThreatCard: React.FC<ThreatCardProps> = ({
-  threatData,
-  setSelectedThreatData,
-  setIsViewThreatOpen,
-  setIsEditThreatOpen,
+const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
+  controlFrameworkRecord,
+  setSelectedControlFrameworkRecord,
+  setIsViewOpen,
+  setIsEditOpen,
   setIsDeleteConfirmPopupOpen,
   handleUpdateStatus,
-  threatTechniqueID,
-  threatTechniqueName,
-  mitrePlatform = "Not Defined",
+  rowID,
+  headerChip,
+  title,
   status,
-  ciaMapping,
-  tagItems,
+  lastUpdated,
+  footerChips,
 }) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
@@ -52,7 +53,8 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
                 const updatedStatus = e.target.checked
                   ? "published"
                   : "not_published";
-                handleUpdateStatus(threatData.id as number, updatedStatus);
+                if (typeof controlFrameworkRecord.id === "number")
+                  handleUpdateStatus(controlFrameworkRecord.id, updatedStatus);
               }}
               checked={status === "published"}
             />
@@ -77,8 +79,8 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
   const dialogData = [
     {
       onAction: () => {
-        setSelectedThreatData(threatData);
-        setIsEditThreatOpen(true);
+        setSelectedControlFrameworkRecord(controlFrameworkRecord);
+        setIsEditOpen(true);
       },
       color: "primary.main",
       action: "Edit",
@@ -86,7 +88,7 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
     },
     {
       onAction: () => {
-        setSelectedThreatData(threatData);
+        setSelectedControlFrameworkRecord(controlFrameworkRecord);
         setIsDeleteConfirmPopupOpen(true);
       },
       color: "#CD0303",
@@ -94,6 +96,10 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
       icon: <DeleteOutlineOutlined fontSize="small" />,
     },
   ];
+
+  const formattedDate = lastUpdated
+    ? new Date(lastUpdated as string | Date).toISOString().split("T")[0]
+    : "";
 
   return (
     <Box
@@ -124,39 +130,13 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography variant="body1" color={"text.primary"}>
-              {threatTechniqueID}
+              {rowID}
             </Typography>
-            <Chip
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography variant="body2" color="#91939A">
-                    {"MITRE Platform:"}
-                  </Typography>
-                  &nbsp;
-                  <Typography variant="body2" color="text.primary">
-                    {mitrePlatform}
-                  </Typography>
-                </Box>
-              }
-              variant="outlined"
-              size="small"
-              sx={{
-                borderRadius: 0.5,
-                border: "1px solid #DDDDDD",
-                height: 24,
-              }}
-            />
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={0}>
             <Typography variant="body2" color="textSecondary">
-              CIA Mapping: {ciaMapping?.join(", ")}
+              Last Updated: {formattedDate}
             </Typography>
             <Box sx={{ width: 96, mx: "24px !important" }}>
               {getStatusComponent()}
@@ -169,51 +149,63 @@ const ThreatCard: React.FC<ThreatCardProps> = ({
       {/* Body */}
       <Box
         onClick={() => {
-          setSelectedThreatData(threatData);
-          setIsViewThreatOpen(true);
+          setSelectedControlFrameworkRecord(controlFrameworkRecord);
+          setIsViewOpen(true);
         }}
         sx={{ cursor: "pointer" }}
       >
         <Typography variant="body1" fontWeight={550} sx={{ px: 3 }}>
-          {threatTechniqueName}
+          {title}
         </Typography>
 
         {/* Meta Info */}
-        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center", mt: 1, mb: 1.5, gap: 2 }}>
-          {tagItems.map((item, index) => (
-            <>
-              <Chip
-                key={index}
-                label={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Typography variant="body2" color="#91939A">
-                      {item.label}:
-                    </Typography>
-                    &nbsp;
-                    <Typography variant="body2" color="text.primary">
-                      {item.value}
-                    </Typography>
-                  </Box>
-                }
-                size="small"
-                sx={{
-                  borderRadius: 0.5,
-                  height: 24,
-                  backgroundColor: "#FFF9C7"
-                }}
-              />
-            </>
-          ))}
-        </Box>
+        <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
+        {footerChips?.map((item, index) => (
+          <Box
+            key={index}
+            sx={{
+              pb: 1,
+              display: "flex",
+              alignItems: "center",
+              mt: 1,
+              mb: 1.5,
+              gap: 1.25,
+            }}
+          >
+            <Chip
+              label={
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography variant="body2" color="#91939A">
+                    {item.label}
+                  </Typography>
+                  &nbsp;
+                  <Typography variant="body2" color="text.primary">
+                    {item.value}
+                  </Typography>
+                </Box>
+              }
+              size="small"
+              sx={{
+                borderRadius: 0.5,
+                height: 24,
+                backgroundColor: "#FFF9C7",
+              }}
+            />
+            {index !== footerChips?.length - 1 && (
+              <Typography color="#D9D9D9">•</Typography>
+            )}
+          </Box>
+        ))}
+        </Stack>
       </Box>
     </Box>
   );
 };
 
-export default ThreatCard;
+export default ControlFrameworkCard;

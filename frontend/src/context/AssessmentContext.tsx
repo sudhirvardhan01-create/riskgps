@@ -1,11 +1,7 @@
 "use client";
 
+import { ProcessUnit } from "@/types/assessment";
 import React, { createContext, useContext, useState } from "react";
-
-interface ProcessUnit {
-  orgProcessId: string;
-  name: string;
-}
 
 interface AssessmentContextType {
   assessmentId: string;

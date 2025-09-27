@@ -154,6 +154,7 @@ export const updateAsset = async (id: number, data: AssetForm) => {
     domain: data.domain,
   };
 
+  console.log(assetData);
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/asset/${id}`,
     {

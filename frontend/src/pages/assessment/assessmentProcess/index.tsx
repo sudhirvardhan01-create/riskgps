@@ -14,23 +14,17 @@ import {
   getOrganization,
   getOrganizationProcess,
 } from "../../api/organization";
-import { saveAssessment, saveAssessmentProcess } from "@/pages/api/assessment";
-
-interface Organisation {
-  organizationId: string;
-  name: string;
-  businessUnits: BusinessUnit[];
-}
-
-interface BusinessUnit {
-  orgBusinessUnitId: string;
-  businessUnitName: string;
-}
-
-interface ProcessUnit {
-  orgProcessId: string;
-  name: string;
-}
+import {
+  saveAssessmentProcess,
+  saveAssessmentRisk,
+} from "@/pages/api/assessment";
+import BusinessImpact from "@/components/Assessment/BusinessImpact";
+import {
+  Assessment,
+  BusinessUnit,
+  Organisation,
+  ProcessUnit,
+} from "@/types/assessment";
 
 export default function BUProcessMappingPage() {
   const {
@@ -41,7 +35,6 @@ export default function BUProcessMappingPage() {
     selectedProcesses,
     setSelectedProcesses,
     orderedProcesses,
-    setOrderedProcesses,
   } = useAssessment();
   const router = useRouter();
 
@@ -78,6 +71,9 @@ export default function BUProcessMappingPage() {
         setOrganisations(res.data.organizations);
 
         const response = await getOrganizationProcess(selectedOrg, selectedBU);
+        response.data.forEach((item: any) => {
+          item["risks"] = [];
+        });
         setProcesses(response.data);
       } catch (error) {
         console.error("Error fetching organisations:", error);
@@ -100,6 +96,17 @@ export default function BUProcessMappingPage() {
     setBusinessUnits(org?.businessUnits || []);
   }, [selectedOrg, organisations]);
 
+  const prepareRiskPayload = () => {
+    const obj = selectedProcesses.flatMap((process) =>
+      process.risks.map((risk) => ({
+        assessmentProcessId: process.assessmentProcessId ?? "",
+        riskScenarioName: risk.name,
+        riskScenarioDesc: "Test Desc",
+      }))
+    );
+    return obj;
+  };
+
   // Navigation
   const handlePrev = () => {
     if (activeTab > 0) {
@@ -110,23 +117,45 @@ export default function BUProcessMappingPage() {
     }
   };
 
-  const handleSaveContinue = (status: string) => {
-    if (activeTab < stepsTab.length - 1) {
+  const handleSaveContinue = async (status: string) => {
+    if (activeStep == 0 && activeTab < stepsTab.length - 1) {
       setActiveTab((prev) => prev + 1);
     } else {
+      switch (activeStep) {
+        case 0:
+          const res = await saveAssessmentProcess({
+            id: assessmentId,
+            processes: selectedProcesses.map((item) => {
+              return {
+                processName: item.name,
+                order: orderedProcesses[item.orgProcessId],
+              };
+            }),
+            status: status,
+            userId: "2",
+          });
+
+          const updatedProcesses = selectedProcesses.map((item) => {
+            const match = res.processes.find(
+              (obj: any) => obj.processName === item.name
+            );
+            return {
+              ...item,
+              assessmentProcessId: match?.assessmentProcessId ?? null, // add safely
+            };
+          });
+
+          setSelectedProcesses(updatedProcesses);
+          break;
+
+        case 1:
+          const riskScenarios = prepareRiskPayload();
+          saveAssessmentRisk({ assessmentId, userId: "2", riskScenarios });
+          break;
+      }
+
       setActiveStep((prev) => prev + 1);
       setActiveTab(0);
-      saveAssessmentProcess({
-        id: assessmentId,
-        processes: selectedProcesses.map((item) => {
-          return {
-            processName: item.name,
-            order: orderedProcesses[item.orgProcessId],
-          };
-        }),
-        status: status,
-        userId: "2",
-      });
     }
   };
 
@@ -135,8 +164,15 @@ export default function BUProcessMappingPage() {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <>
-          <Box sx={{ py: 3, px: 5 }}>
+        <Box sx={{ backgroundColor: "#ffffff" }}>
+          <Box
+            sx={{
+              py: 3,
+              px: 5,
+              overflow: "auto",
+              maxHeight: "calc(100vh - 109px)",
+            }}
+          >
             {/* Top Navigation Bar */}
             <TopBar
               title={assessmentName}
@@ -178,11 +214,12 @@ export default function BUProcessMappingPage() {
               {activeStep === 0 && activeTab === 1 && (
                 <AssignOrder
                   processes={selectedProcesses}
-                  onOrderChange={setOrderedProcesses}
+                  onOrderChange={setSelectedProcesses}
                 />
               )}
 
               {activeStep === 1 && <DragDropRiskScenarios />}
+              {activeStep === 2 && <BusinessImpact />}
             </Box>
           </Box>
 
@@ -193,15 +230,17 @@ export default function BUProcessMappingPage() {
             onSaveDraft={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              handleSaveContinue("draft")
+              handleSaveContinue("draft");
+              router.push("/assessment");
             }}
             onSaveContinue={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              handleSaveContinue("in_progress")
+              handleSaveContinue("in_progress");
             }}
+            activeStep={activeStep}
           />
-        </>
+        </Box>
       )}
     </>
   );

@@ -24,7 +24,7 @@ export interface ProcessData {
     financialMateriality?: boolean
     thirdPartyInvolvement?: boolean,
     users?: string,
-    requlatoryAndCompliance?: string,
+    requlatoryAndCompliance?: string[],
     criticalityOfDataProcessed?: string,
     dataProcessed?: string[],
     processDependency?: ProcessDependency[],
@@ -32,5 +32,6 @@ export interface ProcessData {
     attributes?: ProcessAttributes[],
     industry?: string[],
     domain?: string[],
-    lastUpdated?: Date
+    lastUpdated?: Date,
+    createdAt?: Date | string;
 }

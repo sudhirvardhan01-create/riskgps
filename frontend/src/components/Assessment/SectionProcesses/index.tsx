@@ -2,11 +2,7 @@ import { Grid, Box, TextField, IconButton } from "@mui/material";
 import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { useState } from "react";
 import ProcessCard from "./ProcessCard";
-
-interface ProcessUnit {
-  orgProcessId: string;
-  name: string;
-}
+import { ProcessUnit } from "@/types/assessment";
 
 interface SectionProcessesProps {
   processes: ProcessUnit[];

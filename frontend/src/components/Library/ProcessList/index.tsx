@@ -9,7 +9,9 @@ interface Props {
   page: number;
   rowsPerPage: number;
   onPageChange: (e: any, page: number) => void;
-  onRowsPerPageChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onRowsPerPageChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   setSelectedProcess: React.Dispatch<React.SetStateAction<ProcessData | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -30,9 +32,13 @@ const ProcessList: React.FC<Props> = ({
   setIsDeleteConfirmOpen,
   handleUpdateStatus,
 }) => {
+  console.log(data);
   return (
     <>
-      <Stack spacing={2} sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}>
+      <Stack
+        spacing={2}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}
+      >
         {data && data.length > 0 ? (
           data.map((item) => (
             <div key={item.id ?? item.processCode ?? JSON.stringify(item)}>
@@ -45,15 +51,21 @@ const ProcessList: React.FC<Props> = ({
                 handleUpdateStatus={handleUpdateStatus}
                 title={item.processCode ?? ""}
                 desc={item.processName ?? ""}
-                chip={item.industry?.length ? item.industry.join(",") : "Not Defined"}
+                chip={
+                  item.industry?.length
+                    ? item.industry.join(", ")
+                    : "Not Defined"
+                }
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
-                  { label: "Tags", value: item.attributes?.length },
-                  { label: "Processes", value: item.processDependency?.length },
-                  // { label: "Assets", value: item. },
-                  // { label: "Threats", value: item.threats },
+                  { label: "Dependant Processes", value:item.processDependency?.length },
+                  { label: "Follows", value: item.processDependency?.filter((pd) => pd.relationshipType === "follows")?.length },
+                  { label: "Precedes", value: item.processDependency?.filter((pd) => pd.relationshipType === "precedes")?.length },
                 ]}
+                module="Process"
+                footerChipKey="Users"
+                footerChipValue={item.users ? item.users : "Not Defined"}
               />
             </div>
           ))
@@ -63,7 +75,17 @@ const ProcessList: React.FC<Props> = ({
         )}
       </Stack>
 
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mt: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+          bottom: 55,
+          left: "50%", // place horizontally at 50%
+          transform: "translateX(-50%)",
+        }}
+      >
         <TablePagination
           component="div"
           count={totalRows}

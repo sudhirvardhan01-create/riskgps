@@ -56,6 +56,7 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
     riskScenario: item.risk_scenario,
     riskStatement: item.risk_statement,
     riskDescription: item.risk_description,
+    ciaMapping: item.cia_mapping,
     industry: item.industry,
     tags: item.tags,
     related_processes: item.related_processes,
@@ -65,6 +66,7 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
     riskField2: item.risk_field_2,
     attributes: item.attributes,
     lastUpdated: item.updated_at,
+    createdAt: item.created_at,
     status: item.status,
   }));
 };
@@ -90,6 +92,7 @@ export const createRiskScenario = async (data: RiskScenarioData) => {
     "risk_scenario": data.riskScenario,
     "risk_description": data.riskDescription,
     "risk_statement": data.riskStatement, 
+    "cia_mapping": data.ciaMapping,
     "risk_field_1": data.riskField1?? null,
     "risk_field_2": data.riskField2?? null,
     "status": data.status,
@@ -120,6 +123,7 @@ export const updateRiskScenario = async (id: number, data: any) => {
     "risk_scenario": data.riskScenario,
     "risk_description": data.riskDescription,
     "risk_statement": data.riskStatement, 
+    "cia_mapping": data.ciaMapping,
     "risk_field_1": data.riskField1?? null,
     "risk_field_2": data.riskField2?? null,
     "status": data.status,

@@ -13,14 +13,15 @@ import {
 } from "@/types/risk-scenario";
 import { RiskScenarioService } from "@/services/riskScenarioService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { fetchProcesses } from "@/pages/api/process";
 import { Filter } from "@/types/filter";
 import { FileService } from "@/services/fileService";
+import { ProcessService } from "@/services/processService";
 
 const initialRiskData: RiskScenarioData = {
   riskScenario: "",
   riskStatement: "",
   riskDescription: "",
+  ciaMapping: [],
   riskField1: "",
   riskField2: "",
   attributes: [] as RiskScenarioAttributes[],
@@ -121,11 +122,8 @@ export default function RiskScenarioContainer() {
     (async () => {
       try {
         setLoading(true);
-        const [proc, meta] = await Promise.all([
-          fetchProcesses(0, 0),
-          fetchMetaDatas(),
-        ]);
-        setProcessesData(proc.data ?? []);
+        const [processes, meta] = await Promise.all([ProcessService.fetchProcessesForListing() ,fetchMetaDatas()]);
+        setProcessesData(processes.data ?? []);
         setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error(err);

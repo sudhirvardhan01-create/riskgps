@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -8,61 +8,109 @@ import {
   Button,
   MenuItem,
   IconButton,
-  FormControl,
   Typography,
   DialogActions,
   Divider,
   Chip,
-  FormLabel,
-  RadioGroup,
   FormControlLabel,
-  Radio,
   Stack,
+  Paper,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
 import {
   Add,
   Close,
   DeleteOutlineOutlined,
   DoneOutlined,
+  EditOutlined,
 } from "@mui/icons-material";
-import { AssetAttributes, AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { tooltips } from "@/utils/tooltips";
-import TooltipComponent from "@/components/TooltipComponent";
 import { labels } from "@/utils/labels";
+import { RelatedControlForm, ThreatForm } from "@/types/threat";
+import RelatedControlFormModal from "./RelatedControlFormModal";
 
-interface AssetFormModalProps {
+interface ThreatFormModalProps {
   operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
-  assetFormData: AssetForm;
-  processes: any[];
+  formData: ThreatForm;
+  setFormData: React.Dispatch<React.SetStateAction<ThreatForm>>;
   metaDatas: any[];
-  setAssetFormData: React.Dispatch<React.SetStateAction<AssetForm>>;
   onSubmit: (status: string) => void;
 }
 
-const AssetFormModal: React.FC<AssetFormModalProps> = ({
+const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
   operation,
   open,
   onClose,
-  assetFormData,
-  setAssetFormData,
-  processes,
+  formData,
+  setFormData,
   metaDatas,
   onSubmit,
 }) => {
-  const [isAssetThirdPartyManaged, setIsAssetThirdPartyManaged] =
+  const initialRelatedControlFormData: RelatedControlForm = {
+    mitreControlId: "",
+    mitreControlName: "",
+    mitreControlType: "",
+    mitreControlDescription: "",
+    bluOceanControlDescription: "",
+    controlPriority: null
+  };
+
+  const [isAddRelatedControlOpen, setIsAddRelatedControlOpen] =
     useState<boolean>(false);
 
-  // State for related processes
-  const [newRelatedProcess, setNewRelatedProcess] = React.useState<
-    number | null
-  >();
+  const [isEditRelatedControlOpen, setIsEditRelatedControlOpen] =
+    useState<boolean>(false);
 
-  const assetCategoryItems = [
+  const [relatedControlFormData, setRelatedControlFormData] =
+    useState<RelatedControlForm>(initialRelatedControlFormData);
+
+  const [selectedRelatedControl, setSelectedRelatedControl] =
+    useState<RelatedControlForm | null>(null);
+
+  const [selectedControlID, setSelectedControlID] = useState<number | null>(
+    null
+  );
+
+  const addRelatedControl = () => {
+    setFormData((prev) => ({
+      ...prev,
+      controls: [...(formData?.controls ?? []), { ...relatedControlFormData }],
+    }));
+  };
+
+  const editRelatedControl = (index: number) => {
+    const updatedRelatedControls = [...(formData?.controls ?? [])];
+    updatedRelatedControls[index].mitreControlId =
+      selectedRelatedControl?.mitreControlId ?? "";
+    updatedRelatedControls[index].mitreControlName =
+      selectedRelatedControl?.mitreControlName ?? "";
+    updatedRelatedControls[index].mitreControlType =
+      selectedRelatedControl?.mitreControlType ?? "";
+    updatedRelatedControls[index].mitreControlDescription =
+      selectedRelatedControl?.mitreControlDescription ?? "";
+    updatedRelatedControls[index].bluOceanControlDescription =
+      selectedRelatedControl?.bluOceanControlDescription ?? "";
+    setFormData((prev) => ({ ...prev, controls: updatedRelatedControls }));
+  };
+
+  const deleteRelatedControl = (index: number) => {
+    const updatedRelatedControls = formData?.controls?.filter(
+      (_, i) => i !== index
+    );
+    setFormData((prev) => ({ ...prev, controls: updatedRelatedControls }));
+  };
+
+  const mitrePlatforms = [
     "Windows",
     "macOS",
     "Linux",
@@ -77,92 +125,29 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
     "iOS",
   ];
 
+  const ciaMappingItems = ["Confidentiality", "Integrity", "Availability"];
+
   const handleChange = useCallback(
-    (field: keyof AssetForm, value: any) => {
-      setAssetFormData((prev) => ({ ...prev, [field]: value }));
+    (field: keyof ThreatForm, value: any) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
     },
-    [setAssetFormData] // only depends on setter from props
+    [setFormData] // only depends on setter from props
   );
-
-  useEffect(() => {
-    if (isAssetThirdPartyManaged === false) {
-      handleChange("thirdPartyName", "");
-      handleChange("thirdPartyLocation", "");
-    }
-  }, [isAssetThirdPartyManaged, handleChange]);
-
-  const handleKeyValueChange = (
-    index: number,
-    field: keyof AssetAttributes,
-    value: number | string[]
-  ) => {
-    const updatedKeyValues = [...(assetFormData.attributes ?? [])];
-    if (field == "meta_data_key_id" && typeof value == "number") {
-      updatedKeyValues[index].meta_data_key_id = value;
-      updatedKeyValues[index].values = [];
-    } else if (field === "values" && Array.isArray(value)) {
-      updatedKeyValues[index].values = value;
-    }
-    setAssetFormData({ ...assetFormData, attributes: updatedKeyValues });
-  };
-
-  const addKeyValue = () => {
-    setAssetFormData({
-      ...assetFormData,
-      attributes: [
-        ...(assetFormData.attributes ?? []),
-        { meta_data_key_id: null, values: [] as string[] },
-      ],
-    });
-  };
-
-  const removeKeyValue = (index: number) => {
-    const updatedKeyValues = assetFormData.attributes?.filter(
-      (_, i) => i !== index
-    );
-    setAssetFormData({ ...assetFormData, attributes: updatedKeyValues });
-  };
-
-  // Related Process handling functions
-  const addRelatedProcess = () => {
-    if (
-      newRelatedProcess &&
-      !assetFormData?.relatedProcesses?.includes(newRelatedProcess)
-    ) {
-      setAssetFormData({
-        ...assetFormData,
-        relatedProcesses: [
-          ...(assetFormData?.relatedProcesses ?? []),
-          newRelatedProcess,
-        ],
-      });
-      setNewRelatedProcess(null);
-    }
-  };
-
-  const removeRelatedProcess = (processToRemove: number) => {
-    setAssetFormData({
-      ...assetFormData,
-      relatedProcesses: assetFormData?.relatedProcesses?.filter(
-        (process) => process !== processToRemove
-      ),
-    });
-  };
 
   const getStatusComponent = () => {
     if (
-      assetFormData.status === "published" ||
-      assetFormData.status === "not_published"
+      formData.status === "published" ||
+      formData.status === "not_published"
     ) {
       return (
         <FormControlLabel
           control={
             <ToggleSwitch
               color="success"
-              checked={assetFormData.status === "published"}
+              checked={formData.status === "published"}
             />
           }
-          label={assetFormData.status === "published" ? "Enabled" : "Disabled"}
+          label={formData.status === "published" ? "Enabled" : "Disabled"}
           sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
         />
       );
@@ -188,817 +173,417 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="md"
-      slotProps={{ paper: { sx: { borderRadius: 2, padding: 5 } } }}
-    >
-      <DialogTitle
-        sx={{
-          paddingY: 0,
-          paddingX: 0,
-          marginBottom: 5,
+    <>
+      {/* Add Related Control */}
+      <RelatedControlFormModal
+        operation="create"
+        open={isAddRelatedControlOpen}
+        onClose={() => {
+          setIsAddRelatedControlOpen(false);
+          setRelatedControlFormData(initialRelatedControlFormData);
         }}
+        formData={relatedControlFormData}
+        setFormData={setRelatedControlFormData}
+        onSubmit={() => {
+          addRelatedControl();
+          setIsAddRelatedControlOpen(false);
+        }}
+      />
+
+      {/* Edit Related Control */}
+      {selectedRelatedControl && (
+        <RelatedControlFormModal
+          operation="edit"
+          open={isEditRelatedControlOpen}
+          onClose={() => {
+            setIsEditRelatedControlOpen(false);
+            setSelectedControlID(null);
+            setSelectedRelatedControl(null);
+          }}
+          formData={selectedRelatedControl}
+          setFormData={(val: any) => {
+            if (typeof val === "function") {
+              setSelectedRelatedControl((prev) =>
+                val(prev as RelatedControlForm)
+              );
+            } else {
+              setSelectedRelatedControl(val);
+            }
+          }}
+          onSubmit={() => {
+            if (typeof selectedControlID === "number") {
+              editRelatedControl(selectedControlID);
+            }
+            setIsEditRelatedControlOpen(false);
+          }}
+        />
+      )}
+
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        maxWidth="md"
+        slotProps={{ paper: { sx: { borderRadius: 2, padding: 5 } } }}
       >
-        <Stack
-          display={"flex"}
-          direction={"row"}
-          alignItems={"center"}
-          justifyContent={"space-between"}
+        <DialogTitle
+          sx={{
+            paddingY: 0,
+            paddingX: 0,
+            marginBottom: 5,
+          }}
         >
           <Stack
             display={"flex"}
-            direction="row"
-            justifyContent={"center"}
+            direction={"row"}
             alignItems={"center"}
-            gap={2}
+            justifyContent={"space-between"}
           >
-            <Typography variant="h5" fontWeight={550} color="#121212">
-              {operation === "create"
-                ? "Add Asset"
-                : `Edit Asset ${assetFormData.assetCode}`}
-            </Typography>
-            {operation === "edit" ? getStatusComponent() : null}
-          </Stack>
-
-          <IconButton onClick={onClose} sx={{ padding: 0 }}>
-            <Close sx={{ color: "primary.main" }} />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-
-      <DialogContent sx={{ padding: 0 }}>
-        <Grid container spacing={4}>
-          {/* Asset Name */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.assetName}
-              placeholder="Enter Asset Name"
-              value={assetFormData.applicationName}
-              required
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.assetName}
-              onChange={(e) => handleChange("applicationName", e.target.value)}
-            />
-          </Grid>
-
-          {/* Asset Category */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <SelectStyled
-              required
-              multiple
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.assetCategory}
-              value={assetFormData.assetCategory}
-              label={labels.assetCategory}
-              displayEmpty
-              onChange={(e) =>
-                handleChange("assetCategory", e.target.value as string[])
-              }
-              renderValue={(selected: any) => {
-                if (!selected) {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "#9E9FA5",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      Select Asset Category
-                    </Typography>
-                  );
-                } else {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "text.primary",
-                      }}
-                    >
-                      {selected.join(", ")}
-                    </Typography>
-                  );
-                }
-              }}
+            <Stack
+              display={"flex"}
+              direction="row"
+              justifyContent={"center"}
+              alignItems={"center"}
+              gap={2}
             >
-              {metaDatas?.find((item) => item.name === "Asset Category")
-                ?.supported_values &&
-              metaDatas?.find((item) => item.name === "Asset Category")
-                ?.supported_values?.length > 0
-                ? metaDatas
-                    ?.find((item) => item.name === "Asset Category")
-                    ?.supported_values?.map((item: string) => {
+              <Typography variant="h5" fontWeight={550} color="#121212">
+                {operation === "create"
+                  ? "Add Threat"
+                  : `Edit Threat ${formData.mitreTechniqueId}`}
+              </Typography>
+              {operation === "edit" ? getStatusComponent() : null}
+            </Stack>
+
+            <IconButton onClick={onClose} sx={{ padding: 0 }}>
+              <Close sx={{ color: "primary.main" }} />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent sx={{ padding: 0 }}>
+          <Grid container spacing={4}>
+            {/* MITRE Platforms */}
+            <Grid mt={1} size={{ xs: 6 }}>
+              <SelectStyled
+                required
+                multiple
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.mitrePlatforms}
+                value={formData.platforms}
+                label={labels.mitrePlatforms}
+                displayEmpty
+                onChange={(e) =>
+                  handleChange("platforms", e.target.value as string[])
+                }
+                renderValue={(selected: any) => {
+                  if (!selected) {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "#9E9FA5",
+                        }}
+                      >
+                        Select MITRE Platforms
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                        }}
+                      >
+                        {selected.join(", ")}
+                      </Typography>
+                    );
+                  }
+                }}
+              >
+                {metaDatas?.find((item) => item.name === "Asset Category")
+                  ?.supported_values &&
+                metaDatas?.find((item) => item.name === "Asset Category")
+                  ?.supported_values?.length > 0
+                  ? metaDatas
+                      ?.find((item) => item.name === "Asset Category")
+                      ?.supported_values?.map((item: string) => {
+                        return (
+                          <MenuItem key={item} value={item}>
+                            {item}
+                          </MenuItem>
+                        );
+                      })
+                  : mitrePlatforms.map((item) => {
                       return (
                         <MenuItem key={item} value={item}>
                           {item}
                         </MenuItem>
                       );
-                    })
-                : assetCategoryItems.map((item) => {
-                    return (
-                      <MenuItem key={item} value={item}>
-                        {item}
-                      </MenuItem>
-                    );
-                  })}
-            </SelectStyled>
-          </Grid>
-
-          {/* Asset Description */}
-          <Grid mt={1} size={{ xs: 12 }}>
-            <TextFieldStyled
-              label={labels.assetDescription}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.assetDescription}
-              placeholder="Enter Asset Description"
-              value={assetFormData.assetDescription}
-              multiline
-              minRows={1}
-              onChange={(e) => handleChange("assetDescription", e.target.value)}
-            />
-          </Grid>
-
-          {/* Asset Owner */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.assetOwner}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.assetOwner}
-              placeholder="Enter Asset Owner Name"
-              value={assetFormData.applicationOwner}
-              onChange={(e) => handleChange("applicationOwner", e.target.value)}
-            />
-          </Grid>
-
-          {/* Asset IT Owner */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.assetITOwner}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.assetITOwner}
-              placeholder="Enter Asset IT Owner Name"
-              value={assetFormData.applicationITOwner}
-              onChange={(e) =>
-                handleChange("applicationITOwner", e.target.value)
-              }
-            />
-          </Grid>
-
-          {/* Third Party Management */}
-          <Grid pl={1.5} size={{ xs: 6 }}>
-            <FormControl component="fieldset" sx={{ width: "100%" }}>
-              <FormLabel
-                component="legend"
-                id="third-party-management-radio-buttons-group"
-              >
-                <Box display={"flex"} gap={0.5}>
-                  <Typography variant="body2" color="#121212">
-                    {labels.thirdPartyManagement}
-                  </Typography>
-                  <TooltipComponent
-                    title={tooltips.thirdPartyManagement}
-                    width={"12px"}
-                    height={"12px"}
-                  />
-                </Box>
-              </FormLabel>
-              <RadioGroup
-                aria-labelledby="third-party-management-radio-buttons-group"
-                name="isThirdPartyManagement"
-                row
-                value={assetFormData.isThirdPartyManagement}
-                onChange={(e) => {
-                  handleChange("isThirdPartyManagement", e.target.value);
-                  setIsAssetThirdPartyManaged(
-                    e.target.value === "true" ? true : false
-                  );
-                }}
-              >
-                <FormControlLabel
-                  value={true}
-                  control={<Radio />}
-                  label={
-                    <Typography variant="body1" color="text.primary">
-                      Yes
-                    </Typography>
-                  }
-                />
-                <FormControlLabel
-                  value={false}
-                  control={<Radio />}
-                  label={
-                    <Typography variant="body1" color="text.primary">
-                      No
-                    </Typography>
-                  }
-                />
-              </RadioGroup>
-            </FormControl>
-          </Grid>
-
-          {/* Third Party Name */}
-          {isAssetThirdPartyManaged && (
-            <Grid mt={1} size={{ xs: 6 }}>
-              <TextFieldStyled
-                label={labels.thirdPartyName}
-                isTooltipRequired={true}
-                tooltipTitle={tooltips.thirdPartyName}
-                placeholder="Enter Third Party Name"
-                value={assetFormData.thirdPartyName}
-                onChange={(e) => handleChange("thirdPartyName", e.target.value)}
-              />
+                    })}
+              </SelectStyled>
             </Grid>
-          )}
 
-          {/* Third Party Location */}
-          {isAssetThirdPartyManaged && (
+            {/* MITRE Technique ID */}
             <Grid mt={1} size={{ xs: 6 }}>
               <TextFieldStyled
-                label={labels.thirdPartyLocation}
+                required
+                label={labels.mitreTechniqueId}
                 isTooltipRequired={true}
-                tooltipTitle={tooltips.thirdPartyLocation}
-                placeholder="Enter Third Party Location"
-                value={assetFormData.thirdPartyLocation}
+                tooltipTitle={tooltips.mitreTechniqueId}
+                placeholder="Enter MITRE Technique ID"
+                value={formData.mitreTechniqueId}
                 onChange={(e) =>
-                  handleChange("thirdPartyLocation", e.target.value)
+                  handleChange("mitreTechniqueId", e.target.value)
                 }
               />
             </Grid>
-          )}
 
-          {/* Hosting */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <SelectStyled
-              value={assetFormData.hosting}
-              label={labels.hosting}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.hosting}
-              displayEmpty
-              onChange={(e) => handleChange("hosting", e.target.value)}
-              renderValue={(selected: any) => {
-                if (!selected) {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "#9E9FA5",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      Select Hosting
-                    </Typography>
-                  );
-                } else {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "text.primary",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {selected}
-                    </Typography>
-                  );
+            {/* MITRE Technique Name */}
+            <Grid mt={1} size={{ xs: 6 }}>
+              <TextFieldStyled
+                required
+                label={labels.mitreTechniqueName}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.mitreTechniqueName}
+                placeholder="Enter MITRE Technique Name"
+                value={formData.mitreTechniqueName}
+                onChange={(e) =>
+                  handleChange("mitreTechniqueName", e.target.value)
                 }
-              }}
-            >
-              <MenuItem value="SaaS">SaaS</MenuItem>
-              <MenuItem value="PaaS">PaaS</MenuItem>
-              <MenuItem value="IaaS">IaaS</MenuItem>
-              <MenuItem value="On-Premise">On-Prem</MenuItem>
-            </SelectStyled>
-          </Grid>
+              />
+            </Grid>
 
-          {/* Hosting Facility */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <SelectStyled
-              value={assetFormData.hostingFacility}
-              label={labels.hostingFacility}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.hostingFacility}
-              displayEmpty
-              onChange={(e) => handleChange("hostingFacility", e.target.value)}
-              renderValue={(selected: any) => {
-                if (!selected) {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "#9E9FA5",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      Select Hosting Facility
-                    </Typography>
-                  );
-                } else {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "text.primary",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {selected}
-                    </Typography>
-                  );
-                }
-              }}
-            >
-              <MenuItem value="Public Cloud">Public Cloud</MenuItem>
-              <MenuItem value="Private Cloud">Private Cloud</MenuItem>
-              <MenuItem value="N/A">N/A</MenuItem>
-            </SelectStyled>
-          </Grid>
-
-          {/*Cloud Service Provider */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <SelectStyled
-              value={assetFormData.cloudServiceProvider}
-              multiple
-              label={labels.cloudServiceProvider}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.cloudServiceProvider}
-              displayEmpty
-              onChange={(e) =>
-                handleChange("cloudServiceProvider", e.target.value as string[])
-              }
-              renderValue={(selected: any) => {
-                if (selected?.length === 0) {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "#9E9FA5",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      Select Cloud Service Provider
-                    </Typography>
-                  );
-                } else {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "text.primary",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {selected.join(", ")}
-                    </Typography>
-                  );
-                }
-              }}
-            >
-              <MenuItem value="AWS">AWS</MenuItem>
-              <MenuItem value="Azure">Azure</MenuItem>
-              <MenuItem value="Google Cloud Platform">GCP</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </SelectStyled>
-          </Grid>
-
-          {/* Geographic Location */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.geographicLocation}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.geographicLocation}
-              placeholder="Enter Geographic Location"
-              value={assetFormData.geographicLocation}
-              onChange={(e) =>
-                handleChange("geographicLocation", e.target.value)
-              }
-            />
-          </Grid>
-
-          {/* Redundancy */}
-          <Grid pl={1.5} size={{ xs: 6 }}>
-            <FormControl component="fieldset" sx={{ width: "100%" }}>
-              <FormLabel
-                component="legend"
-                id="is-redundancy-radio-buttons-group"
-              >
-                <Box display={"flex"} gap={0.5}>
-                  <Typography variant="body2" color="#121212">
-                    {labels.redundancy}
-                  </Typography>
-                  <TooltipComponent
-                    title={tooltips.redundancy}
-                    width={"12px"}
-                    height={"12px"}
-                  />
-                </Box>
-              </FormLabel>
-              <RadioGroup
-                aria-labelledby="is-redundancy-radio-buttons-group"
-                name="isRedundancy"
-                row
-                value={assetFormData.hasRedundancy}
-                onChange={(e) => {
-                  handleChange("hasRedundancy", e.target.value);
+            {/* CIA Mapping */}
+            <Grid mt={1} size={{ xs: 6 }}>
+              <SelectStyled
+                required
+                multiple
+                value={formData.ciaMapping}
+                label={labels.ciaMapping}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.ciaMapping}
+                displayEmpty
+                onChange={(e) => handleChange("ciaMapping", e.target.value)}
+                renderValue={(selected: any) => {
+                  if (!selected) {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "#9E9FA5",
+                        }}
+                      >
+                        Select CIA Mapping
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                        }}
+                      >
+                        {selected.join(", ")}
+                      </Typography>
+                    );
+                  }
                 }}
               >
-                <FormControlLabel
-                  value={true}
-                  control={<Radio />}
-                  label={
-                    <Typography variant="body1" color="text.primary">
-                      Yes
-                    </Typography>
-                  }
-                />
-                <FormControlLabel
-                  value={false}
-                  control={<Radio />}
-                  label={
-                    <Typography variant="body1" color="text.primary">
-                      No
-                    </Typography>
-                  }
-                />
-              </RadioGroup>
-            </FormControl>
-          </Grid>
+                {metaDatas?.find((item) => item.name === "CIA Mapping")
+                  ?.supported_values &&
+                metaDatas?.find((item) => item.name === "CIA Mapping")
+                  ?.supported_values?.length > 0
+                  ? metaDatas
+                      ?.find((item) => item.name === "CIA Mapping")
+                      ?.supported_values?.map(
+                        (metaData: string, index: number) => (
+                          <MenuItem value={metaData[0]} key={index}>
+                            {metaData}
+                          </MenuItem>
+                        )
+                      )
+                  : ciaMappingItems.map((item) => {
+                      return (
+                        <MenuItem value={item[0]} key={item}>
+                          {item}
+                        </MenuItem>
+                      );
+                    })}
+              </SelectStyled>
+            </Grid>
 
-          {/* Databases */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.databases}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.databases}
-              placeholder="Enter Databases"
-              value={assetFormData.databases}
-              onChange={(e) => handleChange("databases", e.target.value)}
-            />
-          </Grid>
+            {/* Sub Technique ID */}
+            <Grid mt={1} size={{ xs: 6 }}>
+              <TextFieldStyled
+                label={labels.subTechniqueId}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.subTechniqueId}
+                placeholder="Enter Sub Technique ID"
+                value={formData.subTechniqueId}
+                onChange={(e) => handleChange("subTechniqueId", e.target.value)}
+              />
+            </Grid>
 
-          {/* Network Segmentation */}
-          <Grid pl={1.5} size={{ xs: 6 }}>
-            <FormControl component="fieldset" sx={{ width: "100%" }}>
-              <FormLabel
-                component="legend"
-                id="is-network-segmentation-radio-buttons-group"
-              >
-                <Box display={"flex"} gap={0.5}>
-                  <Typography variant="body2" color="#121212">
-                    {labels.networkSegmentation}
-                  </Typography>
-                  <TooltipComponent
-                    title={tooltips.networkSegmentation}
-                    width={"12px"}
-                    height={"12px"}
-                  />
-                </Box>
-              </FormLabel>
-              <RadioGroup
-                aria-labelledby="is-network-segmentation-radio-buttons-group"
-                name="isNetworkSegmentation"
-                row
-                value={assetFormData.hasNetworkSegmentation}
-                onChange={(e) => {
-                  handleChange("hasNetworkSegmentation", e.target.value);
-                }}
-              >
-                <FormControlLabel
-                  value={true}
-                  control={<Radio />}
-                  label={
-                    <Typography variant="body1" color="text.primary">
-                      Yes
-                    </Typography>
-                  }
-                />
-                <FormControlLabel
-                  value={false}
-                  control={<Radio />}
-                  label={
-                    <Typography variant="body1" color="text.primary">
-                      No
-                    </Typography>
-                  }
-                />
-              </RadioGroup>
-            </FormControl>
-          </Grid>
+            {/* Sub Technique Name */}
+            <Grid mt={1} size={{ xs: 6 }}>
+              <TextFieldStyled
+                label={labels.subTechniqueName}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.subTechniqueName}
+                placeholder="Enter Sub Technique Name"
+                value={formData.subTechniqueName}
+                onChange={(e) =>
+                  handleChange("subTechniqueName", e.target.value)
+                }
+              />
+            </Grid>
 
-          {/* Network Name */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.networkName}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.networkName}
-              placeholder="Enter Network Name"
-              value={assetFormData.networkName}
-              onChange={(e) => handleChange("networkName", e.target.value)}
-            />
-          </Grid>
-
-          {/* RELATED PROCESS SECTION */}
-          <Grid mt={1} size={{ xs: 12 }}>
-            <Box
-              sx={{
-                border: "1px dashed #cecfd2",
-                borderRadius: 2,
-                p: 2,
-                backgroundColor: "#f8f9fa",
-              }}
-            >
-              <Typography variant="h6" fontWeight={600} mb={2}>
-                Related Process
-              </Typography>
-
-              {/* Add Related Process input row */}
-              <Grid container spacing={2} alignItems="center" mb={2}>
-                <Grid size={{ xs: 10.5 }}>
-                  <SelectStyled
-                    value={newRelatedProcess}
-                    label={labels.relatedProcesses}
-                    isTooltipRequired={true}
-                    tooltipTitle={tooltips.relatedProcesses}
-                    displayEmpty
-                    onChange={(e) =>
-                      setNewRelatedProcess(e.target.value as number)
-                    }
-                    renderValue={(selected) => {
-                      if (!selected) {
-                        return (
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              color: "#9E9FA5",
-                            }}
-                          >
-                            Select Related Process
-                          </Typography>
-                        );
-                      }
-                      return processes.find((item) => item.id === selected)
-                        ?.processName;
-                    }}
-                  >
-                    {processes.map((process, index) => (
-                      <MenuItem key={index} value={process.id}>
-                        {process.processName}
-                      </MenuItem>
-                    ))}
-                  </SelectStyled>
-                </Grid>
-
-                <Grid size={{ xs: 1.5 }}>
+            {/* RELATED CONTROLS SECTION */}
+            <Grid mt={1} size={{ xs: 12 }}>
+              <Stack display={"flex"} flexDirection={"column"} gap={2}>
+                <Typography variant="h6" fontWeight={600}>
+                  Related Controls
+                </Typography>
+                <Grid size={{ xs: 12 }}>
                   <Button
-                    variant="contained"
-                    onClick={addRelatedProcess}
-                    disabled={!newRelatedProcess}
-                    // startIcon={<Add />}
-                    sx={{
-                      backgroundColor: "main.color",
-                      "&:hover": {
-                        backgroundColor: "#1565c0",
-                      },
-                      "&:disabled": {
-                        backgroundColor: "#9e9e9e",
-                      },
+                    startIcon={<Add />}
+                    onClick={() => {
+                      setIsAddRelatedControlOpen(true);
+                      setRelatedControlFormData(initialRelatedControlFormData);
                     }}
+                    sx={{ paddingY: 0 }}
                   >
-                    Add
+                    Add New Control
                   </Button>
                 </Grid>
-              </Grid>
-
-              {/* Display added related processes */}
-              {assetFormData?.relatedProcesses &&
-                assetFormData?.relatedProcesses?.length > 0 && (
-                  <Box
-                    sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}
-                  >
-                    {assetFormData?.relatedProcesses?.map((process, index) => (
-                      <Chip
-                        key={index}
-                        label={
-                          processes.find((item) => item.id === process)
-                            ?.processName
-                        }
-                        onDelete={() => removeRelatedProcess(process)}
-                        sx={{
-                          backgroundColor: "#e8f5e8",
-                          color: "#2e7d32",
-                          "& .MuiChip-deleteIcon": {
-                            color: "#2e7d32",
-                            "&:hover": {
-                              color: "#cd0303",
-                            },
-                          },
-                        }}
-                      />
-                    ))}
-                  </Box>
+                {formData?.controls && formData?.controls?.length > 0 && (
+                  <Grid size={{ xs: 12 }}>
+                    <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                      <TableContainer sx={{ maxHeight: 440 }}>
+                        <Table stickyHeader>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>MITRE Control ID</TableCell>
+                              <TableCell>MITRE Control Name</TableCell>
+                              <TableCell>MITRE Control Type</TableCell>
+                              <TableCell>Actions</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {formData.controls?.map((control, index) => {
+                              return (
+                                <TableRow
+                                  hover
+                                  role="checkbox"
+                                  tabIndex={-1}
+                                  key={index}
+                                >
+                                  <TableCell>
+                                    {control.mitreControlId}
+                                  </TableCell>
+                                  <TableCell>
+                                    {control.mitreControlName}
+                                  </TableCell>
+                                  <TableCell>
+                                    {control.mitreControlType}
+                                  </TableCell>
+                                  <TableCell>
+                                    <IconButton
+                                      onClick={() => {
+                                        setSelectedRelatedControl(control);
+                                        setSelectedControlID(index);
+                                        setIsEditRelatedControlOpen(true);
+                                      }}
+                                    >
+                                      <EditOutlined
+                                        sx={{ color: "primary.main" }}
+                                      />
+                                    </IconButton>
+                                    <IconButton
+                                      onClick={() =>
+                                        deleteRelatedControl(index)
+                                      }
+                                    >
+                                      <DeleteOutlineOutlined
+                                        sx={{ color: "#cd0303" }}
+                                      />
+                                    </IconButton>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Paper>
+                  </Grid>
                 )}
-            </Box>
+              </Stack>
+            </Grid>
           </Grid>
-
-          {/* Dyanmic Key - Value Tags section */}
-          {assetFormData?.attributes?.map((kv, index) => {
-            const selectedMeta = metaDatas.find(
-              (md) => md.id === kv.meta_data_key_id
-            );
-            return (
-              <Grid
-                mt={1}
-                sx={{ width: "100%" }}
-                container
-                spacing={2}
-                alignItems="center"
-                key={index}
-              >
-                <Grid size={{ xs: 5.5 }}>
-                  <SelectStyled
-                    value={kv.meta_data_key_id}
-                    label={labels.key}
-                    isTooltipRequired={true}
-                    tooltipTitle={tooltips.key}
-                    displayEmpty
-                    onChange={(e) =>
-                      handleKeyValueChange(
-                        index,
-                        "meta_data_key_id",
-                        e.target.value as number
-                      )
-                    }
-                    renderValue={(selected: any) => {
-                      if (!selected || selected < 0) {
-                        return (
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              color: "#9E9FA5",
-                            }}
-                          >
-                            Select Key
-                          </Typography>
-                        );
-                      } else {
-                        const label = metaDatas.find(
-                          (m) => m.id === selected
-                        )?.label;
-                        return (
-                          label ?? (
-                            <Typography
-                              variant="body1"
-                              sx={{
-                                color: "#9E9FA5",
-                              }}
-                            >
-                              Select Key
-                            </Typography>
-                          )
-                        );
-                      }
-                    }}
-                  >
-                    {metaDatas.map((metaData, index) => (
-                      <MenuItem key={index} value={metaData.id}>
-                        {metaData.label}
-                      </MenuItem>
-                    ))}
-                  </SelectStyled>
-                </Grid>
-
-                <Grid size={{ xs: 5.5 }}>
-                  <SelectStyled
-                    multiple
-                    value={kv.values || []}
-                    label={labels.value}
-                    isTooltipRequired={true}
-                    tooltipTitle={tooltips.value}
-                    displayEmpty
-                    onChange={(e) =>
-                      handleKeyValueChange(
-                        index,
-                        "values",
-                        e.target.value as string[]
-                      )
-                    }
-                    renderValue={(selected: any) => {
-                      if (!selectedMeta) {
-                        return (
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              color: "#9E9FA5",
-                            }}
-                          >
-                            Please Select Key First
-                          </Typography>
-                        );
-                      } else if (!selected || selected.length < 1) {
-                        return (
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              color: "#9E9FA5",
-                            }}
-                          >
-                            Enter Value
-                          </Typography>
-                        );
-                      }
-                      return selected.join(", ");
-                    }}
-                  >
-                    {selectedMeta?.supported_values?.map(
-                      (val: string | number, i: number) => (
-                        <MenuItem key={i} value={val}>
-                          {val}
-                        </MenuItem>
-                      )
-                    )}
-                  </SelectStyled>
-                </Grid>
-
-                <Grid size={{ xs: 1 }}>
-                  <IconButton onClick={() => removeKeyValue(index)}>
-                    <DeleteOutlineOutlined sx={{ color: "#cd0303" }} />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            );
-          })}
-
-          <Grid mt={-2} size={{ xs: 12 }}>
-            <Button
-              startIcon={<Add />}
-              onClick={addKeyValue}
-              sx={{ paddingY: 0 }}
-            >
-              Add New Key
-            </Button>
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-        <Divider sx={{ width: "100%" }} />
-      </Box>
-      <DialogActions
-        sx={{
-          pt: 4,
-          display: "flex",
-          justifyContent: "space-between",
-          pb: 0,
-          px: 0,
-        }}
-      >
-        <Button
-          sx={{
-            width: 113,
-            height: 40,
-            border: "1px solid #CD0303",
-            borderRadius: 1,
-          }}
-          variant="outlined"
-          onClick={onClose}
-        >
-          <Typography variant="body1" color="#CD0303" fontWeight={500}>
-            Cancel
-          </Typography>
-        </Button>
-        <Box display={"flex"} gap={3}>
-          <Button
-            onClick={() => {
-              onSubmit("draft");
-            }}
-            sx={{ width: 161, height: 40, borderRadius: 1 }}
-            variant="outlined"
-          >
-            <Typography variant="body1" color="#04139A" fontWeight={500}>
-              Save as Draft
-            </Typography>
-          </Button>
-          <Button
-            sx={{ width: 132, height: 40, borderRadius: 1 }}
-            variant="contained"
-            onClick={() => {
-              onSubmit("published");
-            }}
-            disabled={
-              assetFormData.applicationName === "" ||
-              assetFormData.assetCategory?.length === 0
-            }
-            disableRipple
-          >
-            <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
-              Publish
-            </Typography>
-          </Button>
+        </DialogContent>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+          <Divider sx={{ width: "100%" }} />
         </Box>
-      </DialogActions>
-    </Dialog>
+        <DialogActions
+          sx={{
+            pt: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            pb: 0,
+            px: 0,
+          }}
+        >
+          <Button
+            sx={{
+              width: 113,
+              height: 40,
+              border: "1px solid #CD0303",
+              borderRadius: 1,
+            }}
+            variant="outlined"
+            onClick={onClose}
+          >
+            <Typography variant="body1" color="#CD0303" fontWeight={500}>
+              Cancel
+            </Typography>
+          </Button>
+          <Box display={"flex"} gap={3}>
+            <Button
+              onClick={() => {
+                onSubmit("draft");
+              }}
+              sx={{ width: 161, height: 40, borderRadius: 1 }}
+              variant="outlined"
+            >
+              <Typography variant="body1" color="#04139A" fontWeight={500}>
+                Save as Draft
+              </Typography>
+            </Button>
+            <Button
+              sx={{ width: 132, height: 40, borderRadius: 1 }}
+              variant="contained"
+              onClick={() => {
+                onSubmit("published");
+              }}
+              disabled={
+                formData.platforms?.length === 0 ||
+                formData.mitreTechniqueId === "" ||
+                formData.mitreTechniqueName === "" ||
+                formData.ciaMapping?.length === 0
+              }
+            >
+              <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
+                Publish
+              </Typography>
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
-export default AssetFormModal;
+export default ThreatFormModal;

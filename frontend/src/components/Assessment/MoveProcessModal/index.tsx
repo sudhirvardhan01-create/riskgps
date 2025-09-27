@@ -17,7 +17,7 @@ import {
 interface MoveProcessModalProps {
   open: boolean;
   onClose: () => void;
-  processes: { id: string; name: string }[];
+  processes: { orgProcessId: string; name: string }[];
   fromProcessId: string | null;
   fromProcessName: string | null;
   onMove: (fromProcessId: string | null, toProcessId: string) => void;
@@ -78,11 +78,11 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
           onChange={(e) => setSelected(e.target.value)}
         >
           {processes
-            .filter((p) => p.id !== fromProcessId)
+            .filter((p) => p.orgProcessId !== fromProcessId)
             .map((process) => (
               <FormControlLabel
-                key={process.id}
-                value={process.id}
+                key={process.orgProcessId}
+                value={process.orgProcessId}
                 control={
                   <Radio
                     size="medium"

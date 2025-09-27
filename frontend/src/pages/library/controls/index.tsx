@@ -1,5 +1,8 @@
+import ControlContainer from "@/containers/ControlContainer";
+import withAuth from "@/hoc/withAuth";
+
 function ControlLibraryPage() {
-  return <div>Control Library</div>;
+  return <ControlContainer />;
 }
 
-export default ControlLibraryPage;
+export default withAuth(ControlLibraryPage);
