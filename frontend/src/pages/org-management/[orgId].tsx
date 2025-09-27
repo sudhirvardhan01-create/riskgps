@@ -455,7 +455,7 @@ function OrgDetailsPage() {
         >
           <Tab label="Org Details" />
           <Tab label="Repository" />
-          <Tab label={`Business Units`} />
+          <Tab label={`Business Units (${organization.businessUnits?.length || 0})`} />
           <Tab label={`Users`} />
         </Tabs>
       </Box>
