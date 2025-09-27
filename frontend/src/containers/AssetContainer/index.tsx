@@ -10,9 +10,9 @@ import ViewAssetModal from "@/components/Library/Asset/ViewAssetModal";
 import { AssetForm, AssetAttributes } from "@/types/asset";
 import { AssetService } from "@/services/assetService";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { fetchProcesses } from "@/pages/api/process";
 import { Filter } from "@/types/filter";
 import { FileService } from "@/services/fileService";
+import { ProcessService } from "@/services/processService";
 
 const initialAssetFormData: AssetForm = {
   assetCategory: "",
@@ -121,7 +121,7 @@ export default function AssetContainer() {
       try {
         setLoading(true);
         const [proc, meta] = await Promise.all([
-          fetchProcesses(0, 0),
+          ProcessService.fetchProcessesForListing(),
           fetchMetaDatas(),
         ]);
         setProcessesData(proc.data ?? []);

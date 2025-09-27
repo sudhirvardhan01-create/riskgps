@@ -1,5 +1,5 @@
 export interface RelatedThreatForm {
-  id?: number,
+  id?: number;
   mitreTechniqueId: string;
   mitreTechniqueName: string;
   subTechniqueId: string;
@@ -15,6 +15,7 @@ export interface ControlForm {
   mitreControlType: string;
   mitreControlDescription?: string;
   bluOceanControlDescription?: string;
+  controlPriority: number | null;
   subControls?: RelatedThreatForm[];
   status?: string;
   updated_at?: Date;
@@ -29,6 +30,20 @@ export interface ControlFrameworkForm {
   frameWorkControlSubCategoryId: string;
   frameWorkControlSubCategory: string;
   mitreControls: string[];
+  status?: string;
+  updated_at?: Date;
+  created_at?: Date;
+}
+
+export interface MITREControlForm {
+  id?: number;
+  mitreControlId: string;
+  controlPriority: number;
+  mitreControlType: string;
+  controlDetails: {
+    mitreControlName: string;
+    subControls?: RelatedThreatForm[];
+  }[];
   status?: string;
   updated_at?: Date;
   created_at?: Date;

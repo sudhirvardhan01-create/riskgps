@@ -23,39 +23,35 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import TextFieldStyled from "@/components/TextFieldStyled";
 import { labels } from "@/utils/labels";
 import { tooltips } from "@/utils/tooltips";
-import { ControlFrameworkForm } from "@/types/control";
 import SelectStyled from "@/components/SelectStyled";
 import TooltipComponent from "@/components/TooltipComponent";
+import { ThreatBundleForm } from "@/types/threat";
 
-interface ControlFrameworkFormModalProps {
+interface ThreatBundleFormModalProps {
   operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
-  controls: any[];
-  formData: ControlFrameworkForm;
-  setFormData: React.Dispatch<React.SetStateAction<ControlFrameworkForm>>;
-  onSubmit: (status: string) => void;
+  threats: any[];
+  threatBundles: string[];
+  formData: ThreatBundleForm;
+  setFormData: React.Dispatch<React.SetStateAction<ThreatBundleForm>>;
+  onSubmit: () => void;
 }
 
-const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
+const ThreatBundleFormModal: React.FC<ThreatBundleFormModalProps> = ({
   operation,
   open,
   onClose,
-  controls,
+  threats,
+  threatBundles,
   formData,
   setFormData,
   onSubmit,
 }) => {
-  const [selectedMITREControlID, setSelectedMITREControlID] = useState<
-    string | null
-  >(null);
-
-  // const distictMITREControlIDs = [
-  //   ...new Set(controls.map((item) => item.mitreControlId)),
-  // ];
+  const [selectedMITREThreatTechnique, setSelectedMITREThreatTechnique] =
+    useState<string | null>(null);
 
   //Function to handle the Field change
   const handleFieldChange = (field: keyof typeof formData, value: any) => {
@@ -67,31 +63,37 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
     });
   };
 
-  const addMITREControlID = () => {
-    if (selectedMITREControlID) {
+  const addMITREThreatTechnique = () => {
+    if (selectedMITREThreatTechnique) {
       setFormData((prev) => ({
         ...prev,
-        mitreControls: [
-          ...(formData.mitreControls ?? []),
-          selectedMITREControlID,
+        mitreThreatTechnique: [
+          ...(formData.mitreThreatTechnique ?? []),
+          {
+            mitreTechniqueId: selectedMITREThreatTechnique.split(", ")[0],
+            mitreTechniqueName: selectedMITREThreatTechnique.split(", ")[1],
+          },
         ],
       }));
     }
-    setSelectedMITREControlID(null);
+    setSelectedMITREThreatTechnique(null);
   };
 
-  const deleteMITREControlID = (id: number) => {
-    const updatedMITREControls = formData.mitreControls.filter(
+  const deleteMITREThreatTechnique = (id: number) => {
+    const updatedMITREThreatTechniques = formData.mitreThreatTechnique.filter(
       (_, i) => i !== id
     );
-    setFormData((prev) => ({ ...prev, mitreControls: updatedMITREControls }));
+    setFormData((prev) => ({
+      ...prev,
+      mitreThreatTechnique: updatedMITREThreatTechniques,
+    }));
   };
   return (
     <Dialog
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="md"
+      maxWidth="sm"
       slotProps={{
         paper: {
           sx: {
@@ -111,9 +113,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
         }}
       >
         <Typography variant="h5" fontWeight={550} color="#121212">
-          {operation === "create"
-            ? "Add Control Mapping"
-            : `Edit Control Mapping`}
+          {operation === "create" ? "Add Threat Bundle" : `Edit Threat Bundle`}
         </Typography>
         <IconButton onClick={onClose} sx={{ padding: "0px !important" }}>
           <Close sx={{ color: "primary.main" }} />
@@ -122,17 +122,17 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
 
       <DialogContent sx={{ marginTop: 2 }}>
         <Grid container spacing={4}>
-          {/* Framework Name */}
+          {/* Threat Bundle */}
           <Grid mt={1} size={{ xs: 12 }}>
             <SelectStyled
               required
-              value={formData.frameWorkName}
-              label={labels.framework}
+              value={formData.threatBundleName}
+              label={labels.threatBundleName}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.framework}
+              tooltipTitle={tooltips.threatBundleName}
               displayEmpty
               onChange={(e) =>
-                handleFieldChange("frameWorkName", e.target.value)
+                handleFieldChange("threatBundleName", e.target.value)
               }
               renderValue={(selected: any) => {
                 if (!selected) {
@@ -143,7 +143,7 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                         color: "#9E9FA5",
                       }}
                     >
-                      Select Control Framework
+                      {`Select ${labels.threatBundleName}`}
                     </Typography>
                   );
                 } else {
@@ -160,80 +160,19 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                 }
               }}
             >
-              <MenuItem value="NIST">NIST</MenuItem>
-              <MenuItem value="ATLAS">ATLAS</MenuItem>
-              <MenuItem value="CRI">CRI</MenuItem>
+              {threatBundles.map((item) => (
+                <MenuItem value={item} key={item}>
+                  {item}
+                </MenuItem>
+              ))}
             </SelectStyled>
           </Grid>
 
-          {/* Framework Control Category ID */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              required
-              label={labels.frameworkControlCategoryId}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.frameworkControlCategoryId}
-              placeholder="Enter Control Category ID"
-              value={formData.frameWorkControlCategoryId}
-              onChange={(e) =>
-                handleFieldChange("frameWorkControlCategoryId", e.target.value)
-              }
-            />
-          </Grid>
-
-          {/* Framework Control Category */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              required
-              label={labels.frameworkControlCategory}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.frameworkControlCategory}
-              placeholder="Enter Control Category"
-              value={formData.frameWorkControlCategory}
-              onChange={(e) =>
-                handleFieldChange("frameWorkControlCategory", e.target.value)
-              }
-            />
-          </Grid>
-
-          {/* Framework Control Sub-category ID */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              label={labels.frameworkControlSubcategoryId}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.frameworkControlSubcategoryId}
-              placeholder="Enter Control Sub-category ID"
-              value={formData.frameWorkControlSubCategoryId}
-              onChange={(e) =>
-                handleFieldChange(
-                  "frameWorkControlSubCategoryId",
-                  e.target.value
-                )
-              }
-            />
-          </Grid>
-
-          {/* Framework Control Sub-category */}
-          <Grid mt={1} size={{ xs: 12 }}>
-            <TextFieldStyled
-              label={labels.frameworkControlSubcategory}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.frameworkControlSubcategory}
-              placeholder="Enter Control Sub-category"
-              multiline
-              minRows={1}
-              value={formData.frameWorkControlSubCategory}
-              onChange={(e) =>
-                handleFieldChange("frameWorkControlSubCategory", e.target.value)
-              }
-            />
-          </Grid>
-
-          {/* RELATED CONTROLS SECTION */}
+          {/* RELATED THREATS SECTION */}
           <Grid mt={1} size={{ xs: 12 }}>
             <Stack display={"flex"} flexDirection={"column"} gap={2}>
               <Typography variant="h6" fontWeight={600}>
-                Mapping with MITRE Controls
+                Mapping with MITRE Threat Techniques
               </Typography>
               <Stack
                 display={"flex"}
@@ -244,10 +183,13 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                 <Grid size={{ xs: 10 }}>
                   <Autocomplete
                     disablePortal
-                    options={controls}
-                    value={selectedMITREControlID}
+                    options={threats.map(
+                      (threat) =>
+                        `${threat.mitreTechniqueId}, ${threat.mitreTechniqueName}`
+                    )}
+                    value={selectedMITREThreatTechnique}
                     onChange={(event: any, newValue: string | null) => {
-                      setSelectedMITREControlID(newValue);
+                      setSelectedMITREThreatTechnique(newValue);
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -307,10 +249,18 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                               color="#121212"
                               fontWeight={500}
                             >
-                              {labels.mitreControlId}
+                              {labels.mitreThreatTechnique}
                             </Typography>
-                            <Typography color="#FB2020" variant="body1" fontWeight={600}>*</Typography>
-                            <TooltipComponent title={tooltips.mitreControlId} />
+                            <Typography
+                              color="#FB2020"
+                              variant="body1"
+                              fontWeight={600}
+                            >
+                              *
+                            </Typography>
+                            <TooltipComponent
+                              title={tooltips.mitreThreatTechnique}
+                            />
                           </Box>
                         }
                       />
@@ -320,8 +270,17 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                 <Grid size={{ xs: 2 }}>
                   <Button
                     variant="contained"
-                    onClick={addMITREControlID}
-                    disabled={!selectedMITREControlID}
+                    onClick={addMITREThreatTechnique}
+                    disabled={
+                      !selectedMITREThreatTechnique ||
+                      formData.mitreThreatTechnique.find(
+                        (item) =>
+                          item.mitreTechniqueId ===
+                          selectedMITREThreatTechnique.split(", ")[0]
+                      )
+                        ? true
+                        : false
+                    }
                     sx={{
                       backgroundColor: "main.color",
                       "&:hover": {
@@ -336,42 +295,50 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                   </Button>
                 </Grid>
               </Stack>
-              {formData?.mitreControls &&
-                formData?.mitreControls?.length > 0 && (
+              {formData?.mitreThreatTechnique &&
+                formData?.mitreThreatTechnique?.length > 0 && (
                   <Grid size={{ xs: 12 }}>
                     <Paper sx={{ width: "100%", overflow: "hidden" }}>
                       <TableContainer sx={{ maxHeight: 440 }}>
                         <Table stickyHeader>
                           <TableHead>
                             <TableRow>
-                              <TableCell>MITRE Control ID</TableCell>
+                              <TableCell>MITRE Technique ID</TableCell>
+                              <TableCell>MITRE Technique Name</TableCell>
                               <TableCell>Actions</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {formData.mitreControls?.map((control, index) => {
-                              return (
-                                <TableRow
-                                  hover
-                                  role="checkbox"
-                                  tabIndex={-1}
-                                  key={index}
-                                >
-                                  <TableCell>{control}</TableCell>
-                                  <TableCell>
-                                    <IconButton
-                                      onClick={() =>
-                                        deleteMITREControlID(index)
-                                      }
-                                    >
-                                      <DeleteOutlineOutlined
-                                        sx={{ color: "#cd0303" }}
-                                      />
-                                    </IconButton>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
+                            {formData.mitreThreatTechnique?.map(
+                              (item, index) => {
+                                return (
+                                  <TableRow
+                                    hover
+                                    role="checkbox"
+                                    tabIndex={-1}
+                                    key={index}
+                                  >
+                                    <TableCell>
+                                      {item.mitreTechniqueId}
+                                    </TableCell>
+                                    <TableCell>
+                                      {item.mitreTechniqueName}
+                                    </TableCell>
+                                    <TableCell>
+                                      <IconButton
+                                        onClick={() =>
+                                          deleteMITREThreatTechnique(index)
+                                        }
+                                      >
+                                        <DeleteOutlineOutlined
+                                          sx={{ color: "#cd0303" }}
+                                        />
+                                      </IconButton>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              }
+                            )}
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -410,28 +377,14 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
         </Button>
         <Box display={"flex"} gap={3}>
           <Button
-            onClick={() => {
-              onSubmit("draft");
-            }}
-            sx={{ width: 161, height: 40, borderRadius: 1 }}
-            variant="outlined"
-          >
-            <Typography variant="body1" color="#04139A" fontWeight={500}>
-              Save as Draft
-            </Typography>
-          </Button>
-          <Button
             sx={{ width: 132, height: 40, borderRadius: 1 }}
             variant="contained"
             onClick={() => {
-              onSubmit("published");
+              onSubmit();
             }}
             disabled={
-              formData.frameWorkName === "" ||
-              formData.frameWorkControlCategoryId === "" ||
-              formData.frameWorkControlCategory === "" ||
-              !formData.mitreControls ||
-              formData.mitreControls.length === 0
+              formData.threatBundleName === "" ||
+              formData.mitreThreatTechnique?.length === 0
             }
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
@@ -444,4 +397,4 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
   );
 };
 
-export default ControlFrameworkFormModal;
+export default ThreatBundleFormModal;

@@ -30,6 +30,9 @@ interface ThreatControlCardProps {
   lastUpdated?: string | Date;
   status: string;
   footerChips?: FooterChip[];
+  setIsSelectControlsToDeleteOpen?: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 }
 
 const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
@@ -46,6 +49,7 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
   status,
   lastUpdated,
   footerChips,
+  setIsSelectControlsToDeleteOpen,
 }) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
@@ -103,10 +107,23 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
       icon: <EditOutlined fontSize="small" />,
     },
     {
-      onAction: () => {
-        setSelectedData(threatControlData);
-        setIsDeleteConfirmPopupOpen(true);
-      },
+      onAction:
+        module === "threat"
+          ? () => {
+              setSelectedData(threatControlData);
+              setIsDeleteConfirmPopupOpen(true);
+            }
+          : () => {
+              if (threatControlData?.controlDetails?.length === 1) {
+                setSelectedData(threatControlData);
+                setIsDeleteConfirmPopupOpen(true);
+              } else {
+                if (setIsSelectControlsToDeleteOpen) {
+                  setSelectedData(threatControlData);
+                  setIsSelectControlsToDeleteOpen(true);
+                }
+              }
+            },
       color: "#CD0303",
       action: "Delete",
       icon: <DeleteOutlineOutlined fontSize="small" />,
@@ -203,50 +220,10 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
         </Typography>
 
         {/* Meta Info */}
-          <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
-            {footerChips?.map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  pb: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  mt: 1,
-                  mb: 1.5,
-                  gap: 1.25,
-                }}
-              >
-                <Chip
-                  label={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Typography variant="body2" color="#91939A">
-                        {item.label}
-                      </Typography>
-                      &nbsp;
-                      <Typography variant="body2" color="text.primary">
-                        {item.value}
-                      </Typography>
-                    </Box>
-                  }
-                  size="small"
-                  sx={{
-                    borderRadius: 0.5,
-                    height: 24,
-                    backgroundColor: "#FFF9C7",
-                  }}
-                />
-                {index !== footerChips?.length - 1 && (
-                  <Typography color="#D9D9D9">•</Typography>
-                )}
-              </Box>
-            ))}
+        <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
+          {footerChips?.map((item, index) => (
             <Box
+              key={index}
               sx={{
                 pb: 1,
                 display: "flex",
@@ -256,12 +233,63 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
                 gap: 1.25,
               }}
             >
-              <Typography color="#D9D9D9">•</Typography>
-              <Typography variant="body2" color="text.primary">
-                {module === "threat" ? `${threatControlData.controls?.length} Controls` : `${threatControlData?.subControls?.length} Threats`}
-              </Typography>
+              <Chip
+                label={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="#91939A">
+                      {item.label}
+                    </Typography>
+                    &nbsp;
+                    <Typography variant="body2" color="text.primary">
+                      {item.value}
+                    </Typography>
+                  </Box>
+                }
+                size="small"
+                sx={{
+                  borderRadius: 0.5,
+                  height: 24,
+                  backgroundColor: "#FFF9C7",
+                }}
+              />
+              {index !== footerChips?.length - 1 && (
+                <Typography color="#D9D9D9">•</Typography>
+              )}
             </Box>
-          </Stack>
+          ))}
+          <Box
+            sx={{
+              pb: 1,
+              display: "flex",
+              alignItems: "center",
+              mt: 1,
+              mb: 1.5,
+              gap: 1.25,
+            }}
+          >
+            <Typography color="#D9D9D9">•</Typography>
+            <Typography variant="body2" color="text.primary">
+              {module === "threat" ? `Controls: ` : `Threats: `}
+            </Typography>
+            <Typography variant="body2" color="text.primary" fontWeight={600}>
+              {module === "threat"
+                ? `${threatControlData.controls?.length}`
+                : `${threatControlData.controlDetails
+                    .map((item: any) => item.subControls?.length)
+                    .reduce(
+                      (accumulator: number, currentValue: number) =>
+                        accumulator + currentValue,
+                      0
+                    )}`}
+            </Typography>
+          </Box>
+        </Stack>
       </Box>
     </Box>
   );

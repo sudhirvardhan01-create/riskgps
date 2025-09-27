@@ -32,7 +32,9 @@ interface LibraryCardProps {
   status: string;
   lastUpdated?: string | Date;
   tagItems: TagItem[];
-  module?: string;
+  module: string;
+  footerChipKey: string;
+  footerChipValue: string;
 }
 
 const LibraryCard: React.FC<LibraryCardProps> = ({
@@ -49,6 +51,8 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
   lastUpdated,
   tagItems,
   module,
+  footerChipKey,
+  footerChipValue,
 }) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
@@ -194,7 +198,33 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
         <Divider sx={{ mx: 3, my: 1 }} />
 
         {/* Meta Info */}
-        <Box sx={{ px: 3, pb: 1, display: "flex", gap: 1.25 }}>
+        <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
+        {module === "Risk Scenario" && <Chip
+          label={
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography variant="body2" color="#91939A">
+                {`${footerChipKey}: `}
+              </Typography>
+              &nbsp;
+              <Typography variant="body2" color="text.primary">
+                {footerChipValue}
+              </Typography>
+            </Box>
+          }
+          size="small"
+          sx={{
+            borderRadius: 0.5,
+            height: 24,
+            backgroundColor: "#FFF9C7",
+          }}
+        />}
+        <Box sx={{pb: 1, display: "flex", gap: 1.25 }}>
           {tagItems.map((item, index) => (
             <Stack
               key={index}
@@ -202,15 +232,17 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
               flexDirection={"row"}
               gap={1.25}
             >
+              <Typography color="#D9D9D9">•</Typography>
               <Typography key={index} variant="body2" color="text.primary">
-                {item.value} &nbsp; {item.label}
+                {`${item.label}: `}
               </Typography>
-              {index !== tagItems.length - 1 && (
-                <Typography color="#D9D9D9">•</Typography>
-              )}
+              <Typography variant="body2" color="text.primary" fontWeight={600}>
+                {item.value}
+              </Typography>
             </Stack>
           ))}
         </Box>
+        </Stack>
       </Box>
     </Box>
   );

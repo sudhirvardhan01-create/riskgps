@@ -47,7 +47,7 @@ class MetaDataService {
         };
     }
 
-    static async getAllMetaData(page = 0, limit = 6, appliesTo, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
+    static async getAllMetaData(page = 0, limit = -1, appliesTo, searchPattern = null, sortBy = 'created_at', sortOrder = 'ASC') {
         console.log("Fetching all metadata with filters:");
         const whereClause = {};
         const offset = page * limit;

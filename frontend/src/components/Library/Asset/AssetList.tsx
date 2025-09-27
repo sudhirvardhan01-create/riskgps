@@ -55,14 +55,16 @@ const AssetList: React.FC<Props> = ({
                 lastUpdated={item.updatedAt ?? ""}
                 tagItems={[
                   {
-                    label: "Processes",
+                    label: "Linked Processes",
                     value:
                       item.relatedProcesses?.length === 0
                         ? "0"
-                        : item.relatedProcesses,
+                        : item.relatedProcesses?.length,
                   },
                 ]}
                 module="Asset"
+                footerChipKey="Third Party Involvement"
+                footerChipValue={item.isThirdPartyManagement === null ? "Not Defined" : item.isThirdPartyManagement === true ? "Yes" : "No"}
               />
             </div>
           ))

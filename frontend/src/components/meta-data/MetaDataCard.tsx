@@ -27,6 +27,7 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
         boxShadow: "0px 4px 4px 0px #D9D9D966",
         display: "flex",
         flexDirection: { xs: "column", sm: "row" },
+        flexShrink: 0,
         alignItems: { sm: "center" },
         justifyContent: "space-between",
         gap: 2,
@@ -34,7 +35,12 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
       }}
     >
       {/* Key */}
-      <Stack spacing={0.5} flex={1} onClick={onClick} sx={{ alignSelf: "stretch" }}>
+      <Stack
+        spacing={0.5}
+        flex={1}
+        onClick={onClick}
+        sx={{ alignSelf: "stretch" }}
+      >
         <Typography variant="body2" color="#91939A" fontWeight={550}>
           Key
         </Typography>
@@ -62,7 +68,7 @@ const MetaDataCard: React.FC<MetaDataCardProps> = ({
                   fontWeight: 500,
                   marginRight: "8px",
                   marginBottom: "8px",
-                  height: "24px"
+                  height: "24px",
                 }}
               />
             ))

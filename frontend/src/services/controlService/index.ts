@@ -1,6 +1,7 @@
 import {
   deleteControl,
   fetchControls,
+  fetchControlsForListing,
   updateControl,
   updateControlStatus,
 } from "@/pages/api/control";
@@ -11,13 +12,16 @@ export const ControlService = {
     fetchControls(page, limit, searchPattern, sort),
   delete: (mitreControlId: string, mitreControlName: string) =>
     deleteControl(mitreControlId, mitreControlName),
-  update: (data: ControlForm,
-  mitreControlId: string,
-  mitreControlName: string,
-  mitreControlType: string) => updateControl(data, mitreControlId, mitreControlName, mitreControlType),
+  update: (
+    data: ControlForm,
+    mitreControlId: string,
+    mitreControlName: string,
+    mitreControlType: string
+  ) => updateControl(data, mitreControlId, mitreControlName, mitreControlType),
   updateStatus: (
     mitreControlId: string,
     mitreControlName: string,
     status: string
   ) => updateControlStatus(mitreControlId, mitreControlName, status),
+  fetchControlsForListing: (fields?: string) => fetchControlsForListing(fields),
 };

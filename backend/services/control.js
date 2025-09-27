@@ -16,6 +16,7 @@ class ControlsService {
         searchPattern = null,
         sortBy = "created_at",
         sortOrder = "ASC",
+        fields = null,
     ) {
 
         if (!MITRE_CONTROLS.ALLOWED_SORT_FILED.includes(sortBy)) {
@@ -35,41 +36,52 @@ class ControlsService {
             include: includeRelation
         });
 
+        if (fields) {
+            const uniqueValues = {};
+            const fieldList = Array.isArray(fields) ? fields : [fields];
+
+            fieldList.forEach((field) => {
+                uniqueValues[field] = [
+                    ...new Set(data.map((row) => row[field]).filter((v) => v !== null)),
+                ];
+            });
+
+            return uniqueValues;
+        }
+
         const grouped = Object.values(
             data.reduce((acc, row) => {
-                const key = row.mitreControlId + row.mitreControlName;
+                const key = row.mitreControlId;
 
                 if (!acc[key]) {
                     acc[key] = {
-                        id: row.id,
+
                         mitreControlId: row.mitreControlId,
-                        mitreControlName: row.mitreControlName,
+                        controlPriority: row.controlPriority,
                         mitreControlType: row.mitreControlType,
-                        subControls: [],
-                        nistControls: [],
+                        controlDetails: [],
                         status: row.status,
                         created_at: row.created_at,
                         updated_at: row.updated_at,
                     };
                 }
 
-                // loop through framework_controls if present
-                if (row.framework_controls && row.framework_controls.length > 0) {
-                    row.framework_controls.forEach(fc => {
-                        acc[key].nistControls.push({
-                            id: fc.id,
-                            frameWorkName: fc.frameWorkName,
-                            frameWorkControlCategoryId: fc.frameWorkControlCategoryId,
-                            frameWorkControlCategory: fc.frameWorkControlCategory,
-                            frameWorkControlDescription: fc.frameWorkControlDescription,
-                            frameWorkControlSubCategoryId: fc.frameWorkControlSubCategoryId,
-                            frameWorkControlSubCategory: fc.frameWorkControlSubCategory
-                        });
-                    });
+                // Look for existing controlDetail with same name + type
+                let controlDetail = acc[key].controlDetails.find(
+                    (cd) =>
+                        cd.mitreControlName === row.mitreControlName
+                );
+
+                if (!controlDetail) {
+                    controlDetail = {
+                        mitreControlName: row.mitreControlName,
+                        subControls: [],
+                    };
+                    acc[key].controlDetails.push(controlDetail);
                 }
 
-                // push sub-control details
-                acc[key].subControls.push({
+                // Push into subControls
+                controlDetail.subControls.push({
                     id: row.id,
                     mitreTechniqueId: row.mitreTechniqueId,
                     mitreTechniqueName: row.mitreTechniqueName,
@@ -134,6 +146,7 @@ class ControlsService {
             throw new Error("no update data found");
         }
 
+        controlPriority
         if (!Array.isArray(data.subControls) || data.subControls.length < 1) {
             throw new Error("Invalid request, subcontrol required");
         }
@@ -141,7 +154,7 @@ class ControlsService {
             const payload = {
                 mitreControlId,
                 mitreControlName,
-                mitreControlType
+                mitreControlType,
             }
             const [mitreThreatControlUpdateCount] = await MitreThreatControl.update(
                 payload,
@@ -554,8 +567,8 @@ class ControlsService {
             }
 
 
-            const [affectedCount] = await MitreThreatControl.update(payload,{ where: whereClause, transaction: transaction});
-            
+            const [affectedCount] = await MitreThreatControl.update(payload, { where: whereClause, transaction: transaction });
+
             if (affectedCount < 1) {
                 throw new Error("Failed to update, no record found")
             }

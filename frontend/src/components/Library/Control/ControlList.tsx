@@ -1,10 +1,10 @@
 import { Box, Stack, TablePagination } from "@mui/material";
-import { ControlForm } from "@/types/control";
+import { ControlForm, MITREControlForm } from "@/types/control";
 import ThreatControlCard from "../ThreatControlCard";
 
 interface Props {
   loading: boolean;
-  data: ControlForm[];
+  data: MITREControlForm[];
   totalRows: number;
   page: number;
   rowsPerPage: number;
@@ -12,7 +12,7 @@ interface Props {
   onRowsPerPageChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  setSelectedControl: React.Dispatch<React.SetStateAction<ControlForm | null>>;
+  setSelectedControl: React.Dispatch<React.SetStateAction<MITREControlForm | null>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,6 +21,7 @@ interface Props {
     mitreControlId: string,
     mitreControlName?: string
   ) => void;
+  setIsSelectControlsToDeleteOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ControlList: React.FC<Props> = ({
@@ -35,6 +36,7 @@ const ControlList: React.FC<Props> = ({
   setIsEditOpen,
   setIsDeleteConfirmOpen,
   handleUpdateStatus,
+  setIsSelectControlsToDeleteOpen,
 }) => {
   return (
     <>
@@ -54,11 +56,12 @@ const ControlList: React.FC<Props> = ({
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
                 rowID={item.mitreControlId ?? ""}
-                headerChip={item.mitreControlType ?? ""}
-                title={item.mitreControlName ?? ""}
+                headerChip={""}
+                title={item.controlDetails.map((item) => item.mitreControlName).join(", ") ?? ""}
                 status={item.status ?? ""}
                 lastUpdated={item.updated_at}
-                footerChips={[{label: "MITRE Control Type:", value: item.mitreControlType}]}
+                footerChips={[{label: "MITRE Control Type:", value: item.mitreControlType ?? ""}]}
+                setIsSelectControlsToDeleteOpen={setIsSelectControlsToDeleteOpen}
               />
             </div>
           ))

@@ -32,6 +32,7 @@ const ProcessList: React.FC<Props> = ({
   setIsDeleteConfirmOpen,
   handleUpdateStatus,
 }) => {
+  console.log(data);
   return (
     <>
       <Stack
@@ -58,9 +59,13 @@ const ProcessList: React.FC<Props> = ({
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
-                  { label: "Tags", value: item.attributes?.length },
-                  { label: "Processes", value: item.processDependency?.length },
+                  { label: "Dependant Processes", value:item.processDependency?.length },
+                  { label: "Follows", value: item.processDependency?.filter((pd) => pd.relationshipType === "follows")?.length },
+                  { label: "Precedes", value: item.processDependency?.filter((pd) => pd.relationshipType === "precedes")?.length },
                 ]}
+                module="Process"
+                footerChipKey="Users"
+                footerChipValue={item.users ? item.users : "Not Defined"}
               />
             </div>
           ))

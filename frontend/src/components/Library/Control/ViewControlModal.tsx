@@ -11,23 +11,31 @@ import {
   IconButton,
   Paper,
   Stack,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tabs,
+  tabsClasses,
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
-import { ControlForm } from "@/types/control";
+import { ControlForm, MITREControlForm } from "@/types/control";
 import { formatDate } from "@/utils/utility";
+import { labels } from "@/utils/labels";
+import ButtonTabs from "@/components/ButtonTabs";
+import { useState } from "react";
 
 interface ViewControlModalProps {
   open: boolean;
-  controlData: ControlForm;
+  controlData: MITREControlForm;
   setIsEditControlOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedControl: React.Dispatch<React.SetStateAction<ControlForm | null>>;
+  setSelectedControl: React.Dispatch<
+    React.SetStateAction<MITREControlForm | null>
+  >;
   onClose: () => void;
 }
 const ViewControlModal: React.FC<ViewControlModalProps> = ({
@@ -37,6 +45,17 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
   setSelectedControl,
   onClose,
 }: ViewControlModalProps) => {
+  const [selectedTab, setSelectedTab] = useState<string>(
+    controlData.controlDetails[0]?.mitreControlName
+  );
+  const selectedSubControls = controlData.controlDetails.find(
+    (item) => item.mitreControlName === selectedTab
+  )?.subControls;
+
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setSelectedTab(newValue);
+  };
+
   const getStatusComponent = () => {
     if (
       controlData.status === "published" ||
@@ -113,7 +132,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
             justifyContent={"space-between"}
             gap={3}
           >
-            <IconButton
+            {/* <IconButton
               sx={{ padding: 0 }}
               onClick={() => {
                 setSelectedControl(controlData);
@@ -121,7 +140,7 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
               }}
             >
               <EditOutlined sx={{ color: "primary.main" }} />
-            </IconButton>
+            </IconButton> */}
             <IconButton onClick={onClose} sx={{ padding: 0 }}>
               <Close sx={{ color: "primary.main" }} />
             </IconButton>
@@ -144,22 +163,8 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
             </Box>
           </Grid>
 
-          {/* MITRE Control Name */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control Name
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {controlData.mitreControlName
-                  ? controlData.mitreControlName
-                  : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
           {/* MITRE Control Type */}
-          <Grid size={{ xs: 12 }}>
+          <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 MITRE Control Type
@@ -171,6 +176,76 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
               </Typography>
             </Box>
           </Grid>
+
+          {/* Control Priority */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                {labels.controlPriority}
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {controlData.controlPriority
+                  ? controlData.controlPriority
+                  : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* {controlData.controlDetails.length > 1 && (
+            <Grid size={{ xs: 12 }} mb={-2}>
+              <ButtonTabs
+                selectedTab={selectedTab}
+                setSelectedTab={setSelectedTab}
+                items={controlData.controlDetails.map(
+                  (item) => item.mitreControlName
+                )}
+              />
+            </Grid>
+          )} */}
+
+          {controlData.controlDetails.length > 1 && (
+            <Grid size={{ xs: 12 }} mt={-1}>
+              <Tabs
+                value={selectedTab}
+                onChange={handleChange}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  [`& .${tabsClasses.scrollButtons}`]: {
+                    "&.Mui-disabled": { opacity: 0.3 },
+                  },
+                }}
+              >
+                {controlData.controlDetails.map((item) => (
+                  <Tab
+                    label={item.mitreControlName}
+                    key={item.mitreControlName}
+                    value={item.mitreControlName}
+                  />
+                ))}
+              </Tabs>
+            </Grid>
+          )}
+
+          {/* MITRE Control Name */}
+          {controlData.controlDetails.length === 1 && (
+            <Grid size={{ xs: 12 }}>
+              <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+                <Typography variant="body2" color="#91939A" fontWeight={550}>
+                  MITRE Control Name
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.primary"
+                  fontWeight={500}
+                >
+                  {controlData.controlDetails[0]?.mitreControlName
+                    ? controlData.controlDetails[0]?.mitreControlName
+                    : "-"}
+                </Typography>
+              </Box>
+            </Grid>
+          )}
 
           <Grid size={{ xs: 12 }}>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -185,29 +260,30 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {controlData.subControls?.map((control, index) => {
-                      return (
-                        <TableRow
-                          hover
-                          role="checkbox"
-                          tabIndex={-1}
-                          key={index}
-                        >
-                          <TableCell>
-                            {control.mitreTechniqueId}
-                          </TableCell>
-                          <TableCell>
-                            {control?.subTechniqueId ? control.subTechniqueId : "-"}
-                          </TableCell>
-                          <TableCell>
-                            {control.mitreControlDescription}
-                          </TableCell>
-                          <TableCell>
-                            {control.bluOceanControlDescription}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                    {selectedSubControls &&
+                      selectedSubControls.map((control, index) => {
+                        return (
+                          <TableRow
+                            hover
+                            role="checkbox"
+                            tabIndex={-1}
+                            key={index}
+                          >
+                            <TableCell>{control.mitreTechniqueId}</TableCell>
+                            <TableCell>
+                              {control?.subTechniqueId
+                                ? control.subTechniqueId
+                                : "-"}
+                            </TableCell>
+                            <TableCell>
+                              {control.mitreControlDescription}
+                            </TableCell>
+                            <TableCell>
+                              {control.bluOceanControlDescription}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -242,7 +318,9 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {controlData.created_at ? formatDate(controlData.created_at) : "-"}
+                {controlData.created_at
+                  ? formatDate(controlData.created_at)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -252,7 +330,9 @@ const ViewControlModal: React.FC<ViewControlModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {controlData.updated_at ? formatDate(controlData.updated_at) : "-"}
+                {controlData.updated_at
+                  ? formatDate(controlData.updated_at)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
