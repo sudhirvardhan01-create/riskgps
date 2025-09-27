@@ -9,53 +9,24 @@ import {
   Typography,
 } from "@mui/material";
 import TooltipComponent from "@/components/TooltipComponent";
+import { Severity } from "@/types/assessment";
 
 interface ImpactSelectorProps {
   label: string;
-  value: string;
+  value?: string; // selected severityId
   onChange: (val: string) => void;
+  severityLevels: Severity[];
 }
-
-const options = [
-  {
-    label: "Very Low",
-    value: "very-low",
-    range: "$50k-100k",
-    color: "#3BB966",
-  },
-  {
-    label: "Low",
-    value: "low",
-    range: "$100k-200k",
-    color: "#3366CC",
-  },
-  {
-    label: "Moderate",
-    value: "moderate",
-    range: "$200k-500k",
-    color: "#E3B52A",
-  },
-  {
-    label: "High",
-    value: "high",
-    range: "$500k-1Mn",
-    color: "#DA7706",
-  },
-  {
-    label: "Critical",
-    value: "critical",
-    range: ">$1Mn",
-    color: "#B90D0D",
-  },
-];
 
 export default function ImpactSelector({
   label,
   value,
   onChange,
+  severityLevels,
 }: ImpactSelectorProps) {
   return (
     <Grid container spacing={1} sx={{ alignItems: "center", mb: 2.5 }}>
+      {/* Label + Tooltip */}
       <Grid size={3}>
         <Box
           sx={{
@@ -75,22 +46,26 @@ export default function ImpactSelector({
           />
         </Box>
       </Grid>
+
+      {/* Severity Buttons */}
       <Grid size={9}>
         <ToggleButtonGroup
-          value={value}
+          value={value ?? ""}
           exclusive
           onChange={(_, newValue) => newValue && onChange(newValue)}
           sx={{ flexWrap: "wrap" }}
         >
-          {options.map((opt) => (
+          {severityLevels.map((opt) => (
             <ToggleButton
-              key={opt.value}
-              value={opt.value}
+              key={opt.severityId}
+              value={opt.severityId}
               sx={{
                 textTransform: "none",
                 bgcolor:
-                  value === opt.value ? `${opt.color} !important` : "#f5f5f5",
-                color: value === opt.value ? "#ffffff !important" : "#333",
+                  value === opt.severityId
+                    ? `${opt.color} !important`
+                    : "#f5f5f5",
+                color: value === opt.severityId ? "#ffffff !important" : "#333",
                 borderRadius: 2,
                 px: 2,
                 py: 1,
@@ -104,9 +79,9 @@ export default function ImpactSelector({
               }}
             >
               <Typography variant="body2" fontWeight="500" sx={{ pb: 1 }}>
-                {opt.label}
+                {opt.name}
               </Typography>
-              <Typography variant="caption">{opt.range}</Typography>
+              <Typography variant="caption">{`${opt.minRange} - ${opt.maxRange}`}</Typography>
             </ToggleButton>
           ))}
         </ToggleButtonGroup>

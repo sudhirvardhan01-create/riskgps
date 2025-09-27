@@ -38,10 +38,7 @@ export default function RiskScenarioBussiness({
     return (
       s.thresholdHours !== undefined &&
       s.thresholdCost !== undefined &&
-      !!s.financial &&
-      !!s.regulatory &&
-      !!s.reputational &&
-      !!s.operational
+      s.taxonomy?.length == 4
     );
   };
 

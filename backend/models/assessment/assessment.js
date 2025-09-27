@@ -102,11 +102,10 @@ module.exports = (sequelize, DataTypes) => {
             as: "businessUnit",
         });
 
-        // User Relation
-        // Assessment.belongsTo(models.User, {
-        //     foreignKey: "userId",
-        //     as: "user",
-        // });
+        Assessment.hasMany(models.AssessmentProcess, {
+            foreignKey: "assessmentId",
+            as: "processes"
+        });
     };
 
     return Assessment;

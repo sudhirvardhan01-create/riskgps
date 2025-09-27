@@ -35,7 +35,6 @@ export default function BUProcessMappingPage() {
     selectedProcesses,
     setSelectedProcesses,
     orderedProcesses,
-    setOrderedProcesses,
   } = useAssessment();
   const router = useRouter();
 

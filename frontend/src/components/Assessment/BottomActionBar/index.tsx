@@ -77,7 +77,7 @@ export default function BottomActionBar({
             borderRadius: "4px",
             "&:hover": { bgcolor: "#02106f" },
           }}
-          disabled={activeStep == 3}
+          disabled={activeStep == 2}
         >
           Save & Continue
         </Button>

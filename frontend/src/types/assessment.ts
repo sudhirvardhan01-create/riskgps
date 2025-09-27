@@ -28,7 +28,20 @@ export interface BusinessUnit {
   businessUnitDesc?: string;
 }
 
-export interface Taxonomy {}
+export interface Severity {
+  severityId: string;
+  name: string;
+  minRange: string;
+  maxRange: string;
+  color: string;
+}
+
+export interface Taxonomy {
+  taxonomyId: string;
+  name: string;
+  orgId: string;
+  severityDetails: Severity;
+}
 
 export interface Risk {
   orgRiskId: string;
@@ -37,10 +50,6 @@ export interface Risk {
   thresholdHours?: number;
   thresholdCost?: number;
   taxonomy?: Taxonomy[];
-  financial?: string;
-  regulatory?: string;
-  reputational?: string;
-  operational?: string;
 }
 
 export interface ProcessUnit {

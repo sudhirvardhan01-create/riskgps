@@ -4,6 +4,9 @@ const {
     OrganizationProcess,
     OrganizationRiskScenario,
     Sequelize,
+    Taxonomy,
+    SeverityLevel,
+    OrganizationAsset
 } = require("../models");
 const { Op } = Sequelize;
 const CustomError = require("../utils/CustomError");
@@ -190,6 +193,98 @@ class OrganizationService {
             );
         }
     }
+
+    /**
+     * Get all taxonomies with severity levels for an organization
+     */
+    static async getTaxonomiesWithSeverity(orgId) {
+        try {
+            if (!orgId) {
+                throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+            }
+
+            const taxonomies = await Taxonomy.findAll({
+                where: {
+                    organizationId: orgId,
+                    isDeleted: false,
+                },
+                attributes: [
+                    "taxonomyId",
+                    "name",
+                    "organizationId",
+                    "createdBy",
+                    "modifiedBy",
+                    "createdDate",
+                    "modifiedDate",
+                    "weightage"
+                ],
+                include: [
+                    {
+                        model: SeverityLevel,
+                        as: "severityLevels",
+                        where: { isDeleted: false },
+                        required: false,
+                        attributes: [
+                            "severityId",
+                            "taxonomyId",
+                            "name",
+                            "minRange",
+                            "maxRange",
+                            "createdBy",
+                            "modifiedBy",
+                            "createdDate",
+                            "modifiedDate",
+                            "color"
+                        ],
+                    },
+                ],
+                order: [["createdDate", "DESC"]],
+            });
+
+            return taxonomies;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to fetch organization taxonomies with severity levels",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+ * Get all assets for a given organization
+ */
+    static async getAssetsByOrgId(orgId) {
+        try {
+            if (!orgId) {
+                throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+            }
+
+            const assets = await OrganizationAsset.findAll({
+                where: {
+                    organizationId: orgId,
+                    isDeleted: false,
+                },
+                attributes: [
+                    "orgAssetId",
+                    "organizationId",
+                    "name",
+                    "createdBy",
+                    "modifiedBy",
+                    "createdDate",
+                    "modifiedDate",
+                ],
+                order: [["createdDate", "DESC"]],
+            });
+
+            return assets;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to fetch organization assets",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
 }
 
 module.exports = OrganizationService;

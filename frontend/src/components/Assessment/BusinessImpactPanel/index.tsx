@@ -7,58 +7,122 @@ import ImpactSelector from "../ImpactSelector";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import TooltipComponent from "@/components/TooltipComponent";
 import { Risk } from "@/types/assessment";
+import { getOrganizationTaxonomy } from "@/pages/api/organization";
+import { useAssessment } from "@/context/AssessmentContext";
 
 export default function BusinessImpactPanel({
   selectedScenario,
-  onUpdateScenario, // callback to push state updates up
+  onUpdateScenario,
 }: {
   selectedScenario: Risk | null;
   onUpdateScenario: (risk: Risk) => void;
 }) {
+  const { selectedOrg } = useAssessment();
+
   const [thresholdHours, setThresholdHours] = useState<number | undefined>();
   const [thresholdCost, setThresholdCost] = useState<number | undefined>();
-  const [financial, setFinancial] = useState("");
-  const [regulatory, setRegulatory] = useState("");
-  const [reputational, setReputational] = useState("");
-  const [operational, setOperational] = useState("");
+  const [taxonomies, setTaxonomies] = useState<any[]>([]);
+  const [taxonomyValue, setTaxonomyValue] = useState<Record<string, string>>(
+    {}
+  );
   const [value, setValue] = useState("1");
+  const [isInternalChange, setIsInternalChange] = useState(false);
+
+  useEffect(() => {
+    const getTaxonomies = async () => {
+      const res = await getOrganizationTaxonomy(selectedOrg);
+      setTaxonomies(res.data);
+    };
+    getTaxonomies();
+  }, [selectedOrg]);
 
   // Reset form when selectedScenario changes
   useEffect(() => {
     if (selectedScenario) {
       setThresholdHours(selectedScenario.thresholdHours ?? undefined);
       setThresholdCost(selectedScenario.thresholdCost ?? undefined);
-      setFinancial(selectedScenario.financial ?? "");
-      setRegulatory(selectedScenario.regulatory ?? "");
-      setReputational(selectedScenario.reputational ?? "");
-      setOperational(selectedScenario.operational ?? "");
+
+      if (selectedScenario.taxonomy && selectedScenario.taxonomy.length > 0) {
+        const mapped: Record<string, string> = {};
+        selectedScenario.taxonomy.forEach((t: any) => {
+          mapped[t.taxonomyId] = t.value ?? "";
+        });
+        setTaxonomyValue(mapped);
+      } else {
+        // reset if no taxonomy in scenario
+        setTaxonomyValue({});
+      }
+    } else {
+      // reset everything if no scenario
+      setThresholdHours(undefined);
+      setThresholdCost(undefined);
+      setTaxonomyValue({});
     }
+
+    setIsInternalChange(false); // reset after parent update
   }, [selectedScenario]);
 
-  // Push updates back into selectedScenario
+  // Push updates back into parent, but only if it's from user action
   useEffect(() => {
-    if (selectedScenario) {
-      onUpdateScenario({
-        ...selectedScenario,
-        thresholdHours,
-        thresholdCost,
-        financial,
-        regulatory,
-        reputational,
-        operational,
-      });
+    if (!selectedScenario || !isInternalChange) return;
+
+    const updatedScenario: Risk = {
+      ...selectedScenario,
+      thresholdHours,
+      thresholdCost,
+      taxonomy: Object.entries(taxonomyValue).map(([taxonomyId, value]) => ({
+        taxonomyId,
+        value,
+      })),
+    };
+
+    const isDifferent =
+      updatedScenario.thresholdHours !== selectedScenario.thresholdHours ||
+      updatedScenario.thresholdCost !== selectedScenario.thresholdCost ||
+      JSON.stringify(updatedScenario.taxonomy) !==
+        JSON.stringify(selectedScenario.taxonomy);
+
+    if (isDifferent) {
+      onUpdateScenario(updatedScenario);
     }
   }, [
     thresholdHours,
     thresholdCost,
-    financial,
-    regulatory,
-    reputational,
-    operational,
+    taxonomyValue,
+    selectedScenario,
+    isInternalChange,
+    onUpdateScenario,
   ]);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
+  };
+
+  // User edits
+  const handleThresholdHoursChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsInternalChange(true);
+    setThresholdHours(
+      e.target.value === "" ? undefined : Number(e.target.value)
+    );
+  };
+
+  const handleThresholdCostChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsInternalChange(true);
+    setThresholdCost(
+      e.target.value === "" ? undefined : Number(e.target.value)
+    );
+  };
+
+  const setTaxonomy = (taxonomyId: string, val: string) => {
+    setIsInternalChange(true);
+    setTaxonomyValue((prev) => ({
+      ...prev,
+      [taxonomyId]: val,
+    }));
   };
 
   if (!selectedScenario) {
@@ -123,14 +187,14 @@ export default function BusinessImpactPanel({
                 type="number"
                 size="small"
                 value={thresholdHours ?? ""}
-                onChange={(e) => setThresholdHours(Number(e.target.value))}
+                onChange={handleThresholdHoursChange}
               />
               <TextFieldStyled
                 label="Risk Threshold ($)"
                 type="number"
                 size="small"
                 value={thresholdCost ?? ""}
-                onChange={(e) => setThresholdCost(Number(e.target.value))}
+                onChange={handleThresholdCostChange}
               />
             </Box>
 
@@ -155,26 +219,17 @@ export default function BusinessImpactPanel({
             </Box>
 
             {/* Impacts */}
-            <ImpactSelector
-              label="Financial Impact"
-              value={financial}
-              onChange={setFinancial}
-            />
-            <ImpactSelector
-              label="Regulatory"
-              value={regulatory}
-              onChange={setRegulatory}
-            />
-            <ImpactSelector
-              label="Reputational"
-              value={reputational}
-              onChange={setReputational}
-            />
-            <ImpactSelector
-              label="Operational"
-              value={operational}
-              onChange={setOperational}
-            />
+            {taxonomies.map((item: any) => {
+              return (
+                <ImpactSelector
+                  key={item.taxonomyId}
+                  label={item.name}
+                  severityLevels={item.severityLevels}
+                  value={taxonomyValue[item.taxonomyId]}
+                  onChange={(val) => setTaxonomy(item.taxonomyId, val)}
+                />
+              );
+            })}
           </Box>
         </TabPanel>
       </TabContext>
