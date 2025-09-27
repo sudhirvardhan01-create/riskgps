@@ -51,6 +51,16 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "assessmentId",
             as: "assessment",
         });
+
+        AssessmentProcessRiskScenario.hasMany(models.AssessmentRiskScenarioBusinessImpact, {
+            foreignKey: "assessmentProcessRiskId",
+            as: "riskScenarioBusinessImpacts",
+        });
+
+        AssessmentProcessRiskScenario.hasMany(models.AssessmentRiskTaxonomy, {
+            foreignKey: "assessmentProcessRiskId",
+            as: "riskTaxonomies",
+        });
     };
 
     return AssessmentProcessRiskScenario;

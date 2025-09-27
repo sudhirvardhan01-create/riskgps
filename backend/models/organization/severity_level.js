@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "max_range",
             },
+            color: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                field: "color",
+            },
             ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
