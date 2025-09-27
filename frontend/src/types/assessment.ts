@@ -37,10 +37,7 @@ export interface Severity {
 }
 
 export interface Taxonomy {
-  taxonomyId: string;
-  name: string;
-  orgId: string;
-  severityDetails: Severity;
+  [key: string]: string;
 }
 
 export interface Risk {
