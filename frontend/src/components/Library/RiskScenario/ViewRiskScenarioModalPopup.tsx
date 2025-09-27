@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { RiskScenarioData } from "@/types/risk-scenario";
+import { formatDate } from "@/utils/utility";
 
 interface ViewRiskScenarioModalProps {
   open: boolean;
@@ -26,6 +27,14 @@ interface ViewRiskScenarioModalProps {
   >;
   onClose: () => void;
 }
+type CIAKey = "C" | "I" | "A";
+
+const ciaKeyValueMapping: Record<CIAKey, string> = {
+  C: "Confidentiality",
+  I: "Integrity",
+  A: "Availability",
+};
+
 const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
   open,
   processes,
@@ -159,7 +168,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
           </Grid>
 
           {/* Risk Description */}
-          <Grid size={{ xs: 12 }}>
+          {/* <Grid size={{ xs: 12 }}>
             <Box>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 Risk Description
@@ -167,6 +176,22 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
               <Typography variant="body1" color="text.primary" fontWeight={500}>
                 {riskScenarioData.riskDescription
                   ? riskScenarioData.riskDescription
+                  : "-"}
+              </Typography>
+            </Box>
+          </Grid> */}
+
+          {/* CIA Mapping */}
+          <Grid size={{ xs: 12 }}>
+            <Box>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                CIA Mapping
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {riskScenarioData.ciaMapping.length > 0
+                  ? (riskScenarioData.ciaMapping as CIAKey[])
+                      .map((val: CIAKey) => ciaKeyValueMapping[val])
+                      .join(", ")
                   : "-"}
               </Typography>
             </Box>
@@ -266,7 +291,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan 2024
+                {riskScenarioData.createdAt ? formatDate(riskScenarioData.createdAt) : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -276,7 +301,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan 2024
+                {riskScenarioData.lastUpdated ? formatDate(riskScenarioData.lastUpdated) : "-"}
               </Typography>
             </Box>
           </Grid>

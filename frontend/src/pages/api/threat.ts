@@ -1,3 +1,5 @@
+import { ThreatForm } from "@/types/threat";
+
 //Function to fetch threats
 export const fetchThreats = async (
   page: number,
@@ -26,6 +28,93 @@ export const fetchThreats = async (
     throw new Error("Failed to fetch threats data");
   }
   const res = await response.json();
+  console.log(res.data);
+  console.log(res.data.data.length);
   return res.data;
 };
+
+//Function to create a threat
+export const createThreat = async (data: ThreatForm) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    console.error("Fetch failed with status:", response.status);
+    const errorResponse = await response.json(); // if API returns error details
+    console.log("Error response:", errorResponse);
+    throw new Error("Failed to create Threat");
+  }
+  const res = await response.json();
+  return res.data;
+};
+
+//Function to update a threat
+export const updateThreat = async (data: ThreatForm, mitreTechniqueId: string, subTechniqueId?: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update?mitreTechniqueId=${mitreTechniqueId}&&subTechniqueId=${subTechniqueId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to update a threat");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+};
+
+//Function to delete a threat
+export const deleteThreat = async (mitre_technique_id: string, mitre_sub_technique_id?: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/delete-threats?mitre_technique_id=${mitre_technique_id}&&mitre_sub_technique_id=${mitre_sub_technique_id}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to delete a threat");
+  }
+  const res = await response.json();
+  console.log(res);
+  return res.data;
+};
+
+//Function to update status of a threat
+export const updateThreatStatus = async (status: string, mitreTechniqueId: string, subTechniqueId?: string) => {
+  if (!mitreTechniqueId || !status) {
+    throw new Error("Failed to perforom the operation, Invalid arguments");
+  }
+  const reqBody = { status };
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update-status?mitreTechniqueId=${mitreTechniqueId}&&subTechniqueId=${subTechniqueId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(reqBody),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to update status of a threat");
+  }
+  const res = await response.json();
+  return res.data;
+};
+
 

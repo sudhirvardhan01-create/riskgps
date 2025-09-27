@@ -1,8 +1,18 @@
-import { Box, Chip, Typography, Stack, Divider, FormControlLabel } from "@mui/material";
-import { DeleteOutlineOutlined, DoneOutlined, EditOutlined } from "@mui/icons-material";
+import {
+  Box,
+  Chip,
+  Typography,
+  Stack,
+  Divider,
+  FormControlLabel,
+} from "@mui/material";
+import {
+  DeleteOutlineOutlined,
+  DoneOutlined,
+  EditOutlined,
+} from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
-
 
 interface TagItem {
   label: string;
@@ -22,6 +32,9 @@ interface LibraryCardProps {
   status: string;
   lastUpdated?: string | Date;
   tagItems: TagItem[];
+  module: string;
+  footerChipKey: string;
+  footerChipValue: string;
 }
 
 const LibraryCard: React.FC<LibraryCardProps> = ({
@@ -37,6 +50,9 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
   status,
   lastUpdated,
   tagItems,
+  module,
+  footerChipKey,
+  footerChipValue,
 }) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
@@ -46,7 +62,9 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
             <ToggleSwitch
               sx={{ m: 1 }}
               onChange={(e) => {
-                const updatedStatus = e.target.checked ? "published" : "not_published";
+                const updatedStatus = e.target.checked
+                  ? "published"
+                  : "not_published";
                 handleUpdateStatus(libraryData.id as number, updatedStatus);
               }}
               checked={status === "published"}
@@ -90,8 +108,9 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
     },
   ];
 
-  const formattedDate =
-    lastUpdated ? new Date(lastUpdated as string | Date).toISOString().split("T")[0] : "";
+  const formattedDate = lastUpdated
+    ? new Date(lastUpdated as string | Date).toISOString().split("T")[0]
+    : "";
 
   return (
     <Box
@@ -106,17 +125,35 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
       }}
     >
       {/* Header */}
-      <Box sx={{ px: 3, py: 1, backgroundColor: "#F3F8FF", borderRadius: "8px 8px 0 0" }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap">
+      <Box
+        sx={{
+          px: 3,
+          py: 1,
+          backgroundColor: "#F3F8FF",
+          borderRadius: "8px 8px 0 0",
+        }}
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          flexWrap="wrap"
+        >
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography variant="body1" color={"text.primary"}>
               {title}
             </Typography>
             <Chip
               label={
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Typography variant="body2" color="#91939A">
-                    {"Industry:"}
+                    {module === "Asset" ? "Asset Category:" : "Industry:"}
                   </Typography>
                   &nbsp;
                   <Typography variant="body2" color="text.primary">
@@ -126,7 +163,11 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
               }
               variant="outlined"
               size="small"
-              sx={{ borderRadius: 0.5, border: "1px solid #DDDDDD", height: 24 }}
+              sx={{
+                borderRadius: 0.5,
+                border: "1px solid #DDDDDD",
+                height: 24,
+              }}
             />
           </Stack>
 
@@ -134,7 +175,9 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
             <Typography variant="body2" color="textSecondary">
               Last Updated: {formattedDate}
             </Typography>
-            <Box sx={{ width: 96, mx: "24px !important" }}>{getStatusComponent()}</Box>
+            <Box sx={{ width: 96, mx: "24px !important" }}>
+              {getStatusComponent()}
+            </Box>
             <MenuItemComponent items={dialogData} />
           </Stack>
         </Stack>
@@ -155,16 +198,51 @@ const LibraryCard: React.FC<LibraryCardProps> = ({
         <Divider sx={{ mx: 3, my: 1 }} />
 
         {/* Meta Info */}
-        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center" }}>
-          {tagItems.map((item, index) => (
-            <>
-              <Typography variant="body2" color="text.primary">
-                {item.value} &nbsp; {item.label}
+        <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
+        {module === "Risk Scenario" && <Chip
+          label={
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography variant="body2" color="#91939A">
+                {`${footerChipKey}: `}
               </Typography>
-              {index !== tagItems.length - 1 && <Typography color="#D9D9D9" sx={{ ml: 1.5 }}>•</Typography>}
-            </>
+              &nbsp;
+              <Typography variant="body2" color="text.primary">
+                {footerChipValue}
+              </Typography>
+            </Box>
+          }
+          size="small"
+          sx={{
+            borderRadius: 0.5,
+            height: 24,
+            backgroundColor: "#FFF9C7",
+          }}
+        />}
+        <Box sx={{pb: 1, display: "flex", gap: 1.25 }}>
+          {tagItems.map((item, index) => (
+            <Stack
+              key={index}
+              display={"flex"}
+              flexDirection={"row"}
+              gap={1.25}
+            >
+              <Typography color="#D9D9D9">•</Typography>
+              <Typography key={index} variant="body2" color="text.primary">
+                {`${item.label}: `}
+              </Typography>
+              <Typography variant="body2" color="text.primary" fontWeight={600}>
+                {item.value}
+              </Typography>
+            </Stack>
           ))}
         </Box>
+        </Stack>
       </Box>
     </Box>
   );

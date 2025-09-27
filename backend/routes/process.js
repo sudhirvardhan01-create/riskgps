@@ -35,6 +35,7 @@ router.post('/', async (req, res) => {
             msg: Messages.PROCESS.CREATED
         });
     } catch (err) {
+        console.log(err)
         res.status(HttpStatus.BAD_REQUEST).json({
             error: err.message || Messages.GENERAL.BAD_REQUEST
         });

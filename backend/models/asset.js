@@ -6,7 +6,7 @@ module.exports = (sequelize) => {
     "Asset",
     {
       id: { 
-        type: DataTypes.INTEGER, 
+        type: DataTypes.INTEGER,
         primaryKey: true, 
         autoIncrement: true 
       },
@@ -74,9 +74,7 @@ module.exports = (sequelize) => {
         allowNull: true
       },
       asset_category: {
-          type: DataTypes.ARRAY(
-          DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
-        ),
+          type: DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
         allowNull: false,
       },
       asset_name: {
@@ -120,7 +118,7 @@ module.exports = (sequelize) => {
 
   Asset.afterCreate(async (instance, options) => {
     const paddedId = String(instance.id).padStart(5, "0");
-    const code = `#A-${paddedId}`;
+    const code = `AT${paddedId}`;
     await instance.update({ asset_code: code }, { transaction: options.transaction });
   });
   return Asset;

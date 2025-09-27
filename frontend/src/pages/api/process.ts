@@ -47,6 +47,7 @@ const transformProcessData = (data: any[]): ProcessData[] => {
     criticalityOfDataProcessed: item.criticality_of_data_processed,
     dataProcessed: item.data_processed,
     attributes: item.attributes,
+    industry: item.industry ?? [],
     processDependency: Array.isArray(item.process_dependency)
       ? item.process_dependency.map((dep: any) => ({
           sourceProcessId: dep.source_process_id,
@@ -56,6 +57,7 @@ const transformProcessData = (data: any[]): ProcessData[] => {
       : [],
     status: item.status,
     lastUpdated: item.updated_at,
+    createdAt: item.created_at,
     }));
     };
 

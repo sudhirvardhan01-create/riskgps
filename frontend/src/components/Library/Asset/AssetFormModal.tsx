@@ -248,14 +248,13 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled /// this is select
               required
-              multiple
               isTooltipRequired={true}
               tooltipTitle={tooltips.assetCategory}
               value={assetFormData.assetCategory}
               label={labels.assetCategory}
               displayEmpty
               onChange={(e) =>
-                handleChange("assetCategory", e.target.value as string[])
+                handleChange("assetCategory", e.target.value as string)
               }
               renderValue={(selected: any) => {
                 if (!selected) {
@@ -264,7 +263,6 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                       variant="body1"
                       sx={{
                         color: "#9E9FA5",
-                        textTransform: "capitalize",
                       }}
                     >
                       Select Asset Category
@@ -278,7 +276,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                         color: "text.primary",
                       }}
                     >
-                      {selected.join(", ")}
+                      {selected}
                     </Typography>
                   );
                 }

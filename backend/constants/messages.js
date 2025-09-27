@@ -114,14 +114,32 @@ module.exports = {
         UPDATED: 'Mitre ThreatControl Record updated successfully.',
         DELETED: 'Mitre ThreatControl Record deleted successfully.',
         FETCHED: 'Fetched all Mitre ThreatControl Record successfully.',
+        MITRE_THREAT_ID_REQUIRED: "Mitre threat ID required",
         FETCHED_BY_ID: 'Fetched Mitre ThreatControl Record by ID successfully.',
         IMPORTED_SUCCESSFULLY: "Mitre ThreatControl imported successfully",
         NOT_FOUND: 'Mitre threat control record not found.',
         INVALID_PlATFORMS: "Invalid value for platforms",
         INVALID_CIA_MAPPING: "Invalid CIA Mapping",
+        INVALID_MITRE_TECHNIQUE_ID_REQUIRED: "Mitre Technique ID required",
+        INVALID_CONTROLS_LIST_FOR_THREAT: "Invalid controls list for threat",
+        INVALID_STATUS: 'Invalid status provided.',
         FAILED_TO_EXPORT_CSV:' Failed to download Mitre ThreatControl Record CSV',
         FAILED_TO_IMPORT_CSV:' Failed to import Mitre ThreatControl Record CSV',
         FAILED_TO_DOWNLOAD_TEMPLATE_FILE: "Failed to download Mitre ThreatControl Record template file"
+    },
+    MITRE_CONTROLS: {
+        UPDATED_STATUS: "Status updated successfully",
+        DELETED_SUCCESSFULLY: " Deleted successfully",
+        INVALID_MITRE_CONTROL_ID: "Mitre control ID required",
+        NOT_FOUND: "Mitre control not found"
+
+    },
+    FRAMEWORK_CONTROLS : {
+        NO_FRAMEWORK_CONTROL_FOUND: "No framework control found",
+        INVALID_FRAMEWORK_NAME_REQUIRED: "Invalid framework name required",
+        INVALID_FRAMEWORK_INPUTS: "Invalid framework inputs",
+        INVALID_FRAMEWORK_MITRE_MAPPING: "Invalid framework to mitre mapping",
+
     },
     ASSESSMENT: {
         NAME_REQUIRED: "Assessment name is required.",
