@@ -343,14 +343,14 @@ function OrgDetailsPage() {
                 }}
               />
             </Box>
-            <Typography sx={{ fontWeight: 500, color: "#484848", fontSize: "32px", lineHeight: "130%", letterSpacing: "0%" }}>
+            <Typography variant="h3" sx={{ fontWeight: 500, color: "#484848" }}>
               {organization.name}
             </Typography>
           </Box>
 
           {/* Details row below */}
           <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: "wrap" }}>
-            <Typography sx={{ fontSize: "16px", fontWeight: 400, lineHeight: "130%", letterSpacing: 0, color: "#484848" }}>
+            <Typography variant="body1" sx={{ color: "#484848" }}>
               #{organization.orgId}
             </Typography>
             <Box
@@ -361,7 +361,7 @@ function OrgDetailsPage() {
                 backgroundColor: "#9E9FA5",
               }}
             />
-            <Typography sx={{ fontSize: "16px", fontWeight: 400, lineHeight: "130%", letterSpacing: 0, color: "#484848" }}>
+            <Typography variant="body1" sx={{ color: "#484848" }}>
               Org Size: {organization.details?.employeeCount || 100} employees
             </Typography>
             <Box
@@ -381,7 +381,6 @@ function OrgDetailsPage() {
                 variant="body2"
                 sx={{
                   color: organization.status === "active" ? "#147A50" : "#757575",
-                  fontSize: "12px",
                   fontWeight: 500,
                 }}
               >
@@ -476,7 +475,7 @@ function OrgDetailsPage() {
               onClick={() => router.push(`/org-management/${orgId}/edit-org-details`)}
             >
               <Edit sx={{ fontSize: 16 }} />
-              <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "inherit", lineHeight: "130%", letterSpacing: "0%" }}>
+              <Typography variant="body1" sx={{ fontWeight: 500, color: "inherit" }}>
                 Edit Org Details
               </Typography>
             </Box>
@@ -486,30 +485,30 @@ function OrgDetailsPage() {
           <Box sx={{ display: "grid", gap: 3 }}>
             {/* Industry Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Industry</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Industry</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Industry Vertical
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.industryVertical || organization.tags.industry}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Region of Operation
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.regionOfOperation || "India"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Number of employees globally
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.employeeCount || 100}
                   </Typography>
                 </Box>
@@ -518,7 +517,7 @@ function OrgDetailsPage() {
 
             {/* Display form company tags if available */}
             {formData.tags && Array.isArray(formData.tags) && formData.tags.length > 0 && <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Additional Tags from Form</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Additional Tags from Form</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
@@ -550,22 +549,22 @@ function OrgDetailsPage() {
 
             {/* CISO/Security Head Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>CISO/Security Head</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>CISO/Security Head</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Name
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.cisoName || "Vivek Kumar"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Email
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.cisoEmail || "vivekkumar@abccompany.com"}
                   </Typography>
                 </Box>
@@ -574,30 +573,30 @@ function OrgDetailsPage() {
 
             {/* Revenue Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Revenue</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Revenue</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Estimated Annual Revenue
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.annualRevenue || "$ 500,000,000"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Risk Appetite
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.riskAppetite || "$ 30,000,000"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Allocated budget for cybersecurity operations
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.cybersecurityBudget || "$ 35,000,000"}
                   </Typography>
                 </Box>
@@ -606,38 +605,38 @@ function OrgDetailsPage() {
 
             {/* Cyber Insurance and Claims Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Cyber Insurance and Claims</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Cyber Insurance and Claims</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "100px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Insurance - Current Coverage
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.insuranceCoverage || "$ 20,000,000"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     No. of claims (made in last 12 months)
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.insuranceCarrier || "XYZ"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     No. of claims (made in last 12 months)
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.claimsCount || "-"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Claims Value (made in last 12 months)
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {organization.details?.claimsValue || "-"}
                   </Typography>
                 </Box>
@@ -646,22 +645,22 @@ function OrgDetailsPage() {
 
             {/* Regulatory Information Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Regulatory Information</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Regulatory Information</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "150px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Who are your regulators?
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {formData.businessContext?.regulators || "-"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     What are your regulatory requirements?
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {formData.businessContext?.regulatoryRequirements || "-"}
                   </Typography>
                 </Box>
@@ -670,15 +669,15 @@ function OrgDetailsPage() {
 
             {/* Records section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", minHeight: "432px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Records</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Records</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
 
               {/* Question 1: Types of records */}
               <Box sx={{ mb: 3 }}>
-                <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <Typography variant="body2" color="#91939A" sx={{ mb: 1, fontWeight: 500 }}>
                   What kinds of records does the company deal with? Check all that apply: PHI, PII, Intellectual Property, Government Records.
                 </Typography>
-                <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                   {formData.businessContext?.recordTypes && Array.isArray(formData.businessContext.recordTypes) && formData.businessContext.recordTypes.length > 0
                     ? formData.businessContext.recordTypes.join(", ")
                     : "PII, PFI, PHI, Government Records"
@@ -689,40 +688,40 @@ function OrgDetailsPage() {
               {/* Question 2: PII records count */}
               <Box sx={{ ml: 4 }}>
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 1, fontWeight: 500 }}>
                     How many Personal Identifiable Information (PII) records does the company hold, including those related to employees, customers, and partners?
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {formData.businessContext?.piiRecordsCount || "1000"}
                   </Typography>
                 </Box>
 
                 {/* Question 3: PFI records count */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 1, fontWeight: 500 }}>
                     How many Personal Financial Information (PFI) records does the company hold, including those of employees, customers, and partners?
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {formData.businessContext?.pfiRecordsCount || "1000"}
                   </Typography>
                 </Box>
 
                 {/* Question 4: PHI records count */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 1, fontWeight: 500 }}>
                     How many Protected Health Information (PHI) records does the company currently have for employees, customers, and partners?
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {formData.businessContext?.phiRecordsCount || "2000"}
                   </Typography>
                 </Box>
 
                 {/* Question 5: Government records count */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 1, fontWeight: 500 }}>
                     How many government classified information records does the company hold?
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {formData.businessContext?.governmentRecordsCount || "100"}
                   </Typography>
                 </Box>
@@ -730,10 +729,10 @@ function OrgDetailsPage() {
 
               {/* Question 6: Certifications */}
               <Box sx={{ mb: 3 }}>
-                <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <Typography variant="body2" color="#91939A" sx={{ mb: 1, fontWeight: 500 }}>
                   Did the organization obtain PCI DSS, ISO 27001, or SOC2 certification in the past year? Please check the appropriate boxes if any.
                 </Typography>
-                <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                   {formData.businessContext?.certifications && Array.isArray(formData.businessContext.certifications) && formData.businessContext.certifications.length > 0
                     ? formData.businessContext.certifications.join(", ")
                     : "PCI DSS"
@@ -743,10 +742,10 @@ function OrgDetailsPage() {
 
               {/* Question 7: Intellectual property value */}
               <Box sx={{ mb: 3 }}>
-                <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <Typography variant="body2" color="#91939A" sx={{ mb: 1, fontWeight: 500 }}>
                   How much is the company&apos;s intellectual property and trade secrets worth as a percentage of its yearly revenue?
                 </Typography>
-                <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                   {formData.businessContext?.intellectualPropertyPercentage || "30"}%
                 </Typography>
               </Box>
@@ -754,14 +753,14 @@ function OrgDetailsPage() {
 
             {/* Additional Information Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", minHeight: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Additional Information</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Additional Information</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "100px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Additional Information
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {formData.businessContext?.additionalInformation || "-"}
                   </Typography>
                 </Box>
@@ -775,59 +774,59 @@ function OrgDetailsPage() {
                   </Typography>
                   <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
                     <Box>
-                      <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                      <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                         Organization Name
                       </Typography>
-                      <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                      <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                         {formData.orgName}
                       </Typography>
                     </Box>
                     {formData.businessContext?.regulators && (
                       <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                           Regulators
                         </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                           {formData.businessContext.regulators}
                         </Typography>
                       </Box>
                     )}
                     {formData.businessContext?.regulatoryRequirements && (
                       <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                           Regulatory Requirements
                         </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                           {formData.businessContext.regulatoryRequirements}
                         </Typography>
                       </Box>
                     )}
                     {formData.businessContext?.recordTypes && Array.isArray(formData.businessContext.recordTypes) && formData.businessContext.recordTypes.length > 0 && (
                       <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                           Record Types
                         </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                           {formData.businessContext.recordTypes.join(", ")}
                         </Typography>
                       </Box>
                     )}
                     {formData.businessContext?.certifications && Array.isArray(formData.businessContext.certifications) && formData.businessContext.certifications.length > 0 && (
                       <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                           Certifications
                         </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                           {formData.businessContext.certifications.join(", ")}
                         </Typography>
                       </Box>
                     )}
                     {formData.businessContext?.intellectualPropertyPercentage && (
                       <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                           IP Value (% of Revenue)
                         </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                        <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                           {formData.businessContext.intellectualPropertyPercentage}%
                         </Typography>
                       </Box>
@@ -839,30 +838,30 @@ function OrgDetailsPage() {
 
             {/* Activity Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Activity</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Activity</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Created On
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {"07 Feb, 2024"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Created By
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {"Karan Gautam"}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body2" color="#91939A" sx={{ mb: 0.5, fontWeight: 500 }}>
                     Last Updated
                   </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <Typography variant="body1" color="#484848" sx={{ fontWeight: 400 }}>
                     {"08 Feb, 2024"}
                   </Typography>
                 </Box>
@@ -952,13 +951,10 @@ function OrgDetailsPage() {
 
           {/* Success message */}
           <Typography
-            variant="h5"
+            variant="h4"
             sx={{
               fontWeight: 600,
               color: "#484848",
-              fontSize: "24px",
-              lineHeight: "100%",
-              letterSpacing: "0px",
               flexShrink: 0
             }}
           >
@@ -969,9 +965,6 @@ function OrgDetailsPage() {
             variant="body1"
             sx={{
               color: "#484848",
-              fontSize: "14px",
-              lineHeight: "150%",
-              letterSpacing: "0px",
               fontWeight: 400,
               flexShrink: 0,
               whiteSpace: "nowrap"

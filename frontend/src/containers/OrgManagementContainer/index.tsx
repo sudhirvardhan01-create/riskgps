@@ -359,7 +359,8 @@ export default function OrgManagementContainer() {
       }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Typography
-            sx={{ fontWeight: 600, fontSize: "24px", lineHeight: "130%", letterSpacing: "0px", color: "#121212" }}>
+            variant="h4"
+            sx={{ fontWeight: 600, color: "#121212" }}>
             Org Management
           </Typography>
           <Button

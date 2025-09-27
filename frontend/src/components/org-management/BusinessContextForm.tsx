@@ -54,12 +54,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
           {/* Industry Section */}
           <Grid size={12}>
             <Typography
+              variant="h6"
               sx={{
-                fontSize: "16px",
-                fontWeight: 500,
                 color: "#04139A",
-                lineHeight: "100%",
-                letterSpacing: "0px",
                 mb: 2,
               }}
             >
@@ -368,12 +365,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               </Typography>
               
               <Typography
+                variant="body1"
                 sx={{
-                  fontSize: "16px",
-                  fontWeight: 400,
                   color: "#484848",
-                  lineHeight: "24px",
-                  letterSpacing: "0px",
                   mb: 3,
                 }}
               >
@@ -426,9 +420,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                       >
                         {isSelected && (
                           <Typography
+                            variant="body2"
                             sx={{
                               color: "#FFFFFF",
-                              fontSize: "12px",
                               fontWeight: "bold",
                             }}
                           >
@@ -588,9 +582,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                       >
                         {isSelected && (
                           <Typography
+                            variant="body2"
                             sx={{
                               color: "#FFFFFF",
-                              fontSize: "12px",
                               fontWeight: "bold",
                             }}
                           >

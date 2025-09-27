@@ -144,13 +144,10 @@ const OrgCard: React.FC<OrgCardProps> = ({
 
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography
-            variant="h6"
+            variant="body1"
             fontWeight={500}
             color="#484848"
             sx={{
-              fontSize: "14px",
-              lineHeight: "130%",
-              letterSpacing: "0%",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap"
@@ -163,9 +160,6 @@ const OrgCard: React.FC<OrgCardProps> = ({
             fontWeight={400}
             color="#91939A"
             sx={{
-              fontSize: "12px",
-              lineHeight: "130%",
-              letterSpacing: "0%",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap"
@@ -293,13 +287,9 @@ const OrgCard: React.FC<OrgCardProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body1"
           color="#484848"
           sx={{
-            fontSize: "14px",
-            fontWeight: 400,
-            lineHeight: "100%",
-            letterSpacing: "0%",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap"
@@ -313,10 +303,6 @@ const OrgCard: React.FC<OrgCardProps> = ({
             variant="body2"
             color="#04139A"
             sx={{
-              fontSize: "12px",
-              fontWeight: 600,
-              lineHeight: "100%",
-              letterSpacing: "0%",
               mt: 0.5,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -350,8 +336,6 @@ const OrgCard: React.FC<OrgCardProps> = ({
           variant="body2"
           sx={{
             color: organization.status === "active" ? "#147A50" : "#757575",
-            fontSize: "12px",
-            fontWeight: 500,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap"

@@ -85,8 +85,6 @@ const OrgList: React.FC<Props> = ({
 
             "& .MuiInputBase-input::placeholder": {
               fontWeight: 400,
-              fontSize: "14px",
-              lineHeight: "24px",
               verticalAlign: "middle",
               opacity: 1,
             },
@@ -135,9 +133,7 @@ const OrgList: React.FC<Props> = ({
             sx={{
               height: 40,
               "& .MuiSelect-select": {
-                fontSize: "14px",
                 fontWeight: 400,
-                lineHeight: "100%",
                 padding: "10px 16px",
                 display: "flex",
                 alignItems: "center",

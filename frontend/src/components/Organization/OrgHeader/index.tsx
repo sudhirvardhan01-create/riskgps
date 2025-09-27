@@ -57,14 +57,9 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body1"
           fontWeight={600}
           color="#FFFFFF"
-          sx={{
-            fontSize: "14px",
-            lineHeight: "100%",
-            letterSpacing: "0%",
-          }}
         >
           Org Name
         </Typography>
@@ -109,14 +104,9 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body1"
           fontWeight={600}
           color="#FFFFFF"
-          sx={{
-            fontSize: "14px",
-            lineHeight: "100%",
-            letterSpacing: "0%",
-          }}
         >
           Tags
         </Typography>
@@ -132,14 +122,9 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body1"
           fontWeight={600}
           color="#FFFFFF"
-          sx={{
-            fontSize: "14px",
-            lineHeight: "100%",
-            letterSpacing: "0%",
-          }}
         >
           Org Members
         </Typography>
@@ -155,14 +140,9 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body1"
           fontWeight={600}
           color="#FFFFFF"
-          sx={{
-            fontSize: "14px",
-            lineHeight: "100%",
-            letterSpacing: "0%",
-          }}
         >
           Business Units
         </Typography>
@@ -178,14 +158,9 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
         }}
       >
         <Typography
-          variant="body2"
+          variant="body1"
           fontWeight={600}
           color="#FFFFFF"
-          sx={{
-            fontSize: "14px",
-            lineHeight: "100%",
-            letterSpacing: "0%",
-          }}
         >
           Status
         </Typography>

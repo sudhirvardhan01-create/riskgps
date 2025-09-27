@@ -240,13 +240,10 @@ function CreateNewOrgPage() {
                   {currentStep === 0 ? "1" : <Check sx={{ fontSize: 20 }} />}
                 </Box>
                 <Typography
+                  variant="h6"
                   sx={{
                     ml: 1,
-                    fontSize: "16px",
-                    fontWeight: 500,
-                    color: currentStep === 0 ? "#04139A" : "#4CAF50",
-                    lineHeight: "150%",
-                    letterSpacing: "0%"
+                    color: currentStep === 0 ? "#04139A" : "#4CAF50"
                   }}
                 >
                   Basic Details
@@ -285,13 +282,10 @@ function CreateNewOrgPage() {
                   2
                 </Box>
                 <Typography
+                  variant="h6"
                   sx={{
                     ml: 1,
-                    fontSize: "16px",
-                    fontWeight: 500,
-                    color: (currentStep === 1 || currentStep === 2) ? "#04139A" : "#9E9FA5",
-                    lineHeight: "150%",
-                    letterSpacing: "0%"
+                    color: (currentStep === 1 || currentStep === 2) ? "#04139A" : "#9E9FA5"
                   }}
                 >
                   Business Context
@@ -301,13 +295,10 @@ function CreateNewOrgPage() {
           </Box>
 
           {/* Page Indicator */}
-          {currentStep > 0 && <Typography
+          {currentStep > 0 &&           <Typography
+            variant="body1"
             sx={{
-              fontSize: "16px",
-              fontWeight: 500,
               color: "#9E9FA5",
-              lineHeight: "24px",
-              letterSpacing: "0px",
               mb: 2
             }}
           >
@@ -415,12 +406,9 @@ function CreateNewOrgPage() {
                   {/* Tags Section */}
                   <Box sx={{ mb: 2, mt: 3 }}>
                     <Typography
+                      variant="h6"
                       sx={{
-                        fontSize: "16px",
-                        fontWeight: 500,
                         color: "#121212",
-                        lineHeight: "100%",
-                        letterSpacing: "0px",
                         mb: 2
                       }}
                     >
