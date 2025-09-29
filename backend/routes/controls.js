@@ -3,6 +3,7 @@ const ControlsService = require("../services/control");
 const HttpStatusCodes = require("../constants/httpStatusCodes");
 const multer = require("multer");
 const Messages = require("../constants/messages");
+const CustomError = require("../utils/CustomError");
 const router = express.Router();
 
 const upload = multer({
