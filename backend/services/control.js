@@ -120,40 +120,26 @@ class ControlsService {
     };
   }
 
-  static async deleteMitreControl(mitreControlId, mitreControlName) {
-    const whereClause = { mitreControlId };
+  static async deleteMitreControl(mitreControlId, mitreControlNames = []) {
+        const whereClause = { mitreControlId };
 
-    if (mitreControlName !== null) {
-      whereClause.mitreControlName = mitreControlName;
-    } else {
-      whereClause.mitreControlName = {
-        [Op.or]: [null, ""],
-      };
+        if (mitreControlNames.length < 1) {
+            throw new CustomError("mitreControl Names array required", HttpStatusCodes.BAD_REQUEST);
+        }
+        whereClause.mitreControlName = {
+            [Op.in]: mitreControlNames
+        };
+
+        const deletedCount = await MitreThreatControl.destroy({ where: whereClause });
+
+        if (deletedCount === 0) {
+            console.log("[deleteMitreControl] No mitre threat control recorod found:", mitreControlId, mitreControlNames);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        console.log("[updateMitreControlStatus] Status updated successfully:", mitreControlId, mitreControlNames);
+        return { message: Messages.MITRE_CONTROLS.DELETED_SUCCESSFULLY };
     }
-
-    const deletedCount = await MitreThreatControl.destroy({
-      where: whereClause,
-    });
-
-    if (deletedCount === 0) {
-      console.log(
-        "[deleteMitreControl] No mitre threat control recorod found:",
-        mitreControlId,
-        mitreControlName
-      );
-      throw new CustomError(
-        Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
-        HttpStatus.NOT_FOUND
-      );
-    }
-
-    console.log(
-      "[updateMitreControlStatus] Status updated successfully:",
-      mitreControlId,
-      mitreControlName
-    );
-    return { message: Messages.MITRE_CONTROLS.UPDATED_STATUS };
-  }
 
   static async updateMitreControl(
     mitreControlId,
@@ -224,49 +210,23 @@ class ControlsService {
     });
   }
 
-  static async updateMitreControlStatus(
-    mitreControlId,
-    mitreControlName,
-    status
-  ) {
-    const whereClause = { mitreControlId };
+  static async updateMitreControlStatus(mitreControlId, status) {
+        const whereClause = { mitreControlId };
 
-    if (!status) {
-      throw new Error("Status required");
+        if (!status) {
+            throw new Error("Status required");
+        }
+
+        const [updatedRowsCount] = await MitreThreatControl.update({ status }, { where: whereClause });
+
+        if (updatedRowsCount === 0) {
+            console.log("[updateMitreControlStatus] No mitre threat control recorod found:", mitreControlId);
+            throw new CustomError(Messages.MITRE_THREAT_CONTROL.NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        console.log("[updateMitreControlStatus] Status updated successfully:", mitreControlId);
+        return { message: Messages.MITRE_CONTROLS.UPDATED_STATUS };
     }
-
-    if (mitreControlName !== null) {
-      whereClause.mitreControlName = mitreControlName;
-    } else {
-      whereClause.mitreControlName = {
-        [Op.or]: [null, ""],
-      };
-    }
-
-    const [updatedRowsCount] = await MitreThreatControl.update(
-      { status },
-      { where: whereClause }
-    );
-
-    if (updatedRowsCount === 0) {
-      console.log(
-        "[updateMitreControlStatus] No mitre threat control recorod found:",
-        mitreControlId,
-        mitreControlName
-      );
-      throw new CustomError(
-        Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
-        HttpStatus.NOT_FOUND
-      );
-    }
-
-    console.log(
-      "[updateMitreControlStatus] Status updated successfully:",
-      mitreControlId,
-      mitreControlName
-    );
-    return { message: Messages.MITRE_CONTROLS.UPDATED_STATUS };
-  }
 
   static async createFrameworkControl(data) {
     try {

@@ -274,14 +274,12 @@ export default function ControlContainer() {
   const handleUpdateStatus = async (
     status: string,
     mitreControlId: string,
-    mitreControlName?: string
   ) => {
     try {
-      if (!status || !mitreControlId || !mitreControlName)
+      if (!status || !mitreControlId)
         throw new Error("Invalid selection");
       await ControlService.updateStatus(
         mitreControlId,
-        mitreControlName,
         status
       );
       setRefreshTrigger((p) => p + 1);

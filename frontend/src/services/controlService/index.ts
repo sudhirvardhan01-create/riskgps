@@ -18,10 +18,7 @@ export const ControlService = {
     mitreControlName: string,
     mitreControlType: string
   ) => updateControl(data, mitreControlId, mitreControlName, mitreControlType),
-  updateStatus: (
-    mitreControlId: string,
-    mitreControlName: string,
-    status: string
-  ) => updateControlStatus(mitreControlId, mitreControlName, status),
+  updateStatus: (mitreControlId: string, status: string) =>
+    updateControlStatus(mitreControlId, status),
   fetchControlsForListing: (fields?: string) => fetchControlsForListing(fields),
 };

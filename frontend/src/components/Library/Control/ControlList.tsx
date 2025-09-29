@@ -19,7 +19,6 @@ interface Props {
   handleUpdateStatus: (
     status: string,
     mitreControlId: string,
-    mitreControlName?: string
   ) => void;
   setIsSelectControlsToDeleteOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }

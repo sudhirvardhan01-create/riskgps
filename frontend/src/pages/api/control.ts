@@ -82,15 +82,14 @@ export const deleteControl = async (
 //Function to update status of a control
 export const updateControlStatus = async (
   mitreControlId: string,
-  mitreControlName: string,
   status: string
 ) => {
-  if (!mitreControlId || !mitreControlName || !status) {
+  if (!mitreControlId || !status) {
     throw new Error("Failed to perforom the operation, Invalid arguments");
   }
   const reqBody = { status };
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control-status?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control-status?mitreControlId=${mitreControlId}`,
     {
       method: "PATCH",
       body: JSON.stringify(reqBody),
