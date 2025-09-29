@@ -271,17 +271,10 @@ export default function ControlContainer() {
   // };
 
   // Update status only
-  const handleUpdateStatus = async (
-    status: string,
-    mitreControlId: string,
-  ) => {
+  const handleUpdateStatus = async (status: string, mitreControlId: string) => {
     try {
-      if (!status || !mitreControlId)
-        throw new Error("Invalid selection");
-      await ControlService.updateStatus(
-        mitreControlId,
-        status
-      );
+      if (!status || !mitreControlId) throw new Error("Invalid selection");
+      await ControlService.updateStatus(mitreControlId, status);
       setRefreshTrigger((p) => p + 1);
       setToast({ open: true, message: "Status updated", severity: "success" });
     } catch (err) {
@@ -295,34 +288,46 @@ export default function ControlContainer() {
   };
 
   // Delete
-  // const handleDelete = async () => {
-  //   try {
-  //     if (
-  //       !selectedControl?.mitreControlId ||
-  //       !selectedControl?.mitreControlName
-  //     )
-  //       throw new Error("Invalid selection");
-  //     await ControlService.delete(
-  //       selectedControl.mitreControlId as string,
-  //       selectedControl.mitreControlName as string
-  //     );
-  //     setIsDeleteConfirmOpen(false);
-  //     setSelectedControl(null);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: `Deleted control ${selectedControl?.mitreControlName}`,
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to delete control",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleDelete = async () => {
+    try {
+      if (!selectedControl?.mitreControlId)
+        throw new Error("Invalid selection");
+      if (selectedControl?.controlDetails.length === 1) {
+        await ControlService.delete(
+          selectedControl.mitreControlId as string,
+          Array.of(
+            selectedControl?.controlDetails[0]?.mitreControlName
+          ) as string[]
+        );
+        setIsDeleteConfirmOpen(false);
+        setSelectedControl(null);
+      } else {
+        await ControlService.delete(
+          selectedControl.mitreControlId as string,
+          selectedControlsToDelete.map((selected) => selected) as string[]
+        );
+        setIsSelectControlsToDeleteOpen(false);
+        setSelectedControl(null);
+        setSelectedControlsToDelete([]);
+      }
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message:
+          selectedControl?.controlDetails.length === 1
+            ? `Deleted control`
+            : "Deleted Controls",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to delete control(s)",
+        severity: "error",
+      });
+    }
+  };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -528,8 +533,13 @@ export default function ControlContainer() {
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Control Deletion?"
         description={`Are you sure you want to delete Control ${selectedControl?.mitreControlId}? All associated data will be removed from the system.`}
-        // onConfirm={() => handleDelete()}
-        onConfirm={() => console.log(selectedControl?.mitreControlId, selectedControl?.controlDetails[0].mitreControlName)}
+        onConfirm={() => handleDelete()}
+        // onConfirm={() =>
+        //   console.log(
+        //     selectedControl?.mitreControlId,
+        //     Array.of(selectedControl?.controlDetails[0].mitreControlName)
+        //   )
+        // }
         cancelText="Cancel"
         confirmText="Yes, Delete"
       />
@@ -537,18 +547,16 @@ export default function ControlContainer() {
       {selectedControl && selectedControl.controlDetails.length > 1 && (
         <DeleteMultipleControls
           open={isSelectControlsToDeleteOpen}
-          onClose={() => setIsSelectControlsToDeleteOpen(false)}
+          onClose={() => {
+            setIsSelectControlsToDeleteOpen(false);
+            setSelectedControlsToDelete([]);
+          }}
           mitreControlNames={selectedControl?.controlDetails?.map(
             (item) => item.mitreControlName
           )}
           selectedControlsToDelete={selectedControlsToDelete}
           setSelectedControlsToDelete={setSelectedControlsToDelete}
-          onDelete={() => {
-            selectedControlsToDelete.map((selected) =>
-              console.log(selectedControl.mitreControlId, selected)
-            );
-            setSelectedControlsToDelete([]);
-          }}
+          onDelete={() => handleDelete()}
         />
       )}
 

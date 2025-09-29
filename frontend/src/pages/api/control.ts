@@ -60,15 +60,21 @@ export const updateControl = async (
 //Function to delete a control
 export const deleteControl = async (
   mitreControlId: string,
-  mitreControlName: string
+  mitreControlNames: string[]
 ) => {
+  if (!mitreControlNames || !mitreControlId) {
+    throw new Error("Failed to perforom the operation, Invalid arguments");
+  }
+  const reqBody = { mitreControlNames };
+  console.log(reqBody);
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/delete-mitre-control?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/delete-mitre-control?mitreControlId=${mitreControlId}`,
     {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(reqBody),
     }
   );
   if (!response.ok) {

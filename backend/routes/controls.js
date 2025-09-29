@@ -71,11 +71,11 @@ router.patch("/update-mitre-control-status", async (req, res) => {
         const status = req.body.status ?? null;
 
         if (!mitreControlId) {
-            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatus.BAD_REQUEST);
+            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatusCodes.BAD_REQUEST);
         }
 
         if (!status) {
-            throw new CustomError("Status required", HttpStatus.BAD_REQUEST);
+            throw new CustomError("Status required", HttpStatusCodes.BAD_REQUEST);
         }
         const response = await ControlsService.updateMitreControlStatus(mitreControlId, status);
         res.status(HttpStatusCodes.CREATED).json({
