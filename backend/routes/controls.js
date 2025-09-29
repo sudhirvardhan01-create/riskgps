@@ -76,7 +76,7 @@ router.patch("/update-mitre-control-status", async (req, res) => {
         if (!status) {
             throw new CustomError("Status required", HttpStatus.BAD_REQUEST);
         }
-        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlName, status);
+        const response = await ControlsService.updateMitreControlStatus(mitreControlId, status);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "mitre control status updated"
