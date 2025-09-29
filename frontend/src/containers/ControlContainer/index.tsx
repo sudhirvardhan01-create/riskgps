@@ -19,7 +19,7 @@ import ButtonTabs from "@/components/ButtonTabs";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
 import { ControlFrameworkService } from "@/services/controlFrameworkService";
-import DeleteMultipleControls from "@/components/Library/Control/DeleteMultipleControls";
+import SelectMultipleModal from "@/components/Library/Control/SelectMultipleModal";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
   frameWorkName: "",
@@ -545,18 +545,22 @@ export default function ControlContainer() {
       />
 
       {selectedControl && selectedControl.controlDetails.length > 1 && (
-        <DeleteMultipleControls
+        <SelectMultipleModal
           open={isSelectControlsToDeleteOpen}
           onClose={() => {
             setIsSelectControlsToDeleteOpen(false);
             setSelectedControlsToDelete([]);
           }}
-          mitreControlNames={selectedControl?.controlDetails?.map(
+          items={selectedControl?.controlDetails?.map(
             (item) => item.mitreControlName
           )}
-          selectedControlsToDelete={selectedControlsToDelete}
-          setSelectedControlsToDelete={setSelectedControlsToDelete}
-          onDelete={() => handleDelete()}
+          selectedItems={selectedControlsToDelete}
+          setSelectedItems={setSelectedControlsToDelete}
+          onAction={() => handleDelete()}
+          checkBoxColor="#CD0303"
+          title="Delete MITRE Controls"
+          desc="Select the MITRE Control Names to delete:"
+          action="Delete"
         />
       )}
 
