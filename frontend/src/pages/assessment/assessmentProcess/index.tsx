@@ -18,29 +18,13 @@ import {
   saveAssessmentProcess,
   saveAssessmentRisk,
 } from "@/pages/api/assessment";
-
-interface Organisation {
-  organizationId: string;
-  name: string;
-  businessUnits: BusinessUnit[];
-}
-
-interface BusinessUnit {
-  orgBusinessUnitId: string;
-  businessUnitName: string;
-}
-
-interface Risk {
-  orgRiskId: string;
-  name: string;
-  description: string;
-}
-
-interface ProcessUnit {
-  orgProcessId: string;
-  name: string;
-  risks: Risk[];
-}
+import BusinessImpact from "@/components/Assessment/BusinessImpact";
+import {
+  Assessment,
+  BusinessUnit,
+  Organisation,
+  ProcessUnit,
+} from "@/types/assessment";
 
 export default function BUProcessMappingPage() {
   const {
@@ -51,7 +35,6 @@ export default function BUProcessMappingPage() {
     selectedProcesses,
     setSelectedProcesses,
     orderedProcesses,
-    setOrderedProcesses,
   } = useAssessment();
   const router = useRouter();
 
@@ -121,8 +104,6 @@ export default function BUProcessMappingPage() {
         riskScenarioDesc: "Test Desc",
       }))
     );
-
-    console.log(obj);
     return obj;
   };
 
@@ -183,7 +164,7 @@ export default function BUProcessMappingPage() {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <>
+        <Box sx={{ backgroundColor: "#ffffff" }}>
           <Box
             sx={{
               py: 3,
@@ -233,11 +214,12 @@ export default function BUProcessMappingPage() {
               {activeStep === 0 && activeTab === 1 && (
                 <AssignOrder
                   processes={selectedProcesses}
-                  onOrderChange={setOrderedProcesses}
+                  onOrderChange={setSelectedProcesses}
                 />
               )}
 
               {activeStep === 1 && <DragDropRiskScenarios />}
+              {activeStep === 2 && <BusinessImpact />}
             </Box>
           </Box>
 
@@ -258,7 +240,7 @@ export default function BUProcessMappingPage() {
             }}
             activeStep={activeStep}
           />
-        </>
+        </Box>
       )}
     </>
   );

@@ -5,23 +5,7 @@ import { Box, Button, Menu, MenuItem, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { getAssessment } from "../api/assessment";
 import { useRouter } from "next/router";
-
-interface Assessment {
-  assessmentId: string;
-  assessmentName: string;
-  assessmentDesc: string;
-  runId: string;
-  orgId: string;
-  orgName: string;
-  orgDesc?: string;
-  businessUnitId: string;
-  businessUnitName: string;
-  businessUnitDesc?: string;
-  status: string;
-  startDate: Date;
-  endDate: Date | null;
-  lastActivity: Date;
-}
+import { Assessment } from "@/types/assessment";
 
 const options = [
   { label: "All", value: 0 },

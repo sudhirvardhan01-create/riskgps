@@ -8,23 +8,7 @@ import {
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import React, { useState } from "react";
-
-interface Assessment {
-  assessmentId: string;
-  assessmentName: string;
-  assessmentDesc?: string;
-  runId: string;
-  orgId: string;
-  orgName: string;
-  orgDesc?: string;
-  businessUnitId: string;
-  businessUnitName: string;
-  businessUnitDesc?: string;
-  status: string;
-  startDate: Date;
-  endDate: Date | null;
-  lastActivity: Date;
-}
+import { Assessment } from "@/types/assessment";
 
 interface Props {
   data: Assessment[];
@@ -195,7 +179,7 @@ const AssessmentTable: React.FC<Props> = ({
       </Box>
 
       {/* Body */}
-      <Box sx={{ mt: 2, overflow: "auto", maxHeight: "calc(100vh - 380px)" }}>
+      <Box sx={{ mt: 2, overflow: "auto", maxHeight: "calc(100vh - 344px)" }}>
         {data.map((assessment) => (
           <AssessmentRow
             key={assessment.runId}

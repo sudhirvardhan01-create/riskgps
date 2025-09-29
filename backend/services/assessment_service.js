@@ -1,4 +1,11 @@
-﻿const {Assessment, AssessmentProcess, AssessmentProcessRiskScenario, sequelize}  = require("../models");
+﻿const { Assessment,
+    AssessmentProcess,
+    AssessmentProcessRiskScenario,
+    AssessmentRiskScenarioBusinessImpact,
+    AssessmentRiskTaxonomy,
+    Organization,
+    OrganizationBusinessUnit,
+    sequelize } = require("../models");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const { v4: uuidv4 } = require("uuid");
@@ -189,16 +196,88 @@ class AssessmentService {
         }
     }
 
+    ///**
+    //  * Fetch assessments with nested details (paginated, searchable, sortable)
+    //  */
+    //static async getAllAssessmentsWithDetails({
+    //    page = 1,
+    //    limit = 10,
+    //    sortBy = "createdDate",
+    //    sortOrder = "DESC",
+    //}) {
+    //    try {
+    //        const offset = (page - 1) * limit;
+
+    //        //Sorting
+    //        const order = [[sortBy, sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC"]];
+
+    //        const { count, rows } = await Assessment.findAndCountAll({
+    //            order,
+    //            limit,
+    //            offset,
+    //            //include: [
+    //            //    { model: Organization, as: "organization" },
+    //            //    { model: OrganizationBusinessUnit, as: "businessUnit" },
+    //            //    //{
+    //            //    //    model: AssessmentProcess,
+    //            //    //    as: "processes",
+    //            //    //    include: [
+    //            //    //        {
+    //            //    //            model: AssessmentProcessRiskScenario,
+    //            //    //            as: "processRiskScenarios",
+    //            //    //            include: [
+    //            //    //                { model: AssessmentRiskScenarioBusinessImpact, as: "businessImpacts" },
+    //            //    //                { model: AssessmentRiskTaxonomy, as: "riskTaxonomies" },
+    //            //    //            ],
+    //            //    //        },
+    //            //    //    ],
+    //            //    //},
+    //            //    //{ model: AssessmentRiskScenarioBusinessImpact, as: "businessImpacts" },
+    //            //    //{ model: AssessmentRiskTaxonomy, as: "riskTaxonomies" },
+    //            //],
+    //        });
+
+    //        return {
+    //            total: count,
+    //            page,
+    //            limit,
+    //            totalPages: Math.ceil(count / limit),
+    //            data: rows,
+    //        };
+    //    } catch (err) {
+    //        throw new CustomError(
+    //            err.message || "Failed to fetch assessments with details",
+    //            HttpStatus.INTERNAL_SERVER_ERROR
+    //        );
+    //    }
+    //}
+
     /**
- * Get all assessments with pagination, search, and sorting
- */
+* Get all assessments with pagination, search, and sorting
+*/
     static async getAllAssessments(page = 1, limit = 10) {
         try {
             const offset = (page - 1) * limit;
 
             const { count, rows } = await Assessment.findAndCountAll({
                 limit,
-                offset
+                offset,
+                include: [
+                    {
+                        model: AssessmentProcess,
+                        as: "processes",
+                        include: [
+                            {
+                                model: AssessmentProcessRiskScenario,
+                                as: "processRiskScenarios",
+                                include: [
+                                    { model: AssessmentRiskScenarioBusinessImpact, as: "riskScenarioBusinessImpacts" },
+                                    { model: AssessmentRiskTaxonomy, as: "riskTaxonomies" },
+                                ],
+                            },
+                        ],
+                    }
+                ],
             });
 
             return {
@@ -214,6 +293,7 @@ class AssessmentService {
             );
         }
     }
+
 
     /**
      * Get assessment by ID
@@ -236,6 +316,89 @@ class AssessmentService {
         } catch (err) {
             throw new CustomError(
                 err.message || "Failed to fetch assessment",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+
+    /**
+     * Save business impacts & taxonomies for an assessment process risk
+     * @param {Object} payload
+     * @param {string} payload.assessmentId
+     * @param {string} payload.assessmentProcessRiskId
+     * @param {Array} payload.businessImpacts
+     * @param {Array} payload.taxonomies
+     * @param {string} userId
+     */
+    static async saveRiskDetails(payload, userId) {
+        const transaction = await sequelize.transaction();
+        try {
+            const {
+                assessmentId,
+                assessmentProcessRiskId,
+                businessImpacts,
+                taxonomies,
+            } = payload;
+
+            if (!assessmentId || !assessmentProcessRiskId) {
+                throw new CustomError(
+                    "assessmentId and assessmentProcessRiskId are required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            // Insert Business Impacts
+            if (businessImpacts && businessImpacts.length > 0) {
+                const biRecords = businessImpacts.map((bi) => ({
+                    assessmentRiskBIId: uuidv4(),
+                    assessmentId,
+                    assessmentProcessRiskId,
+                    riskThreshold: bi.riskThreshold,
+                    riskThresholdValue: bi.riskThresholdValue,
+                    createdBy: userId,
+                    modifiedBy: userId,
+                    createdDate: new Date(),
+                    modifiedDate: new Date(),
+                    isDeleted: false,
+                }));
+                await AssessmentRiskScenarioBusinessImpact.bulkCreate(
+                    biRecords,
+                    { transaction }
+                );
+            }
+
+            // Insert Taxonomies
+            if (taxonomies && taxonomies.length > 0) {
+                const taxonomyRecords = taxonomies.map((tx) => ({
+                    assessmentRiskTaxonomyId: uuidv4(),
+                    assessmentId,
+                    assessmentProcessRiskId,
+                    taxonomyName: tx.taxonomyName,
+                    severityName: tx.severityName,
+                    severityMinRange: tx.severityMinRange || null,
+                    severityMaxRange: tx.severityMaxRange || null,
+                    createdBy: userId,
+                    modifiedBy: userId,
+                    createdDate: new Date(),
+                    modifiedDate: new Date(),
+                    isDeleted: false,
+                }));
+                await AssessmentRiskTaxonomy.bulkCreate(taxonomyRecords, {
+                    transaction,
+                });
+            }
+
+            await transaction.commit();
+            return {
+                message:
+                    "Business impacts & taxonomies saved successfully",
+            };
+        } catch (err) {
+            await transaction.rollback();
+            throw new CustomError(
+                err.message ||
+                "Failed to save business impacts & taxonomies",
                 err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
             );
         }

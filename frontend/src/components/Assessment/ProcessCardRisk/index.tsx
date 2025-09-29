@@ -15,17 +15,13 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import AddIcon from "@mui/icons-material/Add";
 import { useDroppable } from "@dnd-kit/core";
 import FileMoveIcon from "@/icons/fileMove.svg";
+import { ProcessUnit } from "@/types/assessment";
 
 interface ProcessCardRiskProps {
-  process: {
-    orgProcessId: string;
-    name: string;
-    risks: { orgRiskId: string; name: string; description: string }[];
-  };
+  process: ProcessUnit;
   selectedRisks: string[];
   setSelectedRisks: React.Dispatch<React.SetStateAction<string[]>>;
   onDelete: (processId: string, riskId: string) => void;

@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 field: "org_id", // alias → DB column
             },
+            weightage: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                field: "weightage",
+            },
             ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
