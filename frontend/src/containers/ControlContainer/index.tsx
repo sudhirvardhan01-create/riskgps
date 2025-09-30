@@ -165,28 +165,6 @@ export default function ControlContainer() {
     loadList();
   }, [loadList, refreshTrigger]);
 
-  // fetch controls for Listing
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await ControlService.fetchControlsForListing(
-          "mitreControlId"
-        );
-        setControlsForListing(data.mitreControlId ?? []);
-      } catch (err) {
-        console.error(err);
-        setToast({
-          open: true,
-          message: "Failed to fetch controls for Listing purposes",
-          severity: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
   // fetch metadata
   useEffect(() => {
     (async () => {
@@ -391,6 +369,28 @@ export default function ControlContainer() {
     setSearchPattern("");
     setSort("id:asc");
   }, [selectedControlFramework]);
+
+  // fetch controls for Listing
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ControlService.fetchControlsForListing(
+          "mitreControlId"
+        );
+        setControlsForListing(data.mitreControlId ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch controls for Listing purposes",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [refreshTrigger]);
 
   // memoize props used by list/header
   const headerProps = useMemo(
