@@ -9,11 +9,10 @@ import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
 import { AuthProvider } from "@/context/AuthContext";
 import { AssessmentProvider } from "@/context/AssessmentContext";
-import { ConfigProvider, useConfig } from "@/context/ConfigContext";
+import { ConfigProvider } from "@/context/ConfigContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  // const { setMetadata } = useConfig();
   const isLoginPage = router.pathname === "/login";
   const isAssessmentProcess =
     router.pathname === "/assessment/assessmentProcess";
