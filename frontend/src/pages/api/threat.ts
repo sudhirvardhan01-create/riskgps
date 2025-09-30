@@ -56,9 +56,9 @@ export const createThreat = async (data: ThreatForm) => {
 };
 
 //Function to update a threat
-export const updateThreat = async (data: ThreatForm, mitreTechniqueId: string, subTechniqueId?: string) => {
+export const updateThreat = async (data: ThreatForm) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update?mitreTechniqueId=${mitreTechniqueId}&&subTechniqueId=${subTechniqueId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update`,
     {
       method: "PUT",
       body: JSON.stringify(data),

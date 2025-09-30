@@ -1,4 +1,5 @@
 export interface RelatedControlForm {
+  id?: number | null;
   mitreControlId: string;
   mitreControlName: string;
   mitreControlType: string;

@@ -103,14 +103,32 @@ export default function ThreatContainer() {
 
   //Threat Techniques Array
   const threatTechniques = [
-    { mitreTechniqueId: "T1535", mitreTechniqueName: "Unused/Unsupported Cloud Regions" },
+    {
+      mitreTechniqueId: "T1535",
+      mitreTechniqueName: "Unused/Unsupported Cloud Regions",
+    },
     { mitreTechniqueId: "T1562", mitreTechniqueName: "Impair Defenses" },
-    { mitreTechniqueId: "T1619", mitreTechniqueName: "Cloud Storage Object Discovery" },
-    { mitreTechniqueId: "T1555", mitreTechniqueName: "Credentials from Password Stores" },
-    { mitreTechniqueId: "T1578", mitreTechniqueName: "Modify Cloud Compute Infrastructure" },
-    { mitreTechniqueId: "T1651", mitreTechniqueName: "Cloud Administration Command" },
+    {
+      mitreTechniqueId: "T1619",
+      mitreTechniqueName: "Cloud Storage Object Discovery",
+    },
+    {
+      mitreTechniqueId: "T1555",
+      mitreTechniqueName: "Credentials from Password Stores",
+    },
+    {
+      mitreTechniqueId: "T1578",
+      mitreTechniqueName: "Modify Cloud Compute Infrastructure",
+    },
+    {
+      mitreTechniqueId: "T1651",
+      mitreTechniqueName: "Cloud Administration Command",
+    },
     { mitreTechniqueId: "T1021", mitreTechniqueName: "Remote Services" },
-    { mitreTechniqueId: "T1213", mitreTechniqueName: "Data from Information Repositories" },
+    {
+      mitreTechniqueId: "T1213",
+      mitreTechniqueName: "Data from Information Repositories",
+    },
   ];
 
   // fetch list
@@ -188,22 +206,8 @@ export default function ThreatContainer() {
   // Update
   const handleUpdate = async (status: string) => {
     try {
-      if (!selectedThreat?.mitreTechniqueId)
-        throw new Error("Invalid selection");
       const body = { ...selectedThreat, status };
-      if (selectedThreat?.subTechniqueId !== "") {
-        await ThreatService.update(
-          body,
-          selectedThreat.mitreTechniqueId as string,
-          selectedThreat.subTechniqueId as string
-        );
-      } else {
-        await ThreatService.update(
-          body,
-          selectedThreat?.mitreTechniqueId as string,
-          ""
-        );
-      }
+      await ThreatService.update(body as ThreatForm);
       setIsEditOpen(false);
       setSelectedThreat(null);
       setRefreshTrigger((p) => p + 1);

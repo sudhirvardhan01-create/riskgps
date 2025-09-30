@@ -12,6 +12,6 @@ export const ThreatService = {
     fetchThreats(page, limit, searchPattern, sort),
   create: (data: ThreatForm) => createThreat(data),
   delete: (mitre_technique_id: string, mitre_sub_technique_id?: string) => deleteThreat(mitre_technique_id, mitre_sub_technique_id),
-  update: (data: ThreatForm, mitreTechniqueId: string, subTechniqueId?: string) => updateThreat(data, mitreTechniqueId, subTechniqueId),
+  update: (data: ThreatForm) => updateThreat(data),
   updateStatus: (status: string, mitreTechniqueId: string, subTechniqueId?: string) => updateThreatStatus(status, mitreTechniqueId, subTechniqueId),
 };
