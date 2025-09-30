@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -28,6 +28,8 @@ interface CreateBusinessUnitFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: BusinessUnitFormData) => void;
+  editData?: BusinessUnitFormData;
+  isEditMode?: boolean;
 }
 
 interface BusinessUnitFormData {
@@ -43,17 +45,40 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
   open,
   onClose,
   onSubmit,
+  editData,
+  isEditMode = false,
 }) => {
-  const [formData, setFormData] = useState<BusinessUnitFormData>({
-    businessUnitName: '',
-    buHead: { name: '', email: '' },
-    buPocBiso: { name: '', email: '' },
-    buItPoc: { name: '', email: '' },
-    buFinanceLead: { name: '', email: '' },
-    tags: [{ key: '', value: '' }],
+  const [formData, setFormData] = useState<BusinessUnitFormData>(() => {
+    if (isEditMode && editData) {
+      return editData;
+    }
+    return {
+      businessUnitName: '',
+      buHead: { name: '', email: '' },
+      buPocBiso: { name: '', email: '' },
+      buItPoc: { name: '', email: '' },
+      buFinanceLead: { name: '', email: '' },
+      tags: [{ key: '', value: '' }],
+    };
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Update form data when editData changes
+  useEffect(() => {
+    if (isEditMode && editData) {
+      setFormData(editData);
+    } else if (!isEditMode) {
+      setFormData({
+        businessUnitName: '',
+        buHead: { name: '', email: '' },
+        buPocBiso: { name: '', email: '' },
+        buItPoc: { name: '', email: '' },
+        buFinanceLead: { name: '', email: '' },
+        tags: [{ key: '', value: '' }],
+      });
+    }
+  }, [isEditMode, editData]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -142,7 +167,25 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
   const handleSubmit = () => {
     if (validateForm()) {
       onSubmit(formData);
-      // Reset form
+      // Reset form only if not in edit mode
+      if (!isEditMode) {
+        setFormData({
+          businessUnitName: '',
+          buHead: { name: '', email: '' },
+          buPocBiso: { name: '', email: '' },
+          buItPoc: { name: '', email: '' },
+          buFinanceLead: { name: '', email: '' },
+          tags: [{ key: '', value: '' }],
+        });
+      }
+      setErrors({});
+      onClose();
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset form only if not in edit mode
+    if (!isEditMode) {
       setFormData({
         businessUnitName: '',
         buHead: { name: '', email: '' },
@@ -151,21 +194,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
         buFinanceLead: { name: '', email: '' },
         tags: [{ key: '', value: '' }],
       });
-      setErrors({});
-      onClose();
     }
-  };
-
-  const handleCancel = () => {
-    // Reset form
-    setFormData({
-      businessUnitName: '',
-      buHead: { name: '', email: '' },
-      buPocBiso: { name: '', email: '' },
-      buItPoc: { name: '', email: '' },
-      buFinanceLead: { name: '', email: '' },
-      tags: [{ key: '', value: '' }],
-    });
     setErrors({});
     onClose();
   };
@@ -197,13 +226,10 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
           variant="h6"
           sx={{
             fontWeight: 600,
-            fontSize: '20px',
             color: '#121212',
-            lineHeight: "130%",
-            letterSpacing: "0px"
           }}
         >
-          Create Business Unit
+          {isEditMode ? 'Edit Business Unit' : 'Create Business Unit'}
         </Typography>
         <IconButton
           onClick={handleCancel}
@@ -250,11 +276,8 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  fontSize: '14px',
                   color: '#121212',
                   mb: 2,
-                  lineHeight: "100%",
-                  letterSpacing: "0px"
                 }}
               >
                 BU Head
@@ -289,11 +312,8 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  fontSize: '14px',
                   color: '#121212',
                   mb: 2,
-                  lineHeight: "100%",
-                  letterSpacing: "0px"
                 }}
               >
                 BU POC/BISO
@@ -328,11 +348,8 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  fontSize: '14px',
                   color: '#121212',
                   mb: 2,
-                  lineHeight: "100%",
-                  letterSpacing: "0px"
                 }}
               >
                 BU IT POC
@@ -367,11 +384,8 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  fontSize: '14px',
                   color: '#121212',
                   mb: 2,
-                  lineHeight: "100%",
-                  letterSpacing: "0px"
                 }}
               >
                 BU Finance Lead
@@ -407,11 +421,8 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
               variant="h6"
               sx={{
                 fontWeight: 600,
-                fontSize: '16px',
                 color: '#121212',
                 mb: 2,
-                lineHeight: "100%",
-                letterSpacing: "0px"
               }}
             >
               Tags
@@ -498,7 +509,6 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 color: '#04139A',
                 textTransform: 'none',
                 fontWeight: 400,
-                fontSize: '16px',
                 p: 0,
                 '&:hover': {
                   backgroundColor: 'transparent',
@@ -526,9 +536,6 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
             borderColor: '#CD0303',
             color: '#CD0303',
             textTransform: 'none',
-            fontSize: "16px",
-            lineHeight: "16px",
-            letterSpacing: "0px",
             fontWeight: 400,
             height: "40px",
             width: "113px",
@@ -548,9 +555,6 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
             backgroundColor: '#04139A',
             color: '#F4F4F4',
             textTransform: 'none',
-            fontSize: "16px",
-            lineHeight: "16px",
-            letterSpacing: "0px",
             fontWeight: 400,
             height: "40px",
             width: "113px",
@@ -560,7 +564,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
             },
           }}
         >
-          Create
+          {isEditMode ? 'Save' : 'Create'}
         </Button>
       </DialogActions>
     </Dialog>

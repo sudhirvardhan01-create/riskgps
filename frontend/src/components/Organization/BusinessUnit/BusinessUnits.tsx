@@ -4,6 +4,7 @@ import Image from "next/image";
 import CreateBusinessUnitForm from './CreateBusinessUnitForm';
 import BusinessUnitCard from './BusinessUnitCard';
 import BusinessUnitDetailsModal from './BusinessUnitDetailsModal';
+import ToastComponent from '../../ToastComponent';
 import { Add as AddIcon } from '@mui/icons-material';
 
 interface BusinessUnitFormData {
@@ -22,14 +23,23 @@ interface BusinessUnitData {
   buSize: number;
   assessments: number;
   tags: { key: string; value: string }[];
-  status: 'active' | 'inactive';
+  status: 'active' | 'disable';
   lastUpdated?: string;
+  // Contact roles
+  buHead?: { name: string; email: string };
+  buPocBiso?: { name: string; email: string };
+  buItPoc?: { name: string; email: string };
+  buFinanceLead?: { name: string; email: string };
 }
 
 const BusinessUnits: React.FC = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedBusinessUnit, setSelectedBusinessUnit] = useState<BusinessUnitData | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editData, setEditData] = useState<BusinessUnitFormData | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Mock data for business units - replace with actual API call
   // To test empty state, change this to an empty array: []
@@ -41,74 +51,133 @@ const BusinessUnits: React.FC = () => {
       buSize: 33,
       assessments: 0,
       tags: [
-        { key: 'key', value: 'Value' },
-        { key: 'key', value: 'Value' },
-        { key: 'key', value: 'Value' }
+        { key: 'department', value: 'Healthcare' },
+        { key: 'location', value: 'Main Campus' },
+        { key: 'priority', value: 'High' }
       ],
       status: 'active',
-      lastUpdated: '2024-01-15'
+      lastUpdated: '2024-01-15',
+      buHead: { name: 'Dr. Sarah Johnson', email: 'sarah.johnson@hospital.com' },
+      buPocBiso: { name: 'Mike Chen', email: 'mike.chen@hospital.com' },
+      buItPoc: { name: 'Lisa Wang', email: 'lisa.wang@hospital.com' },
+      buFinanceLead: { name: 'Robert Davis', email: 'robert.davis@hospital.com' }
     },
     {
       id: '2',
       businessUnitName: 'Critical care Services',
-      buCode: 'BU283692',
-      buSize: 33,
+      buCode: 'BU283693',
+      buSize: 25,
       assessments: 0,
       tags: [
-        { key: 'key', value: 'Value' },
-        { key: 'key', value: 'Value' },
-        { key: 'key', value: 'Value' }
+        { key: 'department', value: 'Critical Care' },
+        { key: 'location', value: 'ICU Wing' },
+        { key: 'priority', value: 'Critical' }
       ],
       status: 'active',
-      lastUpdated: '2024-01-15'
+      lastUpdated: '2024-01-15',
+      buHead: { name: 'Dr. Michael Brown', email: 'michael.brown@hospital.com' },
+      buPocBiso: { name: 'Jennifer Lee', email: 'jennifer.lee@hospital.com' },
+      buItPoc: { name: 'David Kim', email: 'david.kim@hospital.com' },
+      buFinanceLead: { name: 'Amanda Wilson', email: 'amanda.wilson@hospital.com' }
     },
     {
       id: '3',
       businessUnitName: 'Outpatient Services',
-      buCode: 'BU283692',
-      buSize: 33,
+      buCode: 'BU283694',
+      buSize: 45,
       assessments: 0,
       tags: [
-        { key: 'key', value: 'Value' },
-        { key: 'key', value: 'Value' },
-        { key: 'key', value: 'Value' }
+        { key: 'department', value: 'Outpatient' },
+        { key: 'location', value: 'Clinic Building' },
+        { key: 'priority', value: 'Medium' }
       ],
       status: 'active',
-      lastUpdated: '2024-01-15'
+      lastUpdated: '2024-01-15',
+      buHead: { name: 'Dr. Emily Taylor', email: 'emily.taylor@hospital.com' },
+      buPocBiso: { name: 'James Rodriguez', email: 'james.rodriguez@hospital.com' },
+      buItPoc: { name: 'Maria Garcia', email: 'maria.garcia@hospital.com' },
+      buFinanceLead: { name: 'Kevin Thompson', email: 'kevin.thompson@hospital.com' }
     }
   ]);
 
   const handleCreateBusinessUnit = () => {
+    setIsEditMode(false);
+    setEditData(null);
     setIsCreateFormOpen(true);
   };
 
   const handleFormSubmit = (data: BusinessUnitFormData) => {
-    // TODO: Implement API call to create business unit
+    // TODO: Implement API call to create/update business unit
     console.log('Business Unit Data:', data);
 
-    // Create new business unit from form data
-    const newBusinessUnit: BusinessUnitData = {
-      id: Date.now().toString(),
-      businessUnitName: data.businessUnitName,
-      buCode: `BU${Math.floor(Math.random() * 1000000)}`,
-      buSize: 0, // This would come from the form or be calculated
-      assessments: 0,
-      tags: data.tags,
-      status: 'active',
-      lastUpdated: new Date().toISOString().split('T')[0]
-    };
+    if (isEditMode && selectedBusinessUnit) {
+      // Update existing business unit
+      setBusinessUnits(prev =>
+        prev.map(bu =>
+          bu.id === selectedBusinessUnit.id
+            ? {
+                ...bu,
+                businessUnitName: data.businessUnitName,
+                buHead: data.buHead,
+                buPocBiso: data.buPocBiso,
+                buItPoc: data.buItPoc,
+                buFinanceLead: data.buFinanceLead,
+                tags: data.tags,
+                lastUpdated: new Date().toISOString().split('T')[0]
+              }
+            : bu
+        )
+      );
+      setSuccessMessage(`${data.businessUnitName} Business Unit has been updated`);
+    } else {
+      // Create new business unit from form data
+      const newBusinessUnit: BusinessUnitData = {
+        id: Date.now().toString(),
+        businessUnitName: data.businessUnitName,
+        buCode: `BU${Math.floor(Math.random() * 1000000)}`,
+        buSize: 0, // This would come from the form or be calculated
+        assessments: 0,
+        tags: data.tags,
+        status: 'active',
+        lastUpdated: new Date().toISOString().split('T')[0],
+        buHead: data.buHead,
+        buPocBiso: data.buPocBiso,
+        buItPoc: data.buItPoc,
+        buFinanceLead: data.buFinanceLead
+      };
 
-    setBusinessUnits(prev => [...prev, newBusinessUnit]);
+      setBusinessUnits(prev => [...prev, newBusinessUnit]);
+      setSuccessMessage(`${data.businessUnitName} Business Unit has been created`);
+    }
+
+    // Show success notification
+    setShowSuccessToast(true);
     setIsCreateFormOpen(false);
+    setIsEditMode(false);
+    setEditData(null);
   };
 
   const handleFormClose = () => {
     setIsCreateFormOpen(false);
+    setIsEditMode(false);
+    setEditData(null);
   };
 
   const handleEditBusinessUnit = (businessUnit: BusinessUnitData) => {
-    // TODO: Implement edit functionality
-    console.log('Edit business unit:', businessUnit);
+    // Convert BusinessUnitData to BusinessUnitFormData for editing
+    const formData: BusinessUnitFormData = {
+      businessUnitName: businessUnit.businessUnitName,
+      buHead: businessUnit.buHead || { name: '', email: '' },
+      buPocBiso: businessUnit.buPocBiso || { name: '', email: '' },
+      buItPoc: businessUnit.buItPoc || { name: '', email: '' },
+      buFinanceLead: businessUnit.buFinanceLead || { name: '', email: '' },
+      tags: businessUnit.tags.length > 0 ? businessUnit.tags : [{ key: '', value: '' }],
+    };
+
+    setSelectedBusinessUnit(businessUnit);
+    setEditData(formData);
+    setIsEditMode(true);
+    setIsCreateFormOpen(true);
   };
 
   const handleBusinessUnitClick = (businessUnit: BusinessUnitData) => {
@@ -121,10 +190,20 @@ const BusinessUnits: React.FC = () => {
     setSelectedBusinessUnit(null);
   };
 
-  const handleStatusChange = (id: string, status: 'active' | 'inactive') => {
+  const handleToastClose = () => {
+    setShowSuccessToast(false);
+    setSuccessMessage('');
+  };
+
+  const handleStatusChange = (id: string, status: 'active' | 'disable') => {
     setBusinessUnits(prev =>
       prev.map(bu => bu.id === id ? { ...bu, status } : bu)
     );
+    
+    // Update selectedBusinessUnit if it's the one being changed
+    if (selectedBusinessUnit && selectedBusinessUnit.id === id) {
+      setSelectedBusinessUnit(prev => prev ? { ...prev, status } : null);
+    }
   };
 
   return (
@@ -165,12 +244,9 @@ const BusinessUnits: React.FC = () => {
           <Typography
             variant="h6"
             sx={{
-              fontSize: '18px',
               fontWeight: 400,
               color: '#484848',
               mb: 2,
-              lineHeight: '130%',
-              letterSpacing: "0px"
             }}
           >
             Looks like you haven't created any Business Units yet. <br />
@@ -184,10 +260,7 @@ const BusinessUnits: React.FC = () => {
             sx={{
               backgroundColor: '#04139A',
               color: '#F4F4F4',
-              fontSize: '16px',
               fontWeight: 600,
-              lineHeight: '100%',
-              letterSpacing: '0px',
               textTransform: 'none',
               p: "12px 40px",
               borderRadius: '4px',
@@ -222,7 +295,7 @@ const BusinessUnits: React.FC = () => {
               onClick={handleCreateBusinessUnit}
             >
               <AddIcon sx={{ fontSize: 16 }} />
-              <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "inherit", lineHeight: "130%", letterSpacing: "0%" }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: "inherit" }}>
                 Create Business Unit
               </Typography>
             </Box>
@@ -257,6 +330,8 @@ const BusinessUnits: React.FC = () => {
         open={isCreateFormOpen}
         onClose={handleFormClose}
         onSubmit={handleFormSubmit}
+        editData={editData || undefined}
+        isEditMode={isEditMode}
       />
 
       {/* Business Unit Details Modal */}
@@ -266,6 +341,17 @@ const BusinessUnits: React.FC = () => {
         businessUnit={selectedBusinessUnit}
         onEdit={handleEditBusinessUnit}
         onStatusChange={handleStatusChange}
+      />
+
+      {/* Success Toast Notification */}
+      <ToastComponent
+        open={showSuccessToast}
+        message={successMessage}
+        onClose={handleToastClose}
+        toastSeverity="success"
+        toastBorder="1px solid #4CAF50"
+        toastColor="#2E7D32"
+        toastBackgroundColor="#E8F5E8"
       />
     </Box>
   );

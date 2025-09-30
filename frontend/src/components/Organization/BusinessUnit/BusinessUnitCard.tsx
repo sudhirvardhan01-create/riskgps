@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Chip, Typography, Stack, Divider, FormControlLabel, Switch } from '@mui/material';
 import Image from "next/image";
+import DisableConfirmationModal from './DisableConfirmationModal';
 
 interface BusinessUnitData {
   id: string;
@@ -9,14 +10,19 @@ interface BusinessUnitData {
   buSize: number;
   assessments: number;
   tags: { key: string; value: string }[];
-  status: 'active' | 'inactive';
+  status: 'active' | 'disable';
   lastUpdated?: string;
+  // Contact roles
+  buHead?: { name: string; email: string };
+  buPocBiso?: { name: string; email: string };
+  buItPoc?: { name: string; email: string };
+  buFinanceLead?: { name: string; email: string };
 }
 
 interface BusinessUnitCardProps {
   businessUnit: BusinessUnitData;
   onEdit: (businessUnit: BusinessUnitData) => void;
-  onStatusChange: (id: string, status: 'active' | 'inactive') => void;
+  onStatusChange: (id: string, status: 'active' | 'disable') => void;
   onClick: (businessUnit: BusinessUnitData) => void;
 }
 
@@ -26,6 +32,8 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
   onStatusChange,
   onClick,
 }) => {
+  const [showDisableModal, setShowDisableModal] = useState(false);
+  
   const formattedDate = businessUnit.lastUpdated
     ? new Date(businessUnit.lastUpdated).toISOString().split('T')[0]
     : '';
@@ -41,7 +49,24 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    onStatusChange(businessUnit.id, e.target.checked ? 'active' : 'inactive');
+    const newStatus = e.target.checked ? 'active' : 'disable';
+    
+    // If trying to disable, show confirmation modal
+    if (newStatus === 'disable') {
+      setShowDisableModal(true);
+    } else {
+      // If enabling, proceed directly
+      onStatusChange(businessUnit.id, newStatus);
+    }
+  };
+
+  const handleDisableConfirm = () => {
+    onStatusChange(businessUnit.id, 'disable');
+    setShowDisableModal(false);
+  };
+
+  const handleDisableCancel = () => {
+    setShowDisableModal(false);
   };
 
   return (
@@ -65,7 +90,7 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
       {/* Header */}
       <Box>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#484848', fontSize: "16px", lineHeight: "130%", letterSpacing: "0px" }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#484848' }}>
             {businessUnit.businessUnitName}
           </Typography>
           <Stack direction="row" alignItems="center" spacing={2}>
@@ -85,11 +110,12 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
                 />
               }
               label={
-                <Typography variant="body2" sx={{ color: businessUnit.status === 'active' ? '#147A50' : '#9E9E9E', fontWeight: 400, fontSize: "14px", lineHeight: "150%", letterSpacing: "0%" }}>
-                  {businessUnit.status === 'active' ? 'Active' : 'Inactive'}
+                <Typography variant="body2" sx={{ color: businessUnit.status === 'active' ? '#147A50' : '#9E9E9E', fontWeight: 400 }}>
+                  {businessUnit.status === 'active' ? 'Active' : 'Disable'}
                 </Typography>
               }
               sx={{ m: 0 }}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             />
             <Box
               onClick={handleEditClick}
@@ -123,10 +149,7 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
           color="#484848"
           sx={{
             mb: 1.5,
-            fontSize: "14px",
             fontWeight: 400,
-            letterSpacing: "0%",
-            lineHeight: "130%",
           }}
         >
           <Box component="span" sx={{ mr: 1 }}>
@@ -165,10 +188,7 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
                 border: '1px solid #E7E7E8',
                 backgroundColor: '#F5F5F5',
                 color: '#484848',
-                fontSize: '14px',
                 fontWeight: 400,
-                lineHeight: "130%",
-                letterSpacing: "0%",
                 height: '26px',
                 padding: "4px 12px",
                 boxShadow: '0px 1px 2px 0px #E7E7E84D',
@@ -178,6 +198,13 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
           ))}
         </Box>
       )}
+      
+      <DisableConfirmationModal
+        open={showDisableModal}
+        onClose={handleDisableCancel}
+        onConfirm={handleDisableConfirm}
+        businessUnitName={businessUnit.businessUnitName}
+      />
     </Box>
   );
 };
