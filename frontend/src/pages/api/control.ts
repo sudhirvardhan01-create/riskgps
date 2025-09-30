@@ -1,4 +1,4 @@
-import { ControlForm } from "@/types/control";
+import { MITREControlForm } from "@/types/control";
 
 //Function to fetch controls
 export const fetchControls = async (
@@ -33,14 +33,9 @@ export const fetchControls = async (
 };
 
 //Function to update a control
-export const updateControl = async (
-  data: ControlForm,
-  mitreControlId: string,
-  mitreControlName: string,
-  mitreControlType: string
-) => {
+export const updateControl = async (data: MITREControlForm) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}&&mitreControlType=${mitreControlType}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control`,
     {
       method: "PATCH",
       body: JSON.stringify(data),

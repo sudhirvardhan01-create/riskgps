@@ -9,11 +9,7 @@ import ViewControlModal from "@/components/Library/Control/ViewControlModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
-import {
-  ControlForm,
-  ControlFrameworkForm,
-  MITREControlForm,
-} from "@/types/control";
+import { ControlFrameworkForm, MITREControlForm } from "@/types/control";
 import { ControlService } from "@/services/controlService";
 import ButtonTabs from "@/components/ButtonTabs";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
@@ -237,38 +233,27 @@ export default function ControlContainer() {
   };
 
   // Update
-  // const handleUpdate = async (status: string) => {
-  //   try {
-  //     if (
-  //       !selectedControl?.mitreControlId ||
-  //       !selectedControl?.mitreControlName ||
-  //       !selectedControl?.mitreControlType
-  //     )
-  //       throw new Error("Invalid selection");
-  //     const body = { ...selectedControl, status };
-  //     await ControlService.update(
-  //       body,
-  //       selectedControl.mitreControlId,
-  //       selectedControl.mitreControlName,
-  //       selectedControl.mitreControlType
-  //     );
-  //     setIsEditOpen(false);
-  //     setSelectedControl(null);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: "Control updated",
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to update control",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleUpdate = async (status: string) => {
+    try {
+      const body = { ...selectedControl, status };
+      await ControlService.update(body as MITREControlForm);
+      setIsEditOpen(false);
+      setSelectedControl(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Control updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update control",
+        severity: "error",
+      });
+    }
+  };
 
   // Update status only
   const handleUpdateStatus = async (status: string, mitreControlId: string) => {
@@ -493,8 +478,7 @@ export default function ControlContainer() {
               setSelectedControl(val);
             }
           }}
-          // onSubmit={handleUpdate}
-          onSubmit={() => console.log("Updated")}
+          onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
@@ -534,12 +518,6 @@ export default function ControlContainer() {
         title="Confirm Control Deletion?"
         description={`Are you sure you want to delete Control ${selectedControl?.mitreControlId}? All associated data will be removed from the system.`}
         onConfirm={() => handleDelete()}
-        // onConfirm={() =>
-        //   console.log(
-        //     selectedControl?.mitreControlId,
-        //     Array.of(selectedControl?.controlDetails[0].mitreControlName)
-        //   )
-        // }
         cancelText="Cancel"
         confirmText="Yes, Delete"
       />
