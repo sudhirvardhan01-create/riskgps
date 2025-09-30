@@ -134,48 +134,57 @@ class ControlsService {
     }
 
 
-    static async updateMitreControl(mitreControlId, mitreControlName, mitreControlType, data) {
-        if (!mitreControlId || !mitreControlName) {
-            console.log("Failed to update mitre Contol control id and name required")
-            throw new CustomError("Failed to update mitre Contol control id and name required");
-        }
+    static async updateMitreControls(updateBody) {
+        const { mitreControlId, mitreControlType, controlPriority, controlDetails, status } = updateBody;
 
-        if (!data) {
-            console.log("no update data found");
-            throw new Error("no update data found");
-        }
-
-        controlPriority
-        if (!Array.isArray(data.subControls) || data.subControls.length < 1) {
-            throw new Error("Invalid request, subcontrol required");
-        }
-        return await sequelize.transaction(async (t) => {
-            const payload = {
+        // array of subControls
+        const incomingSubControls = controlDetails.flatMap(control => {
+            return control.subControls.map(sub => ({
+                ...sub,
                 mitreControlId,
-                mitreControlName,
                 mitreControlType,
-            }
-            const [mitreThreatControlUpdateCount] = await MitreThreatControl.update(
-                payload,
-                {
-                    where: { mitreControlId: mitreControlId, mitreControlName: mitreControlName },
-                    transaction: t
-                }
-            );
-            if (!mitreThreatControlUpdateCount) {
-                console.log("No mitre control record found:", mitreControlId, mitreControlName);
-                throw new CustomError(Messages.MITRE_CONTROLS.NOT_FOUND, HttpStatus.NOT_FOUND);
-            }
-
-            this.validateMitreControlData(data);
-
-            await this.handleMitreControlsTechniqueMapping(mitreControlId, mitreControlName, data.subControls, t);
-
-            console.log("Mitre Control updated successfully:", mitreControlId, mitreControlName);
-
-            return data;
+                controlPriority,
+                mitreControlName: control.mitreControlName,
+                status: status || "published",
+            }));
         });
 
+        const incomingIds = incomingSubControls.map(sub => sub.id);
+
+        // Run everything inside a transaction
+        return sequelize.transaction(async (t) => {
+            // 1. Delete DB subControls that are not in request
+            await MitreThreatControl.destroy({
+                where: {
+                    mitreControlId,
+                    id: { [Op.notIn]: incomingIds }, // delete missing subControls
+                },
+                transaction: t,
+            });
+
+            // 2. Upsert incoming subControls
+            for (const sub of incomingSubControls) {
+                await MitreThreatControl.upsert(
+                    {
+                        id: sub.id,
+                        mitreTechniqueId: sub.mitreTechniqueId,
+                        mitreTechniqueName: sub.mitreTechniqueName,
+                        subTechniqueId: sub.subTechniqueId || null,
+                        subTechniqueName: sub.subTechniqueName || null,
+                        mitreControlId: sub.mitreControlId,
+                        mitreControlName: sub.mitreControlName,
+                        mitreControlType: sub.mitreControlType,
+                        mitreControlDescription: sub.mitreControlDescription,
+                        bluOceanControlDescription: sub.bluOceanControlDescription,
+                        controlPriority: sub.controlPriority,
+                        status: sub.status,
+                    },
+                    { transaction: t }
+                );
+            }
+
+            return { message: "Sync complete" };
+        });
     }
 
     static async updateMitreControlStatus(mitreControlId, status) {
@@ -519,7 +528,7 @@ class ControlsService {
 
         if (frameworkName) {
             conditions.push({
-                frameWorkName: frameworkName, 
+                frameWorkName: frameworkName,
             });
         }
         return conditions.length > 0 ? { [Op.and]: conditions } : {};

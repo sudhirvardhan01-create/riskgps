@@ -41,15 +41,8 @@ router.get("/get-controls", async (req, res) => {
 
 router.patch("/update-mitre-control", async (req, res) => {
     try {
-        const mitreControlId = req.query.mitreControlId;
-        const mitreControlName = req.query.mitreControlName;
-        const mitreControlType = req.query.mitreControlType;
 
-        if (!mitreControlId || !mitreControlName) {
-            throw new Error("Invalid request required parameters not passed");
-        }
-
-        const data = await ControlsService.updateMitreControl(mitreControlId, mitreControlName, mitreControlType, req.body);
+        const data = await ControlsService.updateMitreControls(req.body);
         res.status(HttpStatusCodes.CREATED).json({
             data,
             msg: "mitre control updated"

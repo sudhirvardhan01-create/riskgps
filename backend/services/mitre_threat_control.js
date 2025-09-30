@@ -85,6 +85,7 @@ class MitreThreatControlService {
                     };
                 }
                 acc[key].controls.push({
+                    id: row.id,
                     mitreControlId: row.mitreControlId,
                     mitreControlName: row.mitreControlName,
                     mitreControlType: row.mitreControlType,
@@ -122,67 +123,68 @@ class MitreThreatControlService {
         }
         return mitreThreatControl;
     }
-    static async updateMitreThreatControlRecord(
-        mitreTechniqueId,
-        subTechniqueId,
-        data
-    ) {
-        if (!mitreTechniqueId) {
-            throw new CustomError(
-                Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED,
-                HttpStatus.BAD_REQUEST
-            );
-        }
-        return await sequelize.transaction(async (t) => {
-            console.log(
-                "[updateMitreThreatControlRecord] Updating mitre threat control",
-                data
-            );
-            this.validateMitreThreatControlData(data);
-            const whereClause = { mitreTechniqueId };
-            if (subTechniqueId !== null) {
-                whereClause.subTechniqueId = subTechniqueId;
-            } else {
-                whereClause.subTechniqueId = {
-                    [Op.or]: [null, ""],
-                };
-            }
-            const deletedCount = await MitreThreatControl.destroy({
 
-                where: whereClause,
-            });
-            console.log(deletedCount);
-            const controls = data.controls ?? [];
-            const payloads = controls.map((control) => ({
-                platforms: data.platforms,
-                mitreTechniqueId: mitreTechniqueId,
-                mitreTechniqueName: data.mitreTechniqueName,
-                ciaMapping: data.ciaMapping,
-                subTechniqueId: subTechniqueId ?? null,
-                subTechniqueName: data.subTechniqueName ?? null,
-                mitreControlId: control.mitreControlId,
-                mitreControlName: control.mitreControlName,
-                mitreControlType: control.mitreControlType,
-                controlPriority: row.controlPriority,
-                mitreControlDescription: control.mitreControlDescription,
-                bluOceanControlDescription: control.bluOceanControlDescription,
-                status: data.status ?? "published",
-            }));
-            const mitreThreatControlRecord = await MitreThreatControl.bulkCreate(
-                payloads,
-                {
-                    transaction: t,
-                }
-            );
-            if (mitreThreatControlRecord === 0) {
-                throw new CustomError(
-                    "Element not found with ID",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-            return data;
+    static async updateMitreThreatControl(payload) {
+        const baseData = {
+            platforms: payload.platforms,
+            mitreTechniqueId: payload.mitreTechniqueId,
+            mitreTechniqueName: payload.mitreTechniqueName,
+            ciaMapping: payload.ciaMapping,
+            subTechniqueId: payload.subTechniqueId || null,
+            subTechniqueName: payload.subTechniqueName || null,
+            status: payload.status || 'published'
+        };
+
+        if (!payload.controls || !Array.isArray(payload.controls) || payload.controls?.length < 1) {
+            throw new CustomError("Controls array required"), HttpStatus.BAD_REQUEST
+        }
+
+        const incomingIds = (payload.controls || []).map(c => c.id).filter(Boolean);
+
+        const deleteOldRecordsWhereCondition = {
+            mitreTechniqueId: payload.mitreTechniqueId,
+            id: { [Op.notIn]: incomingIds },
+        };
+
+        if (payload.subTechniqueId !== null) {
+            deleteOldRecordsWhereCondition.subTechniqueId = payload.subTechniqueId;
+        } else {
+            deleteOldRecordsWhereCondition.subTechniqueId = {
+                [Op.or]: [null, ""],
+            };
+        }
+
+        await MitreThreatControl.destroy({
+            where: deleteOldRecordsWhereCondition,
         });
+
+        // controls, iterate and upsert them separately
+        if (payload.controls && Array.isArray(payload.controls)) {
+            for (const control of payload.controls) {
+                const controlData = {
+                    ...baseData,
+                    mitreControlId: control.mitreControlId,
+                    mitreControlName: control.mitreControlName,
+                    mitreControlType: control.mitreControlType,
+                    controlPriority: control.controlPriority,
+                    mitreControlDescription: control.mitreControlDescription,
+                    bluOceanControlDescription: control.bluOceanControlDescription
+                };
+
+                if (control.id) {
+                    // Update existing control
+                    await MitreThreatControl.update(controlData, { where: { id: control.id } });
+                } else {
+                    // Create new control
+                    await MitreThreatControl.create(controlData);
+                }
+            }
+        }
+
+        return payload;
     }
+
+
     static async deleteMitreThreatControlRecordById(
         mitreTechniqueId,
         mitreSubTechniqueId = null
