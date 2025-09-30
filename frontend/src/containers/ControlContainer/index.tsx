@@ -403,7 +403,7 @@ export default function ControlContainer() {
         selectedControlFramework === "MITRE" ? sortItems : frameworksSortItems,
       onImport: () => setIsFileUploadOpen(true),
       onExport: () => handleExportFrameworkControls(),
-      fileUploadTitle: "Import Threats",
+      fileUploadTitle: "Import Control Frameworks",
       file,
       setFile,
       isFileUploadOpen,
