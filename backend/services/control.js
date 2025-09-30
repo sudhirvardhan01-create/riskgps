@@ -164,9 +164,9 @@ class ControlsService {
 
             // 2. Upsert incoming subControls
             for (const sub of incomingSubControls) {
-                await MitreThreatControl.upsert(
+
+                await MitreThreatControl.update(
                     {
-                        id: sub.id,
                         mitreTechniqueId: sub.mitreTechniqueId,
                         mitreTechniqueName: sub.mitreTechniqueName,
                         subTechniqueId: sub.subTechniqueId || null,
@@ -179,8 +179,12 @@ class ControlsService {
                         controlPriority: sub.controlPriority,
                         status: sub.status,
                     },
-                    { transaction: t }
+                    {
+                        where: { id: sub.id },
+                        transaction: t
+                    }
                 );
+
             }
 
             return { message: "Sync complete" };
