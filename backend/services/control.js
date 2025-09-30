@@ -179,7 +179,6 @@ class ControlsService {
     });
 
     const incomingIds = incomingSubControls.map((sub) => sub.id);
-    console.log(incomingIds);
 
     // Run everything inside a transaction
     return sequelize.transaction(async (t) => {
@@ -194,11 +193,8 @@ class ControlsService {
 
       // 2. Upsert incoming subControls
       for (const sub of incomingSubControls) {
-        const a = MitreThreatControl.findByPk(sub.id);
-        if (!a) console.log(sub.id, "Not Found");
-        await MitreThreatControl.upsert(
+        await MitreThreatControl.update(
           {
-            id: sub.id,
             mitreTechniqueId: sub.mitreTechniqueId,
             mitreTechniqueName: sub.mitreTechniqueName,
             subTechniqueId: sub.subTechniqueId || null,
@@ -211,7 +207,10 @@ class ControlsService {
             controlPriority: sub.controlPriority,
             status: sub.status,
           },
-          { transaction: t }
+          {
+            where: { id: sub.id },
+            transaction: t,
+          }
         );
       }
 
@@ -289,7 +288,6 @@ class ControlsService {
     sortBy = "created_at",
     sortOrder = "ASC"
   ) {
-    console.log(frameWorkName);
     if (!FRAMEWORK_CONTROLS.ALLOWED_SORT_FILED.includes(sortBy)) {
       sortBy = "created_at";
     }
@@ -543,6 +541,7 @@ class ControlsService {
     try {
       // fetch transformed framework controls
       const controls = await this.getAllFrameworkControls();
+
       res.setHeader(
         "Content-disposition",
         "attachment; filename=framework_controls_export.csv"
@@ -619,7 +618,7 @@ class ControlsService {
 
     if (frameworkName) {
       conditions.push({
-        frameWorkName: frameworkName, // must match your model's attribute name
+        frameWorkName: frameworkName,
       });
     }
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
