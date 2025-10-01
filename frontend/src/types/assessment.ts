@@ -24,8 +24,8 @@ export interface Organisation {
 
 export interface BusinessUnit {
   orgBusinessUnitId: string;
-  businessUnitName: string;
-  businessUnitDesc?: string;
+  name: string;
+  desc?: string;
 }
 
 export interface Severity {

@@ -412,7 +412,10 @@ class AssessmentService {
             modifiedDate: new Date(),
             isDeleted: false,
           }))
-        );
+          );
+
+          console.log("BI Records:", biRecords);
+          console.log("Taxonomy Records:", taxonomyRecords);
 
         await AssessmentRiskScenarioBusinessImpact.bulkCreate(biRecords, {
           transaction,

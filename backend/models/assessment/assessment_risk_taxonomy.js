@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         field: "assessment_risk_taxonomy_id",
       },
-      assessmentProcessRiskId: {
+       assessmentProcessRiskId: {
         type: DataTypes.UUID,
         allowNull: false,
         field: "assessment_process_risk_id",
