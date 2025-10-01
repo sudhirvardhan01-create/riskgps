@@ -1,4 +1,4 @@
-const { commonFields } = require("./common_fields");
+const commonFields = require("./common_fields");
 const { DataTypes } = require('sequelize');
 const { GENERAL } = require('../constants/library');
 

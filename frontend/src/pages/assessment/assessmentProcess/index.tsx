@@ -17,6 +17,7 @@ import {
 import {
   saveAssessmentProcess,
   saveAssessmentRisk,
+  saveAssessmentRiskTaxonomy,
 } from "@/pages/api/assessment";
 import BusinessImpact from "@/components/Assessment/BusinessImpact";
 import {
@@ -101,7 +102,22 @@ export default function BUProcessMappingPage() {
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
         riskScenarioName: risk.name,
-        riskScenarioDesc: "Test Desc",
+        riskScenarioDesc: risk.description,
+      }))
+    );
+    return obj;
+  };
+
+  const prepareRiskTaxonomyPayload = () => {
+    const obj = selectedProcesses.flatMap((process) =>
+      process.risks.map((risk) => ({
+        assessmentProcessId: process.assessmentProcessId ?? "",
+        assessmentProcessRiskId: risk.assessmentProcessRiskId ?? "",
+        riskScenarioName: risk.name,
+        riskScenarioDesc: risk.description,
+        thresholdHours: risk.thresholdHours,
+        thresholdCost: risk.thresholdCost,
+        taxonomy: risk.taxonomy,
       }))
     );
     return obj;
@@ -150,7 +166,38 @@ export default function BUProcessMappingPage() {
 
         case 1:
           const riskScenarios = prepareRiskPayload();
-          saveAssessmentRisk({ assessmentId, userId: "2", riskScenarios });
+          const response = await saveAssessmentRisk({
+            assessmentId,
+            userId: "2",
+            riskScenarios,
+          });
+
+          const updatedProcessesRisk = selectedProcesses.map((process) => ({
+            ...process,
+            risks: process.risks.map((risk) => {
+              const match = response.riskScenarios.find(
+                (obj: any) => obj.riskScenarioName === risk.name
+              );
+
+              return {
+                ...risk,
+                assessmentProcessRiskId: match?.assessmentProcessRiskId ?? null,
+              };
+            }),
+          }));
+
+          setSelectedProcesses(updatedProcessesRisk);
+
+          break;
+
+        case 2:
+          console.log(selectedProcesses);
+          const riskTaxonomies = prepareRiskTaxonomyPayload();
+          saveAssessmentRiskTaxonomy({
+            assessmentId,
+            userId: "2",
+            riskScenarios: riskTaxonomies,
+          });
           break;
       }
 

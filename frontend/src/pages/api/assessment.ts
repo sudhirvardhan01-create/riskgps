@@ -1,3 +1,5 @@
+import { Taxonomy } from "@/types/assessment";
+
 interface AssessmentData {
   assessmentName: string;
   assessmentDesc: string;
@@ -33,6 +35,9 @@ interface RiskScenarios {
   assessmentProcessId: string;
   riskScenarioName: string;
   riskScenarioDesc: string;
+  thresholdHours?: number;
+  thresholdCost?: number;
+  taxonomy?: Taxonomy[];
 }
 
 export const saveAssessment = async (data: AssessmentData) => {
@@ -88,6 +93,23 @@ export const saveAssessmentProcess = async (data: AssessmentProcess) => {
 export const saveAssessmentRisk = async (data: AssessmentRisk) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/assessment/assessment-process-risk-scenarios`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch api data");
+  }
+  return response.json();
+};
+
+export const saveAssessmentRiskTaxonomy = async (data: AssessmentRisk) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/assessment/assessment-risk-details`,
     {
       method: "POST",
       body: JSON.stringify(data),

@@ -1,4 +1,4 @@
-﻿const { commonFields } = require("../common_fields");
+﻿const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const Assessment = sequelize.define(
@@ -75,11 +75,6 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "last_activity",
             },
-            // userId: {
-            //     type: DataTypes.UUID,
-            //     allowNull: true,
-            //     field: "user_id",
-            // },
             ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, tenantId, status, etc.
         },
         {
