@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: "message",
       },
-      communication_preference: {
+      communicationPreference: {
         type: DataTypes.ENUM("Email", "Phone", "Both"),
         allowNull: false,
         field: "communication_preference",

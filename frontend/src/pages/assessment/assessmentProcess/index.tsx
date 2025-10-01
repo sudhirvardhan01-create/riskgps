@@ -26,6 +26,7 @@ import {
   Organisation,
   ProcessUnit,
 } from "@/types/assessment";
+import Cookies from "js-cookie";
 
 export default function BUProcessMappingPage() {
   const {
@@ -148,7 +149,7 @@ export default function BUProcessMappingPage() {
               };
             }),
             status: status,
-            userId: "2",
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
           });
 
           const updatedProcesses = selectedProcesses.map((item) => {
@@ -168,7 +169,7 @@ export default function BUProcessMappingPage() {
           const riskScenarios = prepareRiskPayload();
           const response = await saveAssessmentRisk({
             assessmentId,
-            userId: "2",
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios,
           });
 
@@ -191,11 +192,10 @@ export default function BUProcessMappingPage() {
           break;
 
         case 2:
-          console.log(selectedProcesses);
           const riskTaxonomies = prepareRiskTaxonomyPayload();
           saveAssessmentRiskTaxonomy({
             assessmentId,
-            userId: "2",
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
           break;
@@ -232,7 +232,7 @@ export default function BUProcessMappingPage() {
               bu={
                 businessUnits.find(
                   (item) => item.orgBusinessUnitId === selectedBU
-                )?.businessUnitName || ""
+                )?.name || ""
               }
               onBack={() => router.push("/assessment")}
             />
