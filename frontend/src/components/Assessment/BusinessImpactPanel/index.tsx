@@ -6,7 +6,7 @@ import { TabContext, TabList, TabPanel } from "@mui/lab";
 import ImpactSelector from "../ImpactSelector";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import TooltipComponent from "@/components/TooltipComponent";
-import { Risk } from "@/types/assessment";
+import { Risk, Taxonomy } from "@/types/assessment";
 import { getOrganizationTaxonomy } from "@/pages/api/organization";
 import { useAssessment } from "@/context/AssessmentContext";
 
@@ -22,16 +22,25 @@ export default function BusinessImpactPanel({
   const [thresholdHours, setThresholdHours] = useState<number | undefined>();
   const [thresholdCost, setThresholdCost] = useState<number | undefined>();
   const [taxonomies, setTaxonomies] = useState<any[]>([]);
-  const [taxonomyValue, setTaxonomyValue] = useState<Record<string, string>>(
-    {}
-  );
+  const [taxonomyValue, setTaxonomyValue] = useState<Taxonomy[]>([]);
   const [value, setValue] = useState("1");
   const [isInternalChange, setIsInternalChange] = useState(false);
 
+  // fetch taxonomies
   useEffect(() => {
     const getTaxonomies = async () => {
       const res = await getOrganizationTaxonomy(selectedOrg);
       setTaxonomies(res.data);
+
+      // initialize taxonomyValue
+      setTaxonomyValue(
+        res.data.map((item: any) => ({
+          taxonomyId: item.taxonomyId,
+          name: item.name,
+          orgId: item.organizationId,
+          severityDetails: {},
+        }))
+      );
     };
     getTaxonomies();
   }, [selectedOrg]);
@@ -43,26 +52,28 @@ export default function BusinessImpactPanel({
       setThresholdCost(selectedScenario.thresholdCost ?? undefined);
 
       if (selectedScenario.taxonomy && selectedScenario.taxonomy.length > 0) {
-        const mapped: Record<string, string> = {};
-        selectedScenario.taxonomy.forEach((t: any) => {
-          mapped[t.taxonomyId] = t.value ?? "";
-        });
-        setTaxonomyValue(mapped);
+        // map scenario taxonomy to array
+        setTaxonomyValue(
+          selectedScenario.taxonomy.map((t: any) => ({
+            taxonomyId: t.taxonomyId,
+            name: t.name ?? "",
+            orgId: t.orgId ?? selectedOrg,
+            severityDetails: t.severityDetails ?? {},
+          }))
+        );
       } else {
-        // reset if no taxonomy in scenario
-        setTaxonomyValue({});
+        setTaxonomyValue([]);
       }
     } else {
-      // reset everything if no scenario
       setThresholdHours(undefined);
       setThresholdCost(undefined);
-      setTaxonomyValue({});
+      setTaxonomyValue([]);
     }
 
-    setIsInternalChange(false); // reset after parent update
-  }, [selectedScenario]);
+    setIsInternalChange(false);
+  }, [selectedScenario, selectedOrg]);
 
-  // Push updates back into parent, but only if it's from user action
+  // Push updates back into parent
   useEffect(() => {
     if (!selectedScenario || !isInternalChange) return;
 
@@ -70,10 +81,7 @@ export default function BusinessImpactPanel({
       ...selectedScenario,
       thresholdHours,
       thresholdCost,
-      taxonomy: Object.entries(taxonomyValue).map(([taxonomyId, value]) => ({
-        taxonomyId,
-        value,
-      })),
+      taxonomy: taxonomyValue,
     };
 
     const isDifferent =
@@ -98,7 +106,6 @@ export default function BusinessImpactPanel({
     setValue(newValue);
   };
 
-  // User edits
   const handleThresholdHoursChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -117,12 +124,29 @@ export default function BusinessImpactPanel({
     );
   };
 
-  const setTaxonomy = (taxonomyId: string, val: string) => {
+  const setTaxonomy = (taxonomyId: string, ind: number, val: string) => {
     setIsInternalChange(true);
-    setTaxonomyValue((prev) => ({
-      ...prev,
-      [taxonomyId]: val,
-    }));
+
+    const severity = taxonomies[ind].severityLevels.find(
+      (item: any) => item.severityId === val
+    );
+    if (!severity) return;
+
+    setTaxonomyValue((prev) => {
+      const updated = [...prev];
+      updated[ind] = {
+        ...updated[ind],
+        taxonomyId,
+        severityDetails: {
+          severityId: severity.severityId,
+          name: severity.name,
+          minRange: severity.minRange,
+          maxRange: severity.maxRange,
+          color: severity.color,
+        },
+      };
+      return updated;
+    });
   };
 
   if (!selectedScenario) {
@@ -219,17 +243,15 @@ export default function BusinessImpactPanel({
             </Box>
 
             {/* Impacts */}
-            {taxonomies.map((item: any) => {
-              return (
-                <ImpactSelector
-                  key={item.taxonomyId}
-                  label={item.name}
-                  severityLevels={item.severityLevels}
-                  value={taxonomyValue[item.taxonomyId]}
-                  onChange={(val) => setTaxonomy(item.taxonomyId, val)}
-                />
-              );
-            })}
+            {taxonomies.map((item: any, ind: number) => (
+              <ImpactSelector
+                key={item.taxonomyId}
+                label={item.name}
+                severityLevels={item.severityLevels}
+                value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
+                onChange={(val) => setTaxonomy(item.taxonomyId, ind, val)}
+              />
+            ))}
           </Box>
         </TabPanel>
       </TabContext>

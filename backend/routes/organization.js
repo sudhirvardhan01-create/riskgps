@@ -155,6 +155,72 @@ router.get("/:orgId/assets", async (req, res) => {
     }
 });
 
+/**
+ * @route POST /organization
+ * @desc Create a new organization
+ */
+router.post("/", async (req, res) => {
+    try {
+        const data = await OrganizationService.createOrganization(req.body);
+
+        res.status(HttpStatus.CREATED).json({
+            success: true,
+            message: "Organization created successfully",
+            data,
+        });
+    } catch (error) {
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            error: {
+                message: error.message,
+            },
+        });
+    }
+});
+
+/**
+ * @route PUT /organization/:id
+ * @description Update organization by ID
+ */
+router.put("/:id", async (req, res) => {
+    try {
+        const updatedOrg = await OrganizationService.updateOrganizationById(
+            req.params.id,
+            req.body,
+            req.user?.id || null
+        );
+
+        res.status(HttpStatus.OK).json({
+            data: updatedOrg,
+            msg: Messages.ORGANIZATION.UPDATED,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
+});
+
+/**
+ * @route DELETE /organization/:id
+ * @description Soft delete organization by ID
+ */
+router.delete("/:id", async (req, res) => {
+    try {
+        const result = await OrganizationService.deleteOrganizationById(
+            req.params.id,
+            req.body.modifiedBy // pass logged-in user ID here
+        );
+
+        res.status(HttpStatus.OK).json({
+            msg: result.message
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to delete organization"
+        });
+    }
+});
 
 
 module.exports = router;

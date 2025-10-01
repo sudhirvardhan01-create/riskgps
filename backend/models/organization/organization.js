@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 primaryKey: true,
                 defaultValue: DataTypes.UUIDV4,
-                field: "org_id", // maps alias organizationId -> DB column org_id
+                field: "org_id",    
             },
             name: {
                 type: DataTypes.STRING,
@@ -20,11 +20,39 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 field: "desc",
             },
+            tags: {
+                type: DataTypes.JSONB,
+                allowNull: true,
+                field: "tags",
+            },
+            industryVertical: { type: DataTypes.STRING, field: "industry_vertical" },
+            regionOfOperation: { type: DataTypes.STRING, field: "region_of_operation" },
+            numberOfEmployees: { type: DataTypes.INTEGER, field: "number_of_employees" },
+            cisoName: { type: DataTypes.STRING, field: "ciso_name" },
+            cisoEmail: { type: DataTypes.STRING, field: "ciso_email" },
+            annualRevenue: { type: DataTypes.BIGINT, field: "annual_revenue" },
+            riskAppetite: { type: DataTypes.BIGINT, field: "risk_appetite" },
+            cybersecurityBudget: { type: DataTypes.BIGINT, field: "cybersecurity_budget" },
+            insuranceCoverage: { type: DataTypes.BIGINT, field: "insurance_coverage" },
+            insuranceCarrier: { type: DataTypes.STRING, field: "insurance_carrier" },
+            numberOfClaims: { type: DataTypes.INTEGER, field: "number_of_claims" },
+            claimsValue: { type: DataTypes.BIGINT, field: "claims_value" },
+            regulators: { type: DataTypes.STRING, field: "regulators" },
+            regulatoryRequirements: { type: DataTypes.STRING, field: "regulatory_requirements" },
+            additionalInformation: { type: DataTypes.TEXT, field: "additional_information" },
+            recordTypes: { type: DataTypes.ARRAY(DataTypes.STRING), field: "record_types" },
+            piiRecordsCount: { type: DataTypes.INTEGER, field: "pii_records_count" },
+            pfiRecordsCount: { type: DataTypes.INTEGER, field: "pfi_records_count" },
+            phiRecordsCount: { type: DataTypes.INTEGER, field: "phi_records_count" },
+            governmentRecordsCount: { type: DataTypes.INTEGER, field: "government_records_count" },
+            certifications: { type: DataTypes.ARRAY(DataTypes.STRING), field: "certifications" },
+            intellectualPropertyPercentage: { type: DataTypes.INTEGER, field: "intellectual_property_percentage" },
+
             ...commonFields, // adds createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {
             tableName: "organization",
-            timestamps: false, // disable default createdAt/updatedAt
+            timestamps: false,
         }
     );
 

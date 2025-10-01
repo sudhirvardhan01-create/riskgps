@@ -15,15 +15,15 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 field: "org_id", // DB column, alias remains organizationId
             },
-            businessUnitName: {
+            Name: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                field: "business_unit_name",
+                field: "name",
             },
-            businessUnitDesc: {
+            Desc: {
                 type: DataTypes.STRING,
                 allowNull: true,
-                field: "business_unit_desc",
+                field: "desc",
             },
             ...commonFields, // adds createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
