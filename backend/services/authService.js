@@ -1,134 +1,117 @@
-const bcrypt = require('bcryptjs');
-const { User, Role, RefreshToken } = require('../models');
+const bcrypt = require("bcryptjs");
+const { User, Role, RefreshToken } = require("../models");
 const {
-    generateToken,
-    generateRefreshToken,
-    verifyRefreshToken
-} = require('../utils/jwt');
+  generateToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} = require("../utils/jwt");
+const CustomError = require("../utils/CustomError");
+const HttpStatus = require("../constants/httpStatusCodes");
+const MESSAGES = require("../constants/messages");
 
-const CustomError = require('../utils/CustomError');
-const HttpStatus = require('../constants/httpStatusCodes');
-const MESSAGES = require('../constants/messages');
+class AuthService {
+  /**
+   * Register a new user
+   */
+  static async register(payload) {
+    const {
+      name,
+      email,
+      password,
+      phone,
+      organisation,
+      message,
+      communicationPreference,
+      roleName,
+    } = payload;
 
-const register = async ({
-    name,
-    email,
-    password,
-    phone,
-    organisation,
-    message,
-    communicationPreference,
-    roleName
-}) => {
-    console.log('Registering user with email:', email);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const hashed = await bcrypt.hash(password, 10);
+    // Find role
     const role = await Role.findOne({ where: { name: roleName } });
-
     if (!role) {
-        console.log('Invalid role:', roleName);
-        throw new CustomError(MESSAGES.AUTH.INVALID_ROLE, HttpStatus.BAD_REQUEST);
+      throw new CustomError(MESSAGES.AUTH.INVALID_ROLE, HttpStatus.BAD_REQUEST);
     }
 
+    // Create user
     const user = await User.create({
-        name,
-        email,
-        password: hashed,
-        phone,
-        organisation,
-        message,
-        communicationPreference,
-        roleId: role.id
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      organisation,
+      message,
+      communicationPreference,
+      roleId: role.roleId,
     });
 
-    console.log('User registered successfully with ID:', user.id);
-    return {
-        data: user,
-        message: MESSAGES.USER.CREATED
-    };
-};
+    return user;
+  }
 
-const login = async ({ email, password }) => {
-    console.log('Attempting login for:', email);
+  /**
+   * Login user
+   */
+  static async login({ email, password }) {
+    const user = await User.findOne({
+      where: { email },
+      include: [{ model: Role, as: "role", where: { isDeleted: false }, required: false }],
+    });
 
-    const user = await User.findOne({ where: { email }, include: Role });
     if (!user) {
-        console.log('Login failed: user not found');
-        throw new CustomError(MESSAGES.AUTH.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+      throw new CustomError(MESSAGES.AUTH.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
     }
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-        console.log('Login failed: password mismatch');
-        throw new CustomError(MESSAGES.AUTH.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
+      throw new CustomError(MESSAGES.AUTH.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
     }
 
     const accessToken = generateToken({
-        id: user.id,
-        username: user.username,
-        role: user.Role.name
+      id: user.userId,
+      username: user.name,
+      role: user.role?.name,
     });
 
-    const refreshToken = generateRefreshToken({ id: user.id });
+    const refreshToken = generateRefreshToken({ id: user.userId });
 
-    await RefreshToken.create({ token: refreshToken, userId: user.id });
+    await RefreshToken.create({ token: refreshToken, userId: user.userId });
 
-    console.log('Login successful for user ID:', user.id);
-    return {
-        user,
-        accessToken,
-        refreshToken,
-        message: MESSAGES.AUTH.LOGIN_SUCCESS
-    };
-};
+    return { user, accessToken, refreshToken };
+  }
 
-const refresh = async (token) => {
-    console.log('Refreshing token');
-
-    const storedToken = await RefreshToken.findOne({ where: { token } });
+  /**
+   * Refresh access token
+   */
+  static async refresh(refreshToken) {
+    const storedToken = await RefreshToken.findOne({ where: { token: refreshToken } });
     if (!storedToken) {
-        console.log('Refresh token not found in DB');
-        throw new CustomError(MESSAGES.AUTH.INVALID_REFRESH_TOKEN, HttpStatus.UNAUTHORIZED);
+      throw new CustomError(MESSAGES.AUTH.INVALID_REFRESH_TOKEN, HttpStatus.UNAUTHORIZED);
     }
 
-    try {
-        const decoded = verifyRefreshToken(token);
-        const user = await User.findByPk(decoded.id, { include: Role });
+    const decoded = verifyRefreshToken(refreshToken);
+    const user = await User.findByPk(decoded.id, { include: [{ model: Role, as: "role" }] });
 
-        if (!user) {
-            console.log('User not found for refresh token');
-            throw new CustomError(MESSAGES.USER.NOT_FOUND, HttpStatus.NOT_FOUND);
-        }
-
-        const accessToken = generateToken({
-            id: user.id,
-            username: user.username,
-            role: user.Role.name
-        });
-
-        console.log('Access token refreshed successfully');
-        return {
-            accessToken,
-            message: MESSAGES.AUTH.REFRESH_SUCCESS
-        };
-    } catch (err) {
-        console.log('Failed to verify refresh token');
-        throw new CustomError(MESSAGES.AUTH.INVALID_REFRESH_TOKEN, HttpStatus.UNAUTHORIZED);
+    if (!user) {
+      throw new CustomError(MESSAGES.USER.NOT_FOUND, HttpStatus.NOT_FOUND);
     }
-};
 
-const logout = async (token) => {
-    console.log('Logging out with token:', token);
-    await RefreshToken.destroy({ where: { token } });
-    console.log('Refresh token invalidated');
-    return {
-        message: MESSAGES.AUTH.LOGOUT_SUCCESS
-    };
-};
+    const accessToken = generateToken({
+      id: user.userId,
+      username: user.name,
+      role: user.role?.name,
+    });
 
-module.exports = {
-    register,
-    login,
-    refresh,
-    logout
-};
+    return { accessToken, msg: MESSAGES.AUTH.REFRESH_SUCCESS };
+  }
+
+  /**
+   * Logout user (invalidate refresh token)
+   */
+  static async logout(refreshToken) {
+    await RefreshToken.destroy({ where: { token: refreshToken } });
+    return { msg: MESSAGES.AUTH.LOGOUT_SUCCESS };
+  }
+}
+
+module.exports = AuthService;
