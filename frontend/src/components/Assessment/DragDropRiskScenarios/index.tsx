@@ -9,18 +9,7 @@ import ProcessCardRisk from "../ProcessCardRisk";
 import MoveProcessModal from "../MoveProcessModal";
 import { useAssessment } from "@/context/AssessmentContext";
 import { getOrganizationRisks } from "@/pages/api/organization";
-
-interface Risk {
-  orgRiskId: string;
-  name: string;
-  description: string;
-}
-
-interface ProcessUnit {
-  orgProcessId: string;
-  name: string;
-  risks: Risk[];
-}
+import { ProcessUnit, Risk } from "@/types/assessment";
 
 const DragDropRiskScenarios = () => {
   const { selectedOrg, selectedProcesses, setSelectedProcesses } =

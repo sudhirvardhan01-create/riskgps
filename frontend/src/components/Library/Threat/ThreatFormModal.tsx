@@ -57,12 +57,13 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
   onSubmit,
 }) => {
   const initialRelatedControlFormData: RelatedControlForm = {
+    id: null,
     mitreControlId: "",
     mitreControlName: "",
     mitreControlType: "",
     mitreControlDescription: "",
     bluOceanControlDescription: "",
-    controlPriority: null
+    controlPriority: null,
   };
 
   const [isAddRelatedControlOpen, setIsAddRelatedControlOpen] =
@@ -327,6 +328,7 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
             {/* MITRE Technique ID */}
             <Grid mt={1} size={{ xs: 6 }}>
               <TextFieldStyled
+                disabled
                 required
                 label={labels.mitreTechniqueId}
                 isTooltipRequired={true}
@@ -417,6 +419,7 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
             {/* Sub Technique ID */}
             <Grid mt={1} size={{ xs: 6 }}>
               <TextFieldStyled
+                disabled
                 label={labels.subTechniqueId}
                 isTooltipRequired={true}
                 tooltipTitle={tooltips.subTechniqueId}
@@ -567,6 +570,7 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
               variant="contained"
               onClick={() => {
                 onSubmit("published");
+                // console.log(formData)
               }}
               disabled={
                 formData.platforms?.length === 0 ||

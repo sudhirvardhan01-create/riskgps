@@ -4,9 +4,10 @@ import React, { useMemo, useState } from "react";
 import { Paper, Typography, TextField, Box } from "@mui/material";
 import { useDroppable } from "@dnd-kit/core";
 import DraggableRiskItem from "../DraggableRiskItem";
+import { Risk } from "@/types/assessment";
 
 interface RiskScenarioPoolProps {
-  riskPool: { orgRiskId: string; name: string; description: string }[];
+  riskPool: Risk[];
 }
 
 const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {

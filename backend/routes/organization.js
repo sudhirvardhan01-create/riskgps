@@ -101,4 +101,126 @@ router.get("/:orgId/risk-scenarios", async (req, res) => {
     }
 });
 
+/**
+ * @route GET /organization/:orgId/taxonomies
+ * @desc Get all taxonomies and severity levels for an organization
+ */
+router.get("/:orgId/taxonomies", async (req, res) => {
+    try {
+        const { orgId } = req.params;
+
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const taxonomies = await OrganizationService.getTaxonomiesWithSeverity(orgId);
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization taxonomies with severity levels fetched successfully",
+            data: taxonomies,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to fetch taxonomies with severity levels",
+        });
+    }
+});
+
+/**
+ * @route GET /organization/:orgId/assets
+ * @description Get all assets for a given organization
+ */
+router.get("/:orgId/assets", async (req, res) => {
+    try {
+        const { orgId } = req.params;
+
+        if (!orgId) {
+            return res.status(400).json({
+                message: "Organization ID is required",
+            });
+        }
+
+        const assets = await OrganizationService.getAssetsByOrgId(orgId);
+
+        res.status(200).json({
+            message: "Organization assets fetched successfully",
+            data: assets,
+        });
+    } catch (err) {
+        res.status(err.statusCode || 500).json({
+            error: err.message || "Failed to fetch organization assets",
+        });
+    }
+});
+
+/**
+ * @route POST /organization
+ * @desc Create a new organization
+ */
+router.post("/", async (req, res) => {
+    try {
+        const data = await OrganizationService.createOrganization(req.body);
+
+        res.status(HttpStatus.CREATED).json({
+            success: true,
+            message: "Organization created successfully",
+            data,
+        });
+    } catch (error) {
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            error: {
+                message: error.message,
+            },
+        });
+    }
+});
+
+/**
+ * @route PUT /organization/:id
+ * @description Update organization by ID
+ */
+router.put("/:id", async (req, res) => {
+    try {
+        const updatedOrg = await OrganizationService.updateOrganizationById(
+            req.params.id,
+            req.body,
+            req.user?.id || null
+        );
+
+        res.status(HttpStatus.OK).json({
+            data: updatedOrg,
+            msg: Messages.ORGANIZATION.UPDATED,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
+});
+
+/**
+ * @route DELETE /organization/:id
+ * @description Soft delete organization by ID
+ */
+router.delete("/:id", async (req, res) => {
+    try {
+        const result = await OrganizationService.deleteOrganizationById(
+            req.params.id,
+            req.body.modifiedBy // pass logged-in user ID here
+        );
+
+        res.status(HttpStatus.OK).json({
+            msg: result.message
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to delete organization"
+        });
+    }
+});
+
+
 module.exports = router;

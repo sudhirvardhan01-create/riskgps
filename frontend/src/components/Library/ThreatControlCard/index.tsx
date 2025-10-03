@@ -72,7 +72,6 @@ const ThreatControlCard: React.FC<ThreatControlCardProps> = ({
                   handleUpdateStatus(
                     updatedStatus,
                     threatControlData.mitreControlId as string,
-                    threatControlData.mitreControlName as string
                   );
                 }
               }}

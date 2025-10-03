@@ -1,4 +1,4 @@
-import { ControlForm } from "@/types/control";
+import { MITREControlForm } from "@/types/control";
 
 //Function to fetch controls
 export const fetchControls = async (
@@ -33,14 +33,9 @@ export const fetchControls = async (
 };
 
 //Function to update a control
-export const updateControl = async (
-  data: ControlForm,
-  mitreControlId: string,
-  mitreControlName: string,
-  mitreControlType: string
-) => {
+export const updateControl = async (data: MITREControlForm) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}&&mitreControlType=${mitreControlType}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control`,
     {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -60,15 +55,21 @@ export const updateControl = async (
 //Function to delete a control
 export const deleteControl = async (
   mitreControlId: string,
-  mitreControlName: string
+  mitreControlNames: string[]
 ) => {
+  if (!mitreControlNames || !mitreControlId) {
+    throw new Error("Failed to perforom the operation, Invalid arguments");
+  }
+  const reqBody = { mitreControlNames };
+  console.log(reqBody);
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/delete-mitre-control?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/delete-mitre-control?mitreControlId=${mitreControlId}`,
     {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(reqBody),
     }
   );
   if (!response.ok) {
@@ -82,15 +83,14 @@ export const deleteControl = async (
 //Function to update status of a control
 export const updateControlStatus = async (
   mitreControlId: string,
-  mitreControlName: string,
   status: string
 ) => {
-  if (!mitreControlId || !mitreControlName || !status) {
+  if (!mitreControlId || !status) {
     throw new Error("Failed to perforom the operation, Invalid arguments");
   }
   const reqBody = { status };
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control-status?mitreControlId=${mitreControlId}&&mitreControlName=${mitreControlName}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/update-mitre-control-status?mitreControlId=${mitreControlId}`,
     {
       method: "PATCH",
       body: JSON.stringify(reqBody),

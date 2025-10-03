@@ -103,5 +103,28 @@ router.get("/:id", async (req, res) => {
     });
 });
 
+/**
+ * @route POST /assessment-risk-details
+ * @desc Save business impacts & taxonomies for an assessment process risk
+ */
+router.post(
+    "/assessment-risk-details",
+    async (req, res) => {
+        const { userId } = req.body;
+        const payload = req.body;
+
+        if (!userId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "userId is required in the request body",
+            });
+        }
+
+        const result = await AssessmentService.saveRiskDetails(payload, userId);
+
+        res.status(HttpStatus.OK).json(result);
+    }
+);
+
+
 
 module.exports = router;

@@ -215,8 +215,6 @@ router.delete("/delete-threats", async (req, res) => {
 
 router.put("/update", async (req, res) => {
   try {
-
-
     const data = await MitreThreatControlService.updateMitreThreatControl(
       req.body
     );

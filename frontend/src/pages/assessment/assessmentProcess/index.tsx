@@ -17,30 +17,16 @@ import {
 import {
   saveAssessmentProcess,
   saveAssessmentRisk,
+  saveAssessmentRiskTaxonomy,
 } from "@/pages/api/assessment";
-
-interface Organisation {
-  organizationId: string;
-  name: string;
-  businessUnits: BusinessUnit[];
-}
-
-interface BusinessUnit {
-  orgBusinessUnitId: string;
-  businessUnitName: string;
-}
-
-interface Risk {
-  orgRiskId: string;
-  name: string;
-  description: string;
-}
-
-interface ProcessUnit {
-  orgProcessId: string;
-  name: string;
-  risks: Risk[];
-}
+import BusinessImpact from "@/components/Assessment/BusinessImpact";
+import {
+  Assessment,
+  BusinessUnit,
+  Organisation,
+  ProcessUnit,
+} from "@/types/assessment";
+import Cookies from "js-cookie";
 
 export default function BUProcessMappingPage() {
   const {
@@ -51,7 +37,6 @@ export default function BUProcessMappingPage() {
     selectedProcesses,
     setSelectedProcesses,
     orderedProcesses,
-    setOrderedProcesses,
   } = useAssessment();
   const router = useRouter();
 
@@ -118,11 +103,24 @@ export default function BUProcessMappingPage() {
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
         riskScenarioName: risk.name,
-        riskScenarioDesc: "Test Desc",
+        riskScenarioDesc: risk.description,
       }))
     );
+    return obj;
+  };
 
-    console.log(obj);
+  const prepareRiskTaxonomyPayload = () => {
+    const obj = selectedProcesses.flatMap((process) =>
+      process.risks.map((risk) => ({
+        assessmentProcessId: process.assessmentProcessId ?? "",
+        assessmentProcessRiskId: risk.assessmentProcessRiskId ?? "",
+        riskScenarioName: risk.name,
+        riskScenarioDesc: risk.description,
+        thresholdHours: risk.thresholdHours,
+        thresholdCost: risk.thresholdCost,
+        taxonomy: risk.taxonomy,
+      }))
+    );
     return obj;
   };
 
@@ -151,7 +149,7 @@ export default function BUProcessMappingPage() {
               };
             }),
             status: status,
-            userId: "2",
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
           });
 
           const updatedProcesses = selectedProcesses.map((item) => {
@@ -169,7 +167,37 @@ export default function BUProcessMappingPage() {
 
         case 1:
           const riskScenarios = prepareRiskPayload();
-          saveAssessmentRisk({ assessmentId, userId: "2", riskScenarios });
+          const response = await saveAssessmentRisk({
+            assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            riskScenarios,
+          });
+
+          const updatedProcessesRisk = selectedProcesses.map((process) => ({
+            ...process,
+            risks: process.risks.map((risk) => {
+              const match = response.riskScenarios.find(
+                (obj: any) => obj.riskScenarioName === risk.name
+              );
+
+              return {
+                ...risk,
+                assessmentProcessRiskId: match?.assessmentProcessRiskId ?? null,
+              };
+            }),
+          }));
+
+          setSelectedProcesses(updatedProcessesRisk);
+
+          break;
+
+        case 2:
+          const riskTaxonomies = prepareRiskTaxonomyPayload();
+          saveAssessmentRiskTaxonomy({
+            assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            riskScenarios: riskTaxonomies,
+          });
           break;
       }
 
@@ -183,7 +211,7 @@ export default function BUProcessMappingPage() {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <>
+        <Box sx={{ backgroundColor: "#ffffff" }}>
           <Box
             sx={{
               py: 3,
@@ -204,7 +232,7 @@ export default function BUProcessMappingPage() {
               bu={
                 businessUnits.find(
                   (item) => item.orgBusinessUnitId === selectedBU
-                )?.businessUnitName || ""
+                )?.name || ""
               }
               onBack={() => router.push("/assessment")}
             />
@@ -233,11 +261,12 @@ export default function BUProcessMappingPage() {
               {activeStep === 0 && activeTab === 1 && (
                 <AssignOrder
                   processes={selectedProcesses}
-                  onOrderChange={setOrderedProcesses}
+                  onOrderChange={setSelectedProcesses}
                 />
               )}
 
               {activeStep === 1 && <DragDropRiskScenarios />}
+              {activeStep === 2 && <BusinessImpact />}
             </Box>
           </Box>
 
@@ -258,7 +287,7 @@ export default function BUProcessMappingPage() {
             }}
             activeStep={activeStep}
           />
-        </>
+        </Box>
       )}
     </>
   );

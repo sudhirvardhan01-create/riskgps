@@ -4,6 +4,9 @@ const {
     OrganizationProcess,
     OrganizationRiskScenario,
     Sequelize,
+    Taxonomy,
+    SeverityLevel,
+    OrganizationAsset
 } = require("../models");
 const { Op } = Sequelize;
 const CustomError = require("../utils/CustomError");
@@ -41,8 +44,8 @@ class OrganizationService {
                         required: false,
                         attributes: [
                             "orgBusinessUnitId",
-                            "businessUnitName",
-                            "businessUnitDesc",
+                            "name",
+                            "desc",
                             "createdBy",
                             "modifiedBy",
                             "createdDate",
@@ -190,6 +193,232 @@ class OrganizationService {
             );
         }
     }
+
+    /**
+     * Get all taxonomies with severity levels for an organization
+     */
+    static async getTaxonomiesWithSeverity(orgId) {
+        try {
+            if (!orgId) {
+                throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+            }
+
+            const taxonomies = await Taxonomy.findAll({
+                where: {
+                    organizationId: orgId,
+                    isDeleted: false,
+                },
+                attributes: [
+                    "taxonomyId",
+                    "name",
+                    "organizationId",
+                    "createdBy",
+                    "modifiedBy",
+                    "createdDate",
+                    "modifiedDate",
+                    "weightage"
+                ],
+                include: [
+                    {
+                        model: SeverityLevel,
+                        as: "severityLevels",
+                        where: { isDeleted: false },
+                        required: false,
+                        attributes: [
+                            "severityId",
+                            "taxonomyId",
+                            "name",
+                            "minRange",
+                            "maxRange",
+                            "createdBy",
+                            "modifiedBy",
+                            "createdDate",
+                            "modifiedDate",
+                            "color"
+                        ],
+                    },
+                ],
+                order: [["createdDate", "DESC"]],
+            });
+
+            return taxonomies;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to fetch organization taxonomies with severity levels",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+ * Get all assets for a given organization
+ */
+    static async getAssetsByOrgId(orgId) {
+        try {
+            if (!orgId) {
+                throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+            }
+
+            const assets = await OrganizationAsset.findAll({
+                where: {
+                    organizationId: orgId,
+                    isDeleted: false,
+                },
+                attributes: [
+                    "orgAssetId",
+                    "organizationId",
+                    "name",
+                    "createdBy",
+                    "modifiedBy",
+                    "createdDate",
+                    "modifiedDate",
+                ],
+                order: [["createdDate", "DESC"]],
+            });
+
+            return assets;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to fetch organization assets",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+   * Create a new organization
+   */
+    static async createOrganization(payload) {
+        try {
+            const {
+                orgName,
+                desc,
+                tags,
+                businessContext = {}
+            } = payload;
+
+            const newOrg = await Organization.create({
+                name: orgName,
+                desc: desc || "",
+                industryVertical: businessContext.industryVertical,
+                regionOfOperation: businessContext.regionOfOperation,
+                numberOfEmployees: businessContext.numberOfEmployees,
+                cisoName: businessContext.cisoName,
+                cisoEmail: businessContext.cisoEmail,
+                annualRevenue: businessContext.annualRevenue,
+                riskAppetite: businessContext.riskAppetite,
+                cybersecurityBudget: businessContext.cybersecurityBudget,
+                insuranceCoverage: businessContext.insuranceCoverage,
+                insuranceCarrier: businessContext.insuranceCarrier,
+                numberOfClaims: businessContext.numberOfClaims,
+                claimsValue: businessContext.claimsValue,
+                regulators: businessContext.regulators,
+                regulatoryRequirements: businessContext.regulatoryRequirements,
+                additionalInformation: businessContext.additionalInformation,
+                recordTypes: businessContext.recordTypes || [],
+                certifications: businessContext.certifications || [],
+                piiRecordsCount: businessContext.piiRecordsCount,
+                pfiRecordsCount: businessContext.pfiRecordsCount,
+                phiRecordsCount: businessContext.phiRecordsCount,
+                governmentRecordsCount: businessContext.governmentRecordsCount,
+                intellectualPropertyPercentage: businessContext.intellectualPropertyPercentage,
+                tags: tags || [],
+            });
+
+            return newOrg;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to create organization",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    static async updateOrganizationById(id, updateData, userId) {
+        try {
+            const allowedUpdateFields = [
+                "name",
+                "desc",
+                "tags",
+                "industryVertical",
+                "regionOfOperation",
+                "numberOfEmployees",
+                "cisoName",
+                "cisoEmail",
+                "annualRevenue",
+                "riskAppetite",
+                "cybersecurityBudget",
+                "insuranceCoverage",
+                "insuranceCarrier",
+                "numberOfClaims",
+                "claimsValue",
+                "regulators",
+                "regulatoryRequirements",
+                "additionalInformation",
+                "recordTypes",
+                "piiRecordsCount",
+                "pfiRecordsCount",
+                "phiRecordsCount",
+                "governmentRecordsCount",
+                "certifications",
+                "intellectualPropertyPercentage"
+            ];
+
+            const organization = await Organization.findByPk(id);
+
+            if (!organization) {
+                throw new CustomError("Organization not found", HttpStatus.NOT_FOUND);
+            }
+
+            //Filter out unwanted fields
+            const filteredData = {};
+            Object.keys(updateData).forEach((key) => {
+                if (allowedUpdateFields.includes(key)) {
+                    filteredData[key] = updateData[key];
+                }
+            });
+
+            //Add audit fields
+            filteredData.modifiedBy = userId;
+            filteredData.modifiedDate = new Date();
+
+            //Update in DB
+            await organization.update(filteredData);
+
+            return organization;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to update organization",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    static async deleteOrganizationById(id, userId) {
+        try {
+            const organization = await Organization.findByPk(id);
+
+            if (!organization) {
+                throw new CustomError("Organization not found", HttpStatus.NOT_FOUND);
+            }
+
+            // Instead of hard delete, do a soft delete (isDeleted = true)
+            await organization.update({
+                isDeleted: true,
+                modifiedBy: userId,
+                modifiedDate: new Date()
+            });
+
+            return { message: "Organization deleted successfully" };
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to delete organization",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+
 }
 
 module.exports = OrganizationService;

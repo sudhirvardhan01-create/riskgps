@@ -1,4 +1,4 @@
-const { commonFields } = require("../common_fields");
+const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const AssessmentProcessRiskScenario = sequelize.define(
@@ -50,6 +50,16 @@ module.exports = (sequelize, DataTypes) => {
         AssessmentProcessRiskScenario.belongsTo(models.Assessment, {
             foreignKey: "assessmentId",
             as: "assessment",
+        });
+
+        AssessmentProcessRiskScenario.hasMany(models.AssessmentRiskScenarioBusinessImpact, {
+            foreignKey: "assessmentProcessRiskId",
+            as: "riskScenarioBusinessImpacts",
+        });
+
+        AssessmentProcessRiskScenario.hasMany(models.AssessmentRiskTaxonomy, {
+            foreignKey: "assessmentProcessRiskId",
+            as: "riskTaxonomies",
         });
     };
 

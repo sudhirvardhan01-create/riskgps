@@ -145,7 +145,7 @@ class ControlsService {
       );
       throw new CustomError(
         Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
-        HttpStatus.NOT_FOUND
+        HttpStatusCodes.NOT_FOUND
       );
     }
 
@@ -237,7 +237,7 @@ class ControlsService {
       );
       throw new CustomError(
         Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
-        HttpStatus.NOT_FOUND
+        HttpStatusCodes.NOT_FOUND
       );
     }
 
@@ -365,7 +365,7 @@ class ControlsService {
       );
       throw new CustomError(
         Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
-        HttpStatus.NOT_FOUND
+        HttpStatusCodes.NOT_FOUND
       );
     }
 
@@ -391,7 +391,7 @@ class ControlsService {
           console.log("No control found:", id);
           throw new CustomError(
             Messages.FRAMEWORK_CONTROLS.NOT_FOUND,
-            HttpStatus.NOT_FOUND
+            HttpStatusCodes.NOT_FOUND
           );
         }
 
@@ -441,7 +441,7 @@ class ControlsService {
       );
       throw new CustomError(
         Messages.MITRE_THREAT_CONTROL.NOT_FOUND,
-        HttpStatus.NOT_FOUND
+        HttpStatusCodes.NOT_FOUND
       );
     }
 
@@ -564,7 +564,7 @@ class ControlsService {
       });
 
       // stream the rows into CSV
-      controls.forEach((row) => csvStream.write(row));
+      controls?.data?.forEach((row) => csvStream.write(row));
       csvStream.end();
 
       csvStream.pipe(res);
@@ -732,7 +732,7 @@ class ControlsService {
           );
           throw new CustomError(
             Messages.FRAMEWORK_CONTROLS.INVALID_FRAMEWORK_MITRE_MAPPING,
-            HttpStatus.NOT_FOUND
+            HttpStatusCodes.NOT_FOUND
           );
         }
 

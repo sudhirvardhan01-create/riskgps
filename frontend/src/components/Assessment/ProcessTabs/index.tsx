@@ -1,0 +1,114 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { Tabs, Tab, Box, Typography } from "@mui/material";
+import RiskScenarioList from "../RiskScenarioBussiness";
+import BusinessImpactPanel from "../BusinessImpactPanel";
+import { useAssessment } from "@/context/AssessmentContext";
+import { Risk } from "@/types/assessment";
+
+export default function ProcessTabs() {
+  const { selectedProcesses, setSelectedProcesses } = useAssessment();
+
+  const [currentTab, setCurrentTab] = useState(0);
+  const [selectedScenario, setSelectedScenario] = useState<Risk | null>(null);
+
+  const handleChange = (_: React.SyntheticEvent, newValue: number) => {
+    setCurrentTab(newValue);
+    setSelectedScenario(selectedProcesses[newValue].risks[0]); // reset selection when switching process
+  };
+
+  const handleUpdateScenario = (updatedScenario: Risk) => {
+    // update inside context
+    const updatedProcesses = selectedProcesses.map((p, idx) => {
+      if (idx !== currentTab) return p;
+
+      return {
+        ...p,
+        risks: p.risks.map((r: Risk) =>
+          r.orgRiskId === updatedScenario.orgRiskId ? updatedScenario : r
+        ),
+      };
+    });
+
+    setSelectedProcesses(updatedProcesses); // push back to context
+    setSelectedScenario(updatedScenario);
+  };
+
+  const activeProcess = selectedProcesses[currentTab];
+
+  useEffect(() => {
+    if (selectedProcesses.length > 0) {
+      setSelectedScenario(selectedProcesses[0].risks[0]);
+    }
+  }, []);
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Tabs Header */}
+      <Tabs
+        value={currentTab}
+        onChange={handleChange}
+        sx={{
+          "& .MuiTab-root": {
+            textTransform: "none",
+            fontWeight: 550,
+            py: 2,
+            px: 6,
+          },
+          "& .MuiTabs-indicator": { display: "none" },
+          mx: -5,
+        }}
+        variant="scrollable"
+        scrollButtons
+      >
+        {selectedProcesses.map((p, idx) => (
+          <Tab
+            key={idx}
+            label={
+              <Typography
+                variant="body2"
+                fontWeight={550}
+              >{`${p.name} (${p.risks.length})`}</Typography>
+            }
+            sx={{
+              border:
+                currentTab == idx
+                  ? "1px solid #E7E7E8"
+                  : "1px solid transparent",
+              borderRadius: "8px 8px 0px 0px",
+              borderBottom:
+                currentTab == idx
+                  ? "1px solid transparent"
+                  : "1px solid #E7E7E8",
+              maxHeight: 48,
+            }}
+          />
+        ))}
+      </Tabs>
+
+      {/* Tab Content */}
+      <Box sx={{ display: "flex", flex: 1 }}>
+        {/* Left Panel: Risk Scenarios */}
+        <RiskScenarioList
+          scenarios={activeProcess.risks}
+          onSelect={setSelectedScenario}
+          selectedScenario={selectedScenario}
+        />
+
+        {/* Right Panel: Business Impact */}
+        <BusinessImpactPanel
+          selectedScenario={selectedScenario}
+          onUpdateScenario={handleUpdateScenario}
+        />
+      </Box>
+    </Box>
+  );
+}
