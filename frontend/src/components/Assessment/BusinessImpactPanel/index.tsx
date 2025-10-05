@@ -124,7 +124,12 @@ export default function BusinessImpactPanel({
     );
   };
 
-  const setTaxonomy = (taxonomyId: string, ind: number, val: string) => {
+  const setTaxonomy = (
+    taxonomyId: string,
+    name: string,
+    ind: number,
+    val: string
+  ) => {
     setIsInternalChange(true);
 
     const severity = taxonomies[ind].severityLevels.find(
@@ -137,6 +142,7 @@ export default function BusinessImpactPanel({
       updated[ind] = {
         ...updated[ind],
         taxonomyId,
+        name,
         severityDetails: {
           severityId: severity.severityId,
           name: severity.name,
@@ -249,7 +255,9 @@ export default function BusinessImpactPanel({
                 label={item.name}
                 severityLevels={item.severityLevels}
                 value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
-                onChange={(val) => setTaxonomy(item.taxonomyId, ind, val)}
+                onChange={(val) =>
+                  setTaxonomy(item.taxonomyId, item.name, ind, val)
+                }
               />
             ))}
           </Box>

@@ -27,8 +27,10 @@ import {
   ProcessUnit,
 } from "@/types/assessment";
 import Cookies from "js-cookie";
+import withAuth from "@/hoc/withAuth";
+import DragDropAssets from "@/components/Assessment/DragDropAssets";
 
-export default function BUProcessMappingPage() {
+function BUProcessMappingPage() {
   const {
     assessmentId,
     assessmentName,
@@ -43,6 +45,7 @@ export default function BUProcessMappingPage() {
   // Stepper State
   const steps = [
     "BU to Process Mapping",
+    "Process to Asset Mapping",
     "Process to Risk Scenarios Mapping",
     "Business Impact",
   ];
@@ -75,6 +78,7 @@ export default function BUProcessMappingPage() {
         const response = await getOrganizationProcess(selectedOrg, selectedBU);
         response.data.forEach((item: any) => {
           item["risks"] = [];
+          item["assets"] = [];
         });
         setProcesses(response.data);
       } catch (error) {
@@ -166,6 +170,10 @@ export default function BUProcessMappingPage() {
           break;
 
         case 1:
+          console.log("licked asset function");
+          break;
+
+        case 2:
           const riskScenarios = prepareRiskPayload();
           const response = await saveAssessmentRisk({
             assessmentId,
@@ -191,7 +199,7 @@ export default function BUProcessMappingPage() {
 
           break;
 
-        case 2:
+        case 3:
           const riskTaxonomies = prepareRiskTaxonomyPayload();
           saveAssessmentRiskTaxonomy({
             assessmentId,
@@ -265,8 +273,9 @@ export default function BUProcessMappingPage() {
                 />
               )}
 
-              {activeStep === 1 && <DragDropRiskScenarios />}
-              {activeStep === 2 && <BusinessImpact />}
+              {activeStep === 1 && <DragDropAssets />}
+              {activeStep === 2 && <DragDropRiskScenarios />}
+              {activeStep === 3 && <BusinessImpact />}
             </Box>
           </Box>
 
@@ -292,3 +301,5 @@ export default function BUProcessMappingPage() {
     </>
   );
 }
+
+export default withAuth(BUProcessMappingPage);
