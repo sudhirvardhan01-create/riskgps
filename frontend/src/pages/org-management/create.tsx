@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -14,11 +14,15 @@ import {
   Select,
   MenuItem,
   OutlinedInput,
-  Grid
+  CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import { ArrowBack, CameraAlt, Add, Check } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import BusinessContextForm from "@/components/org-management/BusinessContextForm";
+import { createOrganization, CreateOrganizationRequest } from "@/services/organizationService";
+import ToastComponent from "@/components/ToastComponent";
+import Image from "next/image";
 
 interface Tag {
   key: string;
@@ -50,12 +54,53 @@ interface BusinessContextData {
   intellectualPropertyPercentage: string;
 }
 
+// Configuration for mandatory fields - easily customizable
+// To make a field optional, simply change its value from true to false
+// Example: numberOfEmployees: false (makes this field optional)
+const MANDATORY_FIELDS = {
+  // Basic Details
+  orgName: true,
+  tags: true, // At least one tag is mandatory
+
+  // Business Context - Step 1
+  industryVertical: true,
+  regionOfOperation: true,
+  numberOfEmployees: true,
+  cisoName: true,
+  cisoEmail: true,
+  annualRevenue: true,
+  riskAppetite: true,
+  cybersecurityBudget: true,
+  insuranceCoverage: true,
+  insuranceCarrier: true,
+  numberOfClaims: true,
+  claimsValue: true,
+  regulators: true,
+  regulatoryRequirements: true,
+  additionalInformation: true,
+
+  // Business Context - Step 2
+  recordTypes: true,
+  piiRecordsCount: true,
+  pfiRecordsCount: true,
+  phiRecordsCount: true,
+  governmentRecordsCount: true,
+  certifications: true,
+  intellectualPropertyPercentage: true,
+} as const;
+
 function CreateNewOrgPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [orgName, setOrgName] = useState("");
   const [tags, setTags] = useState<Tag[]>([]);
   const [currentTag, setCurrentTag] = useState<Tag>({ key: "", value: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "error" as "error" | "warning" | "info" | "success"
+  });
   const [businessContext, setBusinessContext] = useState<BusinessContextData>({
     industryVertical: "",
     regionOfOperation: "",
@@ -89,41 +134,140 @@ function CreateNewOrgPage() {
     if (currentTag.key && currentTag.value) {
       const newTags = [...tags, currentTag];
       setTags(newTags);
-    } else {
+      // Clear the current tag inputs after adding
+      setCurrentTag({ key: "", value: "" });
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleAddTag();
     }
   };
 
   const handleRemoveTag = (index: number) => {
     setTags(tags.filter((_, i) => i !== index));
+    setCurrentTag({ key: "", value: "" });
   };
 
+  // Generic validation function for any field
+  const isFieldValid = (fieldName: keyof BusinessContextData, value: string | string[]): boolean => {
+    if (!MANDATORY_FIELDS[fieldName as keyof typeof MANDATORY_FIELDS]) {
+      return true; // Field is not mandatory
+    }
+
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+
+    return typeof value === 'string' && value.trim() !== "";
+  };
+
+  // Validation for tags (special case)
+  const isTagsValid = (): boolean => {
+    if (!MANDATORY_FIELDS.tags) {
+      return true; // Tags are not mandatory
+    }
+    return tags.length > 0;
+  };
+
+  // Validation for step 1 (Business Context Page 1)
   const isStep1Valid = () => {
-    return businessContext.industryVertical.trim() !== "" &&
-           businessContext.regionOfOperation.trim() !== "" &&
-           businessContext.riskAppetite.trim() !== "" &&
-           businessContext.insuranceCoverage.trim() !== "";
+    const step1Fields: (keyof BusinessContextData)[] = [
+      'industryVertical', 'regionOfOperation', 'numberOfEmployees', 'cisoName',
+      'cisoEmail', 'annualRevenue', 'riskAppetite', 'cybersecurityBudget',
+      'insuranceCoverage', 'insuranceCarrier', 'numberOfClaims', 'claimsValue',
+      'regulators', 'regulatoryRequirements', 'additionalInformation'
+    ];
+
+    return step1Fields.every(field => isFieldValid(field, businessContext[field]));
   };
 
-  const handleContinue = () => {
+  // Validation for step 2 (Business Context Page 2)
+  const isStep2Valid = () => {
+    const step2Fields: (keyof BusinessContextData)[] = [
+      'recordTypes', 'piiRecordsCount', 'pfiRecordsCount', 'phiRecordsCount',
+      'governmentRecordsCount', 'certifications', 'intellectualPropertyPercentage'
+    ];
+
+    return step2Fields.every(field => isFieldValid(field, businessContext[field]));
+  };
+
+  const handleContinue = async () => {
     if (currentStep === 0) {
       setCurrentStep(1);
     } else if (currentStep === 1) {
       setCurrentStep(2);
     } else {
-      // Generate unique organization ID and navigate to org details page
-      const uniqueOrgId = `ORG${Date.now()}`;
-      console.log("Submit form", { orgName, tags, businessContext });
-      
-      // Encode form data as URL parameters
-      const queryParams = new URLSearchParams({
-        showSuccess: 'true',
-        orgName: orgName,
-        tags: JSON.stringify(tags),
-        businessContext: JSON.stringify(businessContext)
-      });
-      
-      // Navigate to the organization details page with the unique ID and form data
-      router.push(`/org-management/${uniqueOrgId}?${queryParams.toString()}`);
+      // Submit form data to API
+      setIsLoading(true);
+      setToast(prev => ({ ...prev, open: false }));
+
+      try {
+        // Prepare the organization data for API
+        const organizationData: CreateOrganizationRequest = {
+          orgName: orgName,
+          desc: businessContext.additionalInformation || "Organization created via RiskGPS",
+          tags: tags,
+          businessContext: {
+            industryVertical: businessContext.industryVertical,
+            regionOfOperation: businessContext.regionOfOperation,
+            numberOfEmployees: businessContext.numberOfEmployees,
+            cisoName: businessContext.cisoName,
+            cisoEmail: businessContext.cisoEmail,
+            annualRevenue: businessContext.annualRevenue,
+            riskAppetite: businessContext.riskAppetite,
+            cybersecurityBudget: businessContext.cybersecurityBudget,
+            insuranceCoverage: businessContext.insuranceCoverage,
+            insuranceCarrier: businessContext.insuranceCarrier,
+            numberOfClaims: businessContext.numberOfClaims,
+            claimsValue: businessContext.claimsValue,
+            regulators: businessContext.regulators,
+            regulatoryRequirements: businessContext.regulatoryRequirements,
+            additionalInformation: businessContext.additionalInformation,
+            recordTypes: businessContext.recordTypes,
+            piiRecordsCount: businessContext.piiRecordsCount,
+            pfiRecordsCount: businessContext.pfiRecordsCount,
+            phiRecordsCount: businessContext.phiRecordsCount,
+            governmentRecordsCount: businessContext.governmentRecordsCount,
+            certifications: businessContext.certifications,
+            intellectualPropertyPercentage: businessContext.intellectualPropertyPercentage
+          }
+        };
+
+        // Call the API to create organization
+        const response = await createOrganization(organizationData);
+
+        if (response.success && response.data.organizationId) {
+          // Encode form data as URL parameters
+          const queryParams = new URLSearchParams({
+            showSuccess: 'true',
+            orgName: orgName,
+            tags: JSON.stringify(tags),
+            businessContext: JSON.stringify(businessContext)
+          });
+
+          const navigationUrl = `/org-management/${response.data.organizationId}?${queryParams.toString()}`;
+
+          // Navigate to the organization details page with the actual organizationId from API
+          router.push(navigationUrl);
+        } else {
+          setToast({
+            open: true,
+            message: "Failed to create organization. Please try again.",
+            severity: "error"
+          });
+        }
+      } catch (err) {
+        setToast({
+          open: true,
+          message: err instanceof Error ? err.message : "Failed to create organization. Please try again.",
+          severity: "error"
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -143,9 +287,6 @@ function CreateNewOrgPage() {
     router.push('/org-management');
   };
 
-  const capitalizeFirstLetter = (str: string) => {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  };
 
   return (
     <Box sx={{
@@ -214,6 +355,7 @@ function CreateNewOrgPage() {
             alignItems: "center",
             gap: "30px",
             backgroundColor: "#FFFFFF",
+            mb: 5
           }}
         >
           {/* Step Indicator */}
@@ -295,7 +437,7 @@ function CreateNewOrgPage() {
           </Box>
 
           {/* Page Indicator */}
-          {currentStep > 0 &&           <Typography
+          {currentStep > 0 && <Typography
             variant="body1"
             sx={{
               color: "#9E9FA5",
@@ -304,6 +446,7 @@ function CreateNewOrgPage() {
           >
             Page {currentStep} of 2
           </Typography>}
+
 
           <Box sx={{
             width: "100%",
@@ -329,16 +472,18 @@ function CreateNewOrgPage() {
                       sx={{
                         width: 32,
                         height: 32,
-                        backgroundColor: "#E0E0E0",
                         borderRadius: "4px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center"
                       }}
                     >
-                      <Typography sx={{ fontSize: "20px" }}>
-                        🏢
-                      </Typography>
+                      <Image
+                        src={"/org-image-icon.png"}
+                        alt="org-image"
+                        width={32}
+                        height={32}
+                      />
                     </Box>
                   </Avatar>
                   <IconButton
@@ -361,7 +506,7 @@ function CreateNewOrgPage() {
                 </Box>
 
                 {/* Form Fields */}
-                <Box sx={{ width: "100%", mb: 4, mt: 2 }}>
+                <Box sx={{ width: "100%", mb: 1, mt: 2 }}>
                   <TextField
                     fullWidth
                     label={
@@ -409,10 +554,20 @@ function CreateNewOrgPage() {
                       variant="h6"
                       sx={{
                         color: "#121212",
-                        mb: 2
+                        mb: 1
                       }}
                     >
-                      Tags
+                      Tags <span style={{ color: "red" }}>*</span>
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "#9E9FA5",
+                        mb: 1,
+                        fontSize: "12px"
+                      }}
+                    >
+                      At least one tag is required
                     </Typography>
 
                     <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
@@ -465,6 +620,7 @@ function CreateNewOrgPage() {
                         placeholder="Enter Value"
                         value={currentTag.value}
                         onChange={(e) => setCurrentTag({ ...currentTag, value: e.target.value })}
+                        onKeyDown={handleKeyDown}
                         sx={{
                           flex: 1,
                           "& .MuiOutlinedInput-root": {
@@ -517,12 +673,12 @@ function CreateNewOrgPage() {
                     </Button>
 
                     {/* Display Added Tags */}
-                    {tags.length > 0 && (
-                      <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {tags.length > 0 ? (
+                      <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 1 }}>
                         {tags.map((tag, index) => (
                           <Chip
                             key={index}
-                            label={`${capitalizeFirstLetter(tag.key)}: ${tag.value}`}
+                            label={`${tag.key.charAt(0).toUpperCase() + tag.key.slice(1).toLowerCase()}: ${tag.value}`}
                             onDelete={() => handleRemoveTag(index)}
                             sx={{
                               backgroundColor: "#F5F5F5",
@@ -537,6 +693,18 @@ function CreateNewOrgPage() {
                           />
                         ))}
                       </Box>
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#CD0303",
+                          mt: 1,
+                          fontSize: "12px",
+                          fontStyle: "italic"
+                        }}
+                      >
+                        No tags added yet. Please add at least one tag to continue.
+                      </Typography>
                     )}
                   </Box>
                 </Box>
@@ -547,6 +715,7 @@ function CreateNewOrgPage() {
                 businessContext={businessContext}
                 currentStep={currentStep}
                 onFieldChange={handleBusinessContextChange}
+                mandatoryFields={MANDATORY_FIELDS}
               />
             )}
           </Box>
@@ -609,34 +778,83 @@ function CreateNewOrgPage() {
                 Cancel
               </Button>
 
-              <Button
-                variant="contained"
-                onClick={handleContinue}
-                disabled={currentStep === 0 ? !orgName.trim() : currentStep === 1 ? !isStep1Valid() : false}
-                sx={{
-                  backgroundColor: "#04139A",
-                  color: "#FFFFFF",
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  textTransform: "none",
-                  padding: "12px 40px",
-                  borderRadius: "4px",
-                  "&:hover": {
-                    backgroundColor: "#04139A",
-                    opacity: 0.9,
+              <Tooltip
+                title={
+                  currentStep === 0 ? (!orgName.trim() || !isTagsValid() ? "Fill All Organization mandatory fields" : "") :
+                    currentStep === 1 ? (!isStep1Valid() ? "Fill All Organization mandatory fields" : "") :
+                      currentStep === 2 ? (!isStep2Valid() ? "Fill All Organization mandatory fields" : "") :
+                        ""
+                }
+                placement="top"
+                arrow
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor: "#CD0303",
+                      color: "#FFFFFF",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                      borderRadius: "6px",
+                      boxShadow: 2,
+                    },
                   },
-                  "&:disabled": {
-                    backgroundColor: "#E0E0E0",
-                    color: "#9E9E9E",
+                  arrow: {
+                    sx: {
+                      color: "#CD0303",
+                    },
                   },
                 }}
               >
-                Continue
-              </Button>
+                <span>
+                  <Button
+                    variant="contained"
+                    onClick={handleContinue}
+                    disabled={
+                      currentStep === 0 ? !orgName.trim() || !isTagsValid() :
+                        currentStep === 1 ? !isStep1Valid() :
+                          currentStep === 2 ? !isStep2Valid() :
+                            isLoading
+                    }
+                    sx={{
+                      backgroundColor: "#04139A",
+                      color: "#FFFFFF",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      textTransform: "none",
+                      padding: "12px 40px",
+                      borderRadius: "4px",
+                      "&:hover": {
+                        backgroundColor: "#04139A",
+                        opacity: 0.9,
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#E0E0E0",
+                        color: "#9E9E9E",
+                      },
+                    }}
+                  >
+                    {isLoading ? (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <CircularProgress size={16} color="inherit" />
+                        Creating...
+                      </Box>
+                    ) : (
+                      "Continue"
+                    )}
+                  </Button>
+                </span>
+              </Tooltip>
             </Box>
           </Box>
         </Box>
       </Box>
+
+      <ToastComponent
+        open={toast.open}
+        onClose={() => setToast(prev => ({ ...prev, open: false }))}
+        message={toast.message}
+        toastSeverity={toast.severity}
+      />
     </Box>
   );
 }

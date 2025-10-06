@@ -1,4 +1,4 @@
-import { Box, Stack, TablePagination, Typography, TextField, InputAdornment, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { Box, Stack, TablePagination, Typography, TextField, InputAdornment, FormControl, Select, MenuItem } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { Organization } from "@/types/organization";
 import OrgCard from "../OrgCard";
@@ -12,17 +12,15 @@ interface Props {
   onPageChange: (event: any, newPage: number) => void;
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setSelectedOrganization: React.Dispatch<React.SetStateAction<Organization | null>>;
-  setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSort?: (field: string) => void;
   sortField?: string;
   sortDirection?: 'asc' | 'desc';
-  // handleUpdateStatus: (id: string, status: string) => void;
   localSearch?: string;
   handleSearchChange?: (val: string) => void;
   statusFilter?: string;
   handleStatusChange?: (val: string) => void;
+  onEditOrganization?: (organization: Organization) => void;
 }
 
 const OrgList: React.FC<Props> = ({
@@ -33,18 +31,22 @@ const OrgList: React.FC<Props> = ({
   onPageChange,
   onRowsPerPageChange,
   setSelectedOrganization,
-  setIsViewOpen,
-  setIsEditOpen,
   setIsDeleteConfirmOpen,
   onSort,
   sortField,
   sortDirection,
-  // handleUpdateStatus,
   localSearch,
   handleSearchChange,
   statusFilter,
   handleStatusChange,
+  onEditOrganization,
 }) => {
+  const statusOptions = [
+    { value: "all", label: "All" },
+    { value: "active", label: "Active" },
+    { value: "disabled", label: "Disabled" },
+  ];
+
   return (
     <>
       {/* Search and Status Filter Row */}
@@ -65,15 +67,18 @@ const OrgList: React.FC<Props> = ({
           onChange={(event) => handleSearchChange?.(event.target.value)}
           variant="outlined"
           sx={{
-            borderRadius: 1,
-            height: 40,
-            width: { xs: "100%", sm: "33%" },
-            minWidth: 200,
+            width: "480px",
+            height: "48px",
+            borderRadius: "4px",
             backgroundColor: "#E7E7E84D",
+            gap: "16px",
 
             "& .MuiOutlinedInput-root": {
+              height: "48px",
+              padding: "12px 16px",
               "& fieldset": {
                 border: "1px solid #D9D9D9",
+                borderRadius: "4px",
               },
               "&:hover fieldset": {
                 border: "1px solid #D9D9D9",
@@ -81,6 +86,11 @@ const OrgList: React.FC<Props> = ({
               "&.Mui-focused fieldset": {
                 border: "1px solid #D9D9D9",
               },
+            },
+
+            "& .MuiInputBase-input": {
+              padding: "12px 16px",
+              height: "48px",
             },
 
             "& .MuiInputBase-input::placeholder": {
@@ -93,7 +103,14 @@ const OrgList: React.FC<Props> = ({
             input: {
               startAdornment: (
                 <InputAdornment position="start">
-                  <Search color="action" />
+                  <Search 
+                    color="action" 
+                    sx={{
+                      width: "24px",
+                      height: "24px",
+                      opacity: 1,
+                    }}
+                  />
                 </InputAdornment>
               ),
             },
@@ -104,14 +121,16 @@ const OrgList: React.FC<Props> = ({
         <FormControl
           size="small"
           sx={{
-            borderRadius: 1,
-            width: { xs: "100%", sm: "200px" },
-            minWidth: 150,
-            height: 40,
+            width: "183px",
+            height: "40px",
+            borderRadius: "4px",
+            gap: "16px",
             "& .MuiOutlinedInput-root": {
-              height: 40,
+              height: "40px",
+              padding: "10px 16px",
               "& fieldset": {
                 border: "1px solid #484848",
+                borderRadius: "4px",
               },
               "&:hover fieldset": {
                 border: "1px solid #484848",
@@ -127,22 +146,27 @@ const OrgList: React.FC<Props> = ({
             onChange={(event) => handleStatusChange?.(event.target.value)}
             displayEmpty
             renderValue={(selected) => {
-              const statusText = selected === "all" ? "All" : selected === "active" ? "Active" : "Disabled";
+              const option = statusOptions.find(opt => opt.value === selected);
+              const statusText = option ? option.label : "All";
               return `Status: ${statusText}`;
             }}
             sx={{
-              height: 40,
+              height: "40px",
+              padding: "10px 16px",
               "& .MuiSelect-select": {
                 fontWeight: 400,
                 padding: "10px 16px",
                 display: "flex",
                 alignItems: "center",
+                height: "40px",
               },
             }}
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="disabled">Disabled</MenuItem>
+            {statusOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
       </Stack>
@@ -164,7 +188,7 @@ const OrgList: React.FC<Props> = ({
             flex: 1,
             overflowY: "auto",
             scrollbarWidth: "none",
-            pb: "120px"
+            pb: "130px"
           }}
         >
           {data && data.length > 0 ? (
@@ -173,10 +197,8 @@ const OrgList: React.FC<Props> = ({
                 <OrgCard
                   organization={organization}
                   setSelectedOrganization={setSelectedOrganization}
-                  setIsViewOpen={setIsViewOpen}
-                  setIsEditOpen={setIsEditOpen}
                   setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-                // handleUpdateStatus={handleUpdateStatus}
+                  onEditOrganization={onEditOrganization}
                 />
               </div>
             ))
