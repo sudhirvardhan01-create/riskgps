@@ -45,9 +45,9 @@ function BUProcessMappingPage() {
   // Stepper State
   const steps = [
     "BU to Process Mapping",
-    "Process to Asset Mapping",
     "Process to Risk Scenarios Mapping",
     "Business Impact",
+    "Process to Asset Mapping",
   ];
 
   const stepsTab = [
@@ -170,10 +170,6 @@ function BUProcessMappingPage() {
           break;
 
         case 1:
-          console.log("licked asset function");
-          break;
-
-        case 2:
           const riskScenarios = prepareRiskPayload();
           const response = await saveAssessmentRisk({
             assessmentId,
@@ -199,13 +195,17 @@ function BUProcessMappingPage() {
 
           break;
 
-        case 3:
+        case 2:
           const riskTaxonomies = prepareRiskTaxonomyPayload();
           saveAssessmentRiskTaxonomy({
             assessmentId,
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
+          break;
+
+        case 3:
+          console.log("clicked asset function");
           break;
       }
 
@@ -273,9 +273,9 @@ function BUProcessMappingPage() {
                 />
               )}
 
-              {activeStep === 1 && <DragDropAssets />}
-              {activeStep === 2 && <DragDropRiskScenarios />}
-              {activeStep === 3 && <BusinessImpact />}
+              {activeStep === 1 && <DragDropRiskScenarios />}
+              {activeStep === 2 && <BusinessImpact />}
+              {activeStep === 3 && <DragDropAssets />}
             </Box>
           </Box>
 

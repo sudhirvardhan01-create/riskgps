@@ -16,6 +16,7 @@ export default function ArrowStepper({ steps, activeStep }: ArrowStepperProps) {
           active={index === activeStep}
           completed={index < activeStep}
           isLast={index === steps.length - 1}
+          isFirst={index === 0}
         />
       ))}
     </Box>
