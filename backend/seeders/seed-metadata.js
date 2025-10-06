@@ -14,7 +14,6 @@ module.exports = {
       ProcessRiskScenarioMappings,
     } = require("../models");
 
-    console.log("Hi there");
     const now = new Date();
 
     const seedMetadatas = [
@@ -126,9 +125,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Government"],
       },
       {
         process_name: "Electronic Banking",
@@ -148,9 +147,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Banking", "Government"],
       },
       {
         process_name: "ACH",
@@ -170,9 +169,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Healthcare"],
       },
       {
         process_name: "Wire Transfer",
@@ -192,9 +191,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Healthcare", "Banking"],
       },
       {
         process_name: "ATM Management",
@@ -214,9 +213,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Banking"],
       },
       {
         process_name: "Fraud Monitoring",
@@ -236,9 +235,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Healthcare", "Government"],
       },
       {
         process_name: "KYC",
@@ -258,9 +257,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Banking"],
       },
       {
         process_name: "Loan Origination",
@@ -280,9 +279,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Government"],
       },
       {
         process_name: "Underwriting",
@@ -302,9 +301,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Healthcare"],
       },
       {
         process_name: "Loan Servicing",
@@ -324,9 +323,9 @@ module.exports = {
         criticality_of_data_processed: "",
         data_processed: null,
         status: "published",
-        created_at: "2025-10-03T08:22:48.841Z",
-        updated_at: "2025-10-03T08:22:48.841Z",
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        industry: ["Banking", "Government"],
       },
     ];
 
@@ -338,7 +337,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        related_process: ["Fraud Monitoring", "Account Management Process"],
+        related_process: ["Account Management Process"],
       },
       {
         application_name: "Banking Application",
@@ -347,6 +346,12 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
+        related_process: [
+          "Account Management Process",
+          "Electronic Banking",
+          "Wire Transfer",
+          "ATM Management",
+        ],
       },
       {
         application_name: "Payment Rails",
@@ -355,6 +360,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
+        related_process: ["Electronic Banking", "ACH", "Wire Transfer"],
       },
       {
         application_name: "Fraud Application",
@@ -363,6 +369,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
+        related_process: ["Fraud Monitoring"],
       },
       {
         application_name: "Loan Application",
@@ -371,6 +378,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
+        related_process: ["KYC", "Loan Origination", "Loan Servicing"],
       },
       {
         application_name: "Underwriting Application",
@@ -379,6 +387,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
+        related_process: ["Loan Origination", "Underwriting"],
       },
     ];
 
@@ -392,11 +401,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Fraud Monitoring", "Account Management Process"],
-        industry: ["Healthcare", "Banking", "Government"],
-
+        created_at: now,
+        updated_at: now,
+        related_process: ["Account Management Process"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -407,10 +415,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["KYC", "Loan Servicing"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Account Management Process"],
+        industry: ["Healthcare", "Banking"],
       },
       {
         risk_scenario: "Customer accounts cannot be managed for 1 week.",
@@ -421,10 +429,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Loan Origination", "Wire Transfer"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Account Management Process"],
+        industry: ["Government"],
       },
       {
         risk_scenario: "Electronic banking accounts are exposed.",
@@ -435,10 +443,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Loan Origination", "Electronic Banking"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Banking", "Government"],
       },
       {
         risk_scenario:
@@ -450,10 +458,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Account Management Process", "ATM Management"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Healthcare"],
       },
       {
         risk_scenario:
@@ -464,9 +472,9 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Account Management Process", "KYC"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
         industry: ["Healthcare", "Banking", "Government"],
       },
       {
@@ -478,10 +486,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Wire Transfer", "ACH"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Government"],
       },
       {
         risk_scenario:
@@ -492,9 +500,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["ATM Management", "Wire Transfer"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Payments data is exposed.",
@@ -504,9 +513,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Loan Origination", "KYC"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Healthcare", "Banking"],
       },
       {
         risk_scenario: "Payment data is corrupted and no longer accurate.",
@@ -516,9 +526,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Loan Origination", "ACH"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "ACH payments cannot be completed for 4 hours.",
@@ -528,9 +539,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["ACH", "Loan Origination"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Government", "Banking"],
       },
       {
         risk_scenario: "ACH payments cannot be completed for 1 day.",
@@ -540,9 +552,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["ACH", "Fraud Monitoring"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Healthcare"],
       },
       {
         risk_scenario: "ACH payments cannot be completed for 1 week.",
@@ -552,9 +565,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Loan Servicing", "KYC"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Healthcare", "Government"],
       },
       {
         risk_scenario: "Wire transfer data is exposed.",
@@ -564,9 +578,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Wire Transfer", "Account Management Process"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Wire transfer is corrupted and no longer accurate.",
@@ -576,9 +591,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["KYC", "Electronic Banking"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Healthcare", "Banking"],
       },
       {
         risk_scenario: "Wire transfers cannot be completed for 4 hours.",
@@ -588,9 +604,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Electronic Banking", "Fraud Monitoring"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Government"],
       },
       {
         risk_scenario: "Wire transfers cannot be completed for 1 day.",
@@ -600,9 +617,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Fraud Monitoring", "Underwriting"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Healthcare", "Government"],
       },
       {
         risk_scenario: "Wire transfers cannot be completed for 1 week.",
@@ -612,9 +630,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Electronic Banking", "Wire Transfer"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "ATM data is exposed",
@@ -624,9 +643,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["ATM Management", "KYC"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario: "ATM data is corrupted and no longer accurate.",
@@ -636,9 +656,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Account Management Process", "Electronic Banking"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Healthcare"],
       },
       {
         risk_scenario: "ATMs are not available for 1 day.",
@@ -648,9 +669,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Loan Origination", "Underwriting"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Banking", "Government"],
       },
       {
         risk_scenario: "ATMs are not available for 1 week.",
@@ -660,9 +682,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Account Management Process", "Loan Origination"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Government"],
       },
       {
         risk_scenario: "Fraud monitoring data is exposed.",
@@ -672,9 +695,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Account Management Process", "Electronic Banking"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Fraud Monitoring"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Fraud monitoring is not available for 1 week.",
@@ -684,9 +708,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["KYC", "Fraud Monitoring"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Fraud Monitoring"],
+        industry: ["Healthcare", "Government"],
       },
       {
         risk_scenario: "KYC data is exposed.",
@@ -696,9 +721,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Fraud Monitoring", "Loan Servicing"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["KYC"],
+        industry: ["Banking", "Government"],
       },
       {
         risk_scenario: "KYC data is corrupted and no longer accurate.",
@@ -708,9 +734,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Underwriting", "Loan Origination"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["KYC"],
+        industry: ["Healthcare"],
       },
       {
         risk_scenario:
@@ -721,9 +748,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["ATM Management", "KYC"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["KYC"],
+        industry: ["Healthcare", "Banking"],
       },
       {
         risk_scenario: "Customer loan data is exposed.",
@@ -733,9 +761,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Wire Transfer", "ACH"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Loans cannot be originated for 4 hours.",
@@ -745,10 +774,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Loan Servicing", "Loan Origination"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Healthcare"],
       },
       {
         risk_scenario: "Loans cannot be originated for 1 day.",
@@ -758,10 +787,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Wire Transfer", "Fraud Monitoring"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Healthcare", "Government"],
       },
       {
         risk_scenario: "Loans cannot be originated for 1 week.",
@@ -771,10 +800,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["KYC", "Account Management Process"],
-        industry: ["Healthcare", "Banking", "Government"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Customer underwriting data is exposed.",
@@ -784,9 +813,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Electronic Banking", "KYC"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Underwriting"],
+        industry: ["Healthcare", "Banking"],
       },
       {
         risk_scenario:
@@ -797,9 +827,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["ATM Management", "Wire Transfer"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Underwriting"],
+        industry: ["Government"],
       },
       {
         risk_scenario: "Underwriting cannot take place for 1 week.",
@@ -809,9 +840,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Account Management Process", "Electronic Banking"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Underwriting"],
+        industry: ["Healthcare", "Banking"],
       },
       {
         risk_scenario:
@@ -822,9 +854,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Fraud Monitoring", "Wire Transfer"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Servicing"],
+        industry: ["Government"],
       },
       {
         risk_scenario: "Loans cannot be serviced for 1 day.",
@@ -834,9 +867,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Electronic Banking", "Account Management Process"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Servicing"],
+        industry: ["Healthcare", "Banking"],
       },
       {
         risk_scenario: "Loans cannot be serviced for 1 week.",
@@ -846,9 +880,10 @@ module.exports = {
         status: "published",
         risk_field_1: "",
         risk_field_2: "",
-        created_at: "2025-10-03T08:27:23.097Z",
-        updated_at: "2025-10-03T08:27:23.097Z",
-        related_process: ["Account Management Process", "ATM Management"],
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Servicing"],
+        industry: ["Banking", "Government"],
       },
     ];
 
@@ -892,24 +927,24 @@ module.exports = {
       // Insert the process
       const createdProcess = await Process.create(processData);
 
-      for (let i = 0; i < process.industry?.length; i++) {
-        const value = process.industry ?? [];
-        const validIndustryValues = value.filter((v) =>
-          supportedValues.includes(v)
-        );
+      //   for (let i = 0; i < process.industry?.length; i++) {
+      const value = process.industry ?? [];
+      const validIndustryValues = value.filter((v) =>
+        supportedValues.includes(v)
+      );
 
-        if (validIndustryValues.length > 0) {
-          processAttributes.push({
-            process_id: createdProcess.id,
-            meta_data_key_id: industryMetadata.id,
-            values: validIndustryValues,
-          });
-        } else {
-          console.log(
-            "invalid value for industry for process:",
-            process.process_name
-          );
-        }
+      if (validIndustryValues.length > 0) {
+        processAttributes.push({
+          process_id: createdProcess.id,
+          meta_data_key_id: industryMetadata.id,
+          values: validIndustryValues,
+        });
+      } else {
+        console.log(
+          "invalid value for industry for process:",
+          process.process_name
+        );
+        // }
       }
     }
     await ProcessAttribute.bulkCreate(processAttributes);
@@ -1003,24 +1038,22 @@ module.exports = {
       }
 
       if (risk.industry && Array.isArray(risk.industry)) {
-        for (let i = 0; i < risk.industry?.length; i++) {
-          const value = risk.industry ?? [];
-          const validIndustryValues = value.filter((v) =>
-            supportedValues.includes(v)
-          );
+        const value = risk.industry ?? [];
+        const validIndustryValues = value.filter((v) =>
+          supportedValues.includes(v)
+        );
 
-          if (validIndustryValues.length > 0) {
-            riskScenarioAttributes.push({
-              risk_scenario_id: createdRisk.id,
-              meta_data_key_id: industryMetadata.id,
-              values: validIndustryValues,
-            });
-          } else {
-            console.log(
-              "invalid value for industry for risk scenario:",
-              risk.risk_scenario
-            );
-          }
+        if (validIndustryValues.length > 0) {
+          riskScenarioAttributes.push({
+            risk_scenario_id: createdRisk.id,
+            meta_data_key_id: industryMetadata.id,
+            values: validIndustryValues,
+          });
+        } else {
+          console.log(
+            "invalid value for industry for risk scenario:",
+            risk.risk_scenario
+          );
         }
       }
     }
@@ -1030,7 +1063,6 @@ module.exports = {
 
     // Insert all risk scenario attributes at once
     await RiskScenarioAttribute.bulkCreate(riskScenarioAttributes);
-
   },
 
   async down(queryInterface) {
