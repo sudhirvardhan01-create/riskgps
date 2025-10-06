@@ -1165,7 +1165,7 @@ module.exports = {
       const createdProcess = await Process.create(processData);
 
       for (let i = 0; i < process.industry?.length; i++) {
-        const value = process.industry[i];
+        const value = process.industry ?? [];
         const validIndustryValues = value.filter((v) =>
           supportedValues.includes(v)
         );
