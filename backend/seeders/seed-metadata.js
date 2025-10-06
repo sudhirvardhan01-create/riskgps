@@ -8,6 +8,7 @@ module.exports = {
       ProcessAttribute,
       Asset,
       AssetAttribute,
+      AssetProcessMappings,
       RiskScenario,
       RiskScenarioAttribute,
       ProcessRiskScenarioMappings,
@@ -332,21 +333,7 @@ module.exports = {
     const seedAssets = [
       {
         application_name: "Customer Database",
-        application_owner: "",
-        application_it_owner: "",
-        is_third_party_management: null,
-        third_party_name: "",
-        third_party_location: "",
-        hosting: "",
-        hosting_facility: "",
-        cloud_service_provider: [],
-        geographic_location: "",
-        has_redundancy: null,
-        databases: "",
-        has_network_segmentation: null,
-        network_name: "",
         asset_category: "SaaS",
-        asset_name: "",
         asset_description: "",
         status: "published",
         created_at: now,
@@ -354,21 +341,7 @@ module.exports = {
       },
       {
         application_name: "Banking Application",
-        application_owner: "",
-        application_it_owner: "",
-        is_third_party_management: null,
-        third_party_name: "",
-        third_party_location: "",
-        hosting: "",
-        hosting_facility: "",
-        cloud_service_provider: [],
-        geographic_location: "",
-        has_redundancy: null,
-        databases: "",
-        has_network_segmentation: null,
-        network_name: "",
         asset_category: "Windows",
-        asset_name: "",
         asset_description: "",
         status: "published",
         created_at: now,
@@ -376,21 +349,7 @@ module.exports = {
       },
       {
         application_name: "Payment Rails",
-        application_owner: "",
-        application_it_owner: "",
-        is_third_party_management: null,
-        third_party_name: "",
-        third_party_location: "",
-        hosting: "",
-        hosting_facility: "",
-        cloud_service_provider: [],
-        geographic_location: "",
-        has_redundancy: null,
-        databases: "",
-        has_network_segmentation: null,
-        network_name: "",
         asset_category: "SaaS",
-        asset_name: "",
         asset_description: "",
         status: "published",
         created_at: now,
@@ -398,21 +357,7 @@ module.exports = {
       },
       {
         application_name: "Fraud Application",
-        application_owner: "",
-        application_it_owner: "",
-        is_third_party_management: null,
-        third_party_name: "",
-        third_party_location: "",
-        hosting: "",
-        hosting_facility: "",
-        cloud_service_provider: [],
-        geographic_location: "",
-        has_redundancy: null,
-        databases: "",
-        has_network_segmentation: null,
-        network_name: "",
         asset_category: "Windows",
-        asset_name: "",
         asset_description: "",
         status: "published",
         created_at: now,
@@ -420,21 +365,7 @@ module.exports = {
       },
       {
         application_name: "Loan Application",
-        application_owner: "",
-        application_it_owner: "",
-        is_third_party_management: null,
-        third_party_name: "",
-        third_party_location: "",
-        hosting: "",
-        hosting_facility: "",
-        cloud_service_provider: [],
-        geographic_location: "",
-        has_redundancy: null,
-        databases: "",
-        has_network_segmentation: null,
-        network_name: "",
         asset_category: "SaaS",
-        asset_name: "",
         asset_description: "",
         status: "published",
         created_at: now,
@@ -442,21 +373,7 @@ module.exports = {
       },
       {
         application_name: "Underwriting Application",
-        application_owner: "",
-        application_it_owner: "",
-        is_third_party_management: null,
-        third_party_name: "",
-        third_party_location: "",
-        hosting: "",
-        hosting_facility: "",
-        cloud_service_provider: [],
-        geographic_location: "",
-        has_redundancy: null,
-        databases: "",
-        has_network_segmentation: null,
-        network_name: "",
         asset_category: "Windows",
-        asset_name: "",
         asset_description: "",
         status: "published",
         created_at: now,
@@ -490,6 +407,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["KYC", "Loan Servicing"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario: "Customer accounts cannot be managed for 1 week.",
@@ -503,6 +421,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Loan Origination", "Wire Transfer"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario: "Electronic banking accounts are exposed.",
@@ -516,6 +435,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Loan Origination", "Electronic Banking"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario:
@@ -530,6 +450,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Account Management Process", "ATM Management"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario:
@@ -543,6 +464,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Account Management Process", "KYC"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario:
@@ -556,6 +478,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Wire Transfer", "ACH"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario:
@@ -822,6 +745,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Loan Servicing", "Loan Origination"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario: "Loans cannot be originated for 1 day.",
@@ -834,6 +758,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Wire Transfer", "Fraud Monitoring"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario: "Loans cannot be originated for 1 week.",
@@ -846,6 +771,7 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["KYC", "Account Management Process"],
+        industry: ["Healthcare", "Banking", "Government"],
       },
       {
         risk_scenario: "Customer underwriting data is exposed.",
@@ -973,9 +899,7 @@ module.exports = {
           processAttributes.push({
             process_id: createdProcess.id,
             meta_data_id: industryMetadata.id,
-            value: validIndustryValues,
-            created_at: now,
-            updated_at: now,
+            values: validIndustryValues,
           });
         } else {
           console.log(
@@ -987,12 +911,55 @@ module.exports = {
     }
     await ProcessAttribute.bulkCreate(processAttributes);
 
-    /* Application logic to seed Library Assets and Asset Attributes  */
+    /* Application logic to seed Library Assets and 
+    the related process to that asset
+     */
 
-    await queryInterface.bulkInsert("library_assets", seedAssets);
+    const assetProcessMappings = [];
+    for (const asset of seedAssets) {
+      const allowedAssetFields = [
+        "application_name",
+        "asset_category",
+        "asset_description",
+        "status",
+        "created_at",
+        "updated_at",
+      ];
 
-    /* Application logic to seed Library Risk Scenarios, risk Scenarios Related processes and risk scenario attributes */
+      const assetData = {};
+      for (const key of allowedAssetFields) {
+        if (asset[key] !== undefined) assetData[key] = asset[key];
+      }
+      const createdAsset = await Asset.create(assetData);
 
+      // Loop over all related process names
+      if (asset.related_process && Array.isArray(asset.related_process)) {
+        for (const processName of asset.related_process) {
+          const process = await Process.findOne({
+            where: { process_name: processName },
+          });
+
+          if (!process) {
+            console.log(`Process not found: ${processName}`);
+            continue;
+          }
+
+          assetProcessMappings.push({
+            process_id: process.id,
+            asset_id: createdAsset.id,
+          });
+        }
+      }
+    }
+
+    // Insert all process-asset mappings at once
+    await AssetProcessMappings.bulkCreate(assetProcessMappings);
+
+    /* Application logic to seed Library Risk Scenarios, 
+    risk Scenarios Related processes and 
+    risk scenario attributes */
+
+    const riskScenarioAttributes = [];
     const processRiskScenarioMappings = [];
     for (const risk of seedRiskScenarios) {
       const allowedRiskScenarioFields = [
@@ -1031,10 +998,36 @@ module.exports = {
           });
         }
       }
+
+      if (risk.industry && Array.isArray(risk.industry)) {
+        for (let i = 0; i < risk.industry?.length; i++) {
+          const value = risk.industry ?? [];
+          const validIndustryValues = value.filter((v) =>
+            supportedValues.includes(v)
+          );
+
+          if (validIndustryValues.length > 0) {
+            riskScenarioAttributes.push({
+              risk_scenario_id: createdRisk.id,
+              meta_data_id: industryMetadata.id,
+              values: validIndustryValues,
+            });
+          } else {
+            console.log(
+              "invalid value for industry for risk scenario:",
+              risk.risk_scenario
+            );
+          }
+        }
+      }
     }
 
     // Insert all process-risk mappings at once
     await ProcessRiskScenarioMappings.bulkCreate(processRiskScenarioMappings);
+
+    // Insert all risk scenario attributes at once
+    await RiskScenarioAttribute.bulkCreate(riskScenarioAttributes);
+
   },
 
   async down(queryInterface) {

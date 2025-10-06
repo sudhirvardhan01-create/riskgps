@@ -455,7 +455,6 @@ class AssetService {
       "has_network_segmentation",
       "network_name",
       "asset_category",
-      "asset_name",
       "asset_description",
       "status",
     ];
