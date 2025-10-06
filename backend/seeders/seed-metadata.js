@@ -338,6 +338,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
+        related_process: ["Fraud Monitoring", "Account Management Process"],
       },
       {
         application_name: "Banking Application",
@@ -394,6 +395,8 @@ module.exports = {
         created_at: "2025-10-03T08:27:23.097Z",
         updated_at: "2025-10-03T08:27:23.097Z",
         related_process: ["Fraud Monitoring", "Account Management Process"],
+        industry: ["Healthcare", "Banking", "Government"],
+
       },
       {
         risk_scenario:
@@ -898,7 +901,7 @@ module.exports = {
         if (validIndustryValues.length > 0) {
           processAttributes.push({
             process_id: createdProcess.id,
-            meta_data_id: industryMetadata.id,
+            meta_data_key_id: industryMetadata.id,
             values: validIndustryValues,
           });
         } else {
@@ -1009,7 +1012,7 @@ module.exports = {
           if (validIndustryValues.length > 0) {
             riskScenarioAttributes.push({
               risk_scenario_id: createdRisk.id,
-              meta_data_id: industryMetadata.id,
+              meta_data_key_id: industryMetadata.id,
               values: validIndustryValues,
             });
           } else {
