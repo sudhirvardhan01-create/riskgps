@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { ArrowBack, CameraAlt, Add, Check } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
-import BusinessContextForm from "@/components/org-management/BusinessContextForm";
+import BusinessContextForm from "@/components/orgmanagement/BusinessContextForm";
 import { createOrganization, CreateOrganizationRequest } from "@/services/organizationService";
 import ToastComponent from "@/components/ToastComponent";
 import Image from "next/image";
@@ -127,7 +127,7 @@ function CreateNewOrgPage() {
   });
 
   const handleBackClick = () => {
-    router.push('/org-management');
+    router.push('/orgmanagement');
   };
 
   const handleAddTag = () => {
@@ -248,7 +248,7 @@ function CreateNewOrgPage() {
             businessContext: JSON.stringify(businessContext)
           });
 
-          const navigationUrl = `/org-management/${response.data.organizationId}?${queryParams.toString()}`;
+          const navigationUrl = `/orgmanagement/${response.data.organizationId}?${queryParams.toString()}`;
 
           // Navigate to the organization details page with the actual organizationId from API
           router.push(navigationUrl);
@@ -284,7 +284,7 @@ function CreateNewOrgPage() {
   };
 
   const handleCancel = () => {
-    router.push('/org-management');
+    router.push('/orgmanagement');
   };
 
 

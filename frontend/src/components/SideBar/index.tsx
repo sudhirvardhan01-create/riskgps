@@ -5,7 +5,7 @@ import LibraryIcon from "@/icons/library.svg";
 import AssessmentIcon from "@/icons/assessment.svg";
 import ReportsIcon from "@/icons/reports.svg";
 import UserManagementIcon from "@/icons/user-management.svg";
-import OrgManagementIcon from "@/icons/org-management.svg";
+import OrgManagementIcon from "@/icons/orgmanagement.svg";
 import { useRouter } from "next/router";
 
 const links = [
@@ -21,7 +21,7 @@ const links = [
   },
   {
     name: "Org Management",
-    path: "/org-management",
+    path: "/orgmanagement",
     icon: <OrgManagementIcon />,
   },
 ];

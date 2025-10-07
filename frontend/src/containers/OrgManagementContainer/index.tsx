@@ -150,7 +150,7 @@ export default function OrgManagementContainer() {
   };
 
   const handleEditOrganization = (organization: Organization) => {
-    router.push(`/org-management/${organization.orgId}/edit-org-details`);
+    router.push(`/orgmanagement/${organization.orgId}/editorgdetails`);
   };
 
   return (
@@ -201,7 +201,7 @@ export default function OrgManagementContainer() {
               },
             }}
             onClick={() => {
-              router.push('/org-management/create');
+              router.push('/orgmanagement/create');
             }}
           >
             Create New Org

@@ -245,7 +245,7 @@ export const deleteOrganization = async (
 };
 
 export interface UpdateOrganizationRequest {
-  orgName: string;
+  name: string;
   desc: string;
   modifiedBy: string;
   tags: Array<{
