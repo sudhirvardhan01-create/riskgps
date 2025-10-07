@@ -1,124 +1,30 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useRouter } from "next/router";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import OrgList from "@/components/Organization/OrgList";
-import { Organization, OrganizationForm } from "@/types/organization";
+import { Organization } from "@/types/organization";
+import { getOrganizations, transformApiResponseToFrontend, deleteOrganization } from "@/services/organizationService";
+import Cookies from "js-cookie";
 
-// Mock data for organizations
-const mockOrganizations: Organization[] = [
-  {
-    id: "1",
-    name: "MediCare Health",
-    orgId: "ORG100001",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "2",
-    name: "FinTech Comp",
-    orgId: "ORG100002",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "3",
-    name: "EduSmart Global",
-    orgId: "ORG100003",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "4",
-    name: "Green Energy",
-    orgId: "SH23978749",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "5",
-    name: "ABC Company",
-    orgId: "ORG100001",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "disabled",
-    lastUpdated: "2024-01-15"
-  }
-];
 
 export default function OrgManagementContainer() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sort, setSort] = useState<string>("name:asc");
-  const [sortField, setSortField] = useState<string>("name");
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortField, setSortField] = useState<string>("created_date");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [searchPattern, setSearchPattern] = useState<string>("");
   const [organizationsData, setOrganizationsData] = useState<Organization[]>([]);
 
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
 
   // modals / confirm / toast
-  const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
-  const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  const [localSearch, setLocalSearch] = useState(searchPattern);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const [toast, setToast] = useState({
@@ -127,58 +33,37 @@ export default function OrgManagementContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [formData, setFormData] = useState<OrganizationForm>({
-    name: "",
-    orgId: "",
-    industry: "",
-    size: "",
-    businessUnits: [],
-    members: [],
-  });
 
   // fetch list
   const loadList = useCallback(async () => {
     try {
-      setLoading(true);
-
-      // Use mock data with client-side filtering
-      let filteredData = [...mockOrganizations];
-
-      // Apply search filter
-      if (searchPattern) {
-        filteredData = filteredData.filter(org =>
-          org.name.toLowerCase().includes(searchPattern.toLowerCase()) ||
-          org.orgId.toLowerCase().includes(searchPattern.toLowerCase())
-        );
-      }
-
-      // Apply status filter
+      // When filtering by status, we need to fetch all data and do client-side pagination
+      // Otherwise, use server-side pagination
       if (statusFilter && statusFilter !== "all") {
-        filteredData = filteredData.filter(org =>
-          org.status === statusFilter
-        );
+        // Fetch all data for client-side filtering and pagination
+        const apiResponse = await getOrganizations(0, 1000, searchPattern, sortField, sortDirection.toUpperCase());
+        const transformedData = transformApiResponseToFrontend(apiResponse);
+
+        // Apply client-side filtering for status
+        let filteredData = transformedData.organizations;
+        // Show organizations with specific status
+        filteredData = filteredData.filter(org => org.status === statusFilter);
+
+        // Apply client-side pagination
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const paginatedData = filteredData.slice(startIndex, endIndex);
+
+        setOrganizationsData(paginatedData);
+        setTotalRows(filteredData.length);
+      } else {
+        // Use server-side pagination when no status filter is applied
+        const apiResponse = await getOrganizations(page, rowsPerPage, searchPattern, sortField, sortDirection.toUpperCase());
+        const transformedData = transformApiResponseToFrontend(apiResponse);
+
+        setOrganizationsData(transformedData.organizations);
+        setTotalRows(transformedData.total);
       }
-
-      // Apply sorting
-      filteredData.sort((a, b) => {
-        const [field, direction] = sort.split(':');
-        const aValue = field === 'name' ? a.name : field === 'orgId' ? a.orgId : '';
-        const bValue = field === 'name' ? b.name : field === 'orgId' ? b.orgId : '';
-
-        if (direction === 'asc') {
-          return aValue.localeCompare(bValue);
-        } else {
-          return bValue.localeCompare(aValue);
-        }
-      });
-
-      // Apply pagination
-      const startIndex = page * rowsPerPage;
-      const endIndex = startIndex + rowsPerPage;
-      const paginatedData = filteredData.slice(startIndex, endIndex);
-
-      setOrganizationsData(paginatedData);
-      setTotalRows(filteredData.length);
     } catch (err) {
       console.error(err);
       setToast({
@@ -186,57 +71,47 @@ export default function OrgManagementContainer() {
         message: "Failed to fetch organizations",
         severity: "error",
       });
-    } finally {
-      setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort, statusFilter]);
+  }, [page, rowsPerPage, searchPattern, sortField, sortDirection, statusFilter]);
 
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
 
-  // Update status only
-  // const handleUpdateStatus = async (id: string, status: string) => {
-  //   try {
-  //     // Simulate API call for demo purposes
-  //     await new Promise(resolve => setTimeout(resolve, 300));
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: "Status updated successfully",
-  //       severity: "success"
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to update status",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
 
-  // Delete
+  // Org Delete function
   const handleDelete = async () => {
     try {
       if (!selectedOrganization?.id) throw new Error("Invalid selection");
 
-      // Simulate API call for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Get current user ID from cookies
+      const userCookie = Cookies.get("user");
+      if (!userCookie) {
+        throw new Error("User not found. Please login again.");
+      }
+      
+      const user = JSON.parse(userCookie)
+      const userId = user.id;
+      if (!userId) {
+        throw new Error("User ID not found. Please login again.");
+      }
+
+      // Call the soft delete API
+      await deleteOrganization(selectedOrganization.id, userId);
 
       setIsDeleteConfirmOpen(false);
       setSelectedOrganization(null);
       setRefreshTrigger((p) => p + 1);
       setToast({
         open: true,
-        message: `Deleted ${selectedOrganization?.name}`,
+        message: `Organization ${selectedOrganization?.name} deleted successfully`,
         severity: "success",
       });
     } catch (err) {
       console.error(err);
       setToast({
         open: true,
-        message: "Failed to delete organization",
+        message: err instanceof Error ? err.message : "Failed to delete organization",
         severity: "error",
       });
     }
@@ -258,12 +133,10 @@ export default function OrgManagementContainer() {
       // Toggle direction if same field
       const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
       setSortDirection(newDirection);
-      setSort(`${field}:${newDirection}`);
     } else {
       // New field, default to ascending
       setSortField(field);
       setSortDirection('asc');
-      setSort(`${field}:asc`);
     }
   };
 
@@ -273,69 +146,16 @@ export default function OrgManagementContainer() {
   };
 
   const handleSearchChange = (val: string) => {
-    setLocalSearch(val);
-    // setSearchPattern?.(val);
+    setSearchPattern(val);
+  };
+
+  const handleEditOrganization = (organization: Organization) => {
+    router.push(`/org-management/${organization.orgId}/edit-org-details`);
   };
 
   return (
     <>
-      {/* Add form modal - placeholder for now */}
-      {isAddOpen && (
-        <Box>
-          {/* TODO: Implement Add Organization Modal */}
-        </Box>
-      )}
-
-      {/* Edit form modal - placeholder for now */}
-      {isEditOpen && selectedOrganization && (
-        <Box>
-          {/* TODO: Implement Edit Organization Modal */}
-        </Box>
-      )}
-
-      {/* View modal - placeholder for now */}
-      {selectedOrganization && isViewOpen && (
-        <Box>
-          {/* TODO: Implement View Organization Modal */}
-        </Box>
-      )}
-
-      {/* Confirm dialogs */}
-      <ConfirmDialog
-        open={isAddConfirmOpen}
-        onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Organization Creation?"
-        description="Are you sure you want to cancel the organization creation? Any unsaved changes will be lost."
-        onConfirm={() => {
-          setIsAddConfirmOpen(false);
-          setFormData({
-            name: "",
-            orgId: "",
-            industry: "",
-            size: "",
-            businessUnits: [],
-            members: [],
-          });
-          setIsAddOpen(false);
-        }}
-        cancelText="Continue Editing"
-        confirmText="Yes, Cancel"
-      />
-
-      <ConfirmDialog
-        open={isEditConfirmOpen}
-        onClose={() => setIsEditConfirmOpen(false)}
-        title="Cancel Organization Update?"
-        description="Are you sure you want to cancel the organization update? Any unsaved changes will be lost."
-        onConfirm={() => {
-          setIsEditConfirmOpen(false);
-          setSelectedOrganization(null);
-          setIsEditOpen(false);
-        }}
-        cancelText="Continue Editing"
-        confirmText="Yes, Cancel"
-      />
-
+      {/* Org Delete Confirm dialogs */}
       <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
@@ -397,17 +217,15 @@ export default function OrgManagementContainer() {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             setSelectedOrganization={setSelectedOrganization}
-            setIsViewOpen={setIsViewOpen}
-            setIsEditOpen={setIsEditOpen}
             setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
             onSort={handleSort}
             sortField={sortField}
             sortDirection={sortDirection}
-            localSearch={localSearch}
+            localSearch={searchPattern}
             handleSearchChange={handleSearchChange}
             statusFilter={statusFilter}
             handleStatusChange={handleStatusChange}
-          // handleUpdateStatus={handleUpdateStatus}
+            onEditOrganization={handleEditOrganization}
           />
         </Box>
       </Box>

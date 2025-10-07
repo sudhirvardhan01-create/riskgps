@@ -17,6 +17,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({ items }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation(); // Prevent event bubbling to parent
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
@@ -59,7 +60,8 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({ items }) => {
         {items.map((item, index) => (
           <MenuItem
             key={index}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent event bubbling to parent
               item.onAction();
               setAnchorEl(null);
             }}

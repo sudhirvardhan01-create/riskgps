@@ -1,52 +1,33 @@
-import { Box, Chip, Typography, Stack, FormControlLabel, Avatar, IconButton } from "@mui/material";
+import { Box, Chip, Typography, Avatar, Paper } from "@mui/material";
 import { DeleteOutlineOutlined, EditOutlined } from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 import { Organization } from "@/types/organization";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { ORG_COLUMN_TEMPLATE } from "@/constants/constant";
 
 interface OrgCardProps {
   organization: Organization;
   setSelectedOrganization: React.Dispatch<React.SetStateAction<Organization | null>>;
-  setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  // handleUpdateStatus: (id: string, status: string) => void;
+  onEditOrganization?: (organization: Organization) => void;
 }
 
 const OrgCard: React.FC<OrgCardProps> = ({
   organization,
   setSelectedOrganization,
-  setIsViewOpen,
-  setIsEditOpen,
   setIsDeleteConfirmOpen,
-  // handleUpdateStatus,
+  onEditOrganization,
 }) => {
   const router = useRouter();
-  // const getStatusComponent = () => {
-  //   return (
-  //     <FormControlLabel
-  //       control={
-  //         <ToggleSwitch
-  //           sx={{ m: 1 }}
-  //           onChange={(e) => {
-  //             const updatedStatus = e.target.checked ? "active" : "inactive";
-  //             handleUpdateStatus(organization.id, updatedStatus);
-  //           }}
-  //           checked={organization.status === "active"}
-  //         />
-  //       }
-  //       label={organization.status === "active" ? "Active" : "Inactive"}
-  //     />
-  //   );
-  // };
 
   const dialogData = [
     {
       onAction: () => {
-        setSelectedOrganization(organization);
-        setIsEditOpen(true);
+        if (onEditOrganization) {
+          onEditOrganization(organization);
+        }
       },
       color: "primary.main",
       action: "Edit",
@@ -68,51 +49,45 @@ const OrgCard: React.FC<OrgCardProps> = ({
     : "";
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent navigation when clicking on menu items or toggle switch
+    // Prevent navigation when clicking on menu items, toggle switch, or any interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('.MuiIconButton-root') || target.closest('.MuiSwitch-root') || target.closest('.MuiFormControlLabel-root')) {
+    if (
+      target.closest('.MuiIconButton-root') ||
+      target.closest('.MuiSwitch-root') ||
+      target.closest('.MuiFormControlLabel-root') ||
+      target.closest('.MuiMenu-root') ||
+      target.closest('.MuiMenuItem-root') ||
+      target.closest('.MuiListItemIcon-root') ||
+      target.closest('[role="menuitem"]') ||
+      target.closest('#edit-delete-dialog') ||
+      target.closest('#open-edit-delete-dialog')
+    ) {
       return;
     }
-    
+
     // Navigate to organization details page
     router.push(`/org-management/${organization.orgId}`);
   };
 
   return (
-    <Box
+    <Paper
+      variant="outlined"
       onClick={handleCardClick}
       sx={{
-        borderRadius: 0,
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: 3,
-        py: 2,
-        boxShadow: "none",
+        p: 2,
         border: "1px solid #D9D9D9",
-        borderTop: "none",
-        backgroundColor: "#FFFFFF",
+        borderRadius: "8px",
+        display: "grid",
+        gridTemplateColumns: ORG_COLUMN_TEMPLATE,
+        alignItems: "center",
+        gap: 2,
+        "&:hover": { border: "1px solid #1976d2" },
+        width: "100%",
         cursor: "pointer",
-        minHeight: "68px",
-        gap: "24px",
-        flexWrap: { xs: "wrap", md: "nowrap" },
-        "&:last-child": {
-          borderRadius: "0 0 4px 4px"
-        }
       }}
     >
-      {/* Company Identifier Section */}
-      <Stack
-        direction="row"
-        spacing={2}
-        alignItems="center"
-        sx={{
-          height: "36px",
-          flex: "0 0 auto"
-        }}
-      >
-        {/* Organization Logo/Icon */}
+      {/* Org Name + Logo */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <Box
           sx={{
             width: 36,
@@ -128,8 +103,6 @@ const OrgCard: React.FC<OrgCardProps> = ({
             fill
             style={{ objectFit: "cover" }}
           />
-
-          {/* Overlay */}
           <Box
             sx={{
               position: "absolute",
@@ -141,7 +114,6 @@ const OrgCard: React.FC<OrgCardProps> = ({
             }}
           />
         </Box>
-
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography
             variant="body1"
@@ -165,21 +137,15 @@ const OrgCard: React.FC<OrgCardProps> = ({
               whiteSpace: "nowrap"
             }}
           >
-            {organization.orgId}
+            {organization.orgId.length > 15
+              ? organization.orgId.substring(0, 15) + "..."
+              : organization.orgId}
           </Typography>
         </Box>
-      </Stack>
+      </Box>
 
-      {/* Tags Section */}
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          height: "29px",
-          flex: "0 0 auto",
-          alignItems: "center"
-        }}
-      >
+      {/* Tags */}
+      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         <Chip
           label={`Industry: ${organization.tags.industry}`}
           variant="outlined"
@@ -222,70 +188,57 @@ const OrgCard: React.FC<OrgCardProps> = ({
             }
           }}
         />
-      </Stack>
+      </Box>
 
-      {/* Members Section */}
-      <Stack
-        direction="row"
-        spacing={-0.7}
-        alignItems="center"
-        sx={{
-          height: "24px",
-          flex: "0 0 auto",
-          justifyContent: "center"
-        }}
-      >
-        {organization.members.avatars.map((avatar, index) => (
-          <Avatar
-            key={index}
-            src={avatar || undefined}
-            sx={{
-              width: 24,
-              height: 24,
-              fontSize: "12px",
-              border: "1.5px solid white",
-              zIndex: index,
-            }}
-          >
-            {!avatar && "?"}
-          </Avatar>
-        ))}
-        {organization.members.additionalCount > 0 && (
-          <Box
-            sx={{
-              width: 24,
-              height: 24,
-              borderRadius: "32px",
-              backgroundColor: "#04139A",
-              color: "#FFFFFF",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1.5px solid #FFFFFF",
-              opacity: 1,
-              fontWeight: 400,
-              fontSize: "12px",
-              lineHeight: "100%",
-              letterSpacing: "0%",
-              textAlign: "center",
-              zIndex: organization.members.avatars.length + 1,
-            }}
-          >
-            +{organization.members.additionalCount}
-          </Box>
-        )}
-      </Stack>
+      {/* Org Members */}
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          {organization.members.avatars.map((avatar, index) => (
+            <Avatar
+              key={index}
+              src={avatar || undefined}
+              sx={{
+                width: 24,
+                height: 24,
+                fontSize: "12px",
+                border: "1.5px solid white",
+                zIndex: index,
+                ml: index === 0 ? 0 : -0.75, //negative margin for overlap
+              }}
+            >
+              {!avatar && "?"}
+            </Avatar>
+          ))}
+          {organization.members.additionalCount > 0 && (
+            <Box
+              sx={{
+                width: 24,
+                height: 24,
+                borderRadius: "32px",
+                backgroundColor: "#04139A",
+                color: "#FFFFFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1.5px solid #FFFFFF",
+                opacity: 1,
+                fontWeight: 400,
+                fontSize: "12px",
+                lineHeight: "100%",
+                letterSpacing: "0%",
+                textAlign: "center",
+                zIndex: organization.members.avatars.length + 1,
+                ml: -0.75, //also overlap with previous avatar
+              }}
+            >
+              +{organization.members.additionalCount}
+            </Box>
+          )}
+        </Box>
+      </Box>
 
-      {/* Business Units Text */}
-      <Box
-        sx={{
-          height: "33px",
-          flex: "0 0 auto",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center"
-        }}
-      >
+      {/* Business Units */}
+      <Box>
         <Typography
           variant="body1"
           color="#484848"
@@ -295,10 +248,9 @@ const OrgCard: React.FC<OrgCardProps> = ({
             whiteSpace: "nowrap"
           }}
         >
-          {organization.businessUnits.slice(0, 3).join(", ")}
+          {organization.businessUnits.slice(0, 2).join(", ")}
         </Typography>
-
-        {organization.businessUnits.length > 3 && (
+        {organization.businessUnits.length > 2 && (
           <Typography
             variant="body2"
             color="#04139A"
@@ -309,27 +261,15 @@ const OrgCard: React.FC<OrgCardProps> = ({
               whiteSpace: "nowrap"
             }}
           >
-            +{organization.businessUnits.length - 3} more
+            +{organization.businessUnits.length - 2} more
           </Typography>
         )}
       </Box>
 
-      {/* Status Section */}
-      <Box
-        sx={{
-          height: "21px",
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 1
-        }}
-      >
+      {/* Status */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <ToggleSwitch
           sx={{ m: 0 }}
-          // onChange={(e) => {
-          //   const updatedStatus = e.target.checked ? "active" : "disabled";
-          //   handleUpdateStatus(organization.id, updatedStatus);
-          // }}
           checked={organization.status === "active"}
         />
         <Typography
@@ -345,19 +285,9 @@ const OrgCard: React.FC<OrgCardProps> = ({
         </Typography>
       </Box>
 
-      {/* MenuItemComponent */}
-      <Box
-        sx={{
-          height: "20px",
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
-        }}
-      >
-        <MenuItemComponent items={dialogData} />
-      </Box>
-    </Box>
+      {/* Actions Menu */}
+      <MenuItemComponent items={dialogData} />
+    </Paper>
   );
 };
 

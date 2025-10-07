@@ -25,215 +25,10 @@ import { Organization } from "@/types/organization";
 import Image from "next/image";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
+import ToastComponent from "@/components/ToastComponent";
+import { getOrganizationById, updateOrganization } from "@/services/organizationService";
+import Cookies from "js-cookie";
 
-// Mock data for organizations (same as in the main page)
-const mockOrganizations: Organization[] = [
-  {
-    id: "1",
-    name: "MediCare Health",
-    orgId: "ORG100001",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15",
-    details: {
-      industryVertical: "Healthcare",
-      regionOfOperation: "US",
-      employeeCount: 250,
-      cisoName: "Dr. Sarah Johnson",
-      cisoEmail: "sarah.johnson@medicare.com",
-      annualRevenue: "$ 50,000,000",
-      riskAppetite: "$ 5,000,000",
-      cybersecurityBudget: "$ 2,500,000",
-      insuranceCoverage: "$ 10,000,000",
-      insuranceCarrier: "HealthCare Insurance Co.",
-      claimsCount: "0",
-      claimsValue: "$ 0",
-      regulators: "FDA, HIPAA, CMS",
-      regulatoryRequirements: "HIPAA, FDA 21 CFR Part 11, SOX",
-      additionalInformation: "MediCare Health is a leading healthcare provider focused on patient care and data security compliance.",
-      recordTypes: ["PHI", "PII", "Intellectual Property"],
-      piiRecordsCount: "50000",
-      pfiRecordsCount: "25000",
-      phiRecordsCount: "100000",
-      governmentRecordsCount: "500",
-      certifications: ["HIPAA", "ISO 27001"],
-      intellectualPropertyPercentage: "15"
-    }
-  },
-  {
-    id: "2",
-    name: "FinTech Comp",
-    orgId: "ORG100002",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15",
-    details: {
-      industryVertical: "Financial Services",
-      regionOfOperation: "UK",
-      employeeCount: 150,
-      cisoName: "Michael Chen",
-      cisoEmail: "michael.chen@fintech.com",
-      annualRevenue: "$ 25,000,000",
-      riskAppetite: "$ 3,000,000",
-      cybersecurityBudget: "$ 1,500,000",
-      insuranceCoverage: "$ 8,000,000",
-      insuranceCarrier: "Financial Risk Insurance",
-      claimsCount: "1",
-      claimsValue: "$ 25,000",
-      regulators: "FCA, PRA, ICO",
-      regulatoryRequirements: "GDPR, PCI DSS, SOX",
-      additionalInformation: "FinTech Comp specializes in digital banking solutions with a focus on security and compliance.",
-      recordTypes: ["PII", "PFI", "Intellectual Property"],
-      piiRecordsCount: "75000",
-      pfiRecordsCount: "50000",
-      phiRecordsCount: "0",
-      governmentRecordsCount: "200",
-      certifications: ["PCI DSS", "ISO 27001"],
-      intellectualPropertyPercentage: "30"
-    }
-  },
-  {
-    id: "3",
-    name: "EduSmart Global",
-    orgId: "ORG100003",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15",
-    details: {
-      industryVertical: "Education Technology",
-      regionOfOperation: "CA",
-      employeeCount: 80,
-      cisoName: "Lisa Rodriguez",
-      cisoEmail: "lisa.rodriguez@edusmart.com",
-      annualRevenue: "$ 15,000,000",
-      riskAppetite: "$ 2,000,000",
-      cybersecurityBudget: "$ 800,000",
-      insuranceCoverage: "$ 5,000,000",
-      insuranceCarrier: "EduTech Insurance",
-      claimsCount: "0",
-      claimsValue: "$ 0",
-      regulators: "FERPA, COPPA, PIPEDA",
-      regulatoryRequirements: "FERPA, COPPA, GDPR, PIPEDA",
-      additionalInformation: "EduSmart Global provides educational technology solutions with strong focus on student data protection.",
-      recordTypes: ["PII", "Intellectual Property"],
-      piiRecordsCount: "30000",
-      pfiRecordsCount: "5000",
-      phiRecordsCount: "0",
-      governmentRecordsCount: "50",
-      certifications: ["SOC 2"],
-      intellectualPropertyPercentage: "40"
-    }
-  },
-  {
-    id: "4",
-    name: "Green Energy",
-    orgId: "SH23978749",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15",
-    details: {
-      industryVertical: "Renewable Energy",
-      regionOfOperation: "DE",
-      employeeCount: 300,
-      cisoName: "Hans Mueller",
-      cisoEmail: "hans.mueller@greenenergy.com",
-      annualRevenue: "$ 75,000,000",
-      riskAppetite: "$ 7,500,000",
-      cybersecurityBudget: "$ 3,000,000",
-      insuranceCoverage: "$ 15,000,000",
-      insuranceCarrier: "Energy Risk Insurance",
-      claimsCount: "2",
-      claimsValue: "$ 100,000",
-      regulators: "Bundesnetzagentur, BSI",
-      regulatoryRequirements: "GDPR, NIS Directive, ISO 27001",
-      additionalInformation: "Green Energy is a leading renewable energy company with focus on grid security and data protection.",
-      recordTypes: ["PII", "Intellectual Property", "Government Records"],
-      piiRecordsCount: "40000",
-      pfiRecordsCount: "15000",
-      phiRecordsCount: "0",
-      governmentRecordsCount: "1000",
-      certifications: ["ISO 27001", "SOC 2"],
-      intellectualPropertyPercentage: "35"
-    }
-  },
-  {
-    id: "5",
-    name: "ABC Company",
-    orgId: "ORG202451872",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15",
-    details: {
-      industryVertical: "Health Care",
-      regionOfOperation: "IN",
-      employeeCount: 100,
-      cisoName: "Vivek Kumar",
-      cisoEmail: "vivekkumar@abccompany.com",
-      annualRevenue: "$ 500,000,000",
-      riskAppetite: "$ 30,000,000",
-      cybersecurityBudget: "$ 35,000,000",
-      insuranceCoverage: "$ 20,000,000",
-      insuranceCarrier: "XYZ",
-      claimsCount: "2",
-      claimsValue: "$ 50,000",
-      regulators: "FDA, HIPAA",
-      regulatoryRequirements: "HIPAA, GDPR, SOX",
-      additionalInformation: "This is a healthcare company focused on patient data management and compliance.",
-      recordTypes: ["PII", "PHI", "Intellectual Property"],
-      piiRecordsCount: "10000",
-      pfiRecordsCount: "5000",
-      phiRecordsCount: "15000",
-      governmentRecordsCount: "100",
-      certifications: ["HIPAA", "ISO 27001"],
-      intellectualPropertyPercentage: "25"
-    }
-  }
-];
 
 interface Tag {
   key: string;
@@ -245,6 +40,12 @@ function EditOrgDetailsPage() {
   const { orgId, orgName, tags, businessContext } = router.query;
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [isFormReady, setIsFormReady] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "error" | "warning" | "info" | "success"
+  });
   const [formData, setFormData] = useState({
     orgName: "",
     industryVertical: "",
@@ -273,135 +74,136 @@ function EditOrgDetailsPage() {
   });
 
   useEffect(() => {
-    if (orgId) {
-      console.log('Edit Org Details - orgId:', orgId);
-      console.log('Edit Org Details - URL params:', { orgName, tags, businessContext });
-      
-      // Find organization by orgId
-      let foundOrg = mockOrganizations.find(org => org.orgId === orgId);
+    const fetchOrganization = async () => {
+      if (!orgId) return;
 
-      // If not found in mock data but orgId starts with "ORG" and has timestamp, create a new org
-      if (!foundOrg && typeof orgId === 'string' && orgId.startsWith('ORG') && /^\d+$/.test(orgId.substring(3))) {
-        console.log('Creating new organization from URL parameters');
-        
-        // Parse URL parameters directly for newly created organizations
-        let parsedTags: any[] = [];
-        let parsedBusinessContext: any = {};
-        let orgNameFromURL = "";
+      try {
+        // First try to fetch from API
+        const apiResponse = await getOrganizationById(orgId as string);
 
-        try {
-          if (tags) {
-            parsedTags = JSON.parse(tags as string);
-            console.log('Parsed tags:', parsedTags);
-          }
-          if (businessContext) {
-            parsedBusinessContext = JSON.parse(businessContext as string);
-            console.log('Parsed business context:', parsedBusinessContext);
-          }
-          if (orgName) {
-            orgNameFromURL = orgName as string;
-            console.log('Organization name from URL:', orgNameFromURL);
-          }
-        } catch (error) {
-          console.error('Error parsing URL parameters:', error);
-        }
-
-        // Convert tags array to object format
-        const tagsObject: { [key: string]: string } = {};
-        if (Array.isArray(parsedTags)) {
-          parsedTags.forEach((tag: any) => {
-            if (tag.key && tag.value) {
-              tagsObject[tag.key] = tag.value;
+        // Transform API response to match Organization interface
+        const transformedOrg: Organization = {
+          id: apiResponse.data.organizationId,
+          name: apiResponse.data.name,
+          orgId: apiResponse.data.organizationId,
+          orgImage: "/orgImage.png", // Default image since API doesn't provide this
+          tags: (() => {
+            // Convert API tags array to object format
+            const tagsObject: { [key: string]: string } = {};
+            if (apiResponse.data.tags && Array.isArray(apiResponse.data.tags)) {
+              apiResponse.data.tags.forEach((tag: any) => {
+                if (tag.key && tag.value) {
+                  tagsObject[tag.key] = tag.value;
+                }
+              });
             }
-          });
-        }
 
-        foundOrg = {
-          id: orgId,
-          name: orgNameFromURL || "New Organization",
-          orgId: orgId,
-          orgImage: "/orgImage.png",
-          tags: {
-            industry: tagsObject.industry || "Healthcare",
-            size: tagsObject.size || "Small (< 500 Employees)"
-          },
+            // Add size calculation based on employee count if not provided in tags
+            if (!tagsObject.size && apiResponse.data.numberOfEmployees) {
+              tagsObject.size = apiResponse.data.numberOfEmployees < 500 ? "Small (< 500 Employees)" :
+                apiResponse.data.numberOfEmployees < 2000 ? "Medium (500-2000 Employees)" :
+                  "Large (> 2000 Employees)";
+            }
+
+            // Add industry from industryVertical if not in tags
+            if (!tagsObject.industry && apiResponse.data.industryVertical) {
+              tagsObject.industry = apiResponse.data.industryVertical;
+            }
+
+            // Ensure required properties exist with defaults
+            const result: { industry: string; size: string;[key: string]: string } = {
+              industry: tagsObject.industry || "Healthcare",
+              size: tagsObject.size || "Small (< 500 Employees)",
+              ...tagsObject // Spread all other tags
+            };
+            return result;
+          })(),
           members: {
             avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
             additionalCount: 3
           },
-          businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-          status: "active",
-          lastUpdated: new Date().toISOString().split('T')[0],
+          businessUnits: apiResponse.data.businessUnits && apiResponse.data.businessUnits.length > 0
+            ? apiResponse.data.businessUnits
+            : ["-", "-", "-"], // Use API data or default
+          status: "active", // Default since API doesn't provide this
+          lastUpdated: apiResponse.data.modifiedDate ?
+            new Date(apiResponse.data.modifiedDate).toISOString().split('T')[0] :
+            new Date().toISOString().split('T')[0],
+          createdDate: apiResponse.data.createdDate || "-",
+          modifiedDate: apiResponse.data.modifiedDate || "-",
+          createdBy: apiResponse.data.createdBy || "-",
           details: {
-            industryVertical: parsedBusinessContext.industryVertical || "Health Care",
-            regionOfOperation: parsedBusinessContext.regionOfOperation || "India",
-            employeeCount: parseInt(parsedBusinessContext.numberOfEmployees) || 100,
-            cisoName: parsedBusinessContext.cisoName || "Vivek Kumar",
-            cisoEmail: parsedBusinessContext.cisoEmail || "vivekkumar@neworg.com",
-            annualRevenue: parsedBusinessContext.annualRevenue || "$ 500,000,000",
-            riskAppetite: parsedBusinessContext.riskAppetite || "$ 30,000,000",
-            cybersecurityBudget: parsedBusinessContext.cybersecurityBudget || "$ 35,000,000",
-            insuranceCoverage: parsedBusinessContext.insuranceCoverage || "$ 20,000,000",
-            insuranceCarrier: parsedBusinessContext.insuranceCarrier || "XYZ",
-            claimsCount: parsedBusinessContext.numberOfClaims || "-",
-            claimsValue: parsedBusinessContext.claimsValue || "-",
-            regulators: parsedBusinessContext.regulators || "",
-            regulatoryRequirements: parsedBusinessContext.regulatoryRequirements || "",
-            additionalInformation: parsedBusinessContext.additionalInformation || "",
-            recordTypes: parsedBusinessContext.recordTypes || [],
-            piiRecordsCount: parsedBusinessContext.piiRecordsCount || "",
-            pfiRecordsCount: parsedBusinessContext.pfiRecordsCount || "",
-            phiRecordsCount: parsedBusinessContext.phiRecordsCount || "",
-            governmentRecordsCount: parsedBusinessContext.governmentRecordsCount || "",
-            certifications: parsedBusinessContext.certifications || [],
-            intellectualPropertyPercentage: parsedBusinessContext.intellectualPropertyPercentage || ""
+            industryVertical: apiResponse.data.industryVertical || "-",
+            regionOfOperation: apiResponse.data.regionOfOperation || "-",
+            employeeCount: apiResponse.data.numberOfEmployees || "-",
+            cisoName: apiResponse.data.cisoName || "-",
+            cisoEmail: apiResponse.data.cisoEmail || "-",
+            annualRevenue: apiResponse.data.annualRevenue ? `$ ${parseInt(apiResponse.data.annualRevenue).toLocaleString()}` : "-",
+            riskAppetite: apiResponse.data.riskAppetite ? `$ ${parseInt(apiResponse.data.riskAppetite).toLocaleString()}` : "-",
+            cybersecurityBudget: apiResponse.data.cybersecurityBudget ? `$ ${parseInt(apiResponse.data.cybersecurityBudget).toLocaleString()}` : "-",
+            insuranceCoverage: apiResponse.data.insuranceCoverage ? `$ ${parseInt(apiResponse.data.insuranceCoverage).toLocaleString()}` : "-",
+            insuranceCarrier: apiResponse.data.insuranceCarrier || "-",
+            claimsCount: apiResponse.data.numberOfClaims?.toString() || "-",
+            claimsValue: apiResponse.data.claimsValue ? `$ ${parseInt(apiResponse.data.claimsValue).toLocaleString()}` : "-",
+            regulators: apiResponse.data.regulators || "-",
+            regulatoryRequirements: apiResponse.data.regulatoryRequirements || "-",
+            additionalInformation: apiResponse.data.additionalInformation || "-",
+            recordTypes: apiResponse.data.recordTypes || ["-", "-", "-"],
+            piiRecordsCount: apiResponse.data.piiRecordsCount?.toString() || "-",
+            pfiRecordsCount: apiResponse.data.pfiRecordsCount?.toString() || "-",
+            phiRecordsCount: apiResponse.data.phiRecordsCount?.toString() || "-",
+            governmentRecordsCount: apiResponse.data.governmentRecordsCount?.toString() || "-",
+            certifications: apiResponse.data.certifications || ["-"],
+            intellectualPropertyPercentage: apiResponse.data.intellectualPropertyPercentage?.toString() || "-"
           }
         };
-        
-        console.log('Created organization object:', foundOrg);
-      }
 
-      if (foundOrg) {
-        setOrganization(foundOrg);
-        
+        setOrganization(transformedOrg);
+
         // Set form data based on the organization data
         const newFormData = {
-          orgName: foundOrg.name,
-          industryVertical: foundOrg.details?.industryVertical || "Health Care",
-          regionOfOperation: foundOrg.details?.regionOfOperation || "IN",
-          numberOfEmployees: foundOrg.details?.employeeCount?.toString() || "100",
-          cisoName: foundOrg.details?.cisoName || "",
-          cisoEmail: foundOrg.details?.cisoEmail || "",
-          annualRevenue: foundOrg.details?.annualRevenue || "",
-          riskAppetite: foundOrg.details?.riskAppetite || "",
-          cybersecurityBudget: foundOrg.details?.cybersecurityBudget || "",
-          insuranceCoverage: foundOrg.details?.insuranceCoverage || "",
-          insuranceCarrier: foundOrg.details?.insuranceCarrier || "",
-          numberOfClaims: foundOrg.details?.claimsCount || "",
-          claimsValue: foundOrg.details?.claimsValue || "",
-          regulators: foundOrg.details?.regulators || "",
-          regulatoryRequirements: foundOrg.details?.regulatoryRequirements || "",
-          additionalInformation: foundOrg.details?.additionalInformation || "",
-          recordTypes: foundOrg.details?.recordTypes || [],
-          piiRecordsCount: foundOrg.details?.piiRecordsCount || "",
-          pfiRecordsCount: foundOrg.details?.pfiRecordsCount || "",
-          phiRecordsCount: foundOrg.details?.phiRecordsCount || "",
-          governmentRecordsCount: foundOrg.details?.governmentRecordsCount || "",
-          certifications: foundOrg.details?.certifications || [],
-          intellectualPropertyPercentage: foundOrg.details?.intellectualPropertyPercentage || "",
-          tags: [
-            { key: "Industry", value: foundOrg.tags.industry },
-            { key: "Size", value: foundOrg.tags.size }
-          ]
+          orgName: transformedOrg.name,
+          industryVertical: transformedOrg.details?.industryVertical || "",
+          regionOfOperation: transformedOrg.details?.regionOfOperation || "",
+          numberOfEmployees: transformedOrg.details?.employeeCount?.toString() || "",
+          cisoName: transformedOrg.details?.cisoName || "",
+          cisoEmail: transformedOrg.details?.cisoEmail || "",
+          annualRevenue: transformedOrg.details?.annualRevenue || "",
+          riskAppetite: transformedOrg.details?.riskAppetite || "",
+          cybersecurityBudget: transformedOrg.details?.cybersecurityBudget || "",
+          insuranceCoverage: transformedOrg.details?.insuranceCoverage || "",
+          insuranceCarrier: transformedOrg.details?.insuranceCarrier || "",
+          numberOfClaims: transformedOrg.details?.claimsCount || "",
+          claimsValue: transformedOrg.details?.claimsValue || "",
+          regulators: transformedOrg.details?.regulators || "",
+          regulatoryRequirements: transformedOrg.details?.regulatoryRequirements || "",
+          additionalInformation: transformedOrg.details?.additionalInformation || "",
+          recordTypes: transformedOrg.details?.recordTypes || [],
+          piiRecordsCount: transformedOrg.details?.piiRecordsCount || "",
+          pfiRecordsCount: transformedOrg.details?.pfiRecordsCount || "",
+          phiRecordsCount: transformedOrg.details?.phiRecordsCount || "",
+          governmentRecordsCount: transformedOrg.details?.governmentRecordsCount || "",
+          certifications: transformedOrg.details?.certifications || [],
+          intellectualPropertyPercentage: transformedOrg.details?.intellectualPropertyPercentage || "",
+          tags: Object.entries(transformedOrg.tags).map(([key, value]) => ({
+            key: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize first letter
+            value: value
+          }))
         };
-        console.log('Setting form data:', newFormData);
         setFormData(newFormData);
         setIsFormReady(true);
-      } else {
-        // If not found, redirect back to org management
+      } catch (apiError) {
+        setToast({
+          open: true,
+          message: "Failed to load organization. Please try again.",
+          severity: "error"
+        });
+        // Redirect back to org management on error
         router.push('/org-management');
       }
-    }
+    };
+
+    fetchOrganization();
   }, [orgId, router, orgName, tags, businessContext]);
 
   const handleBackClick = () => {
@@ -445,16 +247,149 @@ function EditOrgDetailsPage() {
     }));
   };
 
-  const handleSave = () => {
-    // Here you would typically save the data to your backend
-    // For now, just redirect back to the organization details page
-    router.push(`/org-management/${orgId}`);
+  const handleSave = async () => {
+    if (!orgId) return;
+
+    // Validate required fields
+    const requiredFields = [
+      { key: 'orgName', label: 'Organization Name' },
+      { key: 'industryVertical', label: 'Industry Vertical' },
+      { key: 'regionOfOperation', label: 'Region of Operation' },
+      { key: 'numberOfEmployees', label: 'Number of employees globally' },
+      { key: 'cisoName', label: 'CISO Name' },
+      { key: 'cisoEmail', label: 'CISO Email' },
+      { key: 'annualRevenue', label: 'Estimated Annual Revenue' },
+      { key: 'riskAppetite', label: 'Risk Appetite' },
+      { key: 'cybersecurityBudget', label: 'Allocated budget for cybersecurity operations' },
+      { key: 'insuranceCoverage', label: 'Insurance - Current Coverage' },
+      { key: 'insuranceCarrier', label: 'Insurance - Current Carrier' },
+      { key: 'numberOfClaims', label: 'No. of claims' },
+      { key: 'claimsValue', label: 'Claims Value' },
+      { key: 'regulators', label: 'Regulators' },
+      { key: 'regulatoryRequirements', label: 'Regulatory Requirements' },
+      { key: 'piiRecordsCount', label: 'PII Records Count' },
+      { key: 'pfiRecordsCount', label: 'PFI Records Count' },
+      { key: 'phiRecordsCount', label: 'PHI Records Count' },
+      { key: 'governmentRecordsCount', label: 'Government Records Count' },
+      { key: 'intellectualPropertyPercentage', label: 'Intellectual Property Percentage' },
+      { key: 'additionalInformation', label: 'Additional Information' }
+    ];
+
+    const missingFields = requiredFields.filter(field => {
+      const value = formData[field.key as keyof typeof formData];
+      return !value || (typeof value === 'string' && value.trim() === '');
+    });
+
+    // Validate that at least one record type is selected
+    if (!formData.recordTypes || formData.recordTypes.length === 0) {
+      setToast({
+        open: true,
+        message: 'Please select at least one record type (PHI, PII, Intellectual Property, Government Records)',
+        severity: "error"
+      });
+      return;
+    }
+
+    // Validate that at least one certification is selected
+    if (!formData.certifications || formData.certifications.length === 0) {
+      setToast({
+        open: true,
+        message: 'Please select at least one certification (PCI DSS, ISO 27001, or SOC 2)',
+        severity: "error"
+      });
+      return;
+    }
+
+    if (missingFields.length > 0) {
+      setToast({
+        open: true,
+        message: `Please fill in all required fields: ${missingFields.map(f => f.label).join(', ')}`,
+        severity: "error"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Get current user ID from cookies
+      const userCookie = Cookies.get("user");
+      if (!userCookie) {
+        setToast({
+          open: true,
+          message: "User not found. Please login again.",
+          severity: "error"
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      const user = JSON.parse(userCookie);
+      const modifiedBy = user.id;
+
+      // Prepare the data in the format expected by the API
+      const updateData = {
+        orgId: orgId,
+        orgName: formData.orgName,
+        desc: formData.additionalInformation || "Organization description", // Using additionalInformation as description
+        tags: formData.tags.filter(tag => tag.key && tag.value), // Filter out empty tags
+        modifiedBy: modifiedBy, // Add the modifiedBy field
+        businessContext: {
+          industryVertical: formData.industryVertical,
+          regionOfOperation: formData.regionOfOperation,
+          numberOfEmployees: formData.numberOfEmployees,
+          cisoName: formData.cisoName,
+          cisoEmail: formData.cisoEmail,
+          annualRevenue: formData.annualRevenue,
+          riskAppetite: formData.riskAppetite,
+          cybersecurityBudget: formData.cybersecurityBudget,
+          insuranceCoverage: formData.insuranceCoverage,
+          insuranceCarrier: formData.insuranceCarrier,
+          numberOfClaims: formData.numberOfClaims,
+          claimsValue: formData.claimsValue,
+          regulators: formData.regulators,
+          regulatoryRequirements: formData.regulatoryRequirements,
+          additionalInformation: formData.additionalInformation,
+          recordTypes: formData.recordTypes,
+          piiRecordsCount: formData.piiRecordsCount,
+          pfiRecordsCount: formData.pfiRecordsCount,
+          phiRecordsCount: formData.phiRecordsCount,
+          governmentRecordsCount: formData.governmentRecordsCount,
+          certifications: formData.certifications,
+          intellectualPropertyPercentage: formData.intellectualPropertyPercentage
+        }
+      };
+
+      // Call the update API
+      const response = await updateOrganization(orgId as string, updateData);
+
+      // Show success toast
+      setToast({
+        open: true,
+        message: "Organization updated successfully!",
+        severity: "success"
+      });
+
+      // Redirect back to the organization details page after a short delay
+      setTimeout(() => {
+        router.push(`/org-management/${orgId}`);
+      }, 1500);
+
+    } catch (error) {
+      setToast({
+        open: true,
+        message: error instanceof Error ? error.message : 'Failed to update organization',
+        severity: "error"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!organization || !isFormReady) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>Loading...</Typography>
+        <Typography>Loading Org Edit Form...</Typography>
       </Box>
     );
   }
@@ -603,40 +538,12 @@ function EditOrgDetailsPage() {
 
                 {/* Organization Name */}
                 <Box sx={{ mb: 3 }}>
-                  <TextField
-                    fullWidth
-                    label="Org Name*"
+                  <TextFieldStyled
+                    label="Org Name"
+                    required
+                    placeholder="Enter organization name"
                     value={formData.orgName}
                     onChange={(e) => handleInputChange("orgName", e.target.value)}
-                    sx={{
-                      mb: 3,
-                      "& .MuiOutlinedInput-root": {
-                        height: "48px",
-                        borderRadius: "8px",
-                        backgroundColor: "#FFFFFF",
-                        "& fieldset": {
-                          borderColor: "#CECFD2",
-                          borderWidth: "1px",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "#04139A",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#04139A",
-                        },
-                        "& input": {
-                          padding: "16px 20px",
-                        },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: "#484848",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        "&.Mui-focused": {
-                          color: "#04139A",
-                        },
-                      },
-                    }}
                   />
                 </Box>
 
@@ -851,6 +758,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Number of employees globally"
+                        required
                         placeholder="100"
                         value={formData.numberOfEmployees}
                         onChange={(e) => handleInputChange("numberOfEmployees", e.target.value)}
@@ -886,6 +794,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Name"
+                        required
                         placeholder="Enter name"
                         value={formData.cisoName}
                         onChange={(e) => handleInputChange("cisoName", e.target.value)}
@@ -894,6 +803,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Email"
+                        required
                         placeholder="Enter email"
                         value={formData.cisoEmail}
                         onChange={(e) => handleInputChange("cisoEmail", e.target.value)}
@@ -929,6 +839,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Estimated Annual Revenue"
+                        required
                         placeholder="$ Enter amount in dollars"
                         value={formData.annualRevenue}
                         onChange={(e) => handleInputChange("annualRevenue", e.target.value)}
@@ -946,6 +857,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Allocated budget for cybersecurity operations"
+                        required
                         placeholder="$ Enter amount in dollars"
                         value={formData.cybersecurityBudget}
                         onChange={(e) => handleInputChange("cybersecurityBudget", e.target.value)}
@@ -990,6 +902,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Insurance - Current Carrier"
+                        required
                         placeholder="Enter Insurance - Current Carrier"
                         value={formData.insuranceCarrier}
                         onChange={(e) => handleInputChange("insuranceCarrier", e.target.value)}
@@ -998,6 +911,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="No. of claims (made in last 12 months)"
+                        required
                         placeholder="Enter no. of claims"
                         value={formData.numberOfClaims}
                         onChange={(e) => handleInputChange("numberOfClaims", e.target.value)}
@@ -1006,6 +920,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Claims Value (made in last 12 months)"
+                        required
                         placeholder="$ Enter amount in dollars"
                         value={formData.claimsValue}
                         onChange={(e) => handleInputChange("claimsValue", e.target.value)}
@@ -1041,6 +956,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="Who are your regulators?"
+                        required
                         placeholder="Enter regulators"
                         value={formData.regulators}
                         onChange={(e) => handleInputChange("regulators", e.target.value)}
@@ -1049,6 +965,7 @@ function EditOrgDetailsPage() {
                     <Grid size={{ xs: 12, md: 6 }}>
                       <TextFieldStyled
                         label="What are your regulatory requirements?"
+                        required
                         placeholder="Example: GDPR, etc."
                         value={formData.regulatoryRequirements}
                         onChange={(e) => handleInputChange("regulatoryRequirements", e.target.value)}
@@ -1173,6 +1090,7 @@ function EditOrgDetailsPage() {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldStyled
                       label="Enter value"
+                      required
                       placeholder="Enter value"
                       value={formData.piiRecordsCount}
                       onChange={(e) => handleInputChange("piiRecordsCount", e.target.value)}
@@ -1194,6 +1112,7 @@ function EditOrgDetailsPage() {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldStyled
                       label="Enter value"
+                      required
                       placeholder="Enter value"
                       value={formData.pfiRecordsCount}
                       onChange={(e) => handleInputChange("pfiRecordsCount", e.target.value)}
@@ -1216,6 +1135,7 @@ function EditOrgDetailsPage() {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldStyled
                       label="Enter value"
+                      required
                       placeholder="Enter value"
                       value={formData.phiRecordsCount}
                       onChange={(e) => handleInputChange("phiRecordsCount", e.target.value)}
@@ -1238,6 +1158,7 @@ function EditOrgDetailsPage() {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldStyled
                       label="Enter value"
+                      required
                       placeholder="Enter value"
                       value={formData.governmentRecordsCount}
                       onChange={(e) => handleInputChange("governmentRecordsCount", e.target.value)}
@@ -1339,6 +1260,7 @@ function EditOrgDetailsPage() {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextFieldStyled
                       label="Enter in percentage"
+                      required
                       placeholder="Enter in percentage"
                       value={formData.intellectualPropertyPercentage}
                       onChange={(e) => handleInputChange("intellectualPropertyPercentage", e.target.value)}
@@ -1372,6 +1294,7 @@ function EditOrgDetailsPage() {
                       <Grid size={12}>
                         <TextFieldStyled
                           label="Additional Information"
+                          required
                           placeholder="Enter additional information"
                           value={formData.additionalInformation}
                           onChange={(e) => handleInputChange("additionalInformation", e.target.value)}
@@ -1388,7 +1311,7 @@ function EditOrgDetailsPage() {
           </Accordion>
 
           {/* Action Buttons */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4, mb: 8 }}>
             <Button
               variant="outlined"
               onClick={handleBackClick}
@@ -1408,6 +1331,7 @@ function EditOrgDetailsPage() {
             <Button
               variant="contained"
               onClick={handleSave}
+              disabled={isSaving}
               sx={{
                 height: "40px",
                 width: "116px",
@@ -1420,14 +1344,28 @@ function EditOrgDetailsPage() {
                 "&:hover": {
                   backgroundColor: "#04139A",
                   opacity: 0.9
+                },
+                "&:disabled": {
+                  backgroundColor: "#CCCCCC",
+                  color: "#666666"
                 }
               }}
             >
-              Save
+              {isSaving ? "Saving..." : "Save"}
             </Button>
           </Box>
         </Box>
       </Box>
+
+      <ToastComponent
+        open={toast.open}
+        onClose={() => setToast(prev => ({ ...prev, open: false }))}
+        message={toast.message}
+        toastBorder={toast.severity === "success" ? "1px solid #147A50" : undefined}
+        toastColor={toast.severity === "success" ? "#147A50" : undefined}
+        toastBackgroundColor={toast.severity === "success" ? "#DDF5EB" : undefined}
+        toastSeverity={toast.severity}
+      />
     </Box>
   );
 }
