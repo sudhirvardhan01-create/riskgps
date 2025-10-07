@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { getAssessment } from "../api/assessment";
 import { useRouter } from "next/router";
 import { Assessment } from "@/types/assessment";
+import withAuth from "@/hoc/withAuth";
 
 const options = [
   { label: "All", value: 0 },
@@ -170,4 +171,4 @@ const AssessmentDashboard = () => {
   );
 };
 
-export default AssessmentDashboard;
+export default withAuth(AssessmentDashboard);

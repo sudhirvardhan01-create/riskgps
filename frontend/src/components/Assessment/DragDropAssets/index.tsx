@@ -4,22 +4,22 @@ import React, { useEffect, useState } from "react";
 import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import { Grid } from "@mui/material";
 
-import RiskScenarioPool from "../RiskScenarioPool";
-import ProcessCardRisk from "../ProcessCardRisk";
+import AssetPool from "../AssetPool";
+import ProcessCardAsset from "../ProcessCardAsset";
 import MoveProcessModal from "../MoveProcessModal";
 import { useAssessment } from "@/context/AssessmentContext";
-import { getOrganizationRisks } from "@/pages/api/organization";
-import { ProcessUnit, Risk } from "@/types/assessment";
+import { getOrganizationAssets } from "@/pages/api/organization";
+import { ProcessUnit, Asset } from "@/types/assessment";
 
-const DragDropRiskScenarios = () => {
+const DragDropAssets = () => {
   const { selectedOrg, selectedProcesses, setSelectedProcesses } =
     useAssessment();
 
-  const [riskPool, setRiskPool] = useState<Risk[]>([]);
+  const [assetPool, setAssetPool] = useState<Asset[]>([]);
 
   const [processes, setProcesses] = useState<ProcessUnit[]>(selectedProcesses);
 
-  const [selectedRisks, setSelectedRisks] = useState<string[]>([]);
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [activeProcessId, setActiveProcessId] = useState<string | null>(null);
   const [activeProcessName, setActiveProcessName] = useState<string | null>(
@@ -28,8 +28,8 @@ const DragDropRiskScenarios = () => {
 
   useEffect(() => {
     const getOrg = async () => {
-      const res = await getOrganizationRisks(selectedOrg);
-      setRiskPool(res.data);
+      const res = await getOrganizationAssets(selectedOrg);
+      setAssetPool(res.data);
     };
 
     getOrg();
@@ -45,42 +45,42 @@ const DragDropRiskScenarios = () => {
         p.orgProcessId === processId
           ? {
               ...p,
-              risks: p.risks.filter(
-                (r) => !selectedRisks.includes(r.orgRiskId)
+              assets: p.assets.filter(
+                (r) => !selectedAssets.includes(r.orgAssetId)
               ),
             }
           : p
       )
     );
 
-    setSelectedRisks([]);
+    setSelectedAssets([]);
 
-    const deletedRisks =
+    const deletedAssets =
       processes
         .find((p) => p.orgProcessId === processId)
-        ?.risks.filter((r) => selectedRisks.includes(r.orgRiskId)) || [];
+        ?.assets.filter((r) => selectedAssets.includes(r.orgAssetId)) || [];
 
-    if (deletedRisks.length > 0) {
-      setRiskPool((prev) => [...prev, ...deletedRisks]);
+    if (deletedAssets.length > 0) {
+      setAssetPool((prev) => [...prev, ...deletedAssets]);
     }
   };
 
-  const handleDelete = (processId: string, riskId: string) => {
+  const handleDelete = (processId: string, assetId: string) => {
     setProcesses((prev) =>
       prev.map((p) =>
         p.orgProcessId === processId
           ? {
               ...p,
-              risks: p.risks.filter((r) => r.orgRiskId !== riskId),
+              assets: p.assets.filter((r) => r.orgAssetId !== assetId),
             }
           : p
       )
     );
-    const deletedRisk = processes
+    const deletedAsset = processes
       .find((p) => p.orgProcessId === processId)
-      ?.risks.find((r) => r.orgRiskId === riskId);
-    if (deletedRisk) {
-      setRiskPool((prev) => [...prev, deletedRisk]);
+      ?.assets.find((r) => r.orgAssetId === assetId);
+    if (deletedAsset) {
+      setAssetPool((prev) => [...prev, deletedAsset]);
     }
   };
 
@@ -99,27 +99,29 @@ const DragDropRiskScenarios = () => {
       const fromProcess = prev.find((p) => p.orgProcessId === fromProcessId);
       if (!fromProcess) return prev;
 
-      const movingRisks = fromProcess.risks.filter((r: { orgRiskId: string }) =>
-        selectedRisks.includes(r.orgRiskId)
+      const movingAssets = fromProcess.assets.filter(
+        (r: { orgAssetId: string }) => selectedAssets.includes(r.orgAssetId)
       );
 
       return prev.map((p) => {
         if (p.orgProcessId === fromProcessId) {
           return {
             ...p,
-            risks: p.risks.filter((r) => !selectedRisks.includes(r.orgRiskId)),
+            assets: p.assets.filter(
+              (r) => !selectedAssets.includes(r.orgAssetId)
+            ),
           };
         }
         if (p.orgProcessId === toProcessId) {
           return {
             ...p,
-            risks: [...(p.risks ?? []), ...(movingRisks ?? [])],
+            assets: [...(p.assets ?? []), ...(movingAssets ?? [])],
           };
         }
         return p;
       });
     });
-    setSelectedRisks([]);
+    setSelectedAssets([]);
     setActiveProcessId(null);
     setMoveModalOpen(false);
   };
@@ -128,16 +130,16 @@ const DragDropRiskScenarios = () => {
     const { active, over } = event;
     if (!over) return;
 
-    const draggedRisk = riskPool.find((r) => r.orgRiskId === active.id);
-    if (!draggedRisk) return;
+    const draggedAsset = assetPool.find((r) => r.orgAssetId === active.id);
+    if (!draggedAsset) return;
 
-    if (over.id !== "risk-pool") {
-      setRiskPool((prev) => prev.filter((r) => r.orgRiskId !== active.id));
+    if (over.id !== "asset-pool") {
+      setAssetPool((prev) => prev.filter((r) => r.orgAssetId !== active.id));
 
       setProcesses((prev) =>
         prev.map((p) =>
           p.orgProcessId === over.id
-            ? { ...p, risks: [...(p.risks ?? []), draggedRisk] }
+            ? { ...p, assets: [...(p.assets ?? []), draggedAsset] }
             : p
         )
       );
@@ -148,15 +150,15 @@ const DragDropRiskScenarios = () => {
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <RiskScenarioPool riskPool={riskPool} />
+          <AssetPool assetPool={assetPool} />
         </Grid>
         <Grid size={{ xs: 12, md: 8 }}>
           {processes.map((process) => (
-            <ProcessCardRisk
+            <ProcessCardAsset
               key={process.orgProcessId}
               process={process}
-              selectedRisks={selectedRisks}
-              setSelectedRisks={setSelectedRisks}
+              selectedAssets={selectedAssets}
+              setSelectedAssets={setSelectedAssets}
               onDelete={handleDelete}
               onDeleteBulk={handleDeleteBulk}
               onMoveSelected={handleMoveSelected}
@@ -172,10 +174,10 @@ const DragDropRiskScenarios = () => {
         fromProcessId={activeProcessId}
         fromProcessName={activeProcessName}
         onMove={confirmMove}
-        title="Risk Scenario"
+        title="Asset"
       />
     </DndContext>
   );
 };
 
-export default DragDropRiskScenarios;
+export default DragDropAssets;
