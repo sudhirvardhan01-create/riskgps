@@ -10,6 +10,12 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         field: "role_id",
       },
+      roleKey: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        field: "role_key",
+      },
       name: {
         type: DataTypes.STRING,
         allowNull: false,

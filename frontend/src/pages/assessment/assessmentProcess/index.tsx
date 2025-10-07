@@ -27,8 +27,10 @@ import {
   ProcessUnit,
 } from "@/types/assessment";
 import Cookies from "js-cookie";
+import withAuth from "@/hoc/withAuth";
+import DragDropAssets from "@/components/Assessment/DragDropAssets";
 
-export default function BUProcessMappingPage() {
+function BUProcessMappingPage() {
   const {
     assessmentId,
     assessmentName,
@@ -45,6 +47,7 @@ export default function BUProcessMappingPage() {
     "BU to Process Mapping",
     "Process to Risk Scenarios Mapping",
     "Business Impact",
+    "Process to Asset Mapping",
   ];
 
   const stepsTab = [
@@ -75,6 +78,7 @@ export default function BUProcessMappingPage() {
         const response = await getOrganizationProcess(selectedOrg, selectedBU);
         response.data.forEach((item: any) => {
           item["risks"] = [];
+          item["assets"] = [];
         });
         setProcesses(response.data);
       } catch (error) {
@@ -199,6 +203,10 @@ export default function BUProcessMappingPage() {
             riskScenarios: riskTaxonomies,
           });
           break;
+
+        case 3:
+          console.log("clicked asset function");
+          break;
       }
 
       setActiveStep((prev) => prev + 1);
@@ -267,6 +275,7 @@ export default function BUProcessMappingPage() {
 
               {activeStep === 1 && <DragDropRiskScenarios />}
               {activeStep === 2 && <BusinessImpact />}
+              {activeStep === 3 && <DragDropAssets />}
             </Box>
           </Box>
 
@@ -292,3 +301,5 @@ export default function BUProcessMappingPage() {
     </>
   );
 }
+
+export default withAuth(BUProcessMappingPage);

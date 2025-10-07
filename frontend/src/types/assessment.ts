@@ -53,10 +53,18 @@ export interface Risk {
   taxonomy?: Taxonomy[];
 }
 
+export interface Asset {
+  orgAssetId: string;
+  assessmentProcessAssetId?: string;
+  name: string;
+  description: string;
+}
+
 export interface ProcessUnit {
   assessmentProcessId: string;
   orgProcessId: string;
   name: string;
   order?: number;
   risks: Risk[];
+  assets: Asset[];
 }

@@ -1,5 +1,6 @@
 import { Box, Typography, IconButton } from "@mui/material";
 import { KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
+import { ORG_COLUMN_TEMPLATE } from "@/constants/constant";
 
 interface OrgHeaderProps {
   onSort?: (field: string) => void;
@@ -18,32 +19,19 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
     }
   };
 
-  const getSortIcon = (field: string) => {
-    if (sortField !== field) return null;
-    
-    return sortDirection === 'asc' ? (
-      <KeyboardArrowUp fontSize="small" />
-    ) : (
-      <KeyboardArrowDown fontSize="small" />
-    );
-  };
 
   return (
     <Box
       sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: 3,
-        py: 2,
+        display: "grid",
+        gridTemplateColumns: ORG_COLUMN_TEMPLATE,
         backgroundColor: "#91939A",
-        borderRadius: "4px",
-        height: "40px",
-        gap: "24px",
-        flexWrap: { xs: "wrap", md: "nowrap" },
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
+        borderRadius: 1,
+        px: 2,
+        py: 1,
+        alignItems: "center",
+        gap: 2,
+        width: "100%",
       }}
     >
       {/* Org Name Column */}
@@ -52,7 +40,6 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
           display: "flex",
           alignItems: "center",
           gap: 1,
-          flex: "0 0 170px",
           height: "20px",
         }}
       >
@@ -67,7 +54,7 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
           onClick={() => handleSort('name')}
           sx={{
             padding: 0,
-            color: sortField === 'name' ? '#FFFFFF' : '#91939A',
+            color: '#FFFFFF',
             '&:hover': {
               backgroundColor: 'transparent',
               color: '#FFFFFF'
@@ -76,95 +63,61 @@ const OrgHeader: React.FC<OrgHeaderProps> = ({
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <KeyboardArrowUp
-              sx={{ 
+              sx={{
                 fontSize: '16px',
-                opacity: sortField === 'name' && sortDirection === 'asc' ? 1 : 0.3,
-                color: sortField === 'name' && sortDirection === 'asc' ? '#FFFFFF' : '#91939A'
-              }} 
+                opacity: sortField === 'name' && sortDirection === 'asc' ? 1 : 0.6,
+                color: sortField === 'name' && sortDirection === 'asc' ? '#FFFFFF' : '#FFFFFF'
+              }}
             />
-            <KeyboardArrowDown 
-              sx={{ 
+            <KeyboardArrowDown
+              sx={{
                 fontSize: '16px',
                 marginTop: '-4px',
-                opacity: sortField === 'name' && sortDirection === 'desc' ? 1 : 0.3,
-                color: sortField === 'name' && sortDirection === 'desc' ? '#FFFFFF' : '#91939A'
-              }} 
+                opacity: sortField === 'name' && sortDirection === 'desc' ? 1 : 0.6,
+                color: sortField === 'name' && sortDirection === 'desc' ? '#FFFFFF' : '#FFFFFF'
+              }}
             />
           </Box>
         </IconButton>
       </Box>
 
       {/* Tags Column */}
-      <Box
-        sx={{
-          flex: "0 0 320px",
-          height: "18px",
-          display: "flex",
-          alignItems: "center",
-        }}
+      <Typography
+        variant="body1"
+        fontWeight={600}
+        color="#FFFFFF"
       >
-        <Typography
-          variant="body1"
-          fontWeight={600}
-          color="#FFFFFF"
-        >
-          Tags
-        </Typography>
-      </Box>
+        Tags
+      </Typography>
 
       {/* Org Members Column */}
-      <Box
-        sx={{
-          flex: "0 0 100px",
-          height: "18px",
-          display: "flex",
-          alignItems: "center",
-        }}
+      <Typography
+        variant="body1"
+        fontWeight={600}
+        color="#FFFFFF"
+        textAlign="center"
       >
-        <Typography
-          variant="body1"
-          fontWeight={600}
-          color="#FFFFFF"
-        >
-          Org Members
-        </Typography>
-      </Box>
+        Org Members
+      </Typography>
 
       {/* Business Units Column */}
-      <Box
-        sx={{
-          flex: "0 0 270px",
-          height: "18px",
-          display: "flex",
-          alignItems: "center",
-        }}
+      <Typography
+        variant="body1"
+        fontWeight={600}
+        color="#FFFFFF"
       >
-        <Typography
-          variant="body1"
-          fontWeight={600}
-          color="#FFFFFF"
-        >
-          Business Units
-        </Typography>
-      </Box>
+        Business Units
+      </Typography>
 
       {/* Status Column */}
-      <Box
-        sx={{
-          flex: "0 0 200px",
-          height: "18px",
-          display: "flex",
-          alignItems: "center",
-        }}
+      <Typography
+        variant="body1"
+        fontWeight={600}
+        color="#FFFFFF"
+        textAlign="center"
       >
-        <Typography
-          variant="body1"
-          fontWeight={600}
-          color="#FFFFFF"
-        >
-          Status
-        </Typography>
-      </Box>
+        Status
+      </Typography>
     </Box>
   );
 };

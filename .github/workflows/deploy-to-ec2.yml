@@ -18,7 +18,7 @@ env:
   SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
   SSM_CREDS: /bluocean/creds
 
-jobs: 
+jobs:
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
@@ -122,6 +122,12 @@ jobs:
           ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
             "cd ${{ env.EC2_DEST_DIR }} && docker-compose up -d"
+
+      - name: Run Sequelize Seeders
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            cd /backend && docker compose exec -T backend npm run db:seed"
 
       - name: Clean up SSH key
         run: |
