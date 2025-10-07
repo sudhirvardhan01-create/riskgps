@@ -21,6 +21,7 @@ interface MoveProcessModalProps {
   fromProcessId: string | null;
   fromProcessName: string | null;
   onMove: (fromProcessId: string | null, toProcessId: string) => void;
+  title: string;
 }
 
 const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
@@ -30,6 +31,7 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
   fromProcessId,
   fromProcessName,
   onMove,
+  title,
 }) => {
   const [selected, setSelected] = React.useState<string>("");
 
@@ -50,21 +52,20 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
         paper: {
           sx: {
             borderRadius: 2,
-            m: 0
-          }
-        }
+            m: 0,
+          },
+        },
       }}
     >
       <DialogTitle sx={{ p: 3 }}>
         <Typography variant="body1" fontWeight={600}>
-          Move Risk Scenario
+          Move {title}
         </Typography>
       </DialogTitle>
 
       <Divider />
 
       <DialogContent sx={{ p: 3 }}>
-
         <Typography variant="body2" sx={{ pb: 3 }}>
           Current Location: <strong>{fromProcessName}</strong>
         </Typography>
@@ -95,7 +96,11 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
                   />
                 }
                 label={
-                  <Typography variant="body2" color="text.primary" fontWeight={600}>
+                  <Typography
+                    variant="body2"
+                    color="text.primary"
+                    fontWeight={600}
+                  >
                     {process.name}
                   </Typography>
                 }
@@ -116,11 +121,7 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 0 }}>
-        <Button
-          variant="outlined"
-          onClick={onClose}
-          sx={{ borderRadius: 1 }}
-        >
+        <Button variant="outlined" onClick={onClose} sx={{ borderRadius: 1 }}>
           Cancel
         </Button>
         <Button

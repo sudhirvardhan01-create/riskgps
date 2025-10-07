@@ -174,6 +174,7 @@ const DragDropAssets = () => {
         fromProcessId={activeProcessId}
         fromProcessName={activeProcessName}
         onMove={confirmMove}
+        title="Asset"
       />
     </DndContext>
   );

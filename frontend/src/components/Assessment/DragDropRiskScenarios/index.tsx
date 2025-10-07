@@ -172,6 +172,7 @@ const DragDropRiskScenarios = () => {
         fromProcessId={activeProcessId}
         fromProcessName={activeProcessName}
         onMove={confirmMove}
+        title="Risk Scenario"
       />
     </DndContext>
   );
