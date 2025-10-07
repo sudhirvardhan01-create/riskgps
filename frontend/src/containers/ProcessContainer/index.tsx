@@ -14,24 +14,24 @@ import { Filter } from "@/types/filter";
 import { FileService } from "@/services/fileService";
 
 const initialProcessData: ProcessData = {
-    processName: "",
-    processDescription: "",
-    seniorExecutiveOwnerName: "",
-    seniorExecutiveOwnerEmail: "",
-    operationsOwnerName: "",
-    operationsOwnerEmail: "",
-    technologyOwnerName: "",
-    technologyOwnerEmail: "",
-    organizationalRevenueImpactPercentage: 0,
-    financialMateriality: false,
-    thirdPartyInvolvement: false,
-    users: "",
-    requlatoryAndCompliance: [],
-    criticalityOfDataProcessed: "",
-    dataProcessed: [],
-    processDependency: [],
-    status: "",
-  }
+  processName: "",
+  processDescription: "",
+  seniorExecutiveOwnerName: "",
+  seniorExecutiveOwnerEmail: "",
+  operationsOwnerName: "",
+  operationsOwnerEmail: "",
+  technologyOwnerName: "",
+  technologyOwnerEmail: "",
+  organizationalRevenueImpactPercentage: 0,
+  financialMateriality: false,
+  thirdPartyInvolvement: false,
+  users: "",
+  requlatoryAndCompliance: [],
+  criticalityOfDataProcessed: "",
+  dataProcessed: [],
+  processDependency: [],
+  status: "",
+};
 
 const sortItems = [
   { label: "Process ID (Ascending)", value: "id:asc" },
@@ -46,7 +46,11 @@ const sortItems = [
 
 const breadcrumbItems = [
   // keep the same breadcrumb behavior from original page
-  { label: "Library", onClick: () => (window.location.href = "/library") , icon: <ArrowBack fontSize="small" /> },
+  {
+    label: "Library",
+    onClick: () => (window.location.href = "/library"),
+    icon: <ArrowBack fontSize="small" />,
+  },
   { label: "Process" },
 ];
 
@@ -56,15 +60,17 @@ export default function ProcessContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>('id:asc');
-  const [searchPattern, setSearchPattern] = useState<string> ();
+  const [sort, setSort] = useState<string>("id:asc");
+  const [searchPattern, setSearchPattern] = useState<string>();
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
-  const [processForListing, setProcessForListing] = useState<any[]>([]);;
+  const [processForListing, setProcessForListing] = useState<any[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filter[]>([]);
 
-  const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(null);
+  const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(
+    null
+  );
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -74,26 +80,43 @@ export default function ProcessContainer() {
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  const [toast, setToast] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" });
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "info",
+  });
 
-    //Related to Import/Export
+  //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<ProcessData>(initialProcessData);
 
-  // fetch list
+  const [processFilters, setProcessFilters] = useState<
+    { key: string; name: string; values: string[] }[]
+  >([]);
   const loadList = useCallback(async () => {
     try {
-      console.log(filters)
+      console.log(filters);
       setLoading(true);
-      const data = await ProcessService.fetch(page, rowsPerPage, searchPattern as string, sort, statusFilters, filters);
+      const data = await ProcessService.fetch(
+        page,
+        rowsPerPage,
+        searchPattern as string,
+        sort,
+        statusFilters,
+        filters
+      );
       setProcessesData(data?.data ?? []);
-      
+
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to fetch process", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to fetch process",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -108,13 +131,39 @@ export default function ProcessContainer() {
     (async () => {
       try {
         setLoading(true);
-        const [processesForListing, meta] = await Promise.all([ProcessService.fetchProcessesForListing() ,fetchMetaDatas()]);
-        setProcessForListing(processesForListing.data ?? [])
+        const [processesForListing, meta] = await Promise.all([
+          ProcessService.fetchProcessesForListing(),
+          fetchMetaDatas(),
+        ]);
+        setProcessForListing(processesForListing.data ?? []);
         setMetaDatas(meta.data ?? []);
-        console.log(meta.data)
+        // find "Industry" metadata
+        const industryMeta = meta.data?.find(
+          (m: any) => m?.name?.toLowerCase() === "industry"
+        );
+
+        const baseFilters = [...processFilters];
+
+        if (
+          industryMeta &&
+          !baseFilters.some((f) => f.key === industryMeta.name)
+        ) {
+          baseFilters.push({
+            key: industryMeta.name,
+            name: industryMeta.name,
+            values: industryMeta.supported_values ?? [],
+          });
+        }
+
+        // update state
+        setProcessFilters(baseFilters);
       } catch (err) {
         console.error(err);
-        setToast({ open: true, message: "Failed to fetch supporting data", severity: "error" });
+        setToast({
+          open: true,
+          message: "Failed to fetch supporting data",
+          severity: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -126,20 +175,30 @@ export default function ProcessContainer() {
     try {
       const req = { ...formData, status };
       console.log(req);
-      await  ProcessService.create(req);
+      await ProcessService.create(req);
       setFormData(initialProcessData);
       setIsAddOpen(false);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: `Success! Process ${status === "published" ? "published" : "saved as draft"}`, severity: "success" });
+      setToast({
+        open: true,
+        message: `Success! Process ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to create process", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to create process",
+        severity: "error",
+      });
     }
   };
 
   // Update
   const handleUpdate = async (status: string) => {
-    console.log(selectedProcess)
+    console.log(selectedProcess);
     try {
       if (!selectedProcess?.id) throw new Error("Invalid selection");
       const body = { ...selectedProcess, status };
@@ -150,7 +209,11 @@ export default function ProcessContainer() {
       setToast({ open: true, message: "Process updated", severity: "success" });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to update process", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to update process",
+        severity: "error",
+      });
     }
   };
 
@@ -162,7 +225,11 @@ export default function ProcessContainer() {
       setToast({ open: true, message: "Status updated", severity: "success" });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to update status", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to update status",
+        severity: "error",
+      });
     }
   };
 
@@ -174,10 +241,18 @@ export default function ProcessContainer() {
       setIsDeleteConfirmOpen(false);
       setSelectedProcess(null);
       setRefreshTrigger((p) => p + 1);
-      setToast({ open: true, message: `Deleted BP-${selectedProcess?.id}`, severity: "success" });
+      setToast({
+        open: true,
+        message: `Deleted BP-${selectedProcess?.id}`,
+        severity: "success",
+      });
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to delete process", severity: "error" });
+      setToast({
+        open: true,
+        message: "Failed to delete process",
+        severity: "error",
+      });
     }
   };
 
@@ -185,52 +260,54 @@ export default function ProcessContainer() {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-     //Function to export the assets
-    const handleExportProcess = async () => {
-      try {
-        await FileService.exportLibraryDataCSV("process");
-        setToast({
-          open: true,
-          message: `process exported successfully`,
-          severity: "success",
-        });
-      } catch (error) {
-        console.error(error);
-        setToast({
-          open: true,
-          message: "Error: unable to export the process",
-          severity: "error",
-        });
-      }
+  //Function to export the assets
+  const handleExportProcess = async () => {
+    try {
+      await FileService.exportLibraryDataCSV("process");
+      setToast({
+        open: true,
+        message: `process exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the process",
+        severity: "error",
+      });
     }
-  
-      //Function to import the process
-    const handleImportProcess = async () => {
-      try {
-        if (!file) {
-          throw new Error("File not found")
-        }
-        await FileService.importLibraryDataCSV("process", file as File);
-        setIsFileUploadOpen(false);
-        setToast({
-          open: true,
-          message: `process Imported successfully`,
-          severity: "success",
-        });
-      } catch (error) {
-        console.error(error);
-        setToast({
-          open: true,
-          message: "Error: unable to download the import process from file",
-          severity: "error",
-        });
+  };
+
+  //Function to import the process
+  const handleImportProcess = async () => {
+    try {
+      if (!file) {
+        throw new Error("File not found");
       }
+      await FileService.importLibraryDataCSV("process", file as File);
+      setIsFileUploadOpen(false);
+      setToast({
+        open: true,
+        message: `process Imported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to download the import process from file",
+        severity: "error",
+      });
     }
+  };
 
   //Function to download the process template file
   const handledownloadProcessTemplateFile = async () => {
@@ -249,12 +326,12 @@ export default function ProcessContainer() {
         severity: "error",
       });
     }
-  }
+  };
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas,
+      metaDatas: processFilters,
       addButtonText: "Add Process",
       addAction: () => setIsAddOpen(true),
       sortItems,
@@ -275,8 +352,9 @@ export default function ProcessContainer() {
       statusFilters,
       setStatusFilters,
       filters,
-      setFilters
-    }),[statusFilters, filters, metaDatas, file, isFileUploadOpen]
+      setFilters,
+    }),
+    [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
   return (
@@ -379,7 +457,7 @@ export default function ProcessContainer() {
 
       {/* Page content */}
       <Box p={5}>
-        {<LibraryHeader {...headerProps} /> }
+        {<LibraryHeader {...headerProps} />}
         <ProcessList
           loading={loading}
           data={processesData}
@@ -400,12 +478,15 @@ export default function ProcessContainer() {
         open={toast.open}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
         message={toast.message}
-        toastBorder={toast.severity === "success" ? "1px solid #147A50" : undefined}
+        toastBorder={
+          toast.severity === "success" ? "1px solid #147A50" : undefined
+        }
         toastColor={toast.severity === "success" ? "#147A50" : undefined}
-        toastBackgroundColor={toast.severity === "success" ? "#DDF5EB" : undefined}
+        toastBackgroundColor={
+          toast.severity === "success" ? "#DDF5EB" : undefined
+        }
         toastSeverity={toast.severity}
       />
-      
     </>
   );
 }

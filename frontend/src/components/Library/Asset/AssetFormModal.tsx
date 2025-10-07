@@ -518,7 +518,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/*Cloud Service Provider */}
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
-              value={assetFormData.cloudServiceProvider}
+              value={assetFormData.cloudServiceProvider ?? []}
               multiple
               label={labels.cloudServiceProvider}
               isTooltipRequired={true}
@@ -528,7 +528,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 handleChange("cloudServiceProvider", e.target.value as string[])
               }
               renderValue={(selected: any) => {
-                if (selected?.length === 0) {
+                if (!selected || selected?.length === 0) {
                   return (
                     <Typography
                       variant="body1"
@@ -549,7 +549,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                         textTransform: "capitalize",
                       }}
                     >
-                      {selected.join(", ")}
+                      {selected?.join(", ")}
                     </Typography>
                   );
                 }

@@ -19,6 +19,7 @@ router.post("/register", async (req, res) => {
             },
         });
     } catch (err) {
+        console.log("error in register", err)
         res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
             error: err.message,
         });

@@ -61,7 +61,7 @@ export default function AssetContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>('asset_code:asc');
+  const [sort, setSort] = useState<string>("asset_code:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
   const [assetsData, setAssetsData] = useState<AssetForm[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
@@ -69,7 +69,7 @@ export default function AssetContainer() {
   const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
-   const [selectedAsset, setSelectedAsset] = useState<AssetForm | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<AssetForm | null>(null);
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -85,18 +85,62 @@ export default function AssetContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [assetFormData, setAssetFormData] = useState<AssetForm>(initialAssetFormData);
+  const [assetFormData, setAssetFormData] =
+    useState<AssetForm>(initialAssetFormData);
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
+  const assetFilterCategories = [
+    {
+      key: "asset_category",
+      name: "Asset Category",
+      values: [
+        "Windows",
+        "macOS",
+        "Linux",
+        "Office 365",
+        "Azure AD",
+        "Google Workspace",
+        "SaaS",
+        "IaaS",
+        "Network Devices",
+        "Containers",
+        "Android",
+        "iOS",
+      ],
+    },
+    {
+      key: "cloud_service_provider",
+      name: "Cloud Service Provider",
+      values: ["AWS", "Azure", "Google Cloud Platform", "Other"],
+    },
+    {
+      key: "hosting",
+      name: "Hosting",
+      values: ["SaaS", "PaaS", "IaaS", "On-Premise"],
+    },
+    {
+      key: "hosting_facility",
+      name: "Hosting Facility",
+      values: ["Public Cloud", "Private Cloud", "N/A"],
+    },
+  ];
+
   // fetch list
   const loadList = useCallback(async () => {
     try {
-      console.log(filters,"Aaa");
+      console.log(filters, "Aaa");
       setLoading(true);
-      const data = await AssetService.fetch(page, rowsPerPage, searchPattern as string, sort, statusFilters, filters);
+      const data = await AssetService.fetch(
+        page,
+        rowsPerPage,
+        searchPattern as string,
+        sort,
+        statusFilters,
+        filters
+      );
       setAssetsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
@@ -239,7 +283,7 @@ export default function AssetContainer() {
     setPage(0);
   };
 
-    //Function to export the assets
+  //Function to export the assets
   const handleExportAssets = async () => {
     try {
       await FileService.exportLibraryDataCSV("asset");
@@ -256,13 +300,13 @@ export default function AssetContainer() {
         severity: "error",
       });
     }
-  }
+  };
 
-    //Function to import the assets
+  //Function to import the assets
   const handleImportAssets = async () => {
     try {
       if (!file) {
-        throw new Error("File not found")
+        throw new Error("File not found");
       }
       await FileService.importLibraryDataCSV("asset", file as File);
       setIsFileUploadOpen(false);
@@ -279,9 +323,9 @@ export default function AssetContainer() {
         severity: "error",
       });
     }
-  }
+  };
 
-    //Function to download the assets template file
+  //Function to download the assets template file
   const handledownloadAssetsTemplateFile = async () => {
     try {
       await FileService.dowloadCSVTemplate("asset");
@@ -298,12 +342,12 @@ export default function AssetContainer() {
         severity: "error",
       });
     }
-  }
+  };
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas,
+      metaDatas: assetFilterCategories,
       addButtonText: "Add Asset",
       addAction: () => setIsAddOpen(true),
       sortItems,
@@ -325,23 +369,31 @@ export default function AssetContainer() {
       statusFilters,
       setStatusFilters,
       filters,
-      setFilters
+      setFilters,
     }),
     [statusFilters, filters, metaDatas, file, isFileUploadOpen]
   );
 
   //Function for Form Validation
   const handleFormValidation = async (status: string) => {
-    try{
-      const res = await AssetService.fetch(0, 1, assetFormData.applicationName.trim(), "asset_code:asc");
-      if(res.data?.length > 0 && res.data[0].applicationName === assetFormData.applicationName.trim()){
-      setToast({
-        open: true,
-        message: `Asset Name already exists`,
-        severity: "error",
-      });
-      }else{
-        handleCreate(status)
+    try {
+      const res = await AssetService.fetch(
+        0,
+        1,
+        assetFormData.applicationName.trim(),
+        "asset_code:asc"
+      );
+      if (
+        res.data?.length > 0 &&
+        res.data[0].applicationName === assetFormData.applicationName.trim()
+      ) {
+        setToast({
+          open: true,
+          message: `Asset Name already exists`,
+          severity: "error",
+        });
+      } else {
+        handleCreate(status);
       }
     } catch (error) {
       console.error(error);
@@ -350,9 +402,8 @@ export default function AssetContainer() {
         message: "Failed to create asset",
         severity: "error",
       });
-    } 
-  }
-
+    }
+  };
 
   return (
     <>
