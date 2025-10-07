@@ -20,8 +20,8 @@ import { MetaData } from "@/types/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastComponent from "@/components/ToastComponent";
 import ViewMetaDataModal from "@/components/MetaData/ViewMetaDataModal";
-import MetaDataFormModal from "@/components/MetaData/MetaDataFormModal";
 import withAuth from "@/hoc/withAuth";
+import MetaDataFormModal from "@/components/MetaData/MetaDataFormModal";
 
 const Index = () => {
   const sortItems = [

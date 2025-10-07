@@ -75,11 +75,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
         <Grid container spacing={3}>
           <Grid size={{ xs: 12 }}>
             <Box gap={"6px"}>
-              <Typography
-                variant="body2"
-                color="#91939A"
-                fontWeight={550}
-              >
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
                 Key
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
@@ -89,11 +85,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
           </Grid>
           <Grid size={{ xs: 12 }}>
             <Box gap={"6px"}>
-              <Typography
-                variant="body2"
-                color="#91939A"
-                fontWeight={550}
-              >
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
                 Values
               </Typography>
               <Stack direction="row" flexWrap="wrap" mt="4px">
@@ -128,11 +120,7 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
           </Grid>
           <Grid size={{ xs: 6 }}>
             <Box>
-              <Typography
-                variant="body2"
-                color="#91939A"
-                fontWeight={550}
-              >
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
                 Input Type
               </Typography>
               <Typography
@@ -147,21 +135,19 @@ const ViewMetaDataModal: React.FC<ViewMetaDataModalProps> = ({
           </Grid>
           <Grid size={{ xs: 6 }}>
             <Box>
-              <Typography
-                variant="body2"
-                color="#91939A"
-                fontWeight={550}
-              >
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
                 Applies To
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                { metaData.applies_to && metaData.applies_to?.length > 0 ? metaData.applies_to
-                  ?.map((item) => {
-                    return appliesToOptions?.find(
-                      (option) => option.value === item
-                    )?.label;
-                  })
-                  .join(", ") : "-"}
+                {metaData.applies_to && metaData.applies_to?.length > 0
+                  ? metaData.applies_to
+                      ?.map((item) => {
+                        return appliesToOptions?.find(
+                          (option) => option.value === item
+                        )?.label;
+                      })
+                      .join(", ")
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
