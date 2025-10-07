@@ -1,4 +1,4 @@
-﻿const { commonFields } = require("../common_fields");
+﻿const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
     const Assessment = sequelize.define(
@@ -75,11 +75,6 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "last_activity",
             },
-            // userId: {
-            //     type: DataTypes.UUID,
-            //     allowNull: true,
-            //     field: "user_id",
-            // },
             ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, tenantId, status, etc.
         },
         {
@@ -102,22 +97,9 @@ module.exports = (sequelize, DataTypes) => {
             as: "businessUnit",
         });
 
-        // User Relation
-        // Assessment.belongsTo(models.User, {
-        //     foreignKey: "userId",
-        //     as: "user",
-        // });
-
-        // CreatedBy Relation
-        Assessment.belongsTo(models.User, {
-            foreignKey: "createdBy",
-            as: "creator",
-        });
-
-        // ModifiedBy Relation
-        Assessment.belongsTo(models.User, {
-            foreignKey: "modifiedBy",
-            as: "modifier",
+        Assessment.hasMany(models.AssessmentProcess, {
+            foreignKey: "assessmentId",
+            as: "processes"
         });
     };
 

@@ -9,11 +9,20 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
+  Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { ThreatForm } from "@/types/threat";
+import { formatDate } from "@/utils/utility";
+import { labels } from "@/utils/labels";
 
 interface ViewThreatModalProps {
   open: boolean;
@@ -29,6 +38,12 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
   setSelectedThreat,
   onClose,
 }: ViewThreatModalProps) => {
+  const ciaMappingItems = [
+    { value: "C", label: "Confidentiality" },
+    { value: "I", label: "Integrity" },
+    { value: "A", label: "Availability" },
+  ];
+
   const getStatusComponent = () => {
     if (
       threatData.status === "published" ||
@@ -54,9 +69,15 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
         variant="outlined"
         size="small"
         color="primary"
-        sx={{ fontWeight: 550, borderRadius: 1, color:"primary.main", width: "96px", "& .MuiChip-icon": {
-          marginRight: "1px"
-        }}}
+        sx={{
+          fontWeight: 550,
+          borderRadius: 1,
+          color: "primary.main",
+          width: "96px",
+          "& .MuiChip-icon": {
+            marginRight: "1px",
+          },
+        }}
       />
     );
   };
@@ -130,6 +151,20 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
             </Box>
           </Grid>
 
+          {/* MITRE Technique ID */}
+          <Grid size={{ xs: 6 }}>
+            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+              <Typography variant="body2" color="#91939A" fontWeight={550}>
+                MITRE Technique ID
+              </Typography>
+              <Typography variant="body1" color="text.primary" fontWeight={500}>
+                {threatData.mitreTechniqueId
+                  ? threatData.mitreTechniqueId
+                  : "-"}
+              </Typography>
+            </Box>
+          </Grid>
+
           {/* MITRE Technique Name */}
           <Grid size={{ xs: 6 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
@@ -137,19 +172,29 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 MITRE Technique Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreTechniqueName ? threatData.mitreTechniqueName : "-"}
+                {threatData.mitreTechniqueName
+                  ? threatData.mitreTechniqueName
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
 
           {/* CIA Mapping */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <Box display={"flex"} flexDirection={"column"} gap={0.5}>
               <Typography variant="body2" color="#91939A" fontWeight={550}>
                 CIA Mapping
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.ciaMapping ? threatData.ciaMapping.join(", ") : "-"}
+                {threatData.ciaMapping
+                  ? threatData.ciaMapping
+                      ?.map((selectedItem) => {
+                        return ciaMappingItems.find(
+                          (item) => item.value === selectedItem
+                        )?.label;
+                      })
+                      .join(", ")
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -173,79 +218,60 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Sub Technique Name
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.subTechniqueName ? threatData.subTechniqueName : "-"}
+                {threatData.subTechniqueName
+                  ? threatData.subTechniqueName
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* MITRE Control ID */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control ID
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreControlId ? threatData.mitreControlId : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* MITRE Control Name */}
-            <Grid size={{ xs: 6 }}>
-              <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-                <Typography variant="body2" color="#91939A" fontWeight={550}>
-                  MITRE Control Name
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.primary"
-                  fontWeight={500}
-                >
-                  {threatData.mitreControlName ? threatData.mitreControlName : "-"}
-                </Typography>
-              </Box>
-            </Grid>
-
-          {/* MITRE Control Type */}
-          <Grid size={{ xs: 6 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control Type
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreControlType ? threatData.mitreControlType : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* MITRE Control Description */}
           <Grid size={{ xs: 12 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                MITRE Control Description
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.mitreControlDescription ? threatData.mitreControlDescription : "-"}
-              </Typography>
-            </Box>
+            <Paper sx={{ width: "100%", overflow: "hidden" }}>
+              <TableContainer sx={{ maxHeight: 440 }}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>MITRE Control ID</TableCell>
+                      <TableCell>MITRE Control Name</TableCell>
+                      <TableCell>MITRE Control Type</TableCell>
+                      <TableCell>MITRE Control Description</TableCell>
+                      <TableCell>BluOcean Control Description</TableCell>
+                      <TableCell>{labels.controlPriority}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {threatData.controls?.map((control, index) => {
+                      return (
+                        <TableRow
+                          hover
+                          role="checkbox"
+                          tabIndex={-1}
+                          key={index}
+                        >
+                          <TableCell>{control.mitreControlId}</TableCell>
+                          <TableCell>{control.mitreControlName}</TableCell>
+                          <TableCell>{control.mitreControlType}</TableCell>
+                          <TableCell>
+                            {control.mitreControlDescription}
+                          </TableCell>
+                          <TableCell>
+                            {control.bluOceanControlDescription}
+                          </TableCell>
+                          <TableCell>
+                            {control?.controlPriority ? control?.controlPriority : "-" }
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
           </Grid>
-
-          {/* BluOcean Control Description */}
-          <Grid size={{ xs: 12 }}>
-            <Box display={"flex"} flexDirection={"column"} gap={0.5}>
-              <Typography variant="body2" color="#91939A" fontWeight={550}>
-                BluOcean Control Description
-              </Typography>
-              <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {threatData.bluOceanControlDescription ? threatData.bluOceanControlDescription : "-"}
-              </Typography>
-            </Box>
-          </Grid>
-
         </Grid>
       </DialogContent>
 
-      <DialogContent sx={{ paddingTop: 3, paddingBottom: 4.5 }}>
+      <DialogContent sx={{ paddingTop: 3, paddingBottom: 5.75 }}>
         <Grid
           container
           spacing={3}
@@ -271,7 +297,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                2 Jan, 2024
+                {threatData.created_at ? formatDate(threatData.created_at) : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -281,7 +307,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                8 Jan, 2024
+                {threatData.updated_at? formatDate(threatData.updated_at) : "-"}
               </Typography>
             </Box>
           </Grid>

@@ -26,19 +26,8 @@ import { useAssessment } from "@/context/AssessmentContext";
 import { useRouter } from "next/router";
 import { getOrganization } from "@/pages/api/organization";
 import { saveAssessment } from "@/pages/api/assessment";
-
-interface Organisation {
-  organizationId: string;
-  name: string;
-  desc: string;
-  businessUnits: BusinessUnit[];
-}
-
-interface BusinessUnit {
-  orgBusinessUnitId: string;
-  businessUnitName: string;
-  businessUnitDesc: string;
-}
+import { BusinessUnit, Organisation } from "@/types/assessment";
+import Cookies from "js-cookie";
 
 interface StartAssessmentModalProps {
   open: boolean;
@@ -113,10 +102,10 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
         orgName: selectedOrganization?.name,
         orgDesc: selectedOrganization?.desc,
         businessUnitId: selectedBussinessUnit?.orgBusinessUnitId,
-        businessUnitName: selectedBussinessUnit?.businessUnitName,
-        businessUnitDesc: selectedBussinessUnit?.businessUnitDesc,
+        businessUnitName: selectedBussinessUnit?.name,
+        businessUnitDesc: selectedBussinessUnit?.desc,
         runId: "1004",
-        userId: "2",
+        userId: JSON.parse(Cookies.get("user") ?? "")?.id,
       });
 
       setAssessmentId(res.data.assessmentId);
@@ -131,7 +120,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
   );
 
   const filteredBUs = businessUnits.filter((bu) =>
-    bu.businessUnitName.toLowerCase().includes(buSearch.toLowerCase())
+    bu.name.toLowerCase().includes(buSearch.toLowerCase())
   );
 
   return (
@@ -246,7 +235,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                     if (!val) return "Select Business Unit";
                     return (
                       businessUnits.find((b) => b.orgBusinessUnitId === val)
-                        ?.businessUnitName || ""
+                        ?.name || ""
                     );
                   }}
                   required
@@ -267,7 +256,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                       value={bu.orgBusinessUnitId}
                     >
                       <Radio checked={selectedBU === bu.orgBusinessUnitId} />
-                      {bu.businessUnitName}
+                      {bu.name}
                     </MenuItem>
                   ))}
                 </Select>

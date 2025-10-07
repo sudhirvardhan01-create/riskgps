@@ -1,51 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import { Grid } from "@mui/material";
 
 import RiskScenarioPool from "../RiskScenarioPool";
 import ProcessCardRisk from "../ProcessCardRisk";
 import MoveProcessModal from "../MoveProcessModal";
+import { useAssessment } from "@/context/AssessmentContext";
+import { getOrganizationRisks } from "@/pages/api/organization";
+import { ProcessUnit, Risk } from "@/types/assessment";
 
-interface Risk {
-  id: string;
-  title: string;
-}
+const DragDropRiskScenarios = () => {
+  const { selectedOrg, selectedProcesses, setSelectedProcesses } =
+    useAssessment();
 
-interface Process {
-  id: string;
-  name: string;
-  risks: Risk[];
-}
+  const [riskPool, setRiskPool] = useState<Risk[]>([]);
 
-const DragDropRiskScenarios: React.FC = () => {
-  const [riskPool, setRiskPool] = useState([
-    {
-      id: "1",
-      title:
-        "Patients cannot avail diagnostic facility because the devices are not operational for an extended period of time",
-    },
-    { id: "2", title: "Extended Outage of customer payment applications" },
-    { id: "3", title: "Incorrect data entry causes billing errors" },
-    {
-      id: "4",
-      title: "System downtime causes missed insurance claim deadlines",
-    },
-  ]);
-
-  const [processes, setProcesses] = useState<Process[]>([
-    {
-      id: "p1",
-      name: "Patient Admission Process",
-      risks: [],
-    },
-    {
-      id: "p2",
-      name: "Insurance Claim Process",
-      risks: [],
-    },
-  ]);
+  const [processes, setProcesses] = useState<ProcessUnit[]>(selectedProcesses);
 
   const [selectedRisks, setSelectedRisks] = useState<string[]>([]);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
@@ -54,14 +26,27 @@ const DragDropRiskScenarios: React.FC = () => {
     null
   );
 
+  useEffect(() => {
+    const getOrg = async () => {
+      const res = await getOrganizationRisks(selectedOrg);
+      setRiskPool(res.data);
+    };
+
+    getOrg();
+  }, []);
+
+  useEffect(() => {
+    setSelectedProcesses(processes);
+  }, [processes]);
+
   const handleDeleteBulk = (processId: string) => {
     setProcesses((prev) =>
       prev.map((p) =>
-        p.id === processId
+        p.orgProcessId === processId
           ? {
               ...p,
               risks: p.risks.filter(
-                (r) => !selectedRisks.includes(r.id)
+                (r) => !selectedRisks.includes(r.orgRiskId)
               ),
             }
           : p
@@ -72,9 +57,8 @@ const DragDropRiskScenarios: React.FC = () => {
 
     const deletedRisks =
       processes
-        .find((p) => p.id === processId)
-        ?.risks.filter((r) => selectedRisks.includes(r.id)) ||
-      [];
+        .find((p) => p.orgProcessId === processId)
+        ?.risks.filter((r) => selectedRisks.includes(r.orgRiskId)) || [];
 
     if (deletedRisks.length > 0) {
       setRiskPool((prev) => [...prev, ...deletedRisks]);
@@ -84,17 +68,17 @@ const DragDropRiskScenarios: React.FC = () => {
   const handleDelete = (processId: string, riskId: string) => {
     setProcesses((prev) =>
       prev.map((p) =>
-        p.id === processId
+        p.orgProcessId === processId
           ? {
               ...p,
-              risks: p.risks.filter((r) => r.id !== riskId),
+              risks: p.risks.filter((r) => r.orgRiskId !== riskId),
             }
           : p
       )
     );
     const deletedRisk = processes
-      .find((p) => p.id === processId)
-      ?.risks.find((r) => r.id === riskId);
+      .find((p) => p.orgProcessId === processId)
+      ?.risks.find((r) => r.orgRiskId === riskId);
     if (deletedRisk) {
       setRiskPool((prev) => [...prev, deletedRisk]);
     }
@@ -112,24 +96,25 @@ const DragDropRiskScenarios: React.FC = () => {
   const confirmMove = (fromProcessId: string | null, toProcessId: string) => {
     if (!activeProcessId) return;
     setProcesses((prev) => {
-      const fromProcess = prev.find((p) => p.id === fromProcessId);
+      const fromProcess = prev.find((p) => p.orgProcessId === fromProcessId);
       if (!fromProcess) return prev;
 
-      const movingRisks = fromProcess.risks.filter((r: { id: string }) =>
-        selectedRisks.includes(r.id)
+      const movingRisks = fromProcess.risks.filter((r: { orgRiskId: string }) =>
+        selectedRisks.includes(r.orgRiskId)
       );
 
       return prev.map((p) => {
-        if (p.id === fromProcessId) {
+        if (p.orgProcessId === fromProcessId) {
           return {
             ...p,
-            risks: p.risks.filter(
-              (r) => !selectedRisks.includes(r.id)
-            ),
+            risks: p.risks.filter((r) => !selectedRisks.includes(r.orgRiskId)),
           };
         }
-        if (p.id === toProcessId) {
-          return { ...p, risks: [...p.risks, ...movingRisks] };
+        if (p.orgProcessId === toProcessId) {
+          return {
+            ...p,
+            risks: [...(p.risks ?? []), ...(movingRisks ?? [])],
+          };
         }
         return p;
       });
@@ -143,17 +128,17 @@ const DragDropRiskScenarios: React.FC = () => {
     const { active, over } = event;
     if (!over) return;
 
-    const draggedRisk = riskPool.find(
-      (r) => r.id === active.id
-    );
+    const draggedRisk = riskPool.find((r) => r.orgRiskId === active.id);
     if (!draggedRisk) return;
 
     if (over.id !== "risk-pool") {
-      setRiskPool((prev) => prev.filter((r) => r.id !== active.id));
+      setRiskPool((prev) => prev.filter((r) => r.orgRiskId !== active.id));
 
       setProcesses((prev) =>
         prev.map((p) =>
-          p.id === over.id ? { ...p, risks: [...p.risks, draggedRisk] } : p
+          p.orgProcessId === over.id
+            ? { ...p, risks: [...(p.risks ?? []), draggedRisk] }
+            : p
         )
       );
     }
@@ -168,7 +153,7 @@ const DragDropRiskScenarios: React.FC = () => {
         <Grid size={{ xs: 12, md: 8 }}>
           {processes.map((process) => (
             <ProcessCardRisk
-              key={process.id}
+              key={process.orgProcessId}
               process={process}
               selectedRisks={selectedRisks}
               setSelectedRisks={setSelectedRisks}
@@ -187,6 +172,7 @@ const DragDropRiskScenarios: React.FC = () => {
         fromProcessId={activeProcessId}
         fromProcessName={activeProcessName}
         onMove={confirmMove}
+        title="Risk Scenario"
       />
     </DndContext>
   );

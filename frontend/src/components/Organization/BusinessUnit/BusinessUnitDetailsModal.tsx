@@ -17,25 +17,9 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import Image from "next/image";
 import DisableConfirmationModal from './DisableConfirmationModal';
 import AssessmentTable from '../../Assessment/AssessmentTable';
+import { Assessment } from '@/types/assessment';
 
-interface Assessment {
-  runId: string;
-  org: string;
-  industry: string;
-  name: string;
-  description: string;
-  startDate: string;
-  lastActivity: string;
-  endDate: string;
-  lastModifiedBy: {
-    name: string;
-    avatar: string;
-  };
-  status: {
-    progress: number;
-    closed?: boolean;
-  };
-}
+// Using the Assessment type from @/types/assessment
 
 interface BusinessUnitData {
   id: string;
@@ -131,90 +115,84 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   // Sample assessment data for testing
   const sampleAssessmentData: Assessment[] = [
     {
+      assessmentId: "1",
+      assessmentName: "Outpatient Services - Mar 23",
+      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
       runId: "8299",
-      org: businessUnit.businessUnitName,
-      industry: "Healthcare",
-      name: "Outpatient Services - Mar 23",
-      description: "Lorem Ipsum is simply dummy text of the printing.",
-      startDate: "10/02/2024",
-      lastActivity: "10/02/2024",
-      endDate: "-",
-      lastModifiedBy: {
-        name: "Karan Gautam",
-        avatar: "/memberImage.jpg",
-      },
-      status: {
-        progress: 100,
-        closed: true,
-      },
+      orgId: "org1",
+      orgName: businessUnit.businessUnitName,
+      orgDesc: "Healthcare Organization",
+      businessUnitId: businessUnit.id,
+      businessUnitName: businessUnit.businessUnitName,
+      businessUnitDesc: "Healthcare Business Unit",
+      status: "completed",
+      startDate: new Date("2024-02-10"),
+      endDate: new Date("2024-02-10"),
+      lastActivity: new Date("2024-02-10"),
     },
     {
+      assessmentId: "2",
+      assessmentName: "Outpatient Services - Mar 23",
+      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
       runId: "8299",
-      org: businessUnit.businessUnitName,
-      industry: "Healthcare",
-      name: "Outpatient Services - Mar 23",
-      description: "Lorem Ipsum is simply dummy text of the printing.",
-      startDate: "10/02/2024",
-      lastActivity: "10/02/2024",
-      endDate: "10/02/2024",
-      lastModifiedBy: {
-        name: "Karan Gautam",
-        avatar: "/memberImage.jpg",
-      },
-      status: {
-        progress: 61,
-      },
+      orgId: "org1",
+      orgName: businessUnit.businessUnitName,
+      orgDesc: "Healthcare Organization",
+      businessUnitId: businessUnit.id,
+      businessUnitName: businessUnit.businessUnitName,
+      businessUnitDesc: "Healthcare Business Unit",
+      status: "in_progress",
+      startDate: new Date("2024-02-10"),
+      endDate: new Date("2024-02-10"),
+      lastActivity: new Date("2024-02-10"),
     },
     {
+      assessmentId: "3",
+      assessmentName: "Outpatient Services - Mar 23",
+      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
       runId: "8299",
-      org: businessUnit.businessUnitName,
-      industry: "Healthcare",
-      name: "Outpatient Services - Mar 23",
-      description: "Lorem Ipsum is simply dummy text of the printing.",
-      startDate: "10/02/2024",
-      lastActivity: "10/02/2024",
-      endDate: "-",
-      lastModifiedBy: {
-        name: "Karan Gautam",
-        avatar: "/memberImage.jpg",
-      },
-      status: {
-        progress: 61,
-      },
+      orgId: "org1",
+      orgName: businessUnit.businessUnitName,
+      orgDesc: "Healthcare Organization",
+      businessUnitId: businessUnit.id,
+      businessUnitName: businessUnit.businessUnitName,
+      businessUnitDesc: "Healthcare Business Unit",
+      status: "in_progress",
+      startDate: new Date("2024-02-10"),
+      endDate: null,
+      lastActivity: new Date("2024-02-10"),
     },
     {
+      assessmentId: "4",
+      assessmentName: "Outpatient Services - Mar 23",
+      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
       runId: "8299",
-      org: businessUnit.businessUnitName,
-      industry: "Healthcare",
-      name: "Outpatient Services - Mar 23",
-      description: "Lorem Ipsum is simply dummy text of the printing.",
-      startDate: "10/02/2024",
-      lastActivity: "10/02/2024",
-      endDate: "-",
-      lastModifiedBy: {
-        name: "Karan Gautam",
-        avatar: "/memberImage.jpg",
-      },
-      status: {
-        progress: 61,
-      },
+      orgId: "org1",
+      orgName: businessUnit.businessUnitName,
+      orgDesc: "Healthcare Organization",
+      businessUnitId: businessUnit.id,
+      businessUnitName: businessUnit.businessUnitName,
+      businessUnitDesc: "Healthcare Business Unit",
+      status: "in_progress",
+      startDate: new Date("2024-02-10"),
+      endDate: null,
+      lastActivity: new Date("2024-02-10"),
     },
     {
+      assessmentId: "5",
+      assessmentName: "Outpatient Services - Mar 23",
+      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
       runId: "8299",
-      org: businessUnit.businessUnitName,
-      industry: "Healthcare",
-      name: "Outpatient Services - Mar 23",
-      description: "Lorem Ipsum is simply dummy text of the printing.",
-      startDate: "10/02/2024",
-      lastActivity: "10/02/2024",
-      endDate: "-",
-      lastModifiedBy: {
-        name: "Karan Gautam",
-        avatar: "/memberImage.jpg",
-      },
-      status: {
-        progress: 61,
-      },
+      orgId: "org1",
+      orgName: businessUnit.businessUnitName,
+      orgDesc: "Healthcare Organization",
+      businessUnitId: businessUnit.id,
+      businessUnitName: businessUnit.businessUnitName,
+      businessUnitDesc: "Healthcare Business Unit",
+      status: "in_progress",
+      startDate: new Date("2024-02-10"),
+      endDate: null,
+      lastActivity: new Date("2024-02-10"),
     },
   ];
 
@@ -560,6 +538,10 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                 onMenuClick={(event: React.MouseEvent<HTMLElement>, runId: string) => {
                   console.log('Menu clicked for runId:', runId);
                   // Handle menu click - you can add your logic here
+                }}
+                onCardClick={(runId: string) => {
+                  console.log('Card clicked for runId:', runId);
+                  // Handle card click - you can add your logic here
                 }}
                 variant="businessUnit"
                 businessUnitName={businessUnit.businessUnitName}

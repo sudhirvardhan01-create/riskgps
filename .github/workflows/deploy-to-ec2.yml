@@ -88,6 +88,7 @@ jobs:
           FRONTEND_IMAGE_url=${{ env.FRONTEND_IMAGE_url }}
           BACKEND_IMAGE_url=${{ env.BACKEND_IMAGE_url }}
           IMAGE_TAG=${{ env.IMAGE_TAG }}
+          NEXT_PUBLIC_API_URL=http://${{ env.PUBLIC_IP }}/api
           EOF
 
       - name: Create destination directory on EC2
@@ -121,6 +122,12 @@ jobs:
           ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
             "cd ${{ env.EC2_DEST_DIR }} && docker-compose up -d"
+
+      - name: Run Sequelize Seeders
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            cd /backend && docker compose exec -T backend npm run db:seed"
 
       - name: Clean up SSH key
         run: |

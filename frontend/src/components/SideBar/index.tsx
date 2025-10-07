@@ -14,12 +14,20 @@ const links = [
   { name: "Library", path: "/library", icon: <LibraryIcon /> },
   { name: "Assessment", path: "/assessment", icon: <AssessmentIcon /> },
   { name: "Reports", path: "/reports", icon: <ReportsIcon /> },
-  { name: "User Management", path: "/user-management", icon: <UserManagementIcon /> },
-  { name: "Org Management", path: "/org-management", icon: <OrgManagementIcon /> },
+  {
+    name: "User Management",
+    path: "/user-management",
+    icon: <UserManagementIcon />,
+  },
+  {
+    name: "Org Management",
+    path: "/org-management",
+    icon: <OrgManagementIcon />,
+  },
 ];
 
-const ACTIVE_BG = "#FFFFFF40";   // active background
-const HOVER_BG = "#FFFFFF26";    // hover background
+const ACTIVE_BG = "#FFFFFF40"; // active background
+const HOVER_BG = "#FFFFFF26"; // hover background
 
 const SideBar = () => {
   const router = useRouter();
@@ -31,7 +39,7 @@ const SideBar = () => {
       sx={{
         bgcolor: "primary.main",
         width: "100%",
-        height: "100vh",
+        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         pt: 1.5,
@@ -43,7 +51,9 @@ const SideBar = () => {
         // - For root path "/", only exact match is active.
         // - For other paths, any pathname that starts with link.path is considered active (so nested routes remain highlighted).
         const isActive =
-          link.path === "/" ? router.pathname === "/" : router.pathname.startsWith(link.path);
+          link.path === "/"
+            ? router.pathname === "/"
+            : router.pathname.startsWith(link.path);
 
         return (
           <Box

@@ -15,17 +15,13 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import AddIcon from "@mui/icons-material/Add";
 import { useDroppable } from "@dnd-kit/core";
 import FileMoveIcon from "@/icons/fileMove.svg";
+import { ProcessUnit } from "@/types/assessment";
 
 interface ProcessCardRiskProps {
-  process: {
-    id: string;
-    name: string;
-    risks: { id: string; title: string }[];
-  };
+  process: ProcessUnit;
   selectedRisks: string[];
   setSelectedRisks: React.Dispatch<React.SetStateAction<string[]>>;
   onDelete: (processId: string, riskId: string) => void;
@@ -41,21 +37,24 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
   onDeleteBulk,
   onMoveSelected,
 }) => {
-  const { setNodeRef } = useDroppable({ id: process.id });
+  const { setNodeRef } = useDroppable({ id: process.orgProcessId });
 
   const allSelected =
     process.risks.length > 0 &&
     process.risks.every(
-      (r) => selectedRisks.length > 0 && selectedRisks.includes(r.id)
+      (r) => selectedRisks.length > 0 && selectedRisks.includes(r.orgRiskId)
     );
 
   const toggleSelectAll = () => {
     if (allSelected) {
       setSelectedRisks((prev) =>
-        prev.filter((id) => !process.risks.find((r) => r.id === id))
+        prev.filter((id) => !process.risks.find((r) => r.orgRiskId === id))
       );
     } else {
-      setSelectedRisks((prev) => [...prev, ...process.risks.map((r) => r.id)]);
+      setSelectedRisks((prev) => [
+        ...prev,
+        ...process.risks.map((r) => r.orgRiskId),
+      ]);
     }
   };
 
@@ -122,7 +121,9 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                   size="small"
                   startIcon={<FileMoveIcon height={20} width={20} />}
                   sx={{ textTransform: "none" }}
-                  onClick={() => onMoveSelected(process.id, process.name)}
+                  onClick={() =>
+                    onMoveSelected(process.orgProcessId, process.name)
+                  }
                 >
                   Move Selected to Another Process
                 </Button>
@@ -136,7 +137,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                   }
                   color="error"
                   sx={{ textTransform: "none" }}
-                  onClick={() => onDeleteBulk(process.id)}
+                  onClick={() => onDeleteBulk(process.orgProcessId)}
                 >
                   Remove selected items
                 </Button>
@@ -164,7 +165,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
         >
           {process.risks.map((risk) => (
             <Paper
-              key={risk.id}
+              key={risk.orgRiskId}
               sx={{
                 bgcolor: "#fff",
                 borderRadius: "8px",
@@ -196,8 +197,8 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                       pt: 1.5,
                       pb: 1,
                     }}
-                    checked={selectedRisks.includes(risk.id)}
-                    onChange={() => toggleSelect(risk.id)}
+                    checked={selectedRisks.includes(risk.orgRiskId)}
+                    onChange={() => toggleSelect(risk.orgRiskId)}
                   />
                   <Box
                     sx={{
@@ -209,8 +210,8 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => {
-                        toggleSelect(risk.id)
-                        onMoveSelected(process.id, process.name)
+                        toggleSelect(risk.orgRiskId);
+                        onMoveSelected(process.orgProcessId, process.name);
                       }}
                     >
                       <FileMoveIcon height={16} width={16} />
@@ -218,7 +219,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => {
-                        onDelete(process.id, risk.id)
+                        onDelete(process.orgProcessId, risk.orgRiskId);
                       }}
                     >
                       <DeleteOutlineIcon
@@ -236,9 +237,9 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                     pb: 1.5,
                   }}
                 >
-                  {risk.title.length > 60
-                    ? risk.title.substring(0, 60) + " read more"
-                    : risk.title}
+                  {risk?.description?.length > 60
+                    ? risk.description.substring(0, 60) + " read more"
+                    : risk.description}
                 </Box>
               </Stack>
             </Paper>

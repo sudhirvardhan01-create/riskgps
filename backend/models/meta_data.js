@@ -4,7 +4,7 @@ module.exports = (sequelize) => {
   const MetaData = sequelize.define('MetaData', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING, unique: true, allowNull: false },
-    label: { type: DataTypes.STRING, allowNull: false },
+    label: { type: DataTypes.STRING, allowNull: true },
     input_type: {
       type: DataTypes.ENUM('text', 'select', 'multiselect', 'number'),
       defaultValue: "multiselect",

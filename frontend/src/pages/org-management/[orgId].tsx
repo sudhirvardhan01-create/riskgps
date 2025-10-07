@@ -1,125 +1,16 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Box, Typography, Tabs, Tab, Chip, Stack, Avatar, IconButton, Divider, Dialog, DialogContent } from "@mui/material";
+import { Box, Typography, Tabs, Tab, Chip, Stack, IconButton, Divider, Dialog, DialogContent } from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { Organization } from "@/types/organization";
 import Image from "next/image";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 import { BusinessUnits } from "@/components/Organization/BusinessUnit";
+import { getOrganizationById } from "@/services/organizationService";
+import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTypography";
+import ToastComponent from "@/components/ToastComponent";
 
-// Mock data for organizations (same as in container)
-const mockOrganizations: Organization[] = [
-  {
-    id: "1",
-    name: "MediCare Health",
-    orgId: "ORG100001",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "2",
-    name: "FinTech Comp",
-    orgId: "ORG100002",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "3",
-    name: "EduSmart Global",
-    orgId: "ORG100003",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "4",
-    name: "Green Energy",
-    orgId: "SH23978749",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "5",
-    name: "ABC Company",
-    orgId: "ORG202451872",
-    orgImage: "/orgImage.png",
-    tags: {
-      industry: "Healthcare",
-      size: "Small (< 500 Employees)"
-    },
-    members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-      additionalCount: 3
-    },
-    businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-    status: "active",
-    lastUpdated: "2024-01-15",
-    details: {
-      industryVertical: "Health Care",
-      regionOfOperation: "IN",
-      employeeCount: 100,
-      cisoName: "Vivek Kumar",
-      cisoEmail: "vivekkumar@abccompany.com",
-      annualRevenue: "$ 500,000,000",
-      riskAppetite: "$ 30,000,000",
-      cybersecurityBudget: "$ 35,000,000",
-      insuranceCoverage: "$ 20,000,000",
-      insuranceCarrier: "XYZ",
-      claimsCount: "2",
-      claimsValue: "$ 50,000",
-      regulators: "FDA, HIPAA",
-      regulatoryRequirements: "HIPAA, GDPR, SOX",
-      additionalInformation: "This is a healthcare company focused on patient data management and compliance.",
-      recordTypes: ["PII", "PHI", "Intellectual Property"],
-      piiRecordsCount: "10000",
-      pfiRecordsCount: "5000",
-      phiRecordsCount: "15000",
-      governmentRecordsCount: "100",
-      certifications: ["HIPAA", "ISO 27001"],
-      intellectualPropertyPercentage: "25"
-    }
-  }
-];
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -153,11 +44,17 @@ function OrgDetailsPage() {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<{
     orgName?: string;
     tags?: any;
     businessContext?: any;
   }>({});
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "error" as "error" | "warning" | "info" | "success"
+  });
 
   // Parse form data from URL parameters
   useEffect(() => {
@@ -172,78 +69,122 @@ function OrgDetailsPage() {
           businessContext: parsedBusinessContext
         });
       } catch (error) {
-        console.error('Error parsing form data:', error);
+        setToast({
+          open: true,
+          message: "Error parsing form data. Please try again.",
+          severity: "error"
+        });
       }
     }
   }, [orgName, tags, businessContext]);
 
   useEffect(() => {
-    if (orgId) {
-      // Find organization by orgId
-      let foundOrg = mockOrganizations.find(org => org.orgId === orgId);
+    const fetchOrganization = async () => {
+      if (!orgId) return;
 
-      // If not found in mock data but orgId starts with "ORG" and has timestamp, create a new org
-      if (!foundOrg && typeof orgId === 'string' && orgId.startsWith('ORG') && /^\d+$/.test(orgId.substring(3))) {
-        // Use form data if available, otherwise use defaults
-        const orgNameFromForm = formData.orgName || "New Organization";
-        const tagsFromForm = formData.tags || [];
-        const businessContextFromForm = formData.businessContext || {};
+      setLoading(true);
 
-        // Convert tags array to object format
-        const tagsObject: { [key: string]: string } = {};
-        if (Array.isArray(tagsFromForm)) {
-          tagsFromForm.forEach((tag: any) => {
-            if (tag.key && tag.value) {
-              tagsObject[tag.key] = tag.value;
+      try {
+        // First try to fetch from API
+        const apiResponse = await getOrganizationById(orgId as string);
+
+        // Transform API response to match Organization interface
+        const transformedOrg: Organization = {
+          id: apiResponse.data.organizationId,
+          name: apiResponse.data.name,
+          orgId: apiResponse.data.organizationId,
+          orgImage: "/orgImage.png", // Default image since API doesn't provide this
+          tags: (() => {
+            // Convert API tags array to object format
+            const tagsObject: { [key: string]: string } = {};
+            if (apiResponse.data.tags && Array.isArray(apiResponse.data.tags)) {
+              apiResponse.data.tags.forEach((tag: any) => {
+                if (tag.key && tag.value) {
+                  tagsObject[tag.key] = tag.value;
+                }
+              });
             }
-          });
-        }
 
-        foundOrg = {
-          id: orgId,
-          name: orgNameFromForm,
-          orgId: orgId,
-          orgImage: "/orgImage.png",
-          tags: {
-            industry: tagsObject.industry || "Healthcare",
-            size: tagsObject.size || "Small (< 500 Employees)"
-          },
+            // Ensure size is always present
+            if (!tagsObject.Size && !tagsObject.size) {
+              if (apiResponse.data.numberOfEmployees) {
+                tagsObject.size = apiResponse.data.numberOfEmployees < 500 ? "Small (< 500 Employees)" :
+                  apiResponse.data.numberOfEmployees < 2000 ? "Medium (500-2000 Employees)" :
+                    "Large (> 2000 Employees)";
+              } else {
+                tagsObject.size = "Unknown";
+              }
+            }
+
+            // Ensure industry is always present
+            if (!tagsObject.Industry && !tagsObject.industry) {
+              tagsObject.industry = apiResponse.data.industryVertical || "Unknown";
+            }
+
+            // Return the tags object with guaranteed industry and size properties
+            return tagsObject as { industry: string; size: string; [key: string]: string };
+          })(),
           members: {
             avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
             additionalCount: 3
           },
-          businessUnits: ["Retail Banking", "Lorem Ipsum", "Ipsum", "Unit 4", "Unit 5"],
-          status: "active",
-          lastUpdated: new Date().toISOString().split('T')[0],
+          businessUnits: apiResponse.data.businessUnits && apiResponse.data.businessUnits.length > 0
+            ? apiResponse.data.businessUnits
+            : ["-", "-", "-"], // Use API data or default
+          status: apiResponse.data.isDeleted ? "disabled" : "active", // Use isDeleted flag from API
+          lastUpdated: apiResponse.data.modifiedDate ?
+            new Date(apiResponse.data.modifiedDate).toISOString().split('T')[0] :
+            new Date().toISOString().split('T')[0],
+          createdDate: apiResponse.data.createdDate || "-",
+          modifiedDate: apiResponse.data.modifiedDate || "-",
+          createdBy: apiResponse.data.createdBy || "-",
           details: {
-            industryVertical: businessContextFromForm.industryVertical || "Health Care",
-            regionOfOperation: businessContextFromForm.regionOfOperation || "India",
-            employeeCount: parseInt(businessContextFromForm.numberOfEmployees) || 100,
-            cisoName: businessContextFromForm.cisoName || "Vivek Kumar",
-            cisoEmail: businessContextFromForm.cisoEmail || "vivekkumar@neworg.com",
-            annualRevenue: businessContextFromForm.annualRevenue || "$ 500,000,000",
-            riskAppetite: businessContextFromForm.riskAppetite || "$ 30,000,000",
-            cybersecurityBudget: businessContextFromForm.cybersecurityBudget || "$ 35,000,000",
-            insuranceCoverage: businessContextFromForm.insuranceCoverage || "$ 20,000,000",
-            insuranceCarrier: businessContextFromForm.insuranceCarrier || "XYZ",
-            claimsCount: businessContextFromForm.numberOfClaims || "-",
-            claimsValue: businessContextFromForm.claimsValue || "-"
+            industryVertical: apiResponse.data.industryVertical || "-",
+            regionOfOperation: apiResponse.data.regionOfOperation || "-",
+            employeeCount: apiResponse.data.numberOfEmployees || "-",
+            cisoName: apiResponse.data.cisoName || "-",
+            cisoEmail: apiResponse.data.cisoEmail || "-",
+            annualRevenue: apiResponse.data.annualRevenue ? `$ ${parseInt(apiResponse.data.annualRevenue).toLocaleString()}` : "-",
+            riskAppetite: apiResponse.data.riskAppetite ? `$ ${parseInt(apiResponse.data.riskAppetite).toLocaleString()}` : "-",
+            cybersecurityBudget: apiResponse.data.cybersecurityBudget ? `$ ${parseInt(apiResponse.data.cybersecurityBudget).toLocaleString()}` : "-",
+            insuranceCoverage: apiResponse.data.insuranceCoverage ? `$ ${parseInt(apiResponse.data.insuranceCoverage).toLocaleString()}` : "-",
+            insuranceCarrier: apiResponse.data.insuranceCarrier || "-",
+            claimsCount: apiResponse.data.numberOfClaims?.toString() || "-",
+            claimsValue: apiResponse.data.claimsValue ? `$ ${parseInt(apiResponse.data.claimsValue).toLocaleString()}` : "-",
+            regulators: apiResponse.data.regulators || "-",
+            regulatoryRequirements: apiResponse.data.regulatoryRequirements || "-",
+            additionalInformation: apiResponse.data.additionalInformation || "-",
+            recordTypes: apiResponse.data.recordTypes || ["-", "-", "-"],
+            piiRecordsCount: apiResponse.data.piiRecordsCount?.toString() || "-",
+            pfiRecordsCount: apiResponse.data.pfiRecordsCount?.toString() || "-",
+            phiRecordsCount: apiResponse.data.phiRecordsCount?.toString() || "-",
+            governmentRecordsCount: apiResponse.data.governmentRecordsCount?.toString() || "-",
+            certifications: apiResponse.data.certifications || ["-"],
+            intellectualPropertyPercentage: apiResponse.data.intellectualPropertyPercentage?.toString() || "-"
           }
         };
-      }
 
-      if (foundOrg) {
-        setOrganization(foundOrg);
-      } else {
-        // If not found, redirect back to org management
-        router.push('/org-management');
+        setOrganization(transformedOrg);
+      } catch (apiError) {
+        setToast({
+          open: true,
+          message: "Failed to load organization. Please try again.",
+          severity: "error"
+        });
+        // If API fails, redirect back to org management after showing error
+        setTimeout(() => {
+          router.push('/org-management');
+        }, 2000);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    fetchOrganization();
   }, [orgId, router, formData]);
 
   useEffect(() => {
-    // Check if showSuccess query parameter is present
-    if (router.query.showSuccess === 'true') {
+    if (router.isReady && router.query.showSuccess === 'true') {
       setShowSuccessPopup(true);
 
       // Auto-hide popup after 3 seconds
@@ -255,7 +196,7 @@ function OrgDetailsPage() {
 
       return () => clearTimeout(timer);
     }
-  }, [router.query.showSuccess, orgId, router]);
+  }, [router.isReady, router.query.showSuccess, orgId, router]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -265,16 +206,39 @@ function OrgDetailsPage() {
     router.push('/org-management');
   };
 
+  if (loading) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+        <Typography>Loading organization details...</Typography>
+      </Box>
+    );
+  }
+
+
   if (!organization) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>Loading...</Typography>
+        <Typography>Organization not found</Typography>
       </Box>
     );
   }
 
   const capitalizeFirstLetter = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return "N/A";
+    }
   };
 
   return (
@@ -344,15 +308,15 @@ function OrgDetailsPage() {
                 }}
               />
             </Box>
-            <Typography sx={{ fontWeight: 500, color: "#484848", fontSize: "32px", lineHeight: "130%", letterSpacing: "0%" }}>
+            <Typography variant="h3" sx={{ fontWeight: 500, color: "#484848" }}>
               {organization.name}
             </Typography>
           </Box>
 
           {/* Details row below */}
           <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: "wrap" }}>
-            <Typography sx={{ fontSize: "16px", fontWeight: 400, lineHeight: "130%", letterSpacing: 0, color: "#484848" }}>
-              #{organization.orgId}
+            <Typography variant="body1" sx={{ color: "#484848" }}>
+              #{organization.orgId ? organization.orgId.substring(0, 8) + '...' : organization.orgId}
             </Typography>
             <Box
               sx={{
@@ -362,7 +326,7 @@ function OrgDetailsPage() {
                 backgroundColor: "#9E9FA5",
               }}
             />
-            <Typography sx={{ fontSize: "16px", fontWeight: 400, lineHeight: "130%", letterSpacing: 0, color: "#484848" }}>
+            <Typography variant="body1" sx={{ color: "#484848" }}>
               Org Size: {organization.details?.employeeCount || 100} employees
             </Typography>
             <Box
@@ -382,7 +346,6 @@ function OrgDetailsPage() {
                 variant="body2"
                 sx={{
                   color: organization.status === "active" ? "#147A50" : "#757575",
-                  fontSize: "12px",
                   fontWeight: 500,
                 }}
               >
@@ -397,23 +360,32 @@ function OrgDetailsPage() {
                 backgroundColor: "#9E9FA5",
               }}
             />
-            <Chip
-              label={`Industry - ${organization.tags.industry}`}
-              variant="outlined"
-              size="small"
-              sx={{
-                borderRadius: "4px",
-                border: "1px solid #E7E7E8",
-                backgroundColor: "#FFFFFF",
-                fontSize: "14px",
-                fontWeight: 400,
-                lineHeight: "130%",
-                letterSpacing: "0",
-                "& .MuiChip-label": {
-                  padding: "7px 12px",
-                },
-              }}
-            />
+            {/* Render all tags from API as chips, except Size */}
+            {organization.tags && Object.entries(organization.tags).map(([key, value]) => {
+              // Skip the size tag as requested
+              if (key === 'size') return null;
+
+              return (
+                <Chip
+                  key={key}
+                  label={`${capitalizeFirstLetter(key)} - ${value}`}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    borderRadius: "4px",
+                    border: "1px solid #E7E7E8",
+                    backgroundColor: "#FFFFFF",
+                    fontSize: "14px",
+                    fontWeight: 400,
+                    lineHeight: "130%",
+                    letterSpacing: "0",
+                    "& .MuiChip-label": {
+                      padding: "7px 12px",
+                    },
+                  }}
+                />
+              );
+            })}
           </Stack>
         </Box>
       </Stack>
@@ -461,7 +433,7 @@ function OrgDetailsPage() {
       </Box>
 
       {/* Tab Content */}
-      <Box sx={{ flex: 1, overflow: "auto" }}>
+      <Box sx={{ flex: 1, overflow: "auto", pr: "60px" }}>
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", mb: 3, mt: 2 }}>
             <Box
@@ -477,395 +449,299 @@ function OrgDetailsPage() {
               onClick={() => router.push(`/org-management/${orgId}/edit-org-details`)}
             >
               <Edit sx={{ fontSize: 16 }} />
-              <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "inherit", lineHeight: "130%", letterSpacing: "0%" }}>
+              <Typography variant="body1" sx={{ fontWeight: 500, color: "inherit" }}>
                 Edit Org Details
               </Typography>
             </Box>
           </Box>
 
           {/* Organization Details Content */}
-          <Box sx={{ display: "grid", gap: 3 }}>
+          <Box sx={{ display: "grid", gap: 3, pl: "60px" }}>
             {/* Industry Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Industry</Typography>
+            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Industry</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Industry Vertical
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.industryVertical || organization.tags.industry}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Region of Operation
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.regionOfOperation || "India"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Number of employees globally
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.employeeCount || 100}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
-            {/* Display form company tags if available */}
-            {formData.tags && Array.isArray(formData.tags) && formData.tags.length > 0 && <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Additional Tags from Form</Typography>
-              <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
-              <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
-                <Box>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {formData.tags.map((tag: any, index: number) => (
-                      <Chip
-                        key={index}
-                        label={`${capitalizeFirstLetter(tag.key)}: ${tag.value}`}
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          borderRadius: "4px",
-                          border: "1px solid #E7E7E8",
-                          backgroundColor: "#FFFFFF",
-                          fontSize: "12px",
-                          fontWeight: 400,
-                          lineHeight: "130%",
-                          letterSpacing: "0",
-                          "& .MuiChip-label": {
-                            padding: "4px 8px",
-                          },
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              </Box>
-            </Box>}
 
             {/* CISO/Security Head Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>CISO/Security Head</Typography>
+            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>CISO/Security Head</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Name
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.cisoName || "Vivek Kumar"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Email
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.cisoEmail || "vivekkumar@abccompany.com"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Revenue Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Revenue</Typography>
+            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Revenue</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Estimated Annual Revenue
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.annualRevenue || "$ 500,000,000"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Risk Appetite
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.riskAppetite || "$ 30,000,000"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Allocated budget for cybersecurity operations
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.cybersecurityBudget || "$ 35,000,000"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Cyber Insurance and Claims Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Cyber Insurance and Claims</Typography>
+            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Cyber Insurance and Claims</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
-              <Box sx={{ display: "flex", gap: "100px", height: "36px" }}>
+              <Box sx={{ display: "flex", gap: "100px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Insurance - Current Coverage
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.insuranceCoverage || "$ 20,000,000"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     No. of claims (made in last 12 months)
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.insuranceCarrier || "XYZ"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     No. of claims (made in last 12 months)
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.claimsCount || "-"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Claims Value (made in last 12 months)
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
                     {organization.details?.claimsValue || "-"}
-                  </Typography>
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Regulatory Information Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Regulatory Information</Typography>
+            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Regulatory Information</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "150px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Who are your regulators?
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {formData.businessContext?.regulators || "-"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.details?.regulators || formData.businessContext?.regulators || "-"}
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     What are your regulatory requirements?
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {formData.businessContext?.regulatoryRequirements || "-"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.details?.regulatoryRequirements || formData.businessContext?.regulatoryRequirements || "-"}
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Records section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", minHeight: "432px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Records</Typography>
+            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Records</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
 
               {/* Question 1: Types of records */}
               <Box sx={{ mb: 3 }}>
-                <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <OrgDetailsTypography>
                   What kinds of records does the company deal with? Check all that apply: PHI, PII, Intellectual Property, Government Records.
-                </Typography>
-                <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                  {formData.businessContext?.recordTypes && Array.isArray(formData.businessContext.recordTypes) && formData.businessContext.recordTypes.length > 0
-                    ? formData.businessContext.recordTypes.join(", ")
-                    : "PII, PFI, PHI, Government Records"
+                </OrgDetailsTypography>
+                <OrgDetailsTypography variant="value">
+                  {organization.details?.recordTypes && Array.isArray(organization.details.recordTypes) && organization.details.recordTypes.length > 0
+                    ? organization.details.recordTypes.join(", ")
+                    : formData.businessContext?.recordTypes && Array.isArray(formData.businessContext.recordTypes) && formData.businessContext.recordTypes.length > 0
+                      ? formData.businessContext.recordTypes.join(", ")
+                      : "PII, PFI, PHI, Government Records"
                   }
-                </Typography>
+                </OrgDetailsTypography>
               </Box>
 
               {/* Question 2: PII records count */}
               <Box sx={{ ml: 4 }}>
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     How many Personal Identifiable Information (PII) records does the company hold, including those related to employees, customers, and partners?
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {formData.businessContext?.piiRecordsCount || "1000"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.details?.piiRecordsCount || formData.businessContext?.piiRecordsCount || "1000"}
+                  </OrgDetailsTypography>
                 </Box>
 
                 {/* Question 3: PFI records count */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     How many Personal Financial Information (PFI) records does the company hold, including those of employees, customers, and partners?
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {formData.businessContext?.pfiRecordsCount || "1000"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.details?.pfiRecordsCount || formData.businessContext?.pfiRecordsCount || "1000"}
+                  </OrgDetailsTypography>
                 </Box>
 
                 {/* Question 4: PHI records count */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     How many Protected Health Information (PHI) records does the company currently have for employees, customers, and partners?
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {formData.businessContext?.phiRecordsCount || "2000"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.details?.phiRecordsCount || formData.businessContext?.phiRecordsCount || "2000"}
+                  </OrgDetailsTypography>
                 </Box>
 
                 {/* Question 5: Government records count */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     How many government classified information records does the company hold?
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {formData.businessContext?.governmentRecordsCount || "100"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.details?.governmentRecordsCount || formData.businessContext?.governmentRecordsCount || "100"}
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
 
               {/* Question 6: Certifications */}
               <Box sx={{ mb: 3 }}>
-                <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                <OrgDetailsTypography>
                   Did the organization obtain PCI DSS, ISO 27001, or SOC2 certification in the past year? Please check the appropriate boxes if any.
-                </Typography>
-                <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                  {formData.businessContext?.certifications && Array.isArray(formData.businessContext.certifications) && formData.businessContext.certifications.length > 0
-                    ? formData.businessContext.certifications.join(", ")
-                    : "PCI DSS"
+                </OrgDetailsTypography>
+                <OrgDetailsTypography variant="value">
+                  {organization.details?.certifications && Array.isArray(organization.details.certifications) && organization.details.certifications.length > 0
+                    ? organization.details.certifications.join(", ")
+                    : formData.businessContext?.certifications && Array.isArray(formData.businessContext.certifications) && formData.businessContext.certifications.length > 0
+                      ? formData.businessContext.certifications.join(", ")
+                      : "PCI DSS"
                   }
-                </Typography>
+                </OrgDetailsTypography>
               </Box>
 
               {/* Question 7: Intellectual property value */}
               <Box sx={{ mb: 3 }}>
-                <Typography color="#91939A" sx={{ mb: 1, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                  How much is the company's intellectual property and trade secrets worth as a percentage of its yearly revenue?
-                </Typography>
-                <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                  {formData.businessContext?.intellectualPropertyPercentage || "30"}%
-                </Typography>
+                <OrgDetailsTypography>
+                  How much is the company&apos;s intellectual property and trade secrets worth as a percentage of its yearly revenue?
+                </OrgDetailsTypography>
+                <OrgDetailsTypography variant="value">
+                  {organization.details?.intellectualPropertyPercentage || formData.businessContext?.intellectualPropertyPercentage || "30"}%
+                </OrgDetailsTypography>
               </Box>
             </Box>
 
             {/* Additional Information Section */}
             <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", minHeight: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Additional Information</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Additional Information</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "100px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Additional Information
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {formData.businessContext?.additionalInformation || "-"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.details?.additionalInformation || formData.businessContext?.additionalInformation || "-"}
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
-
-              {/* Display form data summary */}
-              {formData.orgName && (
-                <Box sx={{ mt: 3, p: 2, backgroundColor: "#F8F9FA", borderRadius: "8px", border: "1px solid #E9ECEF" }}>
-                  <Typography sx={{ mb: 2, fontWeight: 600, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px", color: "#04139A" }}>
-                    Form Submission Summary
-                  </Typography>
-                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
-                    <Box>
-                      <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                        Organization Name
-                      </Typography>
-                      <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                        {formData.orgName}
-                      </Typography>
-                    </Box>
-                    {formData.businessContext?.regulators && (
-                      <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          Regulators
-                        </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          {formData.businessContext.regulators}
-                        </Typography>
-                      </Box>
-                    )}
-                    {formData.businessContext?.regulatoryRequirements && (
-                      <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          Regulatory Requirements
-                        </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          {formData.businessContext.regulatoryRequirements}
-                        </Typography>
-                      </Box>
-                    )}
-                    {formData.businessContext?.recordTypes && Array.isArray(formData.businessContext.recordTypes) && formData.businessContext.recordTypes.length > 0 && (
-                      <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          Record Types
-                        </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          {formData.businessContext.recordTypes.join(", ")}
-                        </Typography>
-                      </Box>
-                    )}
-                    {formData.businessContext?.certifications && Array.isArray(formData.businessContext.certifications) && formData.businessContext.certifications.length > 0 && (
-                      <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          Certifications
-                        </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          {formData.businessContext.certifications.join(", ")}
-                        </Typography>
-                      </Box>
-                    )}
-                    {formData.businessContext?.intellectualPropertyPercentage && (
-                      <Box>
-                        <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          IP Value (% of Revenue)
-                        </Typography>
-                        <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                          {formData.businessContext.intellectualPropertyPercentage}%
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                </Box>
-              )}
             </Box>
 
             {/* Activity Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", height: "120px" }}>
-              <Typography sx={{ mb: 2, fontWeight: 500, fontSize: "16px", lineHeight: "100%", letterSpacing: "0px" }}>Activity</Typography>
+            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", mb: 6 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Activity</Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Created On
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {"07 Feb, 2024"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {formatDate(organization.createdDate)}
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Created By
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {"Karan Gautam"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {organization.createdBy || "Karan Gautam"}
+                  </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <Typography color="#91939A" sx={{ mb: 0.5, fontWeight: 500, fontSize: "12px", lineHeight: "130%", letterSpacing: "0px" }}>
+                  <OrgDetailsTypography>
                     Last Updated
-                  </Typography>
-                  <Typography color="#484848" sx={{ fontWeight: 400, fontSize: "14px", lineHeight: "130%", letterSpacing: "0px" }}>
-                    {"08 Feb, 2024"}
-                  </Typography>
+                  </OrgDetailsTypography>
+                  <OrgDetailsTypography variant="value">
+                    {formatDate(organization.modifiedDate)}
+                  </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
@@ -898,7 +774,7 @@ function OrgDetailsPage() {
         onClose={() => setShowSuccessPopup(false)}
         PaperProps={{
           sx: {
-            width: "373px",
+            width: "100%",
             height: "241px",
             borderRadius: "10px",
             border: "1px solid #E7E7E7",
@@ -950,27 +826,25 @@ function OrgDetailsPage() {
 
           {/* Success message */}
           <Typography
-            variant="h5"
+            variant="h4"
             sx={{
               fontWeight: 600,
               color: "#484848",
-              fontSize: "24px",
+              flexShrink: 0,
+              textAlign: "center",
               lineHeight: "100%",
-              letterSpacing: "0px",
-              flexShrink: 0
+              verticalAlign: "bottom"
             }}
           >
             Success
           </Typography>
 
           <Typography
-            variant="body1"
+            variant="body2"
             sx={{
-              color: "#484848",
-              fontSize: "14px",
               lineHeight: "150%",
-              letterSpacing: "0px",
-              fontWeight: 400,
+              textAlign: "center",
+              color: "#484848",
               flexShrink: 0,
               whiteSpace: "nowrap"
             }}
@@ -979,6 +853,20 @@ function OrgDetailsPage() {
           </Typography>
         </DialogContent>
       </Dialog>
+
+      <ToastComponent
+        open={toast.open}
+        onClose={() => setToast(prev => ({ ...prev, open: false }))}
+        message={toast.message}
+        toastBorder={
+          toast.severity === "success" ? "1px solid #147A50" : undefined
+        }
+        toastColor={toast.severity === "success" ? "#147A50" : undefined}
+        toastBackgroundColor={
+          toast.severity === "success" ? "#DDF5EB" : undefined
+        }
+        toastSeverity={toast.severity}
+      />
     </Box>
   );
 }

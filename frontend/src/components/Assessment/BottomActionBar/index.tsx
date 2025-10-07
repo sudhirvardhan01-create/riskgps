@@ -6,6 +6,7 @@ interface BottomActionBarProps {
   onCancel?: () => void;
   onSaveDraft?: (e: any) => void;
   onSaveContinue?: (e: any) => void;
+  activeStep?: number;
 }
 
 export default function BottomActionBar({
@@ -13,6 +14,7 @@ export default function BottomActionBar({
   onCancel,
   onSaveDraft,
   onSaveContinue,
+  activeStep,
 }: BottomActionBarProps) {
   return (
     <Box
@@ -23,12 +25,19 @@ export default function BottomActionBar({
         p: 2,
         borderTop: "1px solid #E0E0E0",
         bgcolor: "#fff",
-        position: "sticky",
+        position: "fixed",
         bottom: 0,
+        width: "91.5%",
       }}
     >
       {/* Left Side - Prev */}
-      <Box display="flex" alignItems="center" gap={1} sx={{ cursor: "pointer" }} onClick={onPrev}>
+      <Box
+        display="flex"
+        alignItems="center"
+        gap={1}
+        sx={{ cursor: "pointer" }}
+        onClick={onPrev}
+      >
         <ArrowBackIcon sx={{ color: "#9E9FA5", fontSize: 20 }} />
         <Typography variant="body2" sx={{ color: "#9E9FA5", fontWeight: 500 }}>
           Prev
@@ -68,6 +77,7 @@ export default function BottomActionBar({
             borderRadius: "4px",
             "&:hover": { bgcolor: "#02106f" },
           }}
+          disabled={activeStep == 3}
         >
           Save & Continue
         </Button>

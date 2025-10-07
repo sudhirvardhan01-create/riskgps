@@ -29,3 +29,51 @@ export const getOrganizationProcess = async (orgId: string, buId: string) => {
   }
   return response.json();
 };
+
+export const getOrganizationAssets = async (orgId: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch login data");
+  }
+  return response.json();
+};
+
+export const getOrganizationRisks = async (orgId: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch login data");
+  }
+  return response.json();
+};
+
+export const getOrganizationTaxonomy = async (orgId: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/taxonomies`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch login data");
+  }
+  return response.json();
+};

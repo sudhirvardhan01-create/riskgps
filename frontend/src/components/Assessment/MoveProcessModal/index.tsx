@@ -17,10 +17,11 @@ import {
 interface MoveProcessModalProps {
   open: boolean;
   onClose: () => void;
-  processes: { id: string; name: string }[];
+  processes: { orgProcessId: string; name: string }[];
   fromProcessId: string | null;
   fromProcessName: string | null;
   onMove: (fromProcessId: string | null, toProcessId: string) => void;
+  title: string;
 }
 
 const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
@@ -30,6 +31,7 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
   fromProcessId,
   fromProcessName,
   onMove,
+  title,
 }) => {
   const [selected, setSelected] = React.useState<string>("");
 
@@ -50,21 +52,20 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
         paper: {
           sx: {
             borderRadius: 2,
-            m: 0
-          }
-        }
+            m: 0,
+          },
+        },
       }}
     >
       <DialogTitle sx={{ p: 3 }}>
         <Typography variant="body1" fontWeight={600}>
-          Move Risk Scenario
+          Move {title}
         </Typography>
       </DialogTitle>
 
       <Divider />
 
       <DialogContent sx={{ p: 3 }}>
-
         <Typography variant="body2" sx={{ pb: 3 }}>
           Current Location: <strong>{fromProcessName}</strong>
         </Typography>
@@ -78,11 +79,11 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
           onChange={(e) => setSelected(e.target.value)}
         >
           {processes
-            .filter((p) => p.id !== fromProcessId)
+            .filter((p) => p.orgProcessId !== fromProcessId)
             .map((process) => (
               <FormControlLabel
-                key={process.id}
-                value={process.id}
+                key={process.orgProcessId}
+                value={process.orgProcessId}
                 control={
                   <Radio
                     size="medium"
@@ -95,7 +96,11 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
                   />
                 }
                 label={
-                  <Typography variant="body2" color="text.primary" fontWeight={600}>
+                  <Typography
+                    variant="body2"
+                    color="text.primary"
+                    fontWeight={600}
+                  >
                     {process.name}
                   </Typography>
                 }
@@ -116,11 +121,7 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 0 }}>
-        <Button
-          variant="outlined"
-          onClick={onClose}
-          sx={{ borderRadius: 1 }}
-        >
+        <Button variant="outlined" onClick={onClose} sx={{ borderRadius: 1 }}>
           Cancel
         </Button>
         <Button

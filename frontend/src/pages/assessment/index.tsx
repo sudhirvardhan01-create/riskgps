@@ -2,81 +2,11 @@ import AssessmentModal from "@/components/Assessment/AssessmentModal";
 import AssessmentTable from "@/components/Assessment/AssessmentTable";
 import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { Box, Button, Menu, MenuItem, Typography } from "@mui/material";
-import React, { useState } from "react";
-
-interface Assessment {
-  runId: string;
-  org: string;
-  industry: string;
-  name: string;
-  description: string;
-  startDate: string;
-  lastActivity: string;
-  endDate: string;
-  lastModifiedBy: {
-    name: string;
-    avatar: string;
-  };
-  status: {
-    progress: number;
-    closed?: boolean;
-  };
-}
-
-const mockData: Assessment[] = [
-  {
-    runId: "1001",
-    org: "BluOcean",
-    industry: "Financial Services",
-    name: "Retail Banking - Aug 23",
-    description: "Assessment to check the threats and controls",
-    startDate: "10/08/2024",
-    lastActivity: "10/08/2024",
-    endDate: "-",
-    lastModifiedBy: {
-      name: "Harsh Kansal",
-      avatar: "/path/to/avatar",
-    },
-    status: {
-      progress: 85,
-    },
-  },
-  {
-    runId: "1002",
-    org: "BluOcean",
-    industry: "Financial Services",
-    name: "Retail Banking - Mar 23",
-    description: "Assessment to check the threats and controls",
-    startDate: "10/03/2024",
-    lastActivity: "10/03/2024",
-    endDate: "-",
-    lastModifiedBy: {
-      name: "Shubham Kumar",
-      avatar: "/path/to/avatar",
-    },
-    status: {
-      progress: 100,
-    },
-  },
-  {
-    runId: "1003",
-    org: "BluOcean",
-    industry: "Financial Services",
-    name: "Retail Banking - Aug 25",
-    description: "Assessment to check the threats and controls",
-    startDate: "10/08/2025",
-    lastActivity: "10/08/2025",
-    endDate: "-",
-    lastModifiedBy: {
-      name: "Shivam Anand",
-      avatar: "/path/to/avatar",
-    },
-    status: {
-      progress: 100,
-      closed: true
-    },
-  },
-];
+import React, { useEffect, useState } from "react";
+import { getAssessment } from "../api/assessment";
+import { useRouter } from "next/router";
+import { Assessment } from "@/types/assessment";
+import withAuth from "@/hoc/withAuth";
 
 const options = [
   { label: "All", value: 0 },
@@ -86,13 +16,26 @@ const options = [
 ];
 
 const AssessmentDashboard = () => {
+  const router = useRouter();
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedAssessment, setSelectedAssessment] = useState<string | null>(
     null
   );
-  const [assessmentStatusFilter, setAssessmentStatusFilter] = useState(mockData)
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [assessmentStatusFilter, setAssessmentStatusFilter] = useState<
+    Assessment[]
+  >([]);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const getAssessments = async () => {
+      const response = await getAssessment();
+      setAssessments(response.data);
+      setAssessmentStatusFilter(response.data);
+    };
+    getAssessments();
+  }, []);
 
   const handleMenuClick = (
     event: React.MouseEvent<HTMLElement>,
@@ -102,29 +45,40 @@ const AssessmentDashboard = () => {
     setSelectedAssessment(runId);
   };
 
+  const handleCardClick = (runId: string) => {
+    setSelectedAssessment(runId);
+    router.push("/assessment/assessmentProcess");
+  };
+
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedAssessment(null);
   };
 
   const handleStatusFilter = (ind: number) => {
-    setTabValue(ind)
+    setTabValue(ind);
 
     switch (ind) {
       case 0:
-        setAssessmentStatusFilter(mockData)
+        setAssessmentStatusFilter(assessments);
         break;
       case 1:
-        setAssessmentStatusFilter(mockData.filter(item => item.status.progress < 100))
+        setAssessmentStatusFilter(
+          assessments.filter((item) => item.status == "in_progress")
+        );
         break;
       case 2:
-        setAssessmentStatusFilter(mockData.filter(item => item.status.progress == 100 && !item.status.closed))
+        setAssessmentStatusFilter(
+          assessments.filter((item) => item.status == "completed")
+        );
         break;
       case 3:
-        setAssessmentStatusFilter(mockData.filter(item => item.status.closed))
+        setAssessmentStatusFilter(
+          assessments.filter((item) => item.status == "closed")
+        );
         break;
     }
-  }
+  };
 
   return (
     <>
@@ -158,7 +112,8 @@ const AssessmentDashboard = () => {
                   "&:hover": {
                     backgroundColor:
                       tabValue === index ? "primary.dark" : "#f5f5f5",
-                    borderColor: tabValue === index ? "primary.dark" : "#E7E7E8",
+                    borderColor:
+                      tabValue === index ? "primary.dark" : "#E7E7E8",
                     color: tabValue === index ? "#FFFFFF" : "text.primary",
                   },
                 }}
@@ -194,7 +149,11 @@ const AssessmentDashboard = () => {
           </Box>
         </Box>
 
-        <AssessmentTable data={assessmentStatusFilter} onMenuClick={handleMenuClick} />
+        <AssessmentTable
+          data={assessmentStatusFilter}
+          onMenuClick={handleMenuClick}
+          onCardClick={handleCardClick}
+        />
 
         <Menu
           anchorEl={anchorEl}
@@ -207,12 +166,9 @@ const AssessmentDashboard = () => {
         </Menu>
       </Box>
 
-      <AssessmentModal
-        open={open}
-        onClose={() => setOpen(false)}
-      />
+      <AssessmentModal open={open} onClose={() => setOpen(false)} />
     </>
   );
 };
 
-export default AssessmentDashboard;
+export default withAuth(AssessmentDashboard);

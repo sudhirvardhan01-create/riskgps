@@ -14,25 +14,23 @@ import {
   getOrganization,
   getOrganizationProcess,
 } from "../../api/organization";
-import { saveAssessment, saveAssessmentProcess } from "@/pages/api/assessment";
+import {
+  saveAssessmentProcess,
+  saveAssessmentRisk,
+  saveAssessmentRiskTaxonomy,
+} from "@/pages/api/assessment";
+import BusinessImpact from "@/components/Assessment/BusinessImpact";
+import {
+  Assessment,
+  BusinessUnit,
+  Organisation,
+  ProcessUnit,
+} from "@/types/assessment";
+import Cookies from "js-cookie";
+import withAuth from "@/hoc/withAuth";
+import DragDropAssets from "@/components/Assessment/DragDropAssets";
 
-interface Organisation {
-  organizationId: string;
-  name: string;
-  businessUnits: BusinessUnit[];
-}
-
-interface BusinessUnit {
-  orgBusinessUnitId: string;
-  businessUnitName: string;
-}
-
-interface ProcessUnit {
-  orgProcessId: string;
-  name: string;
-}
-
-export default function BUProcessMappingPage() {
+function BUProcessMappingPage() {
   const {
     assessmentId,
     assessmentName,
@@ -41,7 +39,6 @@ export default function BUProcessMappingPage() {
     selectedProcesses,
     setSelectedProcesses,
     orderedProcesses,
-    setOrderedProcesses,
   } = useAssessment();
   const router = useRouter();
 
@@ -50,6 +47,7 @@ export default function BUProcessMappingPage() {
     "BU to Process Mapping",
     "Process to Risk Scenarios Mapping",
     "Business Impact",
+    "Process to Asset Mapping",
   ];
 
   const stepsTab = [
@@ -78,6 +76,10 @@ export default function BUProcessMappingPage() {
         setOrganisations(res.data.organizations);
 
         const response = await getOrganizationProcess(selectedOrg, selectedBU);
+        response.data.forEach((item: any) => {
+          item["risks"] = [];
+          item["assets"] = [];
+        });
         setProcesses(response.data);
       } catch (error) {
         console.error("Error fetching organisations:", error);
@@ -100,6 +102,32 @@ export default function BUProcessMappingPage() {
     setBusinessUnits(org?.businessUnits || []);
   }, [selectedOrg, organisations]);
 
+  const prepareRiskPayload = () => {
+    const obj = selectedProcesses.flatMap((process) =>
+      process.risks.map((risk) => ({
+        assessmentProcessId: process.assessmentProcessId ?? "",
+        riskScenarioName: risk.name,
+        riskScenarioDesc: risk.description,
+      }))
+    );
+    return obj;
+  };
+
+  const prepareRiskTaxonomyPayload = () => {
+    const obj = selectedProcesses.flatMap((process) =>
+      process.risks.map((risk) => ({
+        assessmentProcessId: process.assessmentProcessId ?? "",
+        assessmentProcessRiskId: risk.assessmentProcessRiskId ?? "",
+        riskScenarioName: risk.name,
+        riskScenarioDesc: risk.description,
+        thresholdHours: risk.thresholdHours,
+        thresholdCost: risk.thresholdCost,
+        taxonomy: risk.taxonomy,
+      }))
+    );
+    return obj;
+  };
+
   // Navigation
   const handlePrev = () => {
     if (activeTab > 0) {
@@ -110,23 +138,79 @@ export default function BUProcessMappingPage() {
     }
   };
 
-  const handleSaveContinue = (status: string) => {
-    if (activeTab < stepsTab.length - 1) {
+  const handleSaveContinue = async (status: string) => {
+    if (activeStep == 0 && activeTab < stepsTab.length - 1) {
       setActiveTab((prev) => prev + 1);
     } else {
+      switch (activeStep) {
+        case 0:
+          const res = await saveAssessmentProcess({
+            id: assessmentId,
+            processes: selectedProcesses.map((item) => {
+              return {
+                processName: item.name,
+                order: orderedProcesses[item.orgProcessId],
+              };
+            }),
+            status: status,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+          });
+
+          const updatedProcesses = selectedProcesses.map((item) => {
+            const match = res.processes.find(
+              (obj: any) => obj.processName === item.name
+            );
+            return {
+              ...item,
+              assessmentProcessId: match?.assessmentProcessId ?? null, // add safely
+            };
+          });
+
+          setSelectedProcesses(updatedProcesses);
+          break;
+
+        case 1:
+          const riskScenarios = prepareRiskPayload();
+          const response = await saveAssessmentRisk({
+            assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            riskScenarios,
+          });
+
+          const updatedProcessesRisk = selectedProcesses.map((process) => ({
+            ...process,
+            risks: process.risks.map((risk) => {
+              const match = response.riskScenarios.find(
+                (obj: any) => obj.riskScenarioName === risk.name
+              );
+
+              return {
+                ...risk,
+                assessmentProcessRiskId: match?.assessmentProcessRiskId ?? null,
+              };
+            }),
+          }));
+
+          setSelectedProcesses(updatedProcessesRisk);
+
+          break;
+
+        case 2:
+          const riskTaxonomies = prepareRiskTaxonomyPayload();
+          saveAssessmentRiskTaxonomy({
+            assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            riskScenarios: riskTaxonomies,
+          });
+          break;
+
+        case 3:
+          console.log("clicked asset function");
+          break;
+      }
+
       setActiveStep((prev) => prev + 1);
       setActiveTab(0);
-      saveAssessmentProcess({
-        id: assessmentId,
-        processes: selectedProcesses.map((item) => {
-          return {
-            processName: item.name,
-            order: orderedProcesses[item.orgProcessId],
-          };
-        }),
-        status: status,
-        userId: "2",
-      });
     }
   };
 
@@ -135,8 +219,15 @@ export default function BUProcessMappingPage() {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <>
-          <Box sx={{ py: 3, px: 5 }}>
+        <Box sx={{ backgroundColor: "#ffffff" }}>
+          <Box
+            sx={{
+              py: 3,
+              px: 5,
+              overflow: "auto",
+              maxHeight: "calc(100vh - 109px)",
+            }}
+          >
             {/* Top Navigation Bar */}
             <TopBar
               title={assessmentName}
@@ -149,7 +240,7 @@ export default function BUProcessMappingPage() {
               bu={
                 businessUnits.find(
                   (item) => item.orgBusinessUnitId === selectedBU
-                )?.businessUnitName || ""
+                )?.name || ""
               }
               onBack={() => router.push("/assessment")}
             />
@@ -178,11 +269,13 @@ export default function BUProcessMappingPage() {
               {activeStep === 0 && activeTab === 1 && (
                 <AssignOrder
                   processes={selectedProcesses}
-                  onOrderChange={setOrderedProcesses}
+                  onOrderChange={setSelectedProcesses}
                 />
               )}
 
               {activeStep === 1 && <DragDropRiskScenarios />}
+              {activeStep === 2 && <BusinessImpact />}
+              {activeStep === 3 && <DragDropAssets />}
             </Box>
           </Box>
 
@@ -193,16 +286,20 @@ export default function BUProcessMappingPage() {
             onSaveDraft={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              handleSaveContinue("draft")
+              handleSaveContinue("draft");
+              router.push("/assessment");
             }}
             onSaveContinue={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              handleSaveContinue("in_progress")
+              handleSaveContinue("in_progress");
             }}
+            activeStep={activeStep}
           />
-        </>
+        </Box>
       )}
     </>
   );
 }
+
+export default withAuth(BUProcessMappingPage);

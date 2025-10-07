@@ -26,7 +26,7 @@ const initialProcessData: ProcessData = {
     financialMateriality: false,
     thirdPartyInvolvement: false,
     users: "",
-    requlatoryAndCompliance: "",
+    requlatoryAndCompliance: [],
     criticalityOfDataProcessed: "",
     dataProcessed: [],
     processDependency: [],
@@ -89,6 +89,7 @@ export default function ProcessContainer() {
       setLoading(true);
       const data = await ProcessService.fetch(page, rowsPerPage, searchPattern as string, sort, statusFilters, filters);
       setProcessesData(data?.data ?? []);
+      
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);

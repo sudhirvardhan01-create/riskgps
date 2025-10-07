@@ -2,21 +2,24 @@ import Image from "next/image";
 import React from "react";
 import styles from "@/styles/Home.module.css";
 import { Box, Typography } from "@mui/material";
+import { constants } from "@/utils/constants";
 
 const Footer = () => {
   return (
     <Box
       sx={{
-        textAlign: "center",
-        padding: "20px",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "right",
+        padding: "20px 15px",
         backgroundColor: "#f5f5f5",
         color: "#000000",
         position: "absolute",
         bottom: 0,
-        width: "100%",
+        width: "90vw"
       }}
     >
-      <Typography>@copyright 2025 RiskGPS. All rights reserved.</Typography>
+      <Typography>{constants.footerDescription}</Typography>
     </Box>
   );
 };

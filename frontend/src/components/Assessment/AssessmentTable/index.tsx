@@ -1,4 +1,3 @@
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Avatar,
   Box,
@@ -10,35 +9,145 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import React, { useState } from "react";
-
-interface Assessment {
-  runId: string;
-  org: string;
-  industry: string;
-  name: string;
-  description: string;
-  startDate: string;
-  lastActivity: string;
-  endDate: string;
-  lastModifiedBy: {
-    name: string;
-    avatar: string;
-  };
-  status: {
-    progress: number;
-    closed?: boolean;
-  };
-}
+import { Assessment } from "@/types/assessment";
 
 interface Props {
   data: Assessment[];
   onMenuClick: (event: React.MouseEvent<HTMLElement>, runId: string) => void;
+  onCardClick: (runId: string) => void;
   variant?: 'default' | 'businessUnit';
   businessUnitName?: string;
 }
 
-const AssessmentTable: React.FC<Props> = ({ data, onMenuClick, variant = 'default', businessUnitName }) => {
+const userData = {
+  name: "Harsh Kansal",
+  avatar: "/path/to/avatar",
+};
+
+// ✅ Child row component for default variant
+const AssessmentRow: React.FC<{
+  assessment: Assessment;
+  onMenuClick: Props["onMenuClick"];
+  onCardClick: Props["onCardClick"];
+}> = ({ assessment, onMenuClick, onCardClick }) => {
+  const [expanded, setExpanded] = useState(false);
+  const desc = assessment.assessmentDesc || "";
+
+  const limit = 25;
+  const isLong = desc.length > limit;
+  const displayedText =
+    expanded || !isLong ? desc : desc.slice(0, limit) + "...";
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        mb: 2,
+        p: 2,
+        border: "1px solid #E7E7E8",
+        borderRadius: "8px",
+        display: "grid",
+        gridTemplateColumns: "42px 160px 260px 80px 80px 80px 130px 160px 20px",
+        alignItems: "center",
+        gap: 2,
+        "&:hover": { border: "1px solid #1976d2" },
+        width: "100%",
+        cursor: "pointer",
+      }}
+      onClick={() => onCardClick(assessment.runId)}
+    >
+      {/* Run ID */}
+      <Typography>{assessment.runId}</Typography>
+
+      {/* Org + Industry */}
+      <Box>
+        <Typography fontWeight={600}>{assessment.orgName}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {assessment.orgDesc}
+        </Typography>
+      </Box>
+
+      {/* Assessment Name + Description */}
+      <Box>
+        <Typography fontWeight={600}>{assessment.assessmentName}</Typography>
+        <Typography variant="caption">
+          <span style={{ color: "#484848", fontWeight: 600 }}>
+            Description:{" "}
+          </span>
+          <span style={{ color: "#91939A", textWrap: "wrap" }}>
+            {displayedText}{" "}
+          </span>
+          {isLong && (
+            <span
+              style={{ color: "#1976d2", cursor: "pointer" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!expanded);
+              }}
+            >
+              {expanded ? "read less" : "read more"}
+            </span>
+          )}
+        </Typography>
+      </Box>
+
+      {/* Dates */}
+      <Typography variant="body2">
+        {new Date(assessment.startDate).toLocaleDateString()}
+      </Typography>
+      <Typography variant="body2">
+        {new Date(assessment.lastActivity).toLocaleDateString()}
+      </Typography>
+      <Typography variant="body2">
+        {assessment.endDate &&
+          new Date(assessment.endDate).toLocaleDateString()}
+      </Typography>
+
+      {/* Last Modified */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Avatar src={userData.avatar} sx={{ width: 24, height: 24 }} />
+        <Typography variant="body2">{userData.name}</Typography>
+      </Box>
+
+      {/* Status */}
+      <Box textAlign={"center"}>
+        <Typography variant="caption" fontWeight={600}>
+          {assessment.status == "in_progress" ? 61 : 100}
+          {"% Completed "}
+          {assessment.status == "closed" && " • Closed"}
+        </Typography>
+        <LinearProgress
+          variant="determinate"
+          value={assessment.status == "in_progress" ? 61 : 100}
+          sx={{
+            height: 12,
+            borderRadius: 1,
+            "& .MuiLinearProgress-bar": {
+              backgroundColor:
+                assessment.status == "completed" ? "#147A50" : "#FFD966",
+            },
+          }}
+        />
+      </Box>
+
+      {/* Actions */}
+      <IconButton onClick={(e) => onMenuClick(e, assessment.runId)}>
+        <MoreVertIcon />
+      </IconButton>
+    </Paper>
+  );
+};
+
+// ✅ Main table component
+const AssessmentTable: React.FC<Props> = ({
+  data,
+  onMenuClick,
+  onCardClick,
+  variant = 'default',
+  businessUnitName
+}) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
@@ -95,6 +204,7 @@ const AssessmentTable: React.FC<Props> = ({ data, onMenuClick, variant = 'defaul
 
   return (
     <Box>
+      {/* Header */}
       <Box
         sx={{
           display: "grid",
@@ -142,202 +252,184 @@ const AssessmentTable: React.FC<Props> = ({ data, onMenuClick, variant = 'defaul
         ))}
       </Box>
 
-      {/* Table Body (Card style rows) */}
-      <Box sx={{ mt: 2 }}>
-        {displayData.map((assessment) => (
-          <Paper
-            key={assessment.runId}
-            variant="outlined"
-            sx={{
-              mb: 2,
-              p: variant === 'businessUnit' ? 1 : 2,
-              border: "1px solid #E7E7E8",
-              borderRadius: "8px",
-              display: "grid",
-              gridTemplateColumns: columnTemplate,
-              alignItems: "center",
-              gap: variant === 'businessUnit' ? 1 : 2,
-              "&:hover": {
-                border: variant === 'businessUnit' ? "1px solid #04139A" : "1px solid #1976d2",
-              },
-              width: "100%",
-              cursor: "pointer",
-            }}
-          >
-            {/* Run ID */}
-            <Typography>{assessment.runId}</Typography>
+      {/* Table Body */}
+      {variant === 'default' ? (
+        // Default variant - use AssessmentRow component
+        <Box sx={{ mt: 2, overflow: "auto", maxHeight: "calc(100vh - 344px)" }}>
+          {displayData.map((assessment) => (
+            <AssessmentRow
+              key={assessment.runId}
+              assessment={assessment}
+              onMenuClick={onMenuClick}
+              onCardClick={onCardClick}
+            />
+          ))}
+        </Box>
+      ) : (
+        // Business unit variant - inline rendering
+        <Box sx={{ mt: 2 }}>
+          {displayData.map((assessment) => (
+            <Paper
+              key={assessment.runId}
+              variant="outlined"
+              sx={{
+                mb: 2,
+                p: 1,
+                border: "1px solid #E7E7E8",
+                borderRadius: "8px",
+                display: "grid",
+                gridTemplateColumns: columnTemplate,
+                alignItems: "center",
+                gap: 1,
+                "&:hover": {
+                  border: "1px solid #04139A",
+                },
+                width: "100%",
+                cursor: "pointer",
+              }}
+              onClick={() => onCardClick(assessment.runId)}
+            >
+              {/* Run ID */}
+              <Typography>{assessment.runId}</Typography>
 
-            {/* Org + Industry (only for default variant) */}
-            {variant === 'default' && (
+              {/* Assessment Name + Description */}
               <Box>
-                <Typography fontWeight={600}>{assessment.org}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {assessment.industry}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
+                    color: '#484848',
+                    margin: 0,
+                    padding: 0
+                  }}
+                >
+                  {assessment.assessmentName}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
+                    color: '#91939A',
+                    maxWidth: '100%',
+                    wordWrap: 'break-word',
+                    margin: 0,
+                    padding: 0
+                  }}
+                >
+                  <span style={{ color: '#484848' }}>Description: </span>
+                  {expandedDescriptions.has(assessment.runId)
+                    ? assessment.assessmentDesc
+                    : truncateText(assessment.assessmentDesc || "")
+                  }{" "}
+                  {(assessment.assessmentDesc || "").length > 35 && (
+                    <span
+                      style={{ color: "#04139A", cursor: "pointer" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDescription(assessment.runId);
+                      }}
+                    >
+                      {expandedDescriptions.has(assessment.runId) ? 'read less' : 'read more'}
+                    </span>
+                  )}
                 </Typography>
               </Box>
-            )}
 
-            {/* Assessment Name + Description */}
-            <Box>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: variant === 'businessUnit' ? 400 : 600,
-                  verticalAlign: 'middle',
-                  color: variant === 'businessUnit' ? '#484848' : 'inherit',
-                  margin: variant === 'businessUnit' ? 0 : 'auto',
-                  padding: variant === 'businessUnit' ? 0 : 'auto'
-                }}
-              >
-                {assessment.name}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: 400,
-                  verticalAlign: 'middle',
-                  color: variant === 'businessUnit' ? '#91939A' : 'text.secondary',
-                  maxWidth: '100%',
-                  wordWrap: 'break-word',
-                  margin: variant === 'businessUnit' ? 0 : 'auto',
-                  padding: variant === 'businessUnit' ? 0 : 'auto'
-                }}
-              >
-                {variant === 'businessUnit' ? (
-                  <>
-                    <span style={{ color: '#484848' }}>Description: </span>
-                    {expandedDescriptions.has(assessment.runId)
-                      ? assessment.description
-                      : truncateText(assessment.description)
-                    }{" "}
-                    {assessment.description.length > 35 && (
-                      <span
-                        style={{ color: "#04139A", cursor: "pointer" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDescription(assessment.runId);
-                        }}
-                      >
-                        {expandedDescriptions.has(assessment.runId) ? 'read less' : 'read more'}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {expandedDescriptions.has(assessment.runId)
-                      ? assessment.description
-                      : truncateText(assessment.description)
-                    }{" "}
-                    {assessment.description.length > 35 && (
-                      <span
-                        style={{ color: "#1976d2", cursor: "pointer" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDescription(assessment.runId);
-                        }}
-                      >
-                        {expandedDescriptions.has(assessment.runId) ? 'read less' : 'read more'}
-                      </span>
-                    )}
-                  </>
-                )}
-              </Typography>
-            </Box>
-
-            {/* Dates */}
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 400,
-                fontStyle: 'normal',
-                verticalAlign: 'middle',
-                color: variant === 'businessUnit' ? '#484848' : 'inherit'
-              }}
-            >
-              {assessment.startDate}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 400,
-                fontStyle: 'normal',
-                verticalAlign: 'middle',
-                color: variant === 'businessUnit' ? '#484848' : 'inherit'
-              }}
-            >
-              {assessment.lastActivity}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 400,
-                fontStyle: 'normal',
-                verticalAlign: 'middle',
-                color: variant === 'businessUnit' ? '#484848' : 'inherit'
-              }}
-            >
-              {assessment.endDate}
-            </Typography>
-
-            {/* Last Modified */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Avatar
-                src={assessment.lastModifiedBy.avatar}
-                sx={{ width: 24, height: 24 }}
-              >
-                {assessment.lastModifiedBy.name.charAt(0)}
-              </Avatar>
+              {/* Dates */}
               <Typography
                 variant="body2"
                 sx={{
                   fontWeight: 400,
                   fontStyle: 'normal',
                   verticalAlign: 'middle',
-                  color: variant === 'businessUnit' ? "#484848" : 'inherit'
+                  color: '#484848'
                 }}
               >
-                {assessment.lastModifiedBy.name}
+                {new Date(assessment.startDate).toLocaleDateString()}
               </Typography>
-            </Box>
-
-            {/* Status */}
-            <Box textAlign={"center"}>
               <Typography
-                variant="caption"
+                variant="body2"
                 sx={{
-                  fontWeight: variant === 'businessUnit' ? 500 : 600,
+                  fontWeight: 400,
                   fontStyle: 'normal',
-                  color: variant === 'businessUnit' ? '#484848' : 'inherit',
-                  mb: variant === 'businessUnit' ? 1 : 0
+                  verticalAlign: 'middle',
+                  color: '#484848'
                 }}
               >
-                {assessment.status.progress}
-                {"% Completed "}
-                {assessment.status.closed && " • Closed"}
+                {new Date(assessment.lastActivity).toLocaleDateString()}
               </Typography>
-              <LinearProgress
-                variant="determinate"
-                value={assessment.status.progress}
+              <Typography
+                variant="body2"
                 sx={{
-                  height: 12,
-                  borderRadius: 1,
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor:
-                      assessment.status.progress === 100
-                        ? "#147A50"
-                        : "#FFD966",
-                  },
+                  fontWeight: 400,
+                  fontStyle: 'normal',
+                  verticalAlign: 'middle',
+                  color: '#484848'
                 }}
-              />
-            </Box>
+              >
+                {assessment.endDate ? new Date(assessment.endDate).toLocaleDateString() : ''}
+              </Typography>
 
-            {/* Actions */}
-            <IconButton onClick={(e) => onMenuClick(e, assessment.runId)}>
-              <MoreVertIcon />
-            </IconButton>
-          </Paper>
-        ))}
-      </Box>
+              {/* Last Modified */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Avatar
+                  src={userData.avatar}
+                  sx={{ width: 24, height: 24 }}
+                >
+                  {userData.name.charAt(0)}
+                </Avatar>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 400,
+                    fontStyle: 'normal',
+                    verticalAlign: 'middle',
+                    color: "#484848"
+                  }}
+                >
+                  {userData.name}
+                </Typography>
+              </Box>
+
+              {/* Status */}
+              <Box textAlign={"center"}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 500,
+                    fontStyle: 'normal',
+                    color: '#484848',
+                    mb: 1
+                  }}
+                >
+                  {assessment.status == "in_progress" ? 61 : 100}
+                  {"% Completed "}
+                  {assessment.status == "closed" && " • Closed"}
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={assessment.status == "in_progress" ? 61 : 100}
+                  sx={{
+                    height: 12,
+                    borderRadius: 1,
+                    "& .MuiLinearProgress-bar": {
+                      backgroundColor:
+                        assessment.status == "completed" ? "#147A50" : "#FFD966",
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Actions */}
+              <IconButton onClick={(e) => onMenuClick(e, assessment.runId)}>
+                <MoreVertIcon />
+              </IconButton>
+            </Paper>
+          ))}
+        </Box>
+      )}
 
       {/* Pagination (only for business unit variant) */}
       {variant === 'businessUnit' && (

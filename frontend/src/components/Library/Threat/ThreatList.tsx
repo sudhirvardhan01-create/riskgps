@@ -1,6 +1,6 @@
 import { Box, Stack, TablePagination } from "@mui/material";
 import { ThreatForm } from "@/types/threat";
-import ThreatCard from "./ThreatCard";
+import ThreatControlCard from "../ThreatControlCard";
 
 interface Props {
   loading: boolean;
@@ -16,7 +16,11 @@ interface Props {
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (id: number, status: string) => void;
+  handleUpdateStatus: (
+    status: string,
+    mitreTechniqueId: string,
+    subTechniqueId?: string
+  ) => void;
 }
 
 const ThreatList: React.FC<Props> = ({
@@ -34,65 +38,61 @@ const ThreatList: React.FC<Props> = ({
 }) => {
   return (
     <>
-      <Box
-        display={"flex"}
-        flexDirection={"column"}
-        sx={{ maxHeight: "calc(100vh - 290px)" }}
+      <Stack
+        spacing={2}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 390px)" }}
       >
-        <Stack spacing={2} sx={{ overflow: "auto" }}>
-          {data && data.length > 0 ? (
-            data.map((item) => (
-              <div key={item.id ?? JSON.stringify(item)}>
-                <ThreatCard
-                  threatData={item}
-                  setSelectedThreatData={setSelectedThreat}
-                  setIsViewThreatOpen={setIsViewOpen}
-                  setIsEditThreatOpen={setIsEditOpen}
-                  setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
-                  handleUpdateStatus={handleUpdateStatus}
-                  threatTechniqueID={item.mitreTechniqueId ?? ""}
-                  mitrePlatform={item.platforms.join(", ") ?? ""}
-                  threatTechniqueName={item.mitreTechniqueName ?? ""}
-                  status={item.status ?? ""}
-                  ciaMapping={item.ciaMapping}
-                  tagItems={[
-                    { label: "MITRE Control ID", value: item.mitreControlId },
-                    {
-                      label: "MITRE Control Name",
-                      value: item.mitreControlName,
-                    },
-                    {
-                      label: "MITRE Control Type",
-                      value: item.mitreControlType,
-                    },
-                  ]}
-                />
-              </div>
-            ))
-          ) : (
-            // empty state could be enhanced
-            <div>No threats found</div>
-          )}
-        </Stack>
+        {data && data.length > 0 ? (
+          data.map((item) => (
+            <div key={item.id ?? JSON.stringify(item)}>
+              <ThreatControlCard
+                module="threat"
+                threatControlData={item}
+                setSelectedData={setSelectedThreat}
+                setIsViewOpen={setIsViewOpen}
+                setIsEditOpen={setIsEditOpen}
+                setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
+                handleUpdateStatus={handleUpdateStatus}
+                rowID={item.mitreTechniqueId ?? ""}
+                headerChip={item.platforms.join(", ") ?? ""}
+                title={item.mitreTechniqueName ?? ""}
+                status={item.status ?? ""}
+                lastUpdated={item.updated_at}
+                footerChips={[
+                  {
+                    label: "CIA Mapping:",
+                    value: item.ciaMapping?.join(","),
+                  },
+                ]}
+              />
+            </div>
+          ))
+        ) : (
+          // empty state could be enhanced
+          <div>No threats found</div>
+        )}
+      </Stack>
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mb: -0.5,
-          }}
-        >
-          <TablePagination
-            component="div"
-            count={totalRows}
-            page={page}
-            onPageChange={onPageChange}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={onRowsPerPageChange}
-            rowsPerPageOptions={[6, 12, 18, 24, 30]}
-          />
-        </Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+          bottom: 55,
+          left: "50%", // place horizontally at 50%
+          transform: "translateX(-50%)",
+        }}
+      >
+        <TablePagination
+          component="div"
+          count={totalRows}
+          page={page}
+          onPageChange={onPageChange}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={onRowsPerPageChange}
+          rowsPerPageOptions={[6, 12, 18, 24, 30]}
+        />
       </Box>
     </>
   );

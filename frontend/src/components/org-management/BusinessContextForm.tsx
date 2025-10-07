@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
+import { COMPLIANCE_FRAMEWORKS, RECORD_TYPES, COUNTRIES } from "@/constants/constant";
 
 interface BusinessContextData {
   industryVertical: string;
@@ -38,13 +39,15 @@ interface BusinessContextData {
 interface BusinessContextFormProps {
   businessContext: BusinessContextData;
   onFieldChange: (field: keyof BusinessContextData, value: string | string[]) => void;
-  currentStep: number
+  currentStep: number;
+  mandatoryFields: Record<string, boolean>;
 }
 
 const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
   businessContext,
   onFieldChange,
-  currentStep
+  currentStep,
+  mandatoryFields
 }) => {
   return (
     <>
@@ -53,12 +56,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
           {/* Industry Section */}
           <Grid size={12}>
             <Typography
+              variant="h6"
               sx={{
-                fontSize: "16px",
-                fontWeight: 500,
                 color: "#04139A",
-                lineHeight: "100%",
-                letterSpacing: "0px",
                 mb: 2,
               }}
             >
@@ -70,7 +70,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Industry Vertical"
-                  required
+                  required={mandatoryFields.industryVertical}
                   placeholder="Financial Services, Healthcare"
                   value={businessContext.industryVertical}
                   onChange={(e) =>
@@ -81,20 +81,17 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <SelectStyled
                   label="Region of Operation"
-                  required
+                  required={mandatoryFields.regionOfOperation}
                   value={businessContext.regionOfOperation}
                   onChange={(e) =>
                     onFieldChange("regionOfOperation", e.target.value as string)
                   }
                 >
-                  <MenuItem value="">Select country</MenuItem>
-                  <MenuItem value="US">United States</MenuItem>
-                  <MenuItem value="UK">United Kingdom</MenuItem>
-                  <MenuItem value="CA">Canada</MenuItem>
-                  <MenuItem value="AU">Australia</MenuItem>
-                  <MenuItem value="DE">Germany</MenuItem>
-                  <MenuItem value="FR">France</MenuItem>
-                  <MenuItem value="IN">India</MenuItem>
+                  {COUNTRIES.map((country) => (
+                    <MenuItem key={country.value} value={country.value}>
+                      {country.label}
+                    </MenuItem>
+                  ))}
                 </SelectStyled>
               </Grid>
             </Grid>
@@ -104,6 +101,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Number of employees globally"
+                  required={mandatoryFields.numberOfEmployees}
                   placeholder="100"
                   value={businessContext.numberOfEmployees}
                   onChange={(e) =>
@@ -141,6 +139,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Name"
+                  required={mandatoryFields.cisoName}
                   placeholder="Enter name"
                   value={businessContext.cisoName}
                   onChange={(e) => onFieldChange("cisoName", e.target.value)}
@@ -149,6 +148,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Email"
+                  required={mandatoryFields.cisoEmail}
                   placeholder="Enter email"
                   value={businessContext.cisoEmail}
                   onChange={(e) => onFieldChange("cisoEmail", e.target.value)}
@@ -184,6 +184,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Estimated Annual Revenue"
+                  required={mandatoryFields.annualRevenue}
                   placeholder="$ Enter amount in dollars"
                   value={businessContext.annualRevenue}
                   onChange={(e) => onFieldChange("annualRevenue", e.target.value)}
@@ -192,7 +193,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Risk Appetite"
-                  required
+                  required={mandatoryFields.riskAppetite}
                   placeholder="$ Enter amount in dollars"
                   value={businessContext.riskAppetite}
                   onChange={(e) => onFieldChange("riskAppetite", e.target.value)}
@@ -201,6 +202,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Allocated budget for cybersecurity operations"
+                  required={mandatoryFields.cybersecurityBudget}
                   placeholder="$ Enter amount in dollars"
                   value={businessContext.cybersecurityBudget}
                   onChange={(e) => onFieldChange("cybersecurityBudget", e.target.value)}
@@ -236,7 +238,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Insurance - Current Coverage"
-                  required
+                  required={mandatoryFields.insuranceCoverage}
                   placeholder="$ Enter amount in dollars"
                   value={businessContext.insuranceCoverage}
                   onChange={(e) => onFieldChange("insuranceCoverage", e.target.value)}
@@ -245,6 +247,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Insurance - Current Carrier"
+                  required={mandatoryFields.insuranceCarrier}
                   placeholder="Enter Insurance - Current Carrier"
                   value={businessContext.insuranceCarrier}
                   onChange={(e) => onFieldChange("insuranceCarrier", e.target.value)}
@@ -253,6 +256,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="No. of claims (made in last 12 months)"
+                  required={mandatoryFields.numberOfClaims}
                   placeholder="Enter no. of claims"
                   value={businessContext.numberOfClaims}
                   onChange={(e) => onFieldChange("numberOfClaims", e.target.value)}
@@ -261,6 +265,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Claims Value (made in last 12 months)"
+                  required={mandatoryFields.claimsValue}
                   placeholder="$ Enter amount in dollars"
                   value={businessContext.claimsValue}
                   onChange={(e) => onFieldChange("claimsValue", e.target.value)}
@@ -296,6 +301,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Who are your regulators?"
+                  required={mandatoryFields.regulators}
                   placeholder="Enter regulators"
                   value={businessContext.regulators}
                   onChange={(e) => onFieldChange("regulators", e.target.value)}
@@ -304,6 +310,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="What are your regulatory requirements?"
+                  required={mandatoryFields.regulatoryRequirements}
                   placeholder="Example: GDPR, etc."
                   value={businessContext.regulatoryRequirements}
                   onChange={(e) => onFieldChange("regulatoryRequirements", e.target.value)}
@@ -339,6 +346,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={12}>
                 <TextFieldStyled
                   label="Additional Information"
+                  required={mandatoryFields.additionalInformation}
                   placeholder="Enter additional information"
                   value={businessContext.additionalInformation}
                   onChange={(e) => onFieldChange("additionalInformation", e.target.value)}
@@ -370,12 +378,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               </Typography>
               
               <Typography
+                variant="body1"
                 sx={{
-                  fontSize: "16px",
-                  fontWeight: 400,
                   color: "#484848",
-                  lineHeight: "24px",
-                  letterSpacing: "0px",
                   mb: 3,
                 }}
               >
@@ -383,14 +388,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               </Typography>
 
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {[
-                  "PII",
-                  "PIII",
-                  "PFI",
-                  "PHI",
-                  "Intellectual Property",
-                  "Government Records"
-                ].map((recordType) => {
+                {RECORD_TYPES.map((recordType) => {
                   const isSelected = businessContext.recordTypes?.includes(recordType) || false;
                   return (
                     <Button
@@ -435,9 +433,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                       >
                         {isSelected && (
                           <Typography
+                            variant="body2"
                             sx={{
                               color: "#FFFFFF",
-                              fontSize: "12px",
                               fontWeight: "bold",
                             }}
                           >
@@ -467,6 +465,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Enter value"
+                  required={mandatoryFields.piiRecordsCount}
                   placeholder="Enter value"
                   value={businessContext.piiRecordsCount}
                   onChange={(e) => onFieldChange("piiRecordsCount", e.target.value)}
@@ -488,6 +487,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Enter value"
+                  required={mandatoryFields.pfiRecordsCount}
                   placeholder="Enter value"
                   value={businessContext.pfiRecordsCount}
                   onChange={(e) => onFieldChange("pfiRecordsCount", e.target.value)}
@@ -510,6 +510,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Enter value"
+                  required={mandatoryFields.phiRecordsCount}
                   placeholder="Enter value"
                   value={businessContext.phiRecordsCount}
                   onChange={(e) => onFieldChange("phiRecordsCount", e.target.value)}
@@ -532,6 +533,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Enter value"
+                  required={mandatoryFields.governmentRecordsCount}
                   placeholder="Enter value"
                   value={businessContext.governmentRecordsCount}
                   onChange={(e) => onFieldChange("governmentRecordsCount", e.target.value)}
@@ -552,11 +554,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                 2. Did the organization obtain PCI DSS, ISO 27001, or SOC2 certification in the past year? Please check the appropriate boxes if any.
               </Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {[
-                  "PCI DSS",
-                  "ISO 27001",
-                  "SOC 2",
-                ].map((certification) => {
+                {COMPLIANCE_FRAMEWORKS.map((certification) => {
                   const isSelected = businessContext.certifications?.includes(certification) || false;
                   return (
                     <Button
@@ -601,9 +599,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                       >
                         {isSelected && (
                           <Typography
+                            variant="body2"
                             sx={{
                               color: "#FFFFFF",
-                              fontSize: "12px",
                               fontWeight: "bold",
                             }}
                           >
@@ -628,11 +626,12 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   mt: 3,
                 }}
               >
-                3. How much is the company's intellectual property and trade secrets worth as a percentage of its yearly revenue?
+                3. How much is the company&apos;s intellectual property and trade secrets worth as a percentage of its yearly revenue?
               </Typography>
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextFieldStyled
                   label="Enter in percentage"
+                  required={mandatoryFields.intellectualPropertyPercentage}
                   placeholder="Enter in percentage"
                   value={businessContext.intellectualPropertyPercentage}
                   onChange={(e) => onFieldChange("intellectualPropertyPercentage", e.target.value)}
