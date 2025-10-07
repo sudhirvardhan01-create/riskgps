@@ -61,7 +61,7 @@ class AssetService {
       sortOrder = "ASC";
     }
 
-    const whereClause = this.handleAssetFilters(
+    const whereClause =  await this.handleAssetFilters(
       searchPattern,
       statusFilter,
       attrFilters
@@ -70,6 +70,7 @@ class AssetService {
     const total = await Asset.count({
       where: whereClause,
     });
+    
     const data = await Asset.findAll({
       limit,
       offset,
@@ -203,7 +204,6 @@ class AssetService {
   }
 
   static async downloadAssetTemplateFile(res) {
-
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
       "Content-Disposition",
@@ -221,32 +221,37 @@ class AssetService {
       "Is Third Party Management": "Yes / No",
       "Third Party Name": "If Yes above, enter vendor name",
       "Third Party Location": "Vendor location (e.g., USA)",
-      "Hosting": "Supported Value from the List " + ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
-      "Hosting Facility": "Supported Value from the List " + ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
-      "Cloud Service Provider": "Values separated by comma " + ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
+      Hosting:
+        "Supported Value from the List " +
+        ASSETS.HOSTING_SUPPORTED_VALUES.join(" / "),
+      "Hosting Facility":
+        "Supported Value from the List " +
+        ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.join(" / "),
+      "Cloud Service Provider":
+        "Values separated by comma " +
+        ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.join(" / "),
       "Geographic Location": "Primary location (e.g., US-East, EU-West)",
       "Has Redundancy": "Yes / No",
-      "Databases": "List (comma-separated, e.g., MySQL, PostgreSQL)",
+      Databases: "List (comma-separated, e.g., MySQL, PostgreSQL)",
       "Has Network Segmentations": "Yes / No",
       "Network Name": "Network identifier (if applicable)",
-      "Asset Category": "A single Value from the list " + ASSETS.ASSET_CATEGORY.join(","),
+      "Asset Category":
+        "A single Value from the list " + ASSETS.ASSET_CATEGORY.join(","),
       "Asset Description": "Short description of the asset",
     });
 
     csvStream.end();
   }
 
-
   static async importAssetFromCSV(filePath) {
-
     function parseBoolean(value) {
       if (!value) return null; // catch empty string or undefined
       const v = value.toString().trim().toLowerCase();
       return ["yes", "true", "1"].includes(v)
         ? true
         : ["no", "false", "0"].includes(v)
-          ? false
-          : null; // invalid case
+        ? false
+        : null; // invalid case
     }
 
     function parseHosting(value) {
@@ -266,7 +271,9 @@ class AssetService {
       return value
         .split(",") // split by comma
         .map((v) => v.trim()) // remove whitespace
-        .filter((v) => ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(v));
+        .filter((v) =>
+          ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(v)
+        );
     }
 
     function parseAssetCategory(value) {
@@ -286,16 +293,22 @@ class AssetService {
             application_name: row["Application Name"],
             application_owner: row["Application Owner"],
             application_it_owner: row["Application IT Owner"],
-            is_third_party_management: parseBoolean(row["Is Third Party Management"]),
+            is_third_party_management: parseBoolean(
+              row["Is Third Party Management"]
+            ),
             third_party_name: row["Third Party Name"],
             third_party_location: row["Third Party Location"],
             hosting: parseHosting(row["Hosting"]),
             hosting_facility: parseHostingFacility(row["Hosting Facility"]),
-            cloud_service_provider: parseCloudServiceProvider(row["Cloud Service Provider"]),
+            cloud_service_provider: parseCloudServiceProvider(
+              row["Cloud Service Provider"]
+            ),
             geographic_location: row["Geographic Location"],
             has_redundancy: parseBoolean(row["Has Redundancy"]),
             databases: row["Databases"],
-            has_network_segmentation: parseBoolean(row["Has Network Segmentations"]),
+            has_network_segmentation: parseBoolean(
+              row["Has Network Segmentations"]
+            ),
             network_name: row["Network Name"],
             asset_category: parseAssetCategory(row["Asset Category"]),
             asset_description: row["Asset Description"],
@@ -332,7 +345,10 @@ class AssetService {
       const query = new QueryStream(sql);
       const stream = connection.query(query);
 
-      res.setHeader("Content-disposition", "attachment; filename=assets_export.csv");
+      res.setHeader(
+        "Content-disposition",
+        "attachment; filename=assets_export.csv"
+      );
       res.setHeader("Content-Type", "text/csv");
 
       const csvStream = format({
@@ -345,17 +361,19 @@ class AssetService {
           "Is Third Party Management": row.is_third_party_management,
           "Third Party Name": row.third_party_name,
           "Third Party Location": row.third_party_location,
-          "Hosting": row.hosting,
+          Hosting: row.hosting,
           "Hosting Facility": row.hosting_facility,
-          "Cloud Service Provider": (row.cloud_service_provider ?? []).join(","),
+          "Cloud Service Provider": (row.cloud_service_provider ?? []).join(
+            ","
+          ),
           "Geographic Location": row.geographic_location,
           "Has Redundancy": row.has_redundancy,
-          "Databases": row.databases,
+          Databases: row.databases,
           "Has Network Segmentations": row.has_network_segmentation,
           "Network Name": row.network_name,
           "Asset Category": row.asset_category,
           "Asset Description": row.asset_description,
-          "Status": row.status,
+          Status: row.status,
           "Created At": row.created_at,
           "Updated At": row.updated_at,
         }),
@@ -545,7 +563,7 @@ class AssetService {
     }
   }
 
-  static handleAssetFilters(
+  static handleAssetFiltersN(
     searchPattern = null,
     statusFilter = [],
     attrFilters = []
@@ -590,6 +608,94 @@ class AssetService {
 
       conditions.push({ id: { [Op.in]: Sequelize.literal(`(${subquery})`) } });
     }
+    return conditions.length > 0 ? { [Op.and]: conditions } : {};
+  }
+
+  // Function to generate Sequelize where conditions
+  static async handleAssetFilters(
+    searchPattern = null,
+    statusFilter = [],
+    attrFilters = []
+  ) {
+    const conditions = [];
+
+    if (searchPattern) {
+      conditions.push({
+        [Op.or]: [
+          { application_name: { [Op.iLike]: `%${searchPattern}%` } },
+          { third_party_name: { [Op.iLike]: `%${searchPattern}%` } },
+          { geographic_location: { [Op.iLike]: `%${searchPattern}%` } },
+        ],
+      });
+    }
+
+    if (statusFilter.length > 0) {
+      conditions.push({ status: { [Op.in]: statusFilter } });
+    }
+
+    // Attribute filters
+    if (attrFilters.length > 0) {
+      const assetColumns = Object.keys(Asset.rawAttributes);
+      const assetWhere = [];
+      const mappingFilters = [];
+
+      // Separate filters: direct columns vs mapping table
+      attrFilters.forEach((f) => {
+        if (assetColumns.includes(f.filterName)) {
+          // Direct column filter
+          const columnType = Asset.rawAttributes[f.filterName].type.key;
+          if (columnType === "ARRAY") {
+            assetWhere.push({ [f.filterName]: { [Op.overlap]: f.values } });
+          } else {
+            assetWhere.push({ [f.filterName]: { [Op.in]: f.values } });
+          }
+        } else {
+          mappingFilters.push(f);
+        }
+      });
+
+      // Add direct column filters
+      if (assetWhere.length > 0) {
+        conditions.push({ [Op.and]: assetWhere });
+      }
+
+      // Handle mapping table filters
+      if (mappingFilters.length > 0) {
+        // Fetch meta_data_key_ids for given names
+        const metaNames = mappingFilters.map((f) => f.filterName);
+        const metaDataKeys = await MetaData.findAll({
+          where: { name: { [Op.in]: metaNames } },
+          attributes: ["id", "name"],
+        });
+
+        const metaMap = {};
+        metaDataKeys.forEach((m) => (metaMap[m.name] = m.id));
+
+        // Build INTERSECT subquery
+        let subquery = "";
+        mappingFilters.forEach((filter, idx) => {
+          const metaDataKeyId = metaMap[filter.filterName];
+          if (!metaDataKeyId)
+            throw new Error(`Invalid meta_data_key name: ${filter.filterName}`);
+
+          const valuesArray = filter.values
+            .map((v) => sequelize.escape(v))
+            .join(",");
+          if (idx > 0) subquery += " INTERSECT ";
+          subquery += `
+          SELECT "asset_id"
+          FROM library_attributes_asset_mapping
+          WHERE "meta_data_key_id" = ${metaDataKeyId}
+          AND "values" && ARRAY[${valuesArray}]::varchar[]
+        `;
+        });
+
+        conditions.push({
+          id: { [Op.in]: Sequelize.literal(`(${subquery})`) },
+        });
+      }
+    }
+
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }
 }

@@ -1,3 +1,3 @@
 export type Filter = {
-  [key: number]: string[];
+  [key: string]: string[];
 };
