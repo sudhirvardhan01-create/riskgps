@@ -85,11 +85,14 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   );
 
   useEffect(() => {
-    if (isAssetThirdPartyManaged === false) {
-      handleChange("thirdPartyName", "");
-      handleChange("thirdPartyLocation", "");
+    if (!isAssetThirdPartyManaged) {
+      setAssetFormData((prev) => ({
+        ...prev,
+        thirdPartyName: "",
+        thirdPartyLocation: "",
+      }));
     }
-  }, [isAssetThirdPartyManaged, handleChange]);
+  }, [isAssetThirdPartyManaged]);
 
   const handleKeyValueChange = (
     index: number,
@@ -233,7 +236,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         <Grid container spacing={4}>
           {/* Asset Name */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled /// text 
+            <TextFieldStyled /// text
               label={labels.assetName}
               placeholder="Enter Asset Name"
               value={assetFormData.applicationName}
@@ -362,9 +365,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                     height={"12px"}
                   />
                 </Box>
-              </FormLabel> 
-              
-              <RadioGroup 
+              </FormLabel>
+
+              <RadioGroup
                 aria-labelledby="third-party-management-radio-buttons-group"
                 name="isThirdPartyManagement"
                 row
