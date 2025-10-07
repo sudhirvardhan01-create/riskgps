@@ -249,8 +249,8 @@ const BusinessUnits: React.FC = () => {
               mb: 2,
             }}
           >
-            Looks like you haven't created any Business Units yet. <br />
-            Click on 'Create Business Unit' to start organizing your units and streamline your operations.
+            Looks like you haven&apos;t created any Business Units yet. <br />
+            Click on &apos;Create Business Unit&apos; to start organizing your units and streamline your operations.
           </Typography>
 
           {/* Create Business Unit Button */}
