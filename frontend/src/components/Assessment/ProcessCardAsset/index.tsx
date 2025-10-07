@@ -237,9 +237,10 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
                     pb: 1.5,
                   }}
                 >
-                  {asset?.description?.length > 60
+                  {/* {asset?.description?.length > 60
                     ? asset.description.substring(0, 60) + " read more"
-                    : asset.description}
+                    : asset.description} */}
+                  {asset?.name}
                 </Box>
               </Stack>
             </Paper>
