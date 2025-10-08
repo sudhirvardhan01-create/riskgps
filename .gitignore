@@ -3,19 +3,9 @@
 
 node_modules
 
-
-docker-compose.yml
-
 .gitignore
-
-backend/modules/library/services/prepopulate_metadata.js
-backend/modules/library/services/prepopulate_process.js
-backend/modules/library/services/prepopulate_risk_scenario.js
-frontend/src/components/LibraryRowsCardComponent/LibraryRowsCardComponent.tsx
-frontend/src/components/LibraryRowsCardComponent/test.tsx
 
 .vscode
 .vs
-backend/models/mitre_nist_mapping.js
-backend/models/nist_controls.js
+
 backend/uploads
