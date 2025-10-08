@@ -44,6 +44,15 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query?.page) || 0;
     const sortBy = req.query.sort_by || "created_at";
     const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+    const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+    const attrFilters = (req.query.attrFilters || "")
+      .split(";")
+      .map((expr) => {
+        if (!expr) return null;
+        const [filterName, values] = expr.split(":");
+        return { filterName, values: values.split(",") };
+      })
+      .filter(Boolean);
 
     const mitreThreatControlRecords =
       await MitreThreatControlService.getAllMitreTheatControlRecords(
@@ -51,7 +60,9 @@ router.get("/", async (req, res) => {
         limit,
         searchPattern,
         sortBy,
-        sortOrder
+        sortOrder,
+        statusFilter,
+        attrFilters
       );
     res.status(HttpStatus.OK).json({
       data: mitreThreatControlRecords,

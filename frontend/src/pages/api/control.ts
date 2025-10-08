@@ -1,11 +1,14 @@
 import { MITREControlForm } from "@/types/control";
+import { Filter } from "@/types/filter";
 
 //Function to fetch controls
 export const fetchControls = async (
   page: number,
   limit: number,
   searchPattern?: string,
-  sort?: string
+  sort?: string,
+  statusFilter?: string[],
+  attributesFilter?: Filter[]
 ) => {
   const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
@@ -14,6 +17,22 @@ export const fetchControls = async (
   params.append("search", searchPattern ?? "");
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
+  
+  if (statusFilter && statusFilter?.length > 0) {
+    const joinedStatusFilter = statusFilter.join(",");
+    params.append("status", joinedStatusFilter);
+  }
+
+  if (attributesFilter && attributesFilter?.length) {
+    const paramString = attributesFilter
+      .map((obj) => {
+        const [key, values] = Object.entries(obj)[0]; // each object has one key
+        return `${key}:${values.join(",")}`;
+      })
+      .join(";");
+
+    params.append("attrFilters", paramString);
+  }
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/controls/get-controls?${params}`,

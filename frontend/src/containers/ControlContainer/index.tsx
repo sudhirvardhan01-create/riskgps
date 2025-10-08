@@ -72,6 +72,19 @@ export default function ControlContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
+  const [controlsFilters, setControlsFilters] = useState<
+    { key: string; name: string; values: string[] }[]
+  >([
+    {
+      key: "mitreControlType",
+      name: "Control Type",
+      values: [
+        "DETECTION",
+        "MITIGATION"
+      ],
+    },
+  ]);
+
   const [formData, setFormData] = useState<ControlFrameworkForm>(
     initialControlFrameworkFormData
   );
@@ -145,7 +158,9 @@ export default function ControlContainer() {
         page,
         rowsPerPage,
         searchPattern as string,
-        sort
+        sort,
+        statusFilters,
+        filters
       );
       setControlsData(data.data ?? []);
       setTotalRows(data?.total ?? 0);
@@ -159,7 +174,7 @@ export default function ControlContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
@@ -396,7 +411,7 @@ export default function ControlContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas,
+      metaDatas: controlsFilters,
       addButtonText: "Add Control Mapping",
       addAction: () => setIsAddOpen(true),
       sortItems:

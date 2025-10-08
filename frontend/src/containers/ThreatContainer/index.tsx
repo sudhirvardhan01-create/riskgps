@@ -88,6 +88,28 @@ export default function ThreatContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
+  const [threatsFilters, setThreatsFilters] = useState<
+    { key: string; name: string; values: string[] }[]
+  >([
+    {
+      key: "platforms",
+      name: "Platforms",
+      values: [
+        "Windows",
+        "macOS",
+        "Linux",
+        "Office 365",
+        "Azure AD",
+        "Google Workspace",
+        "SaaS",
+        "IaaS",
+        "Network Devices",
+        "Containers",
+        "Android",
+        "iOS",
+      ],
+    },
+  ]);
   // const [formData, setFormData] = useState<ThreatForm>(initialThreatFormData);
   const [formData, setFormData] = useState<ThreatBundleForm>(
     initialThreatBundleFormData
@@ -139,7 +161,9 @@ export default function ThreatContainer() {
         page,
         rowsPerPage,
         searchPattern as string,
-        sort
+        sort,
+        statusFilters,
+        filters
       );
       setThreatsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
@@ -153,7 +177,7 @@ export default function ThreatContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
@@ -363,7 +387,7 @@ export default function ThreatContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas,
+      metaDatas: threatsFilters,
       addButtonText: "Add Threat Bundle",
       addAction: () => setIsAddOpen(true),
       sortItems,

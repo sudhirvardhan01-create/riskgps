@@ -6,10 +6,11 @@ import {
   updateControlStatus,
 } from "@/pages/api/control";
 import { MITREControlForm } from "@/types/control";
+import { Filter } from "@/types/filter";
 
 export const ControlService = {
-  fetch: (page: number, limit: number, searchPattern: string, sort: string) =>
-    fetchControls(page, limit, searchPattern, sort),
+  fetch: (page: number, limit: number, searchPattern: string, sort: string, statusFilter: string[], filters?: Filter[]) =>
+    fetchControls(page, limit, searchPattern, sort, statusFilter, filters),
   delete: (mitreControlId: string, mitreControlNames: string[]) =>
     deleteControl(mitreControlId, mitreControlNames),
   update: (data: MITREControlForm) => updateControl(data),
