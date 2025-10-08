@@ -24,7 +24,9 @@ class ControlsService {
     searchPattern = null,
     sortBy = "created_at",
     sortOrder = "ASC",
-    fields = null
+    fields = null,
+    statusFilter = [],
+    attrFilters = []
   ) {
     if (!MITRE_CONTROLS.ALLOWED_SORT_FILED.includes(sortBy)) {
       sortBy = "created_at";
@@ -33,7 +35,8 @@ class ControlsService {
     if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
       sortOrder = "ASC";
     }
-    const whereClause = this.handleControlsFilters(searchPattern);
+    console.log(statusFilter, attrFilters)
+    const whereClause = this.handleControlsFilters(searchPattern, statusFilter, attrFilters);
 
     const includeRelation = {
       model: FrameWorkControl,
@@ -591,6 +594,35 @@ class ControlsService {
           { bluOceanControlDescription: { [Op.iLike]: `%${searchPattern}%` } },
         ],
       });
+    }
+    // 2Status filter
+    if (statusFilter.length > 0) {
+      conditions.push({ status: { [Op.in]: statusFilter } });
+    }
+
+    // Attribute filters
+    if (attrFilters.length > 0) {
+      const threatColumns = Object.keys(MitreThreatControl.rawAttributes);
+      const threatWhere = [];
+
+      // Separate filters: direct columns vs mapping table
+      attrFilters.forEach((f) => {
+        if (threatColumns.includes(f.filterName)) {
+          // Direct column filter
+          const columnType =
+            MitreThreatControl.rawAttributes[f.filterName].type.key;
+          if (columnType === "ARRAY") {
+            threatWhere.push({ [f.filterName]: { [Op.overlap]: f.values } });
+          } else {
+            threatWhere.push({ [f.filterName]: { [Op.in]: f.values } });
+          }
+        }
+      });
+
+      // Add direct column filters
+      if (threatWhere.length > 0) {
+        conditions.push({ [Op.and]: threatWhere });
+      }
     }
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }

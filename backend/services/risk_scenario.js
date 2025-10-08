@@ -589,53 +589,6 @@ class RiskScenarioService {
     }
   }
 
-  static handleRiskScenarioFiltersN(
-    searchPattern = null,
-    statusFilter = [],
-    attrFilters = []
-  ) {
-    let conditions = [];
-
-    if (searchPattern) {
-      conditions.push({
-        [Op.or]: [
-          { risk_scenario: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_description: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_statement: { [Op.iLike]: `%${searchPattern}%` } },
-        ],
-      });
-    }
-
-    if (statusFilter.length > 0) {
-      conditions.push({ status: { [Op.in]: statusFilter } });
-    }
-
-    if (attrFilters.length > 0) {
-      let subquery = "";
-
-      attrFilters.forEach((filter, idx) => {
-        const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
-        if (isNaN(metaDataKeyId)) {
-          throw new Error("Invalid metaDataKeyId");
-        }
-
-        const valuesArray = filter.values
-          .map((v) => sequelize.escape(v))
-          .join(",");
-
-        if (idx > 0) subquery += " INTERSECT ";
-        subquery += `
-                SELECT "risk_scenario_id"
-                FROM library_attributes_risk_scenario_mapping
-                WHERE "meta_data_key_id" = ${metaDataKeyId}
-                AND "values" && ARRAY[${valuesArray}]::varchar[]
-            `;
-      });
-
-      conditions.push({ id: { [Op.in]: Sequelize.literal(`(${subquery})`) } });
-    }
-    return conditions.length > 0 ? { [Op.and]: conditions } : {};
-  }
   // Function to generate Sequelize where conditions
   static async handleRiskScenarioFilters(
     searchPattern = null,

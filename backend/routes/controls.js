@@ -25,9 +25,17 @@ router.get("/get-controls", async (req, res) => {
     const sortBy = req.query.sort_by || 'created_at';
     const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
     const fields = req.query.fields?.split(",") || null;
-
+    const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+    const attrFilters = (req.query.attrFilters || "")
+      .split(";")
+      .map((expr) => {
+        if (!expr) return null;
+        const [filterName, values] = expr.split(":");
+        return { filterName, values: values.split(",") };
+      })
+      .filter(Boolean);
     try {
-        const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder, fields);
+        const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder, fields, statusFilter, attrFilters);
         res.status(200).json({ data });
 
     } catch (error) {

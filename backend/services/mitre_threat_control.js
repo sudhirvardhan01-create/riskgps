@@ -1,4 +1,9 @@
-const { sequelize, MitreThreatControl, ThreatBundle, MetaData } = require("../models");
+const {
+  sequelize,
+  MitreThreatControl,
+  ThreatBundle,
+  MetaData,
+} = require("../models");
 const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
@@ -48,9 +53,10 @@ class MitreThreatControlService {
     page = 0,
     limit = 6,
     searchPattern = null,
-
     sortBy = "created_at",
-    sortOrder = "ASC"
+    sortOrder = "ASC",
+    statusFilter,
+    attrFilters
   ) {
     const offset = page * limit;
     if (!ASSETS.ASSET_ALLOWED_SORT_FILED.includes(sortBy)) {
@@ -59,7 +65,7 @@ class MitreThreatControlService {
     if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
       sortOrder = "ASC";
     }
-    const whereClause = this.handleMitreThreatControlFilters(searchPattern);
+    const whereClause = this.handleMitreThreatControlFilters(searchPattern, statusFilter, attrFilters);
     const data = await MitreThreatControl.findAll({
       order: [[sortBy, sortOrder]],
       where: whereClause,
@@ -432,7 +438,7 @@ class MitreThreatControlService {
       );
     }
   }
-  static async handleMitreThreatControlFilters(
+  static  handleMitreThreatControlFilters(
     searchPattern = null,
     statusFilter = [],
     attrFilters = []
@@ -446,12 +452,12 @@ class MitreThreatControlService {
         ],
       });
     }
-    // 2️⃣ Status filter
+    // 2Status filter
     if (statusFilter.length > 0) {
       conditions.push({ status: { [Op.in]: statusFilter } });
     }
 
-    // 3️⃣ Attribute filters
+    // Attribute filters
     if (attrFilters.length > 0) {
       const threatColumns = Object.keys(MitreThreatControl.rawAttributes);
       const threatWhere = [];
@@ -461,7 +467,8 @@ class MitreThreatControlService {
       attrFilters.forEach((f) => {
         if (threatColumns.includes(f.filterName)) {
           // Direct column filter
-          const columnType = MitreThreatControl.rawAttributes[f.filterName].type.key;
+          const columnType =
+            MitreThreatControl.rawAttributes[f.filterName].type.key;
           if (columnType === "ARRAY") {
             threatWhere.push({ [f.filterName]: { [Op.overlap]: f.values } });
           } else {
@@ -474,7 +481,6 @@ class MitreThreatControlService {
       if (threatWhere.length > 0) {
         conditions.push({ [Op.and]: threatWhere });
       }
-
     }
 
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
