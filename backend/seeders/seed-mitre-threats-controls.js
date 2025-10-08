@@ -22,8 +22,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor system logs to review instance activities occurring across all cloud environments and regions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -41,8 +41,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor and consider configuring alerting to notify of activity in normally unused regions or if the number of instances active in a region goes above a certain threshold.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -60,8 +60,8 @@ module.exports = {
         bluOceanControlDescription:
           "Cloud service providers may allow customers to deactivate unused regions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -79,8 +79,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for changes in the status of the system firewall",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -98,8 +98,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor cloud logs for modification or creation of new security groups or firewall rules.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -117,8 +117,8 @@ module.exports = {
         bluOceanControlDescription:
           "Routinely check account role permissions to ensure only expected users and roles have permission to modify cloud firewalls.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -136,8 +136,8 @@ module.exports = {
         bluOceanControlDescription:
           "Ensure least privilege principles are applied to Identity and Access Management (IAM) security policies.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -155,8 +155,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for unusual queries to the cloud provider's storage service. Activity originating from unexpected sources may indicate improper permissions are set that is allowing access to data. Additionally, detecting failed attempts by a user for a certain object, followed by escalation of privileges by the same user, and access to the same object may be an indication of suspicious activity.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -174,8 +174,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor cloud logs for API calls used for file or object enumeration for unusual activity. System and network discovery techniques normally occur throughout an operation as an adversary learns the environment.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -193,8 +193,8 @@ module.exports = {
         bluOceanControlDescription:
           "Restrict granting of permissions related to listing objects in cloud storage to necessary accounts.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -212,8 +212,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor cloud logs for API calls and other potentially unusual activity related to cloud data object storage enumeration.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -231,8 +231,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor cloud logs for API calls and other potentially unusual activity related to cloud instance enumeration.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -250,8 +250,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor cloud logs for API calls and other potentially unusual activity related to snapshot enumeration.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -269,8 +269,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor cloud logs for API calls and other potentially unusual activity related to block object storage enumeration.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -288,8 +288,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit permissions to discover cloud infrastructure in accordance with least privilege. Organizations should limit the number of users within the organization with an IAM role that has administrative privileges, strive to reduce all permanent privileged role assignments, and conduct periodic entitlement reviews on IAM users, roles and policies.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -307,8 +307,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for API calls and CLI commands that attempt to enumerate and fetch credential material from the secrets manager. Alert on any suspicious usages of these commands, such as an account or service generating an unusually high number of secret requests.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -326,8 +326,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit the number of cloud accounts and services with permission to query the secrets manager to only those required. Ensure that accounts and services with permissions to query the secrets manager only have access to the secrets they require.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -345,8 +345,8 @@ module.exports = {
         bluOceanControlDescription:
           "It may be possible to detect adversary use of credentials they have obtained such as in valid accounts",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -364,8 +364,8 @@ module.exports = {
         bluOceanControlDescription:
           "Disable unnecessary metadata services and restrict or disable insecure versions of metadata services that are in use to prevent adversary access.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -383,8 +383,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit access to the Instance Metadata API. A properly configured Web Application Firewall (WAF) may help prevent external adversaries from exploiting Server-side Request Forgery (SSRF) attacks",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -402,8 +402,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit access to the Instance Metadata API using a host-based firewall such as iptables.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -421,8 +421,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for quota increases across all regions, especially multiple quota increases in a short period of time or quota increases in unused regions. Monitor for changes to tenant-level settings such as subscriptions and enabled regions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -440,8 +440,8 @@ module.exports = {
         bluOceanControlDescription:
           "The creation of a new instance or VM is a common part of operations within many cloud environments. Events should then not be viewed in isolation, but as part of a chain of behavior that could lead to other activities.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -459,8 +459,8 @@ module.exports = {
         bluOceanControlDescription:
           "The deletion of a new instance or virtual machine is a common part of operations within many cloud environments. Events should then not be viewed in isolation, but as part of a chain of behavior that could lead to other activities.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -478,8 +478,8 @@ module.exports = {
         bluOceanControlDescription:
           "Periodically baseline instances to identify malicious modifications or additions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -497,8 +497,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging of instance activity, which can be used to monitor and review system events even after reverting to a snapshot, rolling back changes, or changing persistence/type of storage. Monitor specifically for events related to snapshots and rollbacks and VM configuration changes, that are occurring outside of normal activity.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -516,8 +516,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging of instance activity, which can be used to monitor and review system events even after reverting to a snapshot, rolling back changes, or changing persistence/type of storage. Monitor specifically for events related to activation of instances that are occurring outside of normal activity/planned operations.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -535,8 +535,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging of instance activity, which can be used to monitor and review system events even after reverting to a snapshot, rolling back changes, or changing persistence/type of storage. Monitor specifically for events related to deactivation of instances that are occurring outside of planned operations.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -554,8 +554,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging for the activity of cloud compute infrastructure components. Monitor for suspicious sequences of events, such as the creation of multiple snapshots within a short period of time.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -573,8 +573,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging for the activity of cloud compute infrastructure components. Monitor for suspicious sequences of events, such as the deletion of multiple snapshots within a short period of time",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -592,8 +592,8 @@ module.exports = {
         bluOceanControlDescription:
           "Periodically baseline snapshots to identify malicious modifications or additions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -611,8 +611,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging for the activity of cloud compute infrastructure components. Monitor for suspicious sequences of events, such as the mounting of a snapshot to a new instance by a new or unexpected user.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -630,8 +630,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for the unexpected creation or presence of cloud block storage volumes",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -649,8 +649,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for the unexpected deletion or absence of cloud block storage volumes",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -668,8 +668,8 @@ module.exports = {
         bluOceanControlDescription:
           "Periodically baseline cloud block storage volumes to identify malicious modifications or additions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -687,8 +687,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for the unexpected changes to cloud block storage volumes",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -706,8 +706,8 @@ module.exports = {
         bluOceanControlDescription:
           "Routinely monitor user permissions to ensure only the expected users have the capability to modify cloud compute infrastructure components.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -725,8 +725,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit permissions for creating, deleting, and otherwise altering compute components in accordance with least privilege. Organizations should limit the number of users within the organization with an IAM role that has administrative privileges, strive to reduce all permanent privileged role assignments, and conduct periodic entitlement reviews on IAM users, roles and policies.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -744,8 +744,8 @@ module.exports = {
         bluOceanControlDescription:
           "The creation of a snapshot is a common part of operations within many cloud environments. Events should then not be viewed in isolation, but as part of a chain of behavior that could lead to other activities such as the creation of one or more snapshots and the restoration of these snapshots by a new user account.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -763,8 +763,8 @@ module.exports = {
         bluOceanControlDescription:
           "Periodically baseline snapshots to identify malicious modifications or additions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -782,8 +782,8 @@ module.exports = {
         bluOceanControlDescription:
           "Routinely check user permissions to ensure only the expected users have the capability to create snapshots and backups.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -801,8 +801,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit permissions for creating snapshots or backups in accordance with least privilege. Organizations should limit the number of users within the organization with an IAM role that has administrative privileges, strive to reduce all permanent privileged role assignments, and conduct periodic entitlement reviews on IAM users, roles and policies.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -820,8 +820,8 @@ module.exports = {
         bluOceanControlDescription:
           "The creation of a new instance or VM is a common part of operations within many cloud environments. Events should then not be viewed in isolation, but as part of a chain of behavior that could lead to other activities.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -839,8 +839,8 @@ module.exports = {
         bluOceanControlDescription:
           "Periodically baseline instances to identify malicious modifications or additions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -858,8 +858,8 @@ module.exports = {
         bluOceanControlDescription:
           "Routinely check user permissions to ensure only the expected users have the capability to create new instances.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -877,8 +877,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit permissions for creating new instances in accordance with least privilege. Organizations should limit the number of users within the organization with an IAM role that has administrative privileges, strive to reduce all permanent privileged role assignments, and conduct periodic entitlement reviews on IAM users, roles and policies.(",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -896,8 +896,8 @@ module.exports = {
         bluOceanControlDescription:
           "The deletion of a new instance or virtual machine is a common part of operations within many cloud environments. Events should then not be viewed in isolation, but as part of a chain of behavior that could lead to other activities.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -915,8 +915,8 @@ module.exports = {
         bluOceanControlDescription:
           "Periodically baseline instances to identify malicious modifications or additions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -934,8 +934,8 @@ module.exports = {
         bluOceanControlDescription:
           "Routinely check user permissions to ensure only the expected users have the capability to delete new instances.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -953,8 +953,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit permissions for deleting new instances in accordance with least privilege. Organizations should limit the number of users within the organization with an IAM role that has administrative privileges, strive to reduce all permanent privileged role assignments, and conduct periodic entitlement reviews on IAM users, roles and policies.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -972,8 +972,8 @@ module.exports = {
         bluOceanControlDescription:
           "Periodically baseline instances to identify malicious modifications or additions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -991,8 +991,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging of instance activity, which can be used to monitor and review system events even after reverting to a snapshot, rolling back changes, or changing persistence/type of storage. Monitor specifically for events related to snapshots and rollbacks and VM configuration changes, that are occurring outside of normal activity.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1010,8 +1010,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging of instance activity, which can be used to monitor and review system events even after reverting to a snapshot, rolling back changes, or changing persistence/type of storage. Monitor specifically for events related to activation of instances that are occurring outside of normal activity/planned operations.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1029,8 +1029,8 @@ module.exports = {
         bluOceanControlDescription:
           "Establish centralized logging of instance activity, which can be used to monitor and review system events even after reverting to a snapshot, rolling back changes, or changing persistence/type of storage. Monitor specifically for events related to deactivation of instances that are occurring outside of planned operations.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1048,8 +1048,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for quota increases across all regions, especially multiple quota increases in a short period of time or quota increases in unused regions. Monitor for changes to tenant-level settings such as subscriptions and enabled regions.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1067,8 +1067,8 @@ module.exports = {
         bluOceanControlDescription:
           "Routinely monitor user permissions to ensure only the expected users have the capability to request quota adjustments or modify tenant-level compute settings.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1086,8 +1086,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit permissions to request quotas adjustments or modify tenant-level compute setting to only those required.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1105,8 +1105,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor commands and scripts executed on virtual machines.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1124,8 +1124,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor virtual machines for the creation of processes associated with cloud virtual machine agents.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1143,8 +1143,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor commands and scripts executed on virtual machines.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1162,8 +1162,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit the number of cloud accounts with permissions to remotely execute commands on virtual machines, and ensure that these are not used for day-to-day operations.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1181,8 +1181,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor cloud audit logs and host logs for logon session events. These can be found in CloudTrail, Unified Audit Logs, Windows Event Logs and `/var/log/auth.log` or `/var/log/secure` for Linux systems.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1200,8 +1200,8 @@ module.exports = {
         bluOceanControlDescription:
           "If direct virtual machine connections are not required for administrative use, disable these connection types where feasible.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["IaaS"],
@@ -1219,8 +1219,8 @@ module.exports = {
         bluOceanControlDescription:
           "Limit which users are allowed to access compute infrastructure via cloud native methods.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1238,8 +1238,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for third-party application logging, messaging, and/or other artifacts that may leverage Confluence repositories to mine valuable information. Watch for access to Confluence repositories performed by privileged users (for example, Active Directory Domain, Enterprise, or Schema Administrators) as these types of accounts should generally not be used to access information repositories. If the capability exists, it may be of value to monitor and alert on users that are retrieving and viewing a large number of documents and pages; this behavior may be indicative of programmatic means being used to retrieve all data within the repository. In environments with high-maturity, it may be possible to leverage User-Behavioral Analytics (UBA) platforms to detect and alert on user based anomalies.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1257,8 +1257,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for newly constructed logon behavior across Atlassian's Confluence which can be configured to report access to certain pages and documents through AccessLogFilter. (Citation: Atlassian Confluence Logging) Additional log storage and analysis infrastructure will likely be required for more robust detection capabilities.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1276,8 +1276,8 @@ module.exports = {
         bluOceanControlDescription:
           "Consider periodic review of accounts and privileges for critical and sensitive Confluence repositories.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1295,8 +1295,8 @@ module.exports = {
         bluOceanControlDescription:
           "Enforce the principle of least-privilege. Consider implementing access control mechanisms that include both authentication and authorization.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1314,8 +1314,8 @@ module.exports = {
         bluOceanControlDescription:
           "Develop and publish policies that define acceptable information to be stored in Confluence repositories.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1333,8 +1333,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for third-party application logging, messaging, and/or other artifacts that may leverage code repositories to collect valuable information. Monitor access to code repositories, especially performed by privileged users such as Active Directory Domain or Enterprise Administrators as these types of accounts should generally not be used to access code repositories. In environments with high-maturity, it may be possible to leverage User-Behavioral Analytics (UBA) platforms to detect and alert on user-based anomalies.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1352,8 +1352,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for newly constructed logon behavior across code repositories (e.g. Github) which can be configured to report access to certain pages and documents.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1371,8 +1371,8 @@ module.exports = {
         bluOceanControlDescription:
           "Consider periodic reviews of accounts and privileges for critical and sensitive code repositories. Scan code repositories for exposed credentials or other sensitive information.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1390,8 +1390,8 @@ module.exports = {
         bluOceanControlDescription:
           "Use multi-factor authentication for logons to code repositories.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1409,8 +1409,8 @@ module.exports = {
         bluOceanControlDescription:
           "Enforce the principle of least-privilege. Consider implementing access control mechanisms that include both authentication and authorization for code repositories.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["SaaS"],
@@ -1428,8 +1428,8 @@ module.exports = {
         bluOceanControlDescription:
           "Develop and publish policies that define acceptable information to be stored in code repositories.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1447,8 +1447,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for unexpected files used to gather credentials when the files are rendered.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1466,8 +1466,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for newly constructed files on systems and within virtual environments that contain resources that point to external network resources",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1485,8 +1485,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for changes made to files on systems and within virtual environments that contain resources that point to external network resources",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1504,8 +1504,8 @@ module.exports = {
         bluOceanControlDescription:
           "For internal traffic, monitor the workstation-to-workstation unusual (vs. baseline) SMB traffic.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1523,8 +1523,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for SMB traffic attempting to exit the network to unknown external systems.If attempts are detected, then investigate endpoint data sources to find the root cause.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1542,8 +1542,8 @@ module.exports = {
         bluOceanControlDescription:
           "Block SMB traffic from exiting an enterprise network with egress filtering or by blocking ports. If access to external resources is necessary, then traffic should be tightly limited with allowlisting.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1561,8 +1561,8 @@ module.exports = {
         bluOceanControlDescription:
           "Use strong passwords to increase the difficulty of credential hashes from being cracked if they are obtained.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Network"],
@@ -1580,8 +1580,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for changes made to the checksum of the operating system file and verifying the image of the operating system in memory.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Network"],
@@ -1599,8 +1599,8 @@ module.exports = {
         bluOceanControlDescription:
           "Use multi-factor authentication for user and privileged accounts. Follow vendor prescribed best practices for hardening access control.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Network"],
@@ -1618,8 +1618,8 @@ module.exports = {
         bluOceanControlDescription:
           "Restrict administrator accounts to as few individuals as possible, following least privilege principles. Prevent credential overlap across systems of administrator and privileged accounts, particularly between network and non-network platforms, such as servers or endpoints.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1637,8 +1637,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor property changes in Group Policy: <code>Computer Configuration\\Windows Settings\\Security Settings\\Account Policies\\Password Policy\\Store passwords using reversible encryption</code>. By default, the property should be set to Disabled.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1656,8 +1656,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor command-line usage for <code>-AllowReversiblePasswordEncryption $true</code> or other actions that could be related to malicious tampering of user settings",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1675,8 +1675,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor and/or block suspicious execution of Active Directory PowerShell modules that change account configurations",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1694,8 +1694,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor Fine-Grained Password Policies and regularly audit user accounts and group settings.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1713,8 +1713,8 @@ module.exports = {
         bluOceanControlDescription:
           "Ensure that <code>AllowReversiblePasswordEncryption</code> property is set to disabled unless there are application requirements.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["Windows"],
@@ -1732,8 +1732,8 @@ module.exports = {
         bluOceanControlDescription:
           "Audit domain and local accounts as well as their permission levels routinely to look for situations that could allow an adversary to gain wide access by obtaining credentials of a privileged account. These audits should also include if default accounts have been enabled, or if new local accounts are created that have not be authorized. Follow best practices for design and administration of an enterprise network to limit privileged account use across administrative tiers.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["macOS"],
@@ -1751,8 +1751,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for commands with arguments (such as opening common command-line editors) used to modify plist files.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["macOS"],
@@ -1770,8 +1770,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for plist file modification, especially if immediately followed by other suspicious events such as code execution and monitor for significant changes to any path pointers in a modified plist.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["macOS"],
@@ -1789,8 +1789,8 @@ module.exports = {
         bluOceanControlDescription:
           "Monitor for newly executed processes with arguments that can modify property list (plist) files.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
       {
         platforms: ["macOS"],
@@ -1808,12 +1808,19 @@ module.exports = {
         bluOceanControlDescription:
           "Ensure applications are using Apple's developer guidance which enables hardened runtime.",
         status: "published",
-        created_at: "now",
-        updated_at: "now",
+        created_at: now,
+        updated_at: now,
       },
     ];
 
-    await safeSeed(MitreThreatControl, mitreThreatsControls);
+    await safeSeed(
+      MitreThreatControl,
+      mitreThreatsControls,
+      "mitreTechniqueId",
+      "subTechniqueId",
+      "mitreControlId",
+      "mitreControlName"
+    );
   },
 
   async down() {
