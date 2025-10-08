@@ -217,7 +217,6 @@ class ProcessService {
           t
         );
       }
-      console.log(data.attributes, "LOGGING ATTR");
       if (Array.isArray(data.attributes) && data.attributes.length > 0) {
         console.log(data.attributes);
         await this.handleProcessAttributes(id, data.attributes, t);
@@ -641,8 +640,7 @@ class ProcessService {
       }
 
       if (
-        !dependency.target_process_id ||
-        typeof dependency.target_process_id !== "number"
+        !dependency.target_process_id 
       ) {
         console.log("Invalid or missing target_process_id:", dependency);
         throw new CustomError(
