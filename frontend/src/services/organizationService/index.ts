@@ -160,6 +160,7 @@ export const transformApiOrganizationToFrontend = (apiOrg: ApiOrganization): Org
     id: apiOrg.organizationId,
     name: apiOrg.name,
     orgId: apiOrg.organizationId, // Using organizationId as orgId for now
+    orgCode: apiOrg.orgCode,
     orgImage: "/orgImage.png", // Default image
     tags: {
       industry: tags.industry || apiOrg.industryVertical || "Unknown",

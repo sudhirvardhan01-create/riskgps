@@ -126,9 +126,9 @@ const OrgCard: React.FC<OrgCardProps> = ({
               whiteSpace: "nowrap"
             }}
           >
-            {organization.orgId.length > 15
-              ? organization.orgId.substring(0, 15) + "..."
-              : organization.orgId}
+            {organization.orgCode.length > 15
+              ? organization.orgCode.substring(0, 15) + "..."
+              : organization.orgCode}
           </Typography>
         </Box>
       </Box>
