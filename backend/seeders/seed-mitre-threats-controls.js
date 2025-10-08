@@ -1565,7 +1565,7 @@ module.exports = {
         updated_at: now,
       },
       {
-        platforms: ["Network"],
+        platforms: ["Windows"],
         mitreTechniqueId: "T1556",
         mitreTechniqueName: "Modify Authentication Process",
         ciaMapping: ["C", "I"],
@@ -1584,7 +1584,7 @@ module.exports = {
         updated_at: now,
       },
       {
-        platforms: ["Network"],
+        platforms: ["Windows"],
         mitreTechniqueId: "T1556",
         mitreTechniqueName: "Modify Authentication Process",
         ciaMapping: ["C", "I"],
@@ -1603,7 +1603,7 @@ module.exports = {
         updated_at: now,
       },
       {
-        platforms: ["Network"],
+        platforms: ["Windows"],
         mitreTechniqueId: "T1556",
         mitreTechniqueName: "Modify Authentication Process",
         ciaMapping: ["C", "I"],

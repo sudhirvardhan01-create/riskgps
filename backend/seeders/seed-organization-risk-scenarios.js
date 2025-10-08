@@ -199,7 +199,7 @@ module.exports = {
       {
         organizationId: org.organizationId,
         name: "Fraud monitoring is data exposed",
-        riskCode: "1023",
+
         description:
           "Confidential fraud intelligence, alert rules, or case data from the monitoring system is illegally accessed.",
         statement: "Exposure of sensitive fraud monitoring system data.",
@@ -207,7 +207,6 @@ module.exports = {
       {
         organizationId: org.organizationId,
         name: "Fraud monitoring is not available for 1 week",
-        riskCode: "1024",
         description:
           "The core system responsible for monitoring and alerting on fraudulent activities is non-operational for an extended period.",
         statement: "Loss of capability to perform fraud monitoring for 1 week.",
@@ -215,7 +214,7 @@ module.exports = {
       {
         organizationId: org.organizationId,
         name: "KYC data is exposed",
-        riskCode: "1025",
+
         description:
           "Confidential Know Your Customer (KYC) documentation, such as identity proofs and verification records, is accessed by unauthorized parties.",
         statement: "Unauthorized disclosure of sensitive KYC data.",
@@ -223,7 +222,7 @@ module.exports = {
       {
         organizationId: org.organizationId,
         name: "KYC data is corrupted and no longer accurate",
-        riskCode: "1026",
+
         description:
           "KYC records are damaged or inaccurately reflect a customer's verified identity.",
         statement:
@@ -232,7 +231,6 @@ module.exports = {
       {
         organizationId: org.organizationId,
         name: "KYC is not able to process new applications for 1 week",
-        riskCode: "1027",
         description:
           "The system used to verify and onboard new customers via KYC processes is unavailable for one week, halting new business.",
         statement:

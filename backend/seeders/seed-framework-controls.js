@@ -1,6 +1,10 @@
 "use strict";
-const { FrameWorkControl } = require("../models");
-const { safeSeed } = require("../utils/seedHelper");
+const {
+  sequelize,
+  FrameWorkControl,
+  MitreThreatControl,
+  MitreFrameworkControlMappings,
+} = require("../models");
 
 module.exports = {
   async up() {
@@ -251,8 +255,59 @@ module.exports = {
         updated_at: now,
       },
     ];
+    await sequelize.transaction(async (t) => {
+      for (const frameworkControl of frameworkControls) {
+        const allowedFrameworkdControlFields = [
+          "frameWorkName",
+          "frameWorkControlCategoryId",
+          "frameWorkControlCategory",
+          "frameWorkControlSubCategoryId",
+          "frameWorkControlSubCategory",
+          "status",
+          "created_at",
+          "updated_at",
+        ];
 
-    await safeSeed(FrameWorkControl, frameworkControls);
+        const frameworkControlData = {};
+        for (const key of allowedFrameworkdControlFields) {
+          if (frameworkControl[key] !== undefined)
+            frameworkControlData[key] = frameworkControl[key];
+        }
+        const [createdFrameworkControl, created] =
+          await FrameWorkControl.findOrCreate({
+            where: {
+              frameWorkName: frameworkControlData.frameWorkName,
+              frameWorkControlCategoryId:
+                frameworkControlData.frameWorkControlCategoryId,
+              frameWorkControlSubCategoryId:
+                frameworkControlData.frameWorkControlSubCategoryId,
+            },
+            defaults: frameworkControlData,
+            transaction: t,
+          });
+        if (created) {
+          const controls = await MitreThreatControl.findAll({
+            where: { mitre_control_id: frameworkControl.mitreControls },
+            attributes: ["id"],
+            transaction: t,
+          });
+
+          const frameworkControlMitreControlMappings = controls.map((c) => ({
+            framework_control_id: createdFrameworkControl.id,
+            mitre_threat_control_id: c.id,
+            created_at: new Date(),
+            updated_at: new Date(),
+          }));
+
+          if (frameworkControlMitreControlMappings.length > 0) {
+            await MitreFrameworkControlMappings.bulkCreate(
+              frameworkControlMitreControlMappings,
+              { transaction: t }
+            );
+          }
+        }
+      }
+    });
   },
 
   async down() {
