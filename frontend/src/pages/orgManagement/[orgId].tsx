@@ -173,7 +173,7 @@ function OrgDetailsPage() {
         });
         // If API fails, redirect back to org management after showing error
         setTimeout(() => {
-          router.push('/orgmanagement');
+          router.push('/orgManagement');
         }, 2000);
       } finally {
         setLoading(false);
@@ -191,7 +191,7 @@ function OrgDetailsPage() {
       const timer = setTimeout(() => {
         setShowSuccessPopup(false);
         // Remove the query parameter from URL
-        router.replace(`/orgmanagement/${orgId}`, undefined, { shallow: true });
+        router.replace(`/orgManagement/${orgId}`, undefined, { shallow: true });
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -203,7 +203,7 @@ function OrgDetailsPage() {
   };
 
   const handleBackClick = () => {
-    router.push('/orgmanagement');
+    router.push('/orgManagement');
   };
 
   if (loading) {
@@ -446,7 +446,7 @@ function OrgDetailsPage() {
                 fontSize: "14px",
                 fontWeight: 500,
               }}
-              onClick={() => router.push(`/orgmanagement/${orgId}/editorgdetails`)}
+              onClick={() => router.push(`/orgManagement/${orgId}/editOrgDetails`)}
             >
               <Edit sx={{ fontSize: 16 }} />
               <Typography variant="body1" sx={{ fontWeight: 500, color: "inherit" }}>

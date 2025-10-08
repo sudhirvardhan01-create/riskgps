@@ -50,7 +50,7 @@ const OrgCard: React.FC<OrgCardProps> = ({
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Navigate to organization details page
-    router.push(`/orgmanagement/${organization.orgId}`);
+    router.push(`/orgManagement/${organization.orgId}`);
   };
 
   const handleInteractiveClick = (e: React.MouseEvent) => {

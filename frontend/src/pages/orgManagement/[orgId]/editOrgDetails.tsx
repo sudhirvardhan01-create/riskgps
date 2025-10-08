@@ -87,6 +87,7 @@ function EditOrgDetailsPage() {
           id: apiResponse.data.organizationId,
           name: apiResponse.data.name,
           orgId: apiResponse.data.organizationId,
+          orgCode: apiResponse.data.orgCode || apiResponse.data.organizationId, // Use orgCode from API or fallback to orgId
           orgImage: "/orgImage.png", // Default image since API doesn't provide this
           tags: (() => {
             // Convert API tags array to object format
@@ -209,7 +210,7 @@ function EditOrgDetailsPage() {
           severity: "error"
         });
         // Redirect back to org management on error
-        router.push('/orgmanagement');
+        router.push('/orgManagement');
       }
     };
 
@@ -217,7 +218,7 @@ function EditOrgDetailsPage() {
   }, [orgId, router, orgName, tags, businessContext]);
 
   const handleBackClick = () => {
-    router.push(`/orgmanagement/${orgId}`);
+    router.push(`/orgManagement/${orgId}`);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -395,7 +396,7 @@ function EditOrgDetailsPage() {
 
       // Redirect back to the organization details page after a short delay
       setTimeout(() => {
-        router.push(`/orgmanagement/${orgId}`);
+        router.push(`/orgManagement/${orgId}`);
       }, 1500);
 
     } catch (error) {
