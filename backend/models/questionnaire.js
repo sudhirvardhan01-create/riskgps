@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         field: "question",
       },
       status: {
-        type: DataTypes.ENUM(GENERAL.STATUS_SUPPORTED_VALUES),
+        type: DataTypes.ENUM(...GENERAL.STATUS_SUPPORTED_VALUES),
         allowNull: false,
         defaultValue: "published",
         field: "status",
@@ -43,16 +43,25 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  // LibraryQuestionnaire.associate = (models) => {
-  //   // Relation to LibraryQuestionnaireAssetControlMapping
-  //   LibraryQuestionnaire.hasMany(
-  //     models.LibraryQuestionnaireAssetControlMapping,
-  //     {
-  //       foreignKey: "questionnaireId",
-  //       as: "assetControlMappings",
-  //     }
-  //   );
-  // };
+  LibraryQuestionnaire.associate = (models) => {
+    // Relation to LibraryQuestionnaireAssetControlMapping
+    LibraryQuestionnaire.hasMany(
+      models.LibraryQuestionnaireAssetControlMapping,
+      {
+        foreignKey: "questionnaireId",
+        as: "assetControlMappings",
+      }
+    );
+  };
+
+  // ✅ After create hook to generate questionCode
+  LibraryQuestionnaire.afterCreate(async (instance, options) => {
+    const newCode = `${1000 + instance.incrementalId}`;
+    if (instance.questionCode !== newCode) {
+      instance.questionCode = newCode;
+      await instance.save({ transaction: options.transaction });
+    }
+  });
 
   return LibraryQuestionnaire;
 };
