@@ -6,6 +6,7 @@ import withAuth from "@/hoc/withAuth";
 import { Organization } from "@/types/organization";
 import Image from "next/image";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
+import { BusinessUnits } from "@/components/Organization/BusinessUnit";
 import { getOrganizationById } from "@/services/organizationService";
 import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTypography";
 import ToastComponent from "@/components/ToastComponent";
@@ -427,7 +428,7 @@ function OrgDetailsPage() {
         >
           <Tab label="Org Details" />
           <Tab label="Repository" />
-          <Tab label={`Business Units`} />
+          <Tab label={`Business Units (${organization.businessUnits?.length || 0})`} />
           <Tab label={`Users`} />
         </Tabs>
       </Box>
@@ -757,10 +758,7 @@ function OrgDetailsPage() {
         </TabPanel>
 
         <TabPanel value={tabValue} index={2}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Business Units</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Business Units will be displayed here.
-          </Typography>
+          <BusinessUnits />
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
