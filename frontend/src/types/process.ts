@@ -1,5 +1,5 @@
 export interface ProcessAttributes {
-  meta_data_key_id: number | null;
+  meta_data_key_id: string | null;
   values: string[];
 }
 

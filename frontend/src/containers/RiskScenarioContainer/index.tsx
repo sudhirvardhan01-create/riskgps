@@ -467,7 +467,7 @@ export default function RiskScenarioContainer() {
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Risk Scenario Deletion?"
-        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.id}? All associated data will be removed from the system.`}
+        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.risk_code}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"

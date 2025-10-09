@@ -5,10 +5,15 @@ module.exports = (sequelize) => {
   const Process = sequelize.define(
     "Process",
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.UUID,
+        primaryKey: true,
+        defaultValue: DataTypes.UUIDV4,
+      },
+      auto_increment_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      unique: true,
       },
       process_code: {
         unique: true,
@@ -121,7 +126,7 @@ module.exports = (sequelize) => {
   };
 
   Process.afterCreate(async (instance, options) => {
-    const paddedId = String(instance.id).padStart(5, "0");
+    const paddedId = String(instance.auto_increment_id).padStart(5, "0");
     const code = `BP${paddedId}`;
     await instance.update({ process_code: code }, { transaction: options.transaction });
   });

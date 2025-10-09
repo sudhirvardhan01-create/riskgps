@@ -100,7 +100,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
     value: number | string[]
   ) => {
     const updatedKeyValues = [...(assetFormData.attributes ?? [])];
-    if (field == "meta_data_key_id" && typeof value == "number") {
+    if (field == "meta_data_key_id" && typeof value == "string") {
       updatedKeyValues[index].meta_data_key_id = value;
       updatedKeyValues[index].values = [];
     } else if (field === "values" && Array.isArray(value)) {

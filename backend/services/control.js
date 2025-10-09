@@ -35,8 +35,12 @@ class ControlsService {
     if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
       sortOrder = "ASC";
     }
-    console.log(statusFilter, attrFilters)
-    const whereClause = this.handleControlsFilters(searchPattern, statusFilter, attrFilters);
+    console.log(statusFilter, attrFilters);
+    const whereClause = this.handleControlsFilters(
+      searchPattern,
+      statusFilter,
+      attrFilters
+    );
 
     const includeRelation = {
       model: FrameWorkControl,
@@ -329,21 +333,31 @@ class ControlsService {
       delete control.mitre_controls;
     }
 
-    const total = controls.length;
-    const totalPages = Math.ceil(total / limit);
+    // pagination required
+    if (limit != 0) {
+      const total = controls.length;
+      const totalPages = Math.ceil(total / limit);
 
-    // slice based on zero-indexed page
-    const start = page * limit;
-    const end = start + limit;
-    const paginatedData = controls.slice(start, end);
-
-    return {
-      data: paginatedData,
-      total,
-      page,
-      limit,
-      totalPages,
-    };
+      // slice based on zero-indexed page
+      const start = page * limit;
+      const end = start + limit;
+      const paginatedData = controls.slice(start, end);
+      return {
+        data: paginatedData,
+        total,
+        page,
+        limit,
+        totalPages,
+      };
+    } else {
+      const total = controls.length;
+      const totalPages = 1;
+      return {
+        data: controls,
+        total,
+        totalPages,
+      };
+    }
   }
 
   static async updateFrameWorkControlStatus(status, id) {
@@ -540,10 +554,10 @@ class ControlsService {
     });
   }
 
-  static async exportFrameworkControlCSV(res) {
+  static async exportFrameworkControlCSV(frameworkName, res) {
     try {
       // fetch transformed framework controls
-      const controls = await this.getAllFrameworkControls();
+      const controls = await this.getAllFrameworkControls(frameworkName, 1, 0);
 
       res.setHeader(
         "Content-disposition",
@@ -559,8 +573,8 @@ class ControlsService {
           "Control Category": row.frameWorkControlCategoryId ?? "",
           "Control Sub Category Id": row.frameWorkControlSubCategoryId ?? "",
           "Control Sub Category": row.frameWorkControlSubCategory ?? "",
-          "MITRE Controls": Array.isArray(row.mitre_controls)
-            ? row.mitre_controls.join(", ")
+          "MITRE Controls": Array.isArray(row.mitreControls)
+            ? row.mitreControls.join(", ")
             : "",
           Status: row.status,
         }),

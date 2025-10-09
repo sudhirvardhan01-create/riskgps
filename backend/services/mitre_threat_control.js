@@ -2,7 +2,7 @@ const {
   sequelize,
   MitreThreatControl,
   ThreatBundle,
-  Sequelize
+  Sequelize,
 } = require("../models");
 const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
@@ -124,16 +124,13 @@ class MitreThreatControlService {
 
   static async getUniqueMitreTechniques() {
     const results = await MitreThreatControl.findAll({
-      attributes: [
-        "mitreTechniqueId",
-        "mitreTechniqueName",
-      ],
+      attributes: ["mitreTechniqueId", "mitreTechniqueName"],
       group: ["mitreTechniqueId", "mitreTechniqueName"],
       raw: true,
     });
-    return results.map(r => ({
+    return results.map((r) => ({
       mitreTechniqueId: r.mitreTechniqueId,
-      mitreTechniqueName: r.mitreTechniqueName
+      mitreTechniqueName: r.mitreTechniqueName,
     }));
   }
 
@@ -224,6 +221,7 @@ class MitreThreatControlService {
     mitreTechniqueId,
     mitreSubTechniqueId = null
   ) {
+    console.log(mitreSubTechniqueId);
     if (!mitreTechniqueId) {
       throw new CustomError(
         Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED,
@@ -416,9 +414,9 @@ class MitreThreatControlService {
           "Mitre Control ID": row.mitre_control_id,
           "Mitre Control Name": row.mitre_control_name,
           "Mitre Control Type": row.mitre_control_type,
-          "Control Priority": row.controlPriority,
+          "Control Priority": row.control_priority,
           "Mitre Control Description": row.mitre_control_description,
-          "BluOcean Control Description": row.blu_ocean_control_description,
+          "BluOcean Control Description": row.bluocean_control_description,
           "Created At": row.created_at,
           "Updated At": row.updated_at,
         }),

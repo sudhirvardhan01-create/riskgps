@@ -16,6 +16,7 @@ import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrame
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
 import { ControlFrameworkService } from "@/services/controlFrameworkService";
 import SelectMultipleModal from "@/components/Library/Control/SelectMultipleModal";
+import { FileService } from "@/services/fileService";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
   frameWorkName: "",
@@ -78,10 +79,7 @@ export default function ControlContainer() {
     {
       key: "mitreControlType",
       name: "Control Type",
-      values: [
-        "DETECTION",
-        "MITIGATION"
-      ],
+      values: ["DETECTION", "MITIGATION"],
     },
   ]);
 
@@ -321,7 +319,10 @@ export default function ControlContainer() {
   //Function to export the framework controls
   const handleExportFrameworkControls = async () => {
     try {
-      await ControlFrameworkService.export();
+      if (!selectedControlFramework) {
+        throw new Error("Framework Name is required to export");
+      }
+      await ControlFrameworkService.export(selectedControlFramework as string);
       setToast({
         open: true,
         message: `Controls exported successfully`,
@@ -332,6 +333,25 @@ export default function ControlContainer() {
       setToast({
         open: true,
         message: "Error: unable to export the controls",
+        severity: "error",
+      });
+    }
+  };
+
+  //Function to export the mitre threats and controls
+  const handleExportThreatsControls = async () => {
+    try {
+      await FileService.exportLibraryDataCSV("mitre-threats-controls");
+      setToast({
+        open: true,
+        message: `MITRE Controls exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the MITRE controls",
         severity: "error",
       });
     }
@@ -417,7 +437,10 @@ export default function ControlContainer() {
       sortItems:
         selectedControlFramework === "MITRE" ? sortItems : frameworksSortItems,
       onImport: () => setIsFileUploadOpen(true),
-      onExport: () => handleExportFrameworkControls(),
+      onExport:
+        selectedControlFramework === "MITRE"
+          ? () => handleExportThreatsControls()
+          : () => handleExportFrameworkControls(),
       fileUploadTitle: "Import Control Frameworks",
       file,
       setFile,

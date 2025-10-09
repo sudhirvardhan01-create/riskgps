@@ -77,7 +77,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
     value: number | string[]
   ) => {
     const updatedKeyValues = [...(processData.attributes ?? [])];
-    if (field == "meta_data_key_id" && typeof value == "number") {
+    if (field == "meta_data_key_id" && typeof value == "string") {
       updatedKeyValues[index].meta_data_key_id = value;
       updatedKeyValues[index].values = [];
     } else if (field === "values" && Array.isArray(value)) {

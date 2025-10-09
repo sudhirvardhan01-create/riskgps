@@ -135,7 +135,6 @@ router.post("/framework-control", async (req, res) => {
     }
 })
 
-
 router.get("/get-all-framework-control", async (req, res) => {
     try {
         const frameworkName = req.query.frameworkName || null
@@ -233,7 +232,8 @@ router.get("/download-framework-template", async (req, res) => {
 
 router.get("/export-frameworks", async (req, res) => {
     try {
-        await ControlsService.exportFrameworkControlCSV(res);
+        const frameworkName = req.query.frameworkName || null
+        await ControlsService.exportFrameworkControlCSV(frameworkName, res);
 
     } catch (err) {
         console.log("Failed to download framework template");
