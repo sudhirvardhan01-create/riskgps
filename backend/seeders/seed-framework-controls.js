@@ -292,7 +292,6 @@ module.exports = {
             transaction: t,
           });
 
-          console.log("CONTROL LENGTH", controls.length)
           const frameworkControlMitreControlMappings = controls.map((c) => ({
             framework_control_id: createdFrameworkControl.id,
             mitre_control_id: c.id,
@@ -300,7 +299,6 @@ module.exports = {
             updated_at: new Date(),
           }));
           
-          console.log("MAPPING LENGT", frameworkControlMitreControlMappings.length);
           if (frameworkControlMitreControlMappings.length > 0) {
             await MitreFrameworkControlMappings.bulkCreate(
               frameworkControlMitreControlMappings,
