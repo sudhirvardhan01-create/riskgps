@@ -127,34 +127,7 @@ export default function ThreatContainer() {
   const [selectedTab, setSelectedTab] = useState("MITRE");
 
   //Threat Techniques Array
-  const threatTechniques = [
-    {
-      mitreTechniqueId: "T1535",
-      mitreTechniqueName: "Unused/Unsupported Cloud Regions",
-    },
-    { mitreTechniqueId: "T1562", mitreTechniqueName: "Impair Defenses" },
-    {
-      mitreTechniqueId: "T1619",
-      mitreTechniqueName: "Cloud Storage Object Discovery",
-    },
-    {
-      mitreTechniqueId: "T1555",
-      mitreTechniqueName: "Credentials from Password Stores",
-    },
-    {
-      mitreTechniqueId: "T1578",
-      mitreTechniqueName: "Modify Cloud Compute Infrastructure",
-    },
-    {
-      mitreTechniqueId: "T1651",
-      mitreTechniqueName: "Cloud Administration Command",
-    },
-    { mitreTechniqueId: "T1021", mitreTechniqueName: "Remote Services" },
-    {
-      mitreTechniqueId: "T1213",
-      mitreTechniqueName: "Data from Information Repositories",
-    },
-  ];
+  const [uniqueThreatTechniques, setUniqueThreatTechniques] = useState([]);
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -207,6 +180,26 @@ export default function ThreatContainer() {
       }
     })();
   }, []);
+
+  //Fetch unique MITRE Techniques
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ThreatService.fetchUnique();
+        setUniqueThreatTechniques(data ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch unique MITRE Techniques",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [refreshTrigger]);
 
   // Create
   const handleCreate = async () => {
@@ -438,7 +431,7 @@ export default function ThreatContainer() {
           operation="create"
           open={isAddOpen}
           onClose={() => setIsAddConfirmOpen(true)}
-          threats={threatTechniques}
+          threats={uniqueThreatTechniques}
           threatBundles={threatBundles}
           formData={formData}
           setFormData={setFormData}

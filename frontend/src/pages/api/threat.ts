@@ -1,5 +1,6 @@
 import { Filter } from "@/types/filter";
 import { ThreatForm } from "@/types/threat";
+import { RssFeed } from "@mui/icons-material";
 
 //Function to fetch threats
 export const fetchThreats = async (
@@ -22,7 +23,7 @@ export const fetchThreats = async (
     const joinedStatusFilter = statusFilter.join(",");
     params.append("status", joinedStatusFilter);
   }
-  
+
   if (attributesFilter && attributesFilter?.length) {
     const paramString = attributesFilter
       .map((obj) => {
@@ -137,6 +138,23 @@ export const updateThreatStatus = async (
   );
   if (!response.ok) {
     throw new Error("Failed to update status of a threat");
+  }
+  const res = await response.json();
+  return res.data;
+};
+
+export const fetchUniqueMitreTechniques = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/unique-mitre-technique`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch unique MITRE Techniques");
   }
   const res = await response.json();
   return res.data;
