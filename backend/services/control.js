@@ -557,7 +557,7 @@ class ControlsService {
   static async exportFrameworkControlCSV(frameworkName, res) {
     try {
       // fetch transformed framework controls
-      const controls = await this.getAllFrameworkControls(frameworkName);
+      const controls = await this.getAllFrameworkControls(frameworkName, 1, 0);
 
       res.setHeader(
         "Content-disposition",
