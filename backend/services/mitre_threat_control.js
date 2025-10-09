@@ -65,7 +65,11 @@ class MitreThreatControlService {
     if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
       sortOrder = "ASC";
     }
-    const whereClause = this.handleMitreThreatControlFilters(searchPattern, statusFilter, attrFilters);
+    const whereClause = this.handleMitreThreatControlFilters(
+      searchPattern,
+      statusFilter,
+      attrFilters
+    );
     const data = await MitreThreatControl.findAll({
       order: [[sortBy, sortOrder]],
       where: whereClause,
@@ -438,7 +442,7 @@ class MitreThreatControlService {
       );
     }
   }
-  static  handleMitreThreatControlFilters(
+  static handleMitreThreatControlFilters(
     searchPattern = null,
     statusFilter = [],
     attrFilters = []
@@ -490,10 +494,33 @@ class MitreThreatControlService {
    * Create threat bundle records
    * @param {Object} data
    */
+  // static async createThreatBundleRecords(data) {
+  //   return await sequelize.transaction(async (t) => {
+  //     this.validateThreatBundleData(data);
+  //     const mitreThreatTechniques = data.mitreThreatTechnique ?? [];
+  //     const payload = mitreThreatTechniques.map((row) => ({
+  //       threatBundleId: uuidv4(),
+  //       threatBundleName: data.threatBundleName,
+  //       mitreTechniqueId: row.mitreTechniqueId,
+  //       mitreTechniqueName: row.mitreTechniqueName,
+  //       status: "published",
+  //       createdDate: new Date(),
+  //       modifiedDate: new Date(),
+  //       isDeleted: false,
+  //     }));
+  //     const threatBundleRecords = await ThreatBundle.bulkCreate(payload, {
+  //       transaction: t,
+  //       updateOnDuplicate: [],
+  //     });
+  //     return true;
+  //   });
+  // }
+
   static async createThreatBundleRecords(data) {
     return await sequelize.transaction(async (t) => {
       this.validateThreatBundleData(data);
       const mitreThreatTechniques = data.mitreThreatTechnique ?? [];
+
       const payload = mitreThreatTechniques.map((row) => ({
         threatBundleId: uuidv4(),
         threatBundleName: data.threatBundleName,
@@ -504,9 +531,41 @@ class MitreThreatControlService {
         modifiedDate: new Date(),
         isDeleted: false,
       }));
-      const threatBundleRecords = await ThreatBundle.bulkCreate(payload, {
-        transaction: t,
-      });
+
+      // ✅ run Sequelize validation for each row
+      for (const record of payload) {
+        await ThreatBundle.build(record).validate();
+      }
+
+      // ✅ insert fast with ON CONFLICT DO NOTHING
+      await sequelize.query(
+        `
+      INSERT INTO public.library_threat_bundle
+      (threat_bundle_id, threat_bundle_name, mitre_technique_id, mitre_technique_name, status, created_date, modified_date, is_deleted)
+      VALUES ${payload
+        .map(
+          (row, i) =>
+            `(:id${i}, :name${i}, :techId${i}, :techName${i}, :status${i}, :created${i}, :modified${i}, :deleted${i})`
+        )
+        .join(",")}
+      ON CONFLICT (threat_bundle_name, mitre_technique_id) DO NOTHING;
+      `,
+        {
+          replacements: payload.reduce((acc, row, i) => {
+            acc[`id${i}`] = row.threatBundleId;
+            acc[`name${i}`] = row.threatBundleName;
+            acc[`techId${i}`] = row.mitreTechniqueId;
+            acc[`techName${i}`] = row.mitreTechniqueName;
+            acc[`status${i}`] = row.status;
+            acc[`created${i}`] = row.createdDate;
+            acc[`modified${i}`] = row.modifiedDate;
+            acc[`deleted${i}`] = row.isDeleted;
+            return acc;
+          }, {}),
+          transaction: t,
+        }
+      );
+
       return true;
     });
   }

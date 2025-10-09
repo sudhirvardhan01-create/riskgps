@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: DataTypes.UUIDV4,
                 field: "org_id",    
             },
+            orgCode: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: "org_code",
+            },
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,

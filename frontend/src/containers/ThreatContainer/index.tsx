@@ -16,6 +16,7 @@ import ThreatBundleFormModal from "@/components/Library/Threat/ThreatBundleFormM
 import ButtonTabs from "@/components/ButtonTabs";
 import ThreatBundleContainer from "../ThreatBundleContainer";
 import { ThreatBundleService } from "@/services/threatBundleService";
+import { useConfig } from "@/context/ConfigContext";
 
 // const initialThreatFormData: ThreatForm = {
 //   platforms: [],
@@ -60,6 +61,8 @@ const breadcrumbItems = [
 ];
 
 export default function ThreatContainer() {
+  const { fetchMetadataByKey } = useConfig();
+
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
@@ -120,7 +123,7 @@ export default function ThreatContainer() {
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   //Threat Bundles Array
-  const threatBundles = ["TOP10", "FSI"];
+  const threatBundles = fetchMetadataByKey("Threat Bundle").supported_values;
   const [selectedTab, setSelectedTab] = useState("MITRE");
 
   //Threat Techniques Array
