@@ -1,6 +1,7 @@
 // API Response interfaces
 export interface ApiOrganization {
   organizationId: string;
+  orgCode: string;
   name: string;
   desc: string;
   tags: Array<{
@@ -60,6 +61,7 @@ export interface Organization {
   id: string;
   name: string;
   orgId: string;
+  orgCode: string;
   orgImage: string,
   tags: {
     industry: string;
