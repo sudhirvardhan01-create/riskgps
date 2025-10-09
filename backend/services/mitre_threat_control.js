@@ -231,7 +231,7 @@ class MitreThreatControlService {
       );
     }
     const whereClause = { mitreTechniqueId };
-    if (mitreSubTechniqueId !== null) {
+    if (mitreSubTechniqueId !== null || mitreSubTechniqueId !="") {
       whereClause.subTechniqueId = mitreSubTechniqueId;
     } else {
       whereClause.subTechniqueId = {
