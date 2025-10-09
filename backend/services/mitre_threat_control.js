@@ -2,7 +2,7 @@ const {
   sequelize,
   MitreThreatControl,
   ThreatBundle,
-  MetaData,
+  Sequelize
 } = require("../models");
 const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
@@ -121,6 +121,22 @@ class MitreThreatControlService {
       totalPages,
     };
   }
+
+  static async getUniqueMitreTechniques() {
+    const results = await MitreThreatControl.findAll({
+      attributes: [
+        "mitreTechniqueId",
+        "mitreTechniqueName",
+      ],
+      group: ["mitreTechniqueId", "mitreTechniqueName"],
+      raw: true,
+    });
+    return results.map(r => ({
+      mitreTechniqueId: r.mitreTechniqueId,
+      mitreTechniqueName: r.mitreTechniqueName
+    }));
+  }
+
   static async getMitreThreatControlRecordById(id) {
     const mitreThreatControl = await MitreThreatControl.findByPk(id);
     console.log(mitreThreatControl);
