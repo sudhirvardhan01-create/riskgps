@@ -416,7 +416,7 @@ class MitreThreatControlService {
           "Mitre Control ID": row.mitre_control_id,
           "Mitre Control Name": row.mitre_control_name,
           "Mitre Control Type": row.mitre_control_type,
-          "Control Priority": row.controlPriority,
+          "Control Priority": row.control_priority,
           "Mitre Control Description": row.mitre_control_description,
           "BluOcean Control Description": row.blu_ocean_control_description,
           "Created At": row.created_at,
