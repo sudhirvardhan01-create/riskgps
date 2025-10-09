@@ -86,9 +86,12 @@ export const downloadFrameworkControlsTemplateFile = async () => {
 };
 
 //Function to export the framework controls
-export const exportFrameworkControls = async () => {
+export const exportFrameworkControls = async (frameworkName: string) => {
+  if (!frameworkName) {
+    throw new Error("Framework Name is required");
+  }
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/export-frameworks`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/export-frameworks?frameworkName=${frameworkName}`,
     {
       method: "GET",
       headers: {
@@ -139,76 +142,89 @@ export const importFrameworkControls = async (file: File): Promise<any> => {
   return response;
 };
 
-
 /**
  * Function to update status for a framework control
- * @param id 
- * @param status 
- * @returns 
+ * @param id
+ * @param status
+ * @returns
  */
-export const updateFrameworkControlStatus = async (id: number, status: string) => {
+export const updateFrameworkControlStatus = async (
+  id: number,
+  status: string
+) => {
   if (!id || !status) {
-      throw new Error("Failed to perforom the operation, Invalid arguments");
+    throw new Error("Failed to perforom the operation, Invalid arguments");
   }
-  const reqBody = {status};
+  const reqBody = { status };
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control-update-status/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(reqBody),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control-update-status/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(reqBody),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to update framework control status");
   }
   const res = await response.json();
   return res.data;
-}
-
+};
 
 /**
  * Function to delete framework control based on ID
- * @param id 
+ * @param id
  * @returns response body
  */
 export const deleteFrameworkControl = async (id: number) => {
   if (!id) {
     throw new Error("Invalid Operation, failed to delete");
   }
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to delete framework control");
   }
   const res = await response.json();
   return res.data;
-}
+};
 
 /**
  * Function to update framework control
  * @param id
- * @param body 
+ * @param body
  * @returns response body
  */
-export const updateFrameworkControl = async (id: number, data: ControlFrameworkForm) => {
+export const updateFrameworkControl = async (
+  id: number,
+  data: ControlFrameworkForm
+) => {
   if (!id) {
     throw new Error("Invalid Operation, failed to update");
   }
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/controls/framework-control/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to update framework control");
   }
   const res = await response.json();
   return res.data;
-}
+};

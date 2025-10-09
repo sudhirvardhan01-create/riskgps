@@ -2,7 +2,7 @@ const {
   sequelize,
   MitreThreatControl,
   ThreatBundle,
-  Sequelize
+  Sequelize,
 } = require("../models");
 const { Op } = require("sequelize");
 const CustomError = require("../utils/CustomError");
@@ -124,16 +124,13 @@ class MitreThreatControlService {
 
   static async getUniqueMitreTechniques() {
     const results = await MitreThreatControl.findAll({
-      attributes: [
-        "mitreTechniqueId",
-        "mitreTechniqueName",
-      ],
+      attributes: ["mitreTechniqueId", "mitreTechniqueName"],
       group: ["mitreTechniqueId", "mitreTechniqueName"],
       raw: true,
     });
-    return results.map(r => ({
+    return results.map((r) => ({
       mitreTechniqueId: r.mitreTechniqueId,
-      mitreTechniqueName: r.mitreTechniqueName
+      mitreTechniqueName: r.mitreTechniqueName,
     }));
   }
 
@@ -224,6 +221,7 @@ class MitreThreatControlService {
     mitreTechniqueId,
     mitreSubTechniqueId = null
   ) {
+    console.log(mitreSubTechniqueId);
     if (!mitreTechniqueId) {
       throw new CustomError(
         Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED,
@@ -231,7 +229,7 @@ class MitreThreatControlService {
       );
     }
     const whereClause = { mitreTechniqueId };
-    if (mitreSubTechniqueId !== null || mitreSubTechniqueId !="") {
+    if (mitreSubTechniqueId !== null || mitreSubTechniqueId != "") {
       whereClause.subTechniqueId = mitreSubTechniqueId;
     } else {
       whereClause.subTechniqueId = {

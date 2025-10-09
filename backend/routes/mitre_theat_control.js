@@ -44,14 +44,13 @@ router.get("/unique-mitre-technique", async (req, res) => {
       data: results,
       msg: Messages.MITRE_THREAT_CONTROL.FETCHED,
     });
-    
   } catch (err) {
     console.log("Failed to fetch unique mitre techniques", err);
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       error: err.message || Messages.GENERAL.SERVER_ERROR,
     });
   }
-})
+});
 
 router.get("/", async (req, res) => {
   try {
@@ -214,8 +213,10 @@ router.get("/:id", async (req, res) => {
  */
 router.delete("/delete-threats", async (req, res) => {
   try {
+    console.log(req.query.mitre_sub_technique_id);
     const mitreTechniqueId = req.query.mitre_technique_id ?? null;
     const mitreSubTechniqueId = req.query.mitre_sub_technique_id ?? null;
+    console.log(mitreSubTechniqueId);
 
     if (!mitreTechniqueId) {
       throw new CustomError(
