@@ -135,7 +135,6 @@ router.post("/framework-control", async (req, res) => {
     }
 })
 
-
 router.get("/get-all-framework-control", async (req, res) => {
     try {
         const frameworkName = req.query.frameworkName || null
