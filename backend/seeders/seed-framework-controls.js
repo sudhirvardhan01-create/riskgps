@@ -295,7 +295,7 @@ module.exports = {
           console.log("CONTROL LENGTH", controls.length)
           const frameworkControlMitreControlMappings = controls.map((c) => ({
             framework_control_id: createdFrameworkControl.id,
-            mitre_threat_control_id: c.id,
+            mitre_control_id: c.id,
             created_at: new Date(),
             updated_at: new Date(),
           }));

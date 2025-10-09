@@ -231,7 +231,7 @@ class MitreThreatControlService {
       );
     }
     const whereClause = { mitreTechniqueId };
-    if (mitreSubTechniqueId !== null || mitreSubTechniqueId !="") {
+    if (mitreSubTechniqueId !== null) {
       whereClause.subTechniqueId = mitreSubTechniqueId;
     } else {
       whereClause.subTechniqueId = {
@@ -418,7 +418,7 @@ class MitreThreatControlService {
           "Mitre Control Type": row.mitre_control_type,
           "Control Priority": row.control_priority,
           "Mitre Control Description": row.mitre_control_description,
-          "BluOcean Control Description": row.blu_ocean_control_description,
+          "BluOcean Control Description": row.bluocean_control_description,
           "Created At": row.created_at,
           "Updated At": row.updated_at,
         }),
