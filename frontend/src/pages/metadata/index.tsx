@@ -12,16 +12,16 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import MetaDataCard from "@/components/meta-data/MetaDataCard";
+import MetaDataCard from "@/components/MetaData/MetaDataCard";
 import React, { useState, useEffect } from "react";
 import { Search } from "@mui/icons-material";
 import { MetaDataService } from "@/services/metaDataService";
 import { MetaData } from "@/types/meta-data";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastComponent from "@/components/ToastComponent";
-import ViewMetaDataModal from "@/components/meta-data/ViewMetaDataModal";
-import MetaDataFormModal from "@/components/meta-data/MetaDataFormModal";
+import ViewMetaDataModal from "@/components/MetaData/ViewMetaDataModal";
 import withAuth from "@/hoc/withAuth";
+import MetaDataFormModal from "@/components/MetaData/MetaDataFormModal";
 
 const Index = () => {
   const sortItems = [

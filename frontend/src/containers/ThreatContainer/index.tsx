@@ -16,6 +16,7 @@ import ThreatBundleFormModal from "@/components/Library/Threat/ThreatBundleFormM
 import ButtonTabs from "@/components/ButtonTabs";
 import ThreatBundleContainer from "../ThreatBundleContainer";
 import { ThreatBundleService } from "@/services/threatBundleService";
+import { useConfig } from "@/context/ConfigContext";
 
 // const initialThreatFormData: ThreatForm = {
 //   platforms: [],
@@ -60,6 +61,8 @@ const breadcrumbItems = [
 ];
 
 export default function ThreatContainer() {
+  const { fetchMetadataByKey } = useConfig();
+
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
@@ -88,6 +91,28 @@ export default function ThreatContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
+  const [threatsFilters, setThreatsFilters] = useState<
+    { key: string; name: string; values: string[] }[]
+  >([
+    {
+      key: "platforms",
+      name: "Platforms",
+      values: [
+        "Windows",
+        "macOS",
+        "Linux",
+        "Office 365",
+        "Azure AD",
+        "Google Workspace",
+        "SaaS",
+        "IaaS",
+        "Network Devices",
+        "Containers",
+        "Android",
+        "iOS",
+      ],
+    },
+  ]);
   // const [formData, setFormData] = useState<ThreatForm>(initialThreatFormData);
   const [formData, setFormData] = useState<ThreatBundleForm>(
     initialThreatBundleFormData
@@ -98,20 +123,11 @@ export default function ThreatContainer() {
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   //Threat Bundles Array
-  const threatBundles = ["TOP10", "FSI"];
+  const threatBundles = fetchMetadataByKey("Threat Bundle").supported_values;
   const [selectedTab, setSelectedTab] = useState("MITRE");
 
   //Threat Techniques Array
-  const threatTechniques = [
-    { mitreTechniqueId: "T1535", mitreTechniqueName: "Unused/Unsupported Cloud Regions" },
-    { mitreTechniqueId: "T1562", mitreTechniqueName: "Impair Defenses" },
-    { mitreTechniqueId: "T1619", mitreTechniqueName: "Cloud Storage Object Discovery" },
-    { mitreTechniqueId: "T1555", mitreTechniqueName: "Credentials from Password Stores" },
-    { mitreTechniqueId: "T1578", mitreTechniqueName: "Modify Cloud Compute Infrastructure" },
-    { mitreTechniqueId: "T1651", mitreTechniqueName: "Cloud Administration Command" },
-    { mitreTechniqueId: "T1021", mitreTechniqueName: "Remote Services" },
-    { mitreTechniqueId: "T1213", mitreTechniqueName: "Data from Information Repositories" },
-  ];
+  const [uniqueThreatTechniques, setUniqueThreatTechniques] = useState([]);
 
   // fetch list
   const loadList = useCallback(async () => {
@@ -121,7 +137,9 @@ export default function ThreatContainer() {
         page,
         rowsPerPage,
         searchPattern as string,
-        sort
+        sort,
+        statusFilters,
+        filters
       );
       setThreatsData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
@@ -135,7 +153,7 @@ export default function ThreatContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
@@ -163,6 +181,26 @@ export default function ThreatContainer() {
     })();
   }, []);
 
+  //Fetch unique MITRE Techniques
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ThreatService.fetchUnique();
+        setUniqueThreatTechniques(data ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch unique MITRE Techniques",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [refreshTrigger]);
+
   // Create
   const handleCreate = async () => {
     try {
@@ -188,22 +226,8 @@ export default function ThreatContainer() {
   // Update
   const handleUpdate = async (status: string) => {
     try {
-      if (!selectedThreat?.mitreTechniqueId)
-        throw new Error("Invalid selection");
       const body = { ...selectedThreat, status };
-      if (selectedThreat?.subTechniqueId !== "") {
-        await ThreatService.update(
-          body,
-          selectedThreat.mitreTechniqueId as string,
-          selectedThreat.subTechniqueId as string
-        );
-      } else {
-        await ThreatService.update(
-          body,
-          selectedThreat?.mitreTechniqueId as string,
-          ""
-        );
-      }
+      await ThreatService.update(body as ThreatForm);
       setIsEditOpen(false);
       setSelectedThreat(null);
       setRefreshTrigger((p) => p + 1);
@@ -359,7 +383,7 @@ export default function ThreatContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas,
+      metaDatas: threatsFilters,
       addButtonText: "Add Threat Bundle",
       addAction: () => setIsAddOpen(true),
       sortItems,
@@ -407,7 +431,7 @@ export default function ThreatContainer() {
           operation="create"
           open={isAddOpen}
           onClose={() => setIsAddConfirmOpen(true)}
-          threats={threatTechniques}
+          threats={uniqueThreatTechniques}
           threatBundles={threatBundles}
           formData={formData}
           setFormData={setFormData}

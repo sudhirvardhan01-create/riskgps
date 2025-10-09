@@ -70,7 +70,7 @@ class RiskScenarioService {
       sortOrder = "ASC";
     }
 
-    const whereClause = this.handleRiskScenarioFilters(
+    const whereClause = await this.handleRiskScenarioFilters(
       searchPattern,
       statusFilter,
       attrFilters
@@ -229,7 +229,7 @@ class RiskScenarioService {
     console.log("[updateRiskScenarioStatus] Updated:", id, status);
     return { message: Messages.RISK_SCENARIO.STATUS_UPDATED };
   }
-  
+
   static async downloadRiskScenarioTemplateFile(res) {
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
@@ -246,7 +246,7 @@ class RiskScenarioService {
       "Risk Description": "Risk Scenario Description (Text)",
       "Risk Statement": "Risk Scenario Statement (Text)",
       "CIA Mapping": "List separated by , eg: C,I,A",
-      "Industry": "List of Industries separated by Comma"
+      Industry: "List of Industries separated by Comma",
     });
 
     csvStream.end();
@@ -391,7 +391,7 @@ class RiskScenarioService {
                 const match = batch.find(
                   (b) => b.risk_scenario == scenario.risk_scenario
                 );
-                console.log(match.industry)
+                console.log(match.industry);
 
                 return {
                   risk_scenario_id: scenario.id,
@@ -420,7 +420,7 @@ class RiskScenarioService {
         });
     });
   }
-  
+
   static async exportRiskScenariosCSV(res) {
     const connection = await sequelize.connectionManager.getConnection();
 
@@ -589,12 +589,13 @@ class RiskScenarioService {
     }
   }
 
-  static handleRiskScenarioFilters(
+  // Function to generate Sequelize where conditions
+  static async handleRiskScenarioFilters(
     searchPattern = null,
     statusFilter = [],
     attrFilters = []
   ) {
-    let conditions = [];
+    const conditions = [];
 
     if (searchPattern) {
       conditions.push({
@@ -602,6 +603,7 @@ class RiskScenarioService {
           { risk_scenario: { [Op.iLike]: `%${searchPattern}%` } },
           { risk_description: { [Op.iLike]: `%${searchPattern}%` } },
           { risk_statement: { [Op.iLike]: `%${searchPattern}%` } },
+
         ],
       });
     }
@@ -610,30 +612,69 @@ class RiskScenarioService {
       conditions.push({ status: { [Op.in]: statusFilter } });
     }
 
+    // Attribute filters
     if (attrFilters.length > 0) {
-      let subquery = "";
+      const riskScenarioColumns = Object.keys(RiskScenario.rawAttributes);
+      const riskScenarioWhere = [];
+      const mappingFilters = [];
 
-      attrFilters.forEach((filter, idx) => {
-        const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
-        if (isNaN(metaDataKeyId)) {
-          throw new Error("Invalid metaDataKeyId");
+      // Separate filters: direct columns vs mapping table
+      attrFilters.forEach((f) => {
+        if (riskScenarioColumns.includes(f.filterName)) {
+          // Direct column filter
+          const columnType = RiskScenario.rawAttributes[f.filterName].type.key;
+          if (columnType === "ARRAY") {
+            riskScenarioWhere.push({ [f.filterName]: { [Op.overlap]: f.values } });
+          } else {
+            riskScenarioWhere.push({ [f.filterName]: { [Op.in]: f.values } });
+          }
+        } else {
+          mappingFilters.push(f);
         }
-
-        const valuesArray = filter.values
-          .map((v) => sequelize.escape(v))
-          .join(",");
-
-        if (idx > 0) subquery += " INTERSECT ";
-        subquery += `
-                SELECT "risk_scenario_id"
-                FROM library_attributes_risk_scenario_mapping
-                WHERE "meta_data_key_id" = ${metaDataKeyId}
-                AND "values" && ARRAY[${valuesArray}]::varchar[]
-            `;
       });
 
-      conditions.push({ id: { [Op.in]: Sequelize.literal(`(${subquery})`) } });
+      // Add direct column filters
+      if (riskScenarioWhere.length > 0) {
+        conditions.push({ [Op.and]: riskScenarioWhere });
+      }
+
+      // Handle mapping table filters
+      if (mappingFilters.length > 0) {
+        // Fetch meta_data_key_ids for given names
+        const metaNames = mappingFilters.map((f) => f.filterName);
+        const metaDataKeys = await MetaData.findAll({
+          where: { name: { [Op.in]: metaNames } },
+          attributes: ["id", "name"],
+        });
+
+        const metaMap = {};
+        metaDataKeys.forEach((m) => (metaMap[m.name] = m.id));
+
+        // Build INTERSECT subquery
+        let subquery = "";
+        mappingFilters.forEach((filter, idx) => {
+          const metaDataKeyId = metaMap[filter.filterName];
+          if (!metaDataKeyId)
+            throw new Error(`Invalid meta_data_key name: ${filter.filterName}`);
+
+          const valuesArray = filter.values
+            .map((v) => sequelize.escape(v))
+            .join(",");
+          if (idx > 0) subquery += " INTERSECT ";
+          subquery += `
+          SELECT "risk_scenario_id"
+          FROM library_attributes_risk_scenario_mapping
+          WHERE "meta_data_key_id" = ${metaDataKeyId}
+          AND "values" && ARRAY[${valuesArray}]::varchar[]
+        `;
+        });
+
+        conditions.push({
+          id: { [Op.in]: Sequelize.literal(`(${subquery})`) },
+        });
+      }
     }
+
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }
 }

@@ -151,6 +151,8 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
           {/* MITRE Control Description */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
+              multiline
+              minRows={1}
               label={labels.mitreControlDescription}
               isTooltipRequired={true}
               tooltipTitle={tooltips.mitreControlDescription}
@@ -165,6 +167,8 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
           {/* BluOcean Control Description */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
+              multiline
+              minRows={1}
               label={labels.bluoceanControlDescription}
               isTooltipRequired={true}
               tooltipTitle={tooltips.bluoceanControlDescription}
@@ -177,45 +181,47 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
           </Grid>
 
           {/* Control Priority */}
-          <Grid mt={1} size={{ xs: 12 }}>
-            <SelectStyled
-              required
-              value={formData.controlPriority}
-              label={labels.controlPriority}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.controlPriority}
-              displayEmpty
-              onChange={(e) =>
-                handleFieldChange("controlPriority", e.target.value)
-              }
-              renderValue={(selected: any) => {
-                if (!selected) {
-                  return (
-                    <Typography variant="body1" sx={{ color: "#9E9FA5" }}>
-                      {tooltips.controlPriority}
-                    </Typography>
-                  );
-                } else {
-                  return (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "text.primary",
-                      }}
-                    >
-                      {selected}
-                    </Typography>
-                  );
+          {operation === "create" && (
+            <Grid mt={1} size={{ xs: 12 }}>
+              <SelectStyled
+                required
+                value={formData.controlPriority}
+                label={labels.controlPriority}
+                isTooltipRequired={true}
+                tooltipTitle={tooltips.controlPriority}
+                displayEmpty
+                onChange={(e) =>
+                  handleFieldChange("controlPriority", e.target.value)
                 }
-              }}
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
-                <MenuItem value={item} key={item}>
-                  {item}
-                </MenuItem>
-              ))}
-            </SelectStyled>
-          </Grid>
+                renderValue={(selected: any) => {
+                  if (!selected) {
+                    return (
+                      <Typography variant="body1" sx={{ color: "#9E9FA5" }}>
+                        {tooltips.controlPriority}
+                      </Typography>
+                    );
+                  } else {
+                    return (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "text.primary",
+                        }}
+                      >
+                        {selected}
+                      </Typography>
+                    );
+                  }
+                }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
+                  <MenuItem value={item} key={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </SelectStyled>
+            </Grid>
+          )}
         </Grid>
       </DialogContent>
       <Box sx={{ display: "flex", justifyContent: "center", my: 2.5, mx: 3 }}>
@@ -256,7 +262,8 @@ const RelatedControlFormModal: React.FC<RelatedControlFormModalProps> = ({
             disabled={
               formData.mitreControlId === "" ||
               formData.mitreControlName === "" ||
-              formData.mitreControlType === ""
+              formData.mitreControlType === "" ||
+              formData.controlPriority === null
             }
             disableRipple
           >

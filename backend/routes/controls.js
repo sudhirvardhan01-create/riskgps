@@ -3,6 +3,7 @@ const ControlsService = require("../services/control");
 const HttpStatusCodes = require("../constants/httpStatusCodes");
 const multer = require("multer");
 const Messages = require("../constants/messages");
+const CustomError = require("../utils/CustomError");
 const router = express.Router();
 
 const upload = multer({
@@ -24,9 +25,17 @@ router.get("/get-controls", async (req, res) => {
     const sortBy = req.query.sort_by || 'created_at';
     const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
     const fields = req.query.fields?.split(",") || null;
-
+    const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+    const attrFilters = (req.query.attrFilters || "")
+      .split(";")
+      .map((expr) => {
+        if (!expr) return null;
+        const [filterName, values] = expr.split(":");
+        return { filterName, values: values.split(",") };
+      })
+      .filter(Boolean);
     try {
-        const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder, fields);
+        const data = await ControlsService.getAllControl(page, limit, searchPattern, sortBy, sortOrder, fields, statusFilter, attrFilters);
         res.status(200).json({ data });
 
     } catch (error) {
@@ -40,15 +49,8 @@ router.get("/get-controls", async (req, res) => {
 
 router.patch("/update-mitre-control", async (req, res) => {
     try {
-        const mitreControlId = req.query.mitreControlId;
-        const mitreControlName = req.query.mitreControlName;
-        const mitreControlType = req.query.mitreControlType;
 
-        if (!mitreControlId || !mitreControlName) {
-            throw new Error("Invalid request required parameters not passed");
-        }
-
-        const data = await ControlsService.updateMitreControl(mitreControlId, mitreControlName, mitreControlType, req.body);
+        const data = await ControlsService.updateMitreControls(req.body);
         res.status(HttpStatusCodes.CREATED).json({
             data,
             msg: "mitre control updated"
@@ -67,17 +69,16 @@ router.patch("/update-mitre-control", async (req, res) => {
 router.patch("/update-mitre-control-status", async (req, res) => {
     try {
         const mitreControlId = req.query.mitreControlId ?? null;
-        const mitreControlName = req.query.mitreControlName ?? null;
         const status = req.body.status ?? null;
 
         if (!mitreControlId) {
-            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatus.BAD_REQUEST);
+            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatusCodes.BAD_REQUEST);
         }
 
         if (!status) {
-            throw new CustomError("Status required", HttpStatus.BAD_REQUEST);
+            throw new CustomError("Status required", HttpStatusCodes.BAD_REQUEST);
         }
-        const response = await ControlsService.updateMitreControlStatus(mitreControlId, mitreControlName, status);
+        const response = await ControlsService.updateMitreControlStatus(mitreControlId, status);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "mitre control status updated"
@@ -93,13 +94,19 @@ router.patch("/update-mitre-control-status", async (req, res) => {
 router.delete("/delete-mitre-control", async (req, res) => {
     try {
         const mitreControlId = req.query.mitreControlId ?? null;
-        const mitreControlName = req.query.mitreControlName ?? null;
+        const mitreControlNames = req.body.mitreControlNames ?? [];
 
         if (!mitreControlId) {
-            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatus.BAD_REQUEST);
+            throw new CustomError(Messages.MITRE_CONTROLS.INVALID_MITRE_CONTROL_ID, HttpStatusCodes.BAD_REQUEST);
         }
 
-        const response = await ControlsService.deleteMitreControl(mitreControlId, mitreControlName);
+        if (!mitreControlNames || mitreControlNames.length < 1) {
+            throw new CustomError("required mitre control names", HttpStatusCodes.BAD_REQUEST);
+
+        }
+
+
+        const response = await ControlsService.deleteMitreControl(mitreControlId, mitreControlNames);
         res.status(HttpStatusCodes.CREATED).json({
             data: response,
             msg: "mitre control deleted "
