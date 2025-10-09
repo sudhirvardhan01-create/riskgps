@@ -574,7 +574,7 @@ class ControlsService {
           "Control Sub Category Id": row.frameWorkControlSubCategoryId ?? "",
           "Control Sub Category": row.frameWorkControlSubCategory ?? "",
           "MITRE Controls": Array.isArray(row.mitreControls)
-            ? row.mitre_controls.join(", ")
+            ? row.mitreControls.join(", ")
             : "",
           Status: row.status,
         }),
