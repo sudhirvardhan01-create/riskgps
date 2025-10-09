@@ -127,7 +127,7 @@ jobs:
         run: |
           ssh -i ssh_key.pem -o StrictHostKeyChecking=no \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            cd /backend && docker compose exec -T backend npm run db:seed"
+            cd /backend && docker compose exec -T backend npm run db:seed
 
       - name: Clean up SSH key
         run: |
