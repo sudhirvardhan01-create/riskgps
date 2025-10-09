@@ -63,8 +63,8 @@ router.get('/', async (req, res) => {
           .split(";")
           .map((expr) => {
             if (!expr) return null;
-            const [metaDataKeyId, values] = expr.split(":");
-            return { metaDataKeyId, values: values.split(",") };
+            const [filterName, values] = expr.split(":");
+            return { filterName, values: values.split(",") };
           })
           .filter(Boolean);
 

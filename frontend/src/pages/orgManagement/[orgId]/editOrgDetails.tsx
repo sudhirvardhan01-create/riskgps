@@ -28,6 +28,7 @@ import SelectStyled from "@/components/SelectStyled";
 import ToastComponent from "@/components/ToastComponent";
 import { getOrganizationById, updateOrganization } from "@/services/organizationService";
 import Cookies from "js-cookie";
+import { COUNTRIES } from "@/constants/constant";
 
 
 interface Tag {
@@ -86,6 +87,7 @@ function EditOrgDetailsPage() {
           id: apiResponse.data.organizationId,
           name: apiResponse.data.name,
           orgId: apiResponse.data.organizationId,
+          orgCode: apiResponse.data.orgCode || apiResponse.data.organizationId, // Use orgCode from API or fallback to orgId
           orgImage: "/orgImage.png", // Default image since API doesn't provide this
           tags: (() => {
             // Convert API tags array to object format
@@ -93,7 +95,9 @@ function EditOrgDetailsPage() {
             if (apiResponse.data.tags && Array.isArray(apiResponse.data.tags)) {
               apiResponse.data.tags.forEach((tag: any) => {
                 if (tag.key && tag.value) {
-                  tagsObject[tag.key] = tag.value;
+                  // Normalize the key to lowercase for consistent checking
+                  const normalizedKey = tag.key.toLowerCase();
+                  tagsObject[normalizedKey] = tag.value;
                 }
               });
             }
@@ -161,10 +165,17 @@ function EditOrgDetailsPage() {
         setOrganization(transformedOrg);
 
         // Set form data based on the organization data
+        // Convert country name to country code if needed
+        const getCountryCode = (countryName: string): string => {
+          if (!countryName) return "";
+          const country = COUNTRIES.find(c => c.label === countryName);
+          return country ? country.value : countryName;
+        };
+        
         const newFormData = {
           orgName: transformedOrg.name,
           industryVertical: transformedOrg.details?.industryVertical || "",
-          regionOfOperation: transformedOrg.details?.regionOfOperation || "",
+          regionOfOperation: getCountryCode(transformedOrg.details?.regionOfOperation || ""),
           numberOfEmployees: transformedOrg.details?.employeeCount?.toString() || "",
           cisoName: transformedOrg.details?.cisoName || "",
           cisoEmail: transformedOrg.details?.cisoEmail || "",
@@ -199,7 +210,7 @@ function EditOrgDetailsPage() {
           severity: "error"
         });
         // Redirect back to org management on error
-        router.push('/org-management');
+        router.push('/orgManagement');
       }
     };
 
@@ -207,7 +218,7 @@ function EditOrgDetailsPage() {
   }, [orgId, router, orgName, tags, businessContext]);
 
   const handleBackClick = () => {
-    router.push(`/org-management/${orgId}`);
+    router.push(`/orgManagement/${orgId}`);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -245,6 +256,13 @@ function EditOrgDetailsPage() {
       ...prev,
       tags: prev.tags.filter((_, i) => i !== index)
     }));
+  };
+
+  // Helper function to remove dollar signs and clean financial values
+  const cleanFinancialValue = (value: string): string => {
+    if (!value) return value;
+    // Remove dollar signs, commas, and any whitespace
+    return value.replace(/[$,\s]/g, '');
   };
 
   const handleSave = async () => {
@@ -328,25 +346,31 @@ function EditOrgDetailsPage() {
       const modifiedBy = user.id;
 
       // Prepare the data in the format expected by the API
+      // Convert country code to country name for API
+      const getCountryName = (countryCode: string): string => {
+        if (!countryCode) return "";
+        const country = COUNTRIES.find(c => c.value === countryCode);
+        return country ? country.label : countryCode;
+      };
+      
       const updateData = {
-        orgId: orgId,
-        orgName: formData.orgName,
-        desc: formData.additionalInformation || "Organization description", // Using additionalInformation as description
+        name: formData.orgName,
+        desc: formData.additionalInformation || "",
         tags: formData.tags.filter(tag => tag.key && tag.value), // Filter out empty tags
         modifiedBy: modifiedBy, // Add the modifiedBy field
         businessContext: {
           industryVertical: formData.industryVertical,
-          regionOfOperation: formData.regionOfOperation,
+          regionOfOperation: getCountryName(formData.regionOfOperation),
           numberOfEmployees: formData.numberOfEmployees,
           cisoName: formData.cisoName,
           cisoEmail: formData.cisoEmail,
-          annualRevenue: formData.annualRevenue,
-          riskAppetite: formData.riskAppetite,
-          cybersecurityBudget: formData.cybersecurityBudget,
-          insuranceCoverage: formData.insuranceCoverage,
+          annualRevenue: cleanFinancialValue(formData.annualRevenue),
+          riskAppetite: cleanFinancialValue(formData.riskAppetite),
+          cybersecurityBudget: cleanFinancialValue(formData.cybersecurityBudget),
+          insuranceCoverage: cleanFinancialValue(formData.insuranceCoverage),
           insuranceCarrier: formData.insuranceCarrier,
           numberOfClaims: formData.numberOfClaims,
-          claimsValue: formData.claimsValue,
+          claimsValue: cleanFinancialValue(formData.claimsValue),
           regulators: formData.regulators,
           regulatoryRequirements: formData.regulatoryRequirements,
           additionalInformation: formData.additionalInformation,
@@ -372,7 +396,7 @@ function EditOrgDetailsPage() {
 
       // Redirect back to the organization details page after a short delay
       setTimeout(() => {
-        router.push(`/org-management/${orgId}`);
+        router.push(`/orgManagement/${orgId}`);
       }, 1500);
 
     } catch (error) {
@@ -729,26 +753,15 @@ function EditOrgDetailsPage() {
                         value={formData.regionOfOperation}
                         onChange={(e) => handleInputChange("regionOfOperation", e.target.value as string)}
                         renderValue={(value) => {
-                          const option = [
-                            { value: "US", label: "United States" },
-                            { value: "UK", label: "United Kingdom" },
-                            { value: "CA", label: "Canada" },
-                            { value: "AU", label: "Australia" },
-                            { value: "DE", label: "Germany" },
-                            { value: "FR", label: "France" },
-                            { value: "IN", label: "India" }
-                          ].find(opt => opt.value === value);
+                          const option = COUNTRIES.find(opt => opt.value === value);
                           return option ? option.label : (value as string);
                         }}
                       >
-                        <MenuItem value="">Select country</MenuItem>
-                        <MenuItem value="US">United States</MenuItem>
-                        <MenuItem value="UK">United Kingdom</MenuItem>
-                        <MenuItem value="CA">Canada</MenuItem>
-                        <MenuItem value="AU">Australia</MenuItem>
-                        <MenuItem value="DE">Germany</MenuItem>
-                        <MenuItem value="FR">France</MenuItem>
-                        <MenuItem value="IN">India</MenuItem>
+                        {COUNTRIES.map((country) => (
+                          <MenuItem key={country.value} value={country.value}>
+                            {country.label}
+                          </MenuItem>
+                        ))}
                       </SelectStyled>
                     </Grid>
                   </Grid>

@@ -31,7 +31,7 @@ export const fetchAssets = async (
       })
       .join(";");
 
-    params.append("attributes", paramString);
+    params.append("attrFilters", paramString);
   }
   const transformAssetData = (data: any[]): AssetForm[] => {
 

@@ -46,7 +46,7 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
       })
       .join(";");
 
-      params.append("attributes", paramString);
+      params.append("attrFilters", paramString);
   }
 
   const transformRiskData = (data: any[]): RiskScenarioData[] => {

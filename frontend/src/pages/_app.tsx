@@ -9,6 +9,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import SideBar from "@/components/SideBar";
 import { AuthProvider } from "@/context/AuthContext";
 import { AssessmentProvider } from "@/context/AssessmentContext";
+import { ConfigProvider } from "@/context/ConfigContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -18,19 +19,21 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <AuthProvider>
-      <AssessmentProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Grid container sx={{ height: "100vh" }}>
-            <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-            <Grid size={11}>
-              {!isLoginPage && <Header />}
-              <Component {...pageProps} />
-              {!isLoginPage && !isAssessmentProcess && <Footer />}
+      <ConfigProvider>
+        <AssessmentProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Grid container sx={{ height: "100vh" }}>
+              <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+              <Grid size={11}>
+                {!isLoginPage && <Header />}
+                <Component {...pageProps} />
+                {!isLoginPage && !isAssessmentProcess && <Footer />}
+              </Grid>
             </Grid>
-          </Grid>
-        </ThemeProvider>
-      </AssessmentProvider>
+          </ThemeProvider>
+        </AssessmentProvider>
+      </ConfigProvider>
     </AuthProvider>
   );
 }

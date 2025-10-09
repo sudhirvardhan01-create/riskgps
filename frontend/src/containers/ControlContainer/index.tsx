@@ -9,17 +9,14 @@ import ViewControlModal from "@/components/Library/Control/ViewControlModal";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
 import { Filter } from "@/types/filter";
 import ControlList from "@/components/Library/Control/ControlList";
-import {
-  ControlForm,
-  ControlFrameworkForm,
-  MITREControlForm,
-} from "@/types/control";
+import { ControlFrameworkForm, MITREControlForm } from "@/types/control";
 import { ControlService } from "@/services/controlService";
 import ButtonTabs from "@/components/ButtonTabs";
 import ControlFrameworkFormModal from "@/components/Library/Control/ControlFrameworkFormModal";
 import ControlFrameworkContainer from "../ControlFrameworkContainer";
 import { ControlFrameworkService } from "@/services/controlFrameworkService";
-import DeleteMultipleControls from "@/components/Library/Control/DeleteMultipleControls";
+import SelectMultipleModal from "@/components/Library/Control/SelectMultipleModal";
+import { FileService } from "@/services/fileService";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
   frameWorkName: "",
@@ -75,6 +72,16 @@ export default function ControlContainer() {
     message: "",
     severity: "success" as "success" | "error" | "info",
   });
+
+  const [controlsFilters, setControlsFilters] = useState<
+    { key: string; name: string; values: string[] }[]
+  >([
+    {
+      key: "mitreControlType",
+      name: "Control Type",
+      values: ["DETECTION", "MITIGATION"],
+    },
+  ]);
 
   const [formData, setFormData] = useState<ControlFrameworkForm>(
     initialControlFrameworkFormData
@@ -149,7 +156,9 @@ export default function ControlContainer() {
         page,
         rowsPerPage,
         searchPattern as string,
-        sort
+        sort,
+        statusFilters,
+        filters
       );
       setControlsData(data.data ?? []);
       setTotalRows(data?.total ?? 0);
@@ -163,33 +172,11 @@ export default function ControlContainer() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort]);
+  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
 
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
-
-  // fetch controls for Listing
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await ControlService.fetchControlsForListing(
-          "mitreControlId"
-        );
-        setControlsForListing(data.mitreControlId ?? []);
-      } catch (err) {
-        console.error(err);
-        setToast({
-          open: true,
-          message: "Failed to fetch controls for Listing purposes",
-          severity: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
 
   // fetch metadata
   useEffect(() => {
@@ -237,53 +224,33 @@ export default function ControlContainer() {
   };
 
   // Update
-  // const handleUpdate = async (status: string) => {
-  //   try {
-  //     if (
-  //       !selectedControl?.mitreControlId ||
-  //       !selectedControl?.mitreControlName ||
-  //       !selectedControl?.mitreControlType
-  //     )
-  //       throw new Error("Invalid selection");
-  //     const body = { ...selectedControl, status };
-  //     await ControlService.update(
-  //       body,
-  //       selectedControl.mitreControlId,
-  //       selectedControl.mitreControlName,
-  //       selectedControl.mitreControlType
-  //     );
-  //     setIsEditOpen(false);
-  //     setSelectedControl(null);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: "Control updated",
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to update control",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleUpdate = async (status: string) => {
+    try {
+      const body = { ...selectedControl, status };
+      await ControlService.update(body as MITREControlForm);
+      setIsEditOpen(false);
+      setSelectedControl(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Control updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update control",
+        severity: "error",
+      });
+    }
+  };
 
   // Update status only
-  const handleUpdateStatus = async (
-    status: string,
-    mitreControlId: string,
-    mitreControlName?: string
-  ) => {
+  const handleUpdateStatus = async (status: string, mitreControlId: string) => {
     try {
-      if (!status || !mitreControlId || !mitreControlName)
-        throw new Error("Invalid selection");
-      await ControlService.updateStatus(
-        mitreControlId,
-        mitreControlName,
-        status
-      );
+      if (!status || !mitreControlId) throw new Error("Invalid selection");
+      await ControlService.updateStatus(mitreControlId, status);
       setRefreshTrigger((p) => p + 1);
       setToast({ open: true, message: "Status updated", severity: "success" });
     } catch (err) {
@@ -297,34 +264,46 @@ export default function ControlContainer() {
   };
 
   // Delete
-  // const handleDelete = async () => {
-  //   try {
-  //     if (
-  //       !selectedControl?.mitreControlId ||
-  //       !selectedControl?.mitreControlName
-  //     )
-  //       throw new Error("Invalid selection");
-  //     await ControlService.delete(
-  //       selectedControl.mitreControlId as string,
-  //       selectedControl.mitreControlName as string
-  //     );
-  //     setIsDeleteConfirmOpen(false);
-  //     setSelectedControl(null);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: `Deleted control ${selectedControl?.mitreControlName}`,
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to delete control",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleDelete = async () => {
+    try {
+      if (!selectedControl?.mitreControlId)
+        throw new Error("Invalid selection");
+      if (selectedControl?.controlDetails.length === 1) {
+        await ControlService.delete(
+          selectedControl.mitreControlId as string,
+          Array.of(
+            selectedControl?.controlDetails[0]?.mitreControlName
+          ) as string[]
+        );
+        setIsDeleteConfirmOpen(false);
+        setSelectedControl(null);
+      } else {
+        await ControlService.delete(
+          selectedControl.mitreControlId as string,
+          selectedControlsToDelete.map((selected) => selected) as string[]
+        );
+        setIsSelectControlsToDeleteOpen(false);
+        setSelectedControl(null);
+        setSelectedControlsToDelete([]);
+      }
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message:
+          selectedControl?.controlDetails.length === 1
+            ? `Deleted control`
+            : "Deleted Controls",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to delete control(s)",
+        severity: "error",
+      });
+    }
+  };
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -340,7 +319,10 @@ export default function ControlContainer() {
   //Function to export the framework controls
   const handleExportFrameworkControls = async () => {
     try {
-      await ControlFrameworkService.export();
+      if (!selectedControlFramework) {
+        throw new Error("Framework Name is required to export");
+      }
+      await ControlFrameworkService.export(selectedControlFramework as string);
       setToast({
         open: true,
         message: `Controls exported successfully`,
@@ -351,6 +333,25 @@ export default function ControlContainer() {
       setToast({
         open: true,
         message: "Error: unable to export the controls",
+        severity: "error",
+      });
+    }
+  };
+
+  //Function to export the mitre threats and controls
+  const handleExportThreatsControls = async () => {
+    try {
+      await FileService.exportLibraryDataCSV("mitre-threats-controls");
+      setToast({
+        open: true,
+        message: `MITRE Controls exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the MITRE controls",
         severity: "error",
       });
     }
@@ -404,18 +405,43 @@ export default function ControlContainer() {
     setSort("id:asc");
   }, [selectedControlFramework]);
 
+  // fetch controls for Listing
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ControlService.fetchControlsForListing(
+          "mitreControlId"
+        );
+        setControlsForListing(data.mitreControlId ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch controls for Listing purposes",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [refreshTrigger]);
+
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas,
+      metaDatas: controlsFilters,
       addButtonText: "Add Control Mapping",
       addAction: () => setIsAddOpen(true),
       sortItems:
         selectedControlFramework === "MITRE" ? sortItems : frameworksSortItems,
       onImport: () => setIsFileUploadOpen(true),
-      onExport: () => handleExportFrameworkControls(),
-      fileUploadTitle: "Import Threats",
+      onExport:
+        selectedControlFramework === "MITRE"
+          ? () => handleExportThreatsControls()
+          : () => handleExportFrameworkControls(),
+      fileUploadTitle: "Import Control Frameworks",
       file,
       setFile,
       isFileUploadOpen,
@@ -490,8 +516,7 @@ export default function ControlContainer() {
               setSelectedControl(val);
             }
           }}
-          // onSubmit={handleUpdate}
-          onSubmit={() => console.log("Updated")}
+          onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
@@ -530,27 +555,28 @@ export default function ControlContainer() {
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Control Deletion?"
         description={`Are you sure you want to delete Control ${selectedControl?.mitreControlId}? All associated data will be removed from the system.`}
-        // onConfirm={() => handleDelete()}
-        onConfirm={() => console.log(selectedControl?.mitreControlId, selectedControl?.controlDetails[0].mitreControlName)}
+        onConfirm={() => handleDelete()}
         cancelText="Cancel"
         confirmText="Yes, Delete"
       />
 
       {selectedControl && selectedControl.controlDetails.length > 1 && (
-        <DeleteMultipleControls
+        <SelectMultipleModal
           open={isSelectControlsToDeleteOpen}
-          onClose={() => setIsSelectControlsToDeleteOpen(false)}
-          mitreControlNames={selectedControl?.controlDetails?.map(
-            (item) => item.mitreControlName
-          )}
-          selectedControlsToDelete={selectedControlsToDelete}
-          setSelectedControlsToDelete={setSelectedControlsToDelete}
-          onDelete={() => {
-            selectedControlsToDelete.map((selected) =>
-              console.log(selectedControl.mitreControlId, selected)
-            );
+          onClose={() => {
+            setIsSelectControlsToDeleteOpen(false);
             setSelectedControlsToDelete([]);
           }}
+          items={selectedControl?.controlDetails?.map(
+            (item) => item.mitreControlName
+          )}
+          selectedItems={selectedControlsToDelete}
+          setSelectedItems={setSelectedControlsToDelete}
+          onAction={() => handleDelete()}
+          checkBoxColor="#CD0303"
+          title="Delete MITRE Controls"
+          desc="Select the MITRE Control Names to delete:"
+          action="Delete"
         />
       )}
 
