@@ -49,24 +49,13 @@ const OrgCard: React.FC<OrgCardProps> = ({
     : "";
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent navigation when clicking on menu items, toggle switch, or any interactive elements
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('.MuiIconButton-root') ||
-      target.closest('.MuiSwitch-root') ||
-      target.closest('.MuiFormControlLabel-root') ||
-      target.closest('.MuiMenu-root') ||
-      target.closest('.MuiMenuItem-root') ||
-      target.closest('.MuiListItemIcon-root') ||
-      target.closest('[role="menuitem"]') ||
-      target.closest('#edit-delete-dialog') ||
-      target.closest('#open-edit-delete-dialog')
-    ) {
-      return;
-    }
-
     // Navigate to organization details page
-    router.push(`/org-management/${organization.orgId}`);
+    router.push(`/orgManagement/${organization.orgId}`);
+  };
+
+  const handleInteractiveClick = (e: React.MouseEvent) => {
+    // Stop event from bubbling up to the card
+    e.stopPropagation();
   };
 
   return (
@@ -137,9 +126,9 @@ const OrgCard: React.FC<OrgCardProps> = ({
               whiteSpace: "nowrap"
             }}
           >
-            {organization.orgId.length > 15
-              ? organization.orgId.substring(0, 15) + "..."
-              : organization.orgId}
+            {organization.orgCode.length > 15
+              ? organization.orgCode.substring(0, 15) + "..."
+              : organization.orgCode}
           </Typography>
         </Box>
       </Box>
@@ -198,8 +187,8 @@ const OrgCard: React.FC<OrgCardProps> = ({
               key={index}
               src={avatar || undefined}
               sx={{
-                width: 24,
-                height: 24,
+                width: 28,
+                height: 28,
                 fontSize: "12px",
                 border: "1.5px solid white",
                 zIndex: index,
@@ -212,26 +201,29 @@ const OrgCard: React.FC<OrgCardProps> = ({
           {organization.members.additionalCount > 0 && (
             <Box
               sx={{
-                width: 24,
-                height: 24,
+                width: 28,
+                height: 28,
                 borderRadius: "32px",
                 backgroundColor: "#04139A",
-                color: "#FFFFFF",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 border: "1.5px solid #FFFFFF",
                 opacity: 1,
-                fontWeight: 400,
-                fontSize: "12px",
-                lineHeight: "100%",
-                letterSpacing: "0%",
-                textAlign: "center",
                 zIndex: organization.members.avatars.length + 1,
                 ml: -0.75, //also overlap with previous avatar
+                p: 0.5,
               }}
             >
-              +{organization.members.additionalCount}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#FFFFFF",
+                  textAlign: "center",
+                }}
+              >
+                +{organization.members.additionalCount}
+              </Typography>
             </Box>
           )}
         </Box>
@@ -271,6 +263,7 @@ const OrgCard: React.FC<OrgCardProps> = ({
         <ToggleSwitch
           sx={{ m: 0 }}
           checked={organization.status === "active"}
+          onClick={handleInteractiveClick}
         />
         <Typography
           variant="body2"
@@ -286,7 +279,9 @@ const OrgCard: React.FC<OrgCardProps> = ({
       </Box>
 
       {/* Actions Menu */}
-      <MenuItemComponent items={dialogData} />
+      <Box onClick={handleInteractiveClick}>
+        <MenuItemComponent items={dialogData} />
+      </Box>
     </Paper>
   );
 };

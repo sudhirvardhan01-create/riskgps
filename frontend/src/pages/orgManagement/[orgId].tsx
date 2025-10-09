@@ -6,6 +6,7 @@ import withAuth from "@/hoc/withAuth";
 import { Organization } from "@/types/organization";
 import Image from "next/image";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
+import { BusinessUnits } from "@/components/Organization/BusinessUnit";
 import { getOrganizationById } from "@/services/organizationService";
 import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTypography";
 import ToastComponent from "@/components/ToastComponent";
@@ -92,6 +93,7 @@ function OrgDetailsPage() {
           id: apiResponse.data.organizationId,
           name: apiResponse.data.name,
           orgId: apiResponse.data.organizationId,
+          orgCode: apiResponse.data.orgCode,
           orgImage: "/orgImage.png", // Default image since API doesn't provide this
           tags: (() => {
             // Convert API tags array to object format
@@ -121,7 +123,7 @@ function OrgDetailsPage() {
             }
 
             // Return the tags object with guaranteed industry and size properties
-            return tagsObject as { industry: string; size: string; [key: string]: string };
+            return tagsObject as { industry: string; size: string;[key: string]: string };
           })(),
           members: {
             avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
@@ -172,7 +174,7 @@ function OrgDetailsPage() {
         });
         // If API fails, redirect back to org management after showing error
         setTimeout(() => {
-          router.push('/org-management');
+          router.push('/orgManagement');
         }, 2000);
       } finally {
         setLoading(false);
@@ -190,7 +192,7 @@ function OrgDetailsPage() {
       const timer = setTimeout(() => {
         setShowSuccessPopup(false);
         // Remove the query parameter from URL
-        router.replace(`/org-management/${orgId}`, undefined, { shallow: true });
+        router.replace(`/orgManagement/${orgId}`, undefined, { shallow: true });
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -202,7 +204,7 @@ function OrgDetailsPage() {
   };
 
   const handleBackClick = () => {
-    router.push('/org-management');
+    router.push('/orgManagement');
   };
 
   if (loading) {
@@ -315,7 +317,7 @@ function OrgDetailsPage() {
           {/* Details row below */}
           <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: "wrap" }}>
             <Typography variant="body1" sx={{ color: "#484848" }}>
-              #{organization.orgId ? organization.orgId.substring(0, 8) + '...' : organization.orgId}
+              #{organization.orgCode.length > 15 ? organization.orgCode.substring(0, 15) + "..." : organization.orgCode}
             </Typography>
             <Box
               sx={{
@@ -426,7 +428,7 @@ function OrgDetailsPage() {
         >
           <Tab label="Org Details" />
           <Tab label="Repository" />
-          <Tab label={`Business Units`} />
+          <Tab label={`Business Units (${organization.businessUnits?.length || 0})`} />
           <Tab label={`Users`} />
         </Tabs>
       </Box>
@@ -445,7 +447,7 @@ function OrgDetailsPage() {
                 fontSize: "14px",
                 fontWeight: 500,
               }}
-              onClick={() => router.push(`/org-management/${orgId}/edit-org-details`)}
+              onClick={() => router.push(`/orgManagement/${orgId}/editOrgDetails`)}
             >
               <Edit sx={{ fontSize: 16 }} />
               <Typography variant="body1" sx={{ fontWeight: 500, color: "inherit" }}>
@@ -756,10 +758,7 @@ function OrgDetailsPage() {
         </TabPanel>
 
         <TabPanel value={tabValue} index={2}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Business Units</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Business Units will be displayed here.
-          </Typography>
+          <BusinessUnits />
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
