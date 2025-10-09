@@ -37,6 +37,22 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/unique-mitre-technique", async (req, res) => {
+  try {
+    const results = await MitreThreatControlService.getUniqueMitreTechniques();
+    res.status(HttpStatus.OK).json({
+      data: results,
+      msg: Messages.MITRE_THREAT_CONTROL.FETCHED,
+    });
+    
+  } catch (err) {
+    console.log("Failed to fetch unique mitre techniques", err);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || Messages.GENERAL.SERVER_ERROR,
+    });
+  }
+})
+
 router.get("/", async (req, res) => {
   try {
     const searchPattern = req.query.search || null;
