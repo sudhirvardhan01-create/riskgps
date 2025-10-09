@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -126,6 +126,13 @@ function CreateNewOrgPage() {
     intellectualPropertyPercentage: ""
   });
 
+  // Reset loading state when component unmounts or route changes
+  useEffect(() => {
+    return () => {
+      setIsLoading(false);
+    };
+  }, []);
+
   const handleBackClick = () => {
     router.push('/orgManagement');
   };
@@ -194,17 +201,31 @@ function CreateNewOrgPage() {
     return step2Fields.every(field => isFieldValid(field, businessContext[field]));
   };
 
-  const handleContinue = async () => {
-    if (currentStep === 0) {
-      setCurrentStep(1);
-    } else if (currentStep === 1) {
-      setCurrentStep(2);
-    } else {
-      // Submit form data to API
-      setIsLoading(true);
-      setToast(prev => ({ ...prev, open: false }));
+  const handleContinue = async (event?: React.MouseEvent) => {
+    // Prevent multiple clicks during loading
+    if (isLoading) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
 
-      try {
+    // Set loading state for all steps
+    setIsLoading(true);
+    setToast(prev => ({ ...prev, open: false }));
+
+    try {
+      if (currentStep === 0) {
+        // Simulate a small delay for step transition
+        await new Promise(resolve => setTimeout(resolve, 300));
+        setIsLoading(false);
+        setCurrentStep(1);
+      } else if (currentStep === 1) {
+        // Simulate a small delay for step transition
+        await new Promise(resolve => setTimeout(resolve, 300));
+        setIsLoading(false);
+        setCurrentStep(2);
+      } else {
+        // Submit form data to API
         // Prepare the organization data for API
         const organizationData: CreateOrganizationRequest = {
           orgName: orgName,
@@ -258,16 +279,16 @@ function CreateNewOrgPage() {
             message: "Failed to create organization. Please try again.",
             severity: "error"
           });
+          setIsLoading(false);
         }
-      } catch (err) {
-        setToast({
-          open: true,
-          message: err instanceof Error ? err.message : "Failed to create organization. Please try again.",
-          severity: "error"
-        });
-      } finally {
-        setIsLoading(false);
       }
+    } catch (err) {
+      setToast({
+        open: true,
+        message: err instanceof Error ? err.message : "Failed to create organization. Please try again.",
+        severity: "error"
+      });
+      setIsLoading(false);
     }
   };
 
@@ -808,12 +829,12 @@ function CreateNewOrgPage() {
                 <span>
                   <Button
                     variant="contained"
-                    onClick={handleContinue}
+                    onClick={(event) => handleContinue(event)}
                     disabled={
-                      currentStep === 0 ? !orgName.trim() || !isTagsValid() :
+                      isLoading || 
+                      (currentStep === 0 ? !orgName.trim() || !isTagsValid() :
                         currentStep === 1 ? !isStep1Valid() :
-                          currentStep === 2 ? !isStep2Valid() :
-                            isLoading
+                          currentStep === 2 ? !isStep2Valid() : false)
                     }
                     sx={{
                       backgroundColor: "#04139A",
@@ -834,10 +855,22 @@ function CreateNewOrgPage() {
                     }}
                   >
                     {isLoading ? (
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <CircularProgress size={16} color="inherit" />
-                        Creating...
-                      </Box>
+                      <CircularProgress 
+                        size={32} 
+                        thickness={4}
+                        sx={{ 
+                          color: "inherit",
+                          animation: "spin 1s linear infinite",
+                          "@keyframes spin": {
+                            "0%": {
+                              transform: "rotate(0deg)",
+                            },
+                            "100%": {
+                              transform: "rotate(360deg)",
+                            },
+                          },
+                        }}
+                      />
                     ) : (
                       "Continue"
                     )}

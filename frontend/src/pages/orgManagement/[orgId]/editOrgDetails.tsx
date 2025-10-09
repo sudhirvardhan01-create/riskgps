@@ -17,7 +17,8 @@ import {
   AccordionDetails,
   Divider,
   OutlinedInput,
-  Grid
+  Grid,
+  CircularProgress
 } from "@mui/material";
 import { ArrowBack, ExpandLess, Add, CameraAlt } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
@@ -171,7 +172,7 @@ function EditOrgDetailsPage() {
           const country = COUNTRIES.find(c => c.label === countryName);
           return country ? country.value : countryName;
         };
-        
+
         const newFormData = {
           orgName: transformedOrg.name,
           industryVertical: transformedOrg.details?.industryVertical || "",
@@ -352,7 +353,7 @@ function EditOrgDetailsPage() {
         const country = COUNTRIES.find(c => c.value === countryCode);
         return country ? country.label : countryCode;
       };
-      
+
       const updateData = {
         name: formData.orgName,
         desc: formData.additionalInformation || "",
@@ -400,13 +401,12 @@ function EditOrgDetailsPage() {
       }, 1500);
 
     } catch (error) {
+      setIsSaving(false);
       setToast({
         open: true,
         message: error instanceof Error ? error.message : 'Failed to update organization',
         severity: "error"
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -1364,7 +1364,27 @@ function EditOrgDetailsPage() {
                 }
               }}
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CircularProgress
+                    size={20}
+                    thickness={2}
+                    sx={{
+                      color: "inherit",
+                      animation: "spin 1s linear infinite",
+                      "@keyframes spin": {
+                        "0%": {
+                          transform: "rotate(0deg)",
+                        },
+                        "100%": {
+                          transform: "rotate(360deg)",
+                        },
+                      },
+                    }} />
+                </Box>
+              ) : (
+                "Save"
+              )}
             </Button>
           </Box>
         </Box>
