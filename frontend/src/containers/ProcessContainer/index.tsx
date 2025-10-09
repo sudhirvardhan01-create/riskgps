@@ -34,14 +34,15 @@ const initialProcessData: ProcessData = {
 };
 
 const sortItems = [
-  { label: "Process ID (Ascending)", value: "id:asc" },
-  { label: "Process ID (Descending)", value: "id:desc" },
-  { label: "Process Name (Ascending)", value: "process_name:asc" },
-  { label: "Process Name (Descending)", value: "process_name:desc" },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
   { label: "Created (Oldest to Latest)", value: "created_at:asc" },
   { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
   { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
+  { label: "Process ID (Ascending)", value: "process_code:asc" },
+  { label: "Process ID (Descending)", value: "process_code:desc" },
+  { label: "Process Name (Ascending)", value: "process_name:asc" },
+  { label: "Process Name (Descending)", value: "process_name:desc" },
+
 ];
 
 const breadcrumbItems = [
@@ -449,7 +450,7 @@ export default function ProcessContainer() {
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Process Deletion?"
-        description={`Are you sure you want to delete Process #${selectedProcess?.id}? All associated data will be removed from the system.`}
+        description={`Are you sure you want to delete Process #${selectedProcess?.processCode}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"

@@ -70,7 +70,7 @@ class ProcessService {
     }
 
     if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
-      sortOrder = "ASC";
+      sortOrder = "DESC";
     }
 
     const whereClause = await this.handleProcessFilters(

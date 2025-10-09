@@ -65,9 +65,9 @@ module.exports = {
         label: "CIA Mapping",
         input_type: "text",
         supported_values: [
-          '{"label":"Confidentiality","value":"C"}',
-          '{"label":"Integrity","value":"I"}',
-          '{"label":"Availability","value":"A"}',
+          'C',
+          'I',
+          'A',
         ],
         applies_to: ["risk_scenario", "threat"],
         description: "",

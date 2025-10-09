@@ -7,7 +7,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 interface ConfigContextType {
   metadata: MetaData[];
   setMetadata: React.Dispatch<React.SetStateAction<MetaData[]>>;
-  fetchMetadataByKey: (key: string) => MetaData;
+  fetchMetadataByKey: (key: string) => MetaData | undefined;
 }
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -32,7 +32,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({
     const data: MetaData | undefined = metadata?.find(
       (item) => item.name.toLowerCase().trim() === key.toLowerCase().trim()
     );
-    if (!data) throw new Error("No metadata matched with the entered key");
     return data;
   };
 

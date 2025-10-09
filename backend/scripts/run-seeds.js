@@ -16,6 +16,7 @@ const seeds = [
   "seed-library-risk-scenarios.js",
   "seed-mitre-threats-controls.js",
   "seed-framework-controls.js",
+  "seed-threat-bundle.js",
 ];
 
 (async () => {

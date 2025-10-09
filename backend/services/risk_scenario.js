@@ -511,7 +511,7 @@ class RiskScenarioService {
   ) {
     if (Array.isArray(relatedProcesses)) {
       for (const process of relatedProcesses) {
-        if (typeof process !== "number" || process < 0) {
+        if (typeof process !== "string") {
           console.log("[RiskScenario] Invalid related process:", process);
           throw new CustomError(
             Messages.RISK_SCENARIO.INVALID_PROCESS_MAPPING,

@@ -489,7 +489,7 @@ class AssetService {
   ) {
     if (Array.isArray(relatedProcesses)) {
       for (const process of relatedProcesses) {
-        if (typeof process !== "number" || process < 0) {
+        if (typeof process !== "string") {
           console.log("[createAsset] Invalid related process:", process);
           throw new CustomError(
             Messages.ASSET.INVALID_PROCESS_MAPPING,
@@ -544,8 +544,6 @@ class AssetService {
         supportedValues?.length > 0 &&
         !attr.values.every((v) => supportedValues.includes(v))
       ) {
-        console.log("Unsupported values in attribute:", attr);
-        console.log("aaabb");
         throw new CustomError(
           Messages.LIBARY.INVALID_ATTRIBUTE_VALUE,
           HttpStatus.BAD_REQUEST
@@ -561,54 +559,6 @@ class AssetService {
         { transaction }
       );
     }
-  }
-
-  static handleAssetFiltersN(
-    searchPattern = null,
-    statusFilter = [],
-    attrFilters = []
-  ) {
-    let conditions = [];
-
-    if (searchPattern) {
-      conditions.push({
-        [Op.or]: [
-          { application_name: { [Op.iLike]: `%${searchPattern}%` } },
-          { third_party_name: { [Op.iLike]: `%${searchPattern}%` } },
-          { geographic_location: { [Op.iLike]: `%${searchPattern}%` } },
-        ],
-      });
-    }
-
-    if (statusFilter.length > 0) {
-      conditions.push({ status: { [Op.in]: statusFilter } });
-    }
-
-    if (attrFilters.length > 0) {
-      let subquery = "";
-
-      attrFilters.forEach((filter, idx) => {
-        const metaDataKeyId = parseInt(filter.metaDataKeyId, 10);
-        if (isNaN(metaDataKeyId)) {
-          throw new Error("Invalid metaDataKeyId");
-        }
-
-        const valuesArray = filter.values
-          .map((v) => sequelize.escape(v))
-          .join(",");
-
-        if (idx > 0) subquery += " INTERSECT ";
-        subquery += `
-                SELECT "asset_id"
-                FROM library_attributes_asset_mapping
-                WHERE "meta_data_key_id" = ${metaDataKeyId}
-                AND "values" && ARRAY[${valuesArray}]::varchar[]
-            `;
-      });
-
-      conditions.push({ id: { [Op.in]: Sequelize.literal(`(${subquery})`) } });
-    }
-    return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }
 
   // Function to generate Sequelize where conditions

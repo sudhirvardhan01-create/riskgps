@@ -123,7 +123,7 @@ export default function ThreatContainer() {
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
 
   //Threat Bundles Array
-  const threatBundles = fetchMetadataByKey("Threat Bundle").supported_values;
+  const threatBundles = fetchMetadataByKey("Threat Bundle")?.supported_values;
   const [selectedTab, setSelectedTab] = useState("MITRE");
 
   //Threat Techniques Array
@@ -426,7 +426,7 @@ export default function ThreatContainer() {
       )}
 
       {/* Add form */}
-      {isAddOpen && (
+      {isAddOpen && threatBundles && (
         <ThreatBundleFormModal
           operation="create"
           open={isAddOpen}
@@ -515,13 +515,15 @@ export default function ThreatContainer() {
         <LibraryHeader {...headerProps} />
 
         {/* Tabs to select the Control Framework */}
-        <ButtonTabs
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-          items={threatBundles}
-          mitreTabTitle="MITRE"
-          isMITRETabRequired={true}
-        />
+        {threatBundles && (
+          <ButtonTabs
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab}
+            items={threatBundles}
+            mitreTabTitle="MITRE"
+            isMITRETabRequired={true}
+          />
+        )}
 
         {selectedTab === "MITRE" && (
           <ThreatList
