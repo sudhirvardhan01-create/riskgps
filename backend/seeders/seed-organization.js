@@ -8,6 +8,7 @@ module.exports = {
       { name: "BluOcean", desc: "BluOcean", orgCode: "OR0001" },
       { name: "CDW", desc: "CDW", orgCode: "OR0002" },
       { name: "Affirm", desc: "Affirm", orgCode: "OR0003" },
+      { name: "Piedmont", desc: "Piedmont", orgCode: "OR0004" },
     ];
 
     await safeSeed(Organization, organizations, "name");
