@@ -56,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
 
   // ✅ After create hook to generate questionCode
   LibraryQuestionnaire.afterCreate(async (instance, options) => {
-    const newCode = `${1000 + instance.incrementalId}`;
+    const newCode = `1000${instance.incrementalId}`;
     if (instance.questionCode !== newCode) {
       instance.questionCode = newCode;
       await instance.save({ transaction: options.transaction });

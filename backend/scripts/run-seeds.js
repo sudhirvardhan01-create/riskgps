@@ -4,12 +4,12 @@ const seeds = [
   "seed-roles.js",
   "seed-users.js",
   "seed-organization.js",
-  // "seed-organization-business-units.js",
-  // "seed-organization-process.js",
-  // "seed-organization-risk-scenarios.js",
-  // "seed-organization-taxonomy.js",
-  // "seed-organization-severity.js",
-  // "seed-organization-assets.js",
+  "seed-organization-business-units.js",
+  "seed-organization-process.js",
+  "seed-organization-risk-scenarios.js",
+  "seed-organization-taxonomy.js",
+  "seed-organization-severity.js",
+  "seed-organization-assets.js",
   "seed-metadata.js",
   "seed-library-process.js",
   "seed-library-assets.js",
@@ -17,6 +17,8 @@ const seeds = [
   "seed-mitre-threats-controls.js",
   "seed-framework-controls.js",
   "seed-threat-bundle.js",
+  "seed-questionnaire.js",
+  "seed-questionnaire-asset-control.js",
 ];
 
 (async () => {
