@@ -2,44 +2,43 @@
 
 import React, { useEffect, useState } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
-import RiskScenarioList from "../RiskScenarioBussiness";
-import BusinessImpactPanel from "../BusinessImpactPanel";
 import { useAssessment } from "@/context/AssessmentContext";
-import { Risk } from "@/types/assessment";
+import { Asset } from "@/types/assessment";
+import AssetStrength from "../AssetStrength";
 
-export default function ProcessTabs() {
+export default function ProcessTabsAssets() {
   const { selectedProcesses, setSelectedProcesses } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
-  const [selectedScenario, setSelectedScenario] = useState<Risk | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedScenario(selectedProcesses[newValue].risks[0]); // reset selection when switching process
+    setSelectedAsset(selectedProcesses[newValue].assets[0]); // reset selection when switching process
   };
 
-  const handleUpdateScenario = (updatedScenario: Risk) => {
+  const handleUpdateScenario = (updatedAsset: Asset) => {
     // update inside context
     const updatedProcesses = selectedProcesses.map((p, idx) => {
       if (idx !== currentTab) return p;
 
       return {
         ...p,
-        risks: p.risks.map((r: Risk) =>
-          r.orgRiskId === updatedScenario.orgRiskId ? updatedScenario : r
+        assets: p.assets.map((a: Asset) =>
+          a.orgAssetId === updatedAsset.orgAssetId ? updatedAsset : a
         ),
       };
     });
 
     setSelectedProcesses(updatedProcesses); // push back to context
-    setSelectedScenario(updatedScenario);
+    setSelectedAsset(updatedAsset);
   };
 
   const activeProcess = selectedProcesses[currentTab];
 
   useEffect(() => {
     if (selectedProcesses.length > 0) {
-      setSelectedScenario(selectedProcesses[0].risks[0]);
+      setSelectedAsset(selectedProcesses[0].assets[0]);
     }
   }, []);
 
@@ -76,7 +75,7 @@ export default function ProcessTabs() {
               <Typography
                 variant="body2"
                 fontWeight={550}
-              >{`${p.name} (${p.risks.length})`}</Typography>
+              >{`${p.name} (${p.assets.length})`}</Typography>
             }
             sx={{
               border:
@@ -96,18 +95,18 @@ export default function ProcessTabs() {
 
       {/* Tab Content */}
       <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
-        {/* Left Panel: Risk Scenarios */}
-        <RiskScenarioList
-          scenarios={activeProcess.risks}
-          onSelect={setSelectedScenario}
-          selectedScenario={selectedScenario}
+        {/* Left Panel: Asset Scenarios */}
+        <AssetStrength
+          assets={activeProcess.assets}
+          onSelect={setSelectedAsset}
+          selectedAsset={selectedAsset}
         />
 
         {/* Right Panel: Business Impact */}
-        <BusinessImpactPanel
-          selectedScenario={selectedScenario}
+        {/* <BusinessImpactPanel
+          selectedAsset={selectedAsset}
           onUpdateScenario={handleUpdateScenario}
-        />
+        /> */}
       </Box>
     </Box>
   );
