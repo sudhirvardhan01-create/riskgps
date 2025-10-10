@@ -16,7 +16,7 @@ const links = [
   { name: "Reports", path: "/reports", icon: <ReportsIcon /> },
   {
     name: "User Management",
-    path: "/user-management",
+    path: "/userManagement",
     icon: <UserManagementIcon />,
   },
   {
