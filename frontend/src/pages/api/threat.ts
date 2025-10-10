@@ -1,11 +1,15 @@
+import { Filter } from "@/types/filter";
 import { ThreatForm } from "@/types/threat";
+import { RssFeed } from "@mui/icons-material";
 
 //Function to fetch threats
 export const fetchThreats = async (
   page: number,
   limit: number,
   searchPattern?: string,
-  sort?: string
+  sort?: string,
+  statusFilter?: string[],
+  attributesFilter?: Filter[]
 ) => {
   const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
@@ -15,6 +19,21 @@ export const fetchThreats = async (
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
 
+  if (statusFilter && statusFilter?.length > 0) {
+    const joinedStatusFilter = statusFilter.join(",");
+    params.append("status", joinedStatusFilter);
+  }
+
+  if (attributesFilter && attributesFilter?.length) {
+    const paramString = attributesFilter
+      .map((obj) => {
+        const [key, values] = Object.entries(obj)[0]; // each object has one key
+        return `${key}:${values.join(",")}`;
+      })
+      .join(";");
+
+    params.append("attrFilters", paramString);
+  }
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls?${params}`,
     {
@@ -56,9 +75,9 @@ export const createThreat = async (data: ThreatForm) => {
 };
 
 //Function to update a threat
-export const updateThreat = async (data: ThreatForm, mitreTechniqueId: string, subTechniqueId?: string) => {
+export const updateThreat = async (data: ThreatForm) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update?mitreTechniqueId=${mitreTechniqueId}&&subTechniqueId=${subTechniqueId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/update`,
     {
       method: "PUT",
       body: JSON.stringify(data),
@@ -76,7 +95,10 @@ export const updateThreat = async (data: ThreatForm, mitreTechniqueId: string, s
 };
 
 //Function to delete a threat
-export const deleteThreat = async (mitre_technique_id: string, mitre_sub_technique_id?: string) => {
+export const deleteThreat = async (
+  mitre_technique_id: string,
+  mitre_sub_technique_id?: string
+) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/delete-threats?mitre_technique_id=${mitre_technique_id}&&mitre_sub_technique_id=${mitre_sub_technique_id}`,
     {
@@ -95,7 +117,11 @@ export const deleteThreat = async (mitre_technique_id: string, mitre_sub_techniq
 };
 
 //Function to update status of a threat
-export const updateThreatStatus = async (status: string, mitreTechniqueId: string, subTechniqueId?: string) => {
+export const updateThreatStatus = async (
+  status: string,
+  mitreTechniqueId: string,
+  subTechniqueId?: string
+) => {
   if (!mitreTechniqueId || !status) {
     throw new Error("Failed to perforom the operation, Invalid arguments");
   }
@@ -117,4 +143,19 @@ export const updateThreatStatus = async (status: string, mitreTechniqueId: strin
   return res.data;
 };
 
-
+export const fetchUniqueMitreTechniques = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/mitre-threats-controls/unique-mitre-technique`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch unique MITRE Techniques");
+  }
+  const res = await response.json();
+  return res.data;
+};

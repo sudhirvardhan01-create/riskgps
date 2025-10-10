@@ -14,22 +14,27 @@ import {
   Grid,
 } from "@mui/material";
 
-interface MITREControlCardProps {
+interface ItemCardProps {
   label: string;
   checked: boolean;
   onChange: () => void;
+  checkBoxColor: string;
 }
 
-interface DeleteMultipleControlsProps {
+interface SelectMultipleModalProps {
   open: boolean;
   onClose: () => void;
-  mitreControlNames: string[];
-  selectedControlsToDelete: string[];
-  setSelectedControlsToDelete: React.Dispatch<React.SetStateAction<string[]>>;
-  onDelete: () => void;
+  items: string[];
+  selectedItems: string[];
+  setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>;
+  onAction: () => void;
+  checkBoxColor: string;
+  title: string;
+  desc: string;
+  action: string;
 }
 
-function MITREControlCard({ label, checked, onChange }: MITREControlCardProps) {
+function ItemCard({ label, checked, onChange, checkBoxColor = '#CD0303' }: ItemCardProps) {
   return (
     <Box
       display="flex"
@@ -39,7 +44,7 @@ function MITREControlCard({ label, checked, onChange }: MITREControlCardProps) {
       sx={{
         bgcolor: "#fff",
         borderRadius: "8px",
-        borderLeft: "4px solid #CD0303",
+        borderLeft: `4px solid ${checkBoxColor}`,
         boxShadow: "0px 2px 4px rgba(0,0,0,0.08)",
         transition: "all 0.2s ease",
         height: 48,
@@ -54,9 +59,9 @@ function MITREControlCard({ label, checked, onChange }: MITREControlCardProps) {
         checked={checked}
         onChange={onChange}
         sx={{
-          color: "#CD0303",
+          color: `${checkBoxColor}`,
           "&.Mui-checked": {
-            color: "#CD0303", // ensures blue tick and box
+            color: `${checkBoxColor}`, // ensures blue tick and box
           },
         }}
       />
@@ -67,24 +72,28 @@ function MITREControlCard({ label, checked, onChange }: MITREControlCardProps) {
   );
 }
 
-const DeleteMultipleControls: React.FC<DeleteMultipleControlsProps> = ({
+const SelectMultipleModal: React.FC<SelectMultipleModalProps> = ({
   open,
   onClose,
-  mitreControlNames,
-  selectedControlsToDelete,
-  setSelectedControlsToDelete,
-  onDelete,
+  items,
+  selectedItems,
+  setSelectedItems,
+  onAction,
+  checkBoxColor,
+  title,
+  desc,
+  action
 }) => {
-  const isSelected = (controlName: string) => {
-    return selectedControlsToDelete.some((c) => c === controlName);
+  const isSelected = (name: string) => {
+    return selectedItems.some((c) => c === name);
   };
 
-  const toggleSelection = (controlName: string) => {
-    const updated = isSelected(controlName)
-      ? selectedControlsToDelete.filter((c) => c !== controlName)
-      : [...selectedControlsToDelete, controlName];
+  const toggleSelection = (name: string) => {
+    const updated = isSelected(name)
+      ? selectedItems.filter((c) => c !== name)
+      : [...selectedItems, name];
 
-    setSelectedControlsToDelete(updated);
+    setSelectedItems(updated);
   };
 
   return (
@@ -104,7 +113,7 @@ const DeleteMultipleControls: React.FC<DeleteMultipleControlsProps> = ({
     >
       <DialogTitle sx={{ p: 3 }}>
         <Typography variant="body1" fontWeight={600}>
-          Delete MITRE Controls
+          {title}
         </Typography>
       </DialogTitle>
 
@@ -112,16 +121,17 @@ const DeleteMultipleControls: React.FC<DeleteMultipleControlsProps> = ({
 
       <DialogContent sx={{ p: 3 }}>
         <Typography variant="body2" sx={{ pb: 1.5 }}>
-          Select the MITRE Control Names to delete:
+          {desc}
         </Typography>
 
         <Grid container spacing={2}>
-          {mitreControlNames.map((item) => (
+          {items.map((item) => (
             <Grid size={{ xs: 12 }} key={item}>
-              <MITREControlCard
+              <ItemCard
                 label={item}
                 checked={isSelected(item)}
                 onChange={() => toggleSelection(item)}
+                checkBoxColor={checkBoxColor}
               />
             </Grid>
           ))}
@@ -133,16 +143,16 @@ const DeleteMultipleControls: React.FC<DeleteMultipleControlsProps> = ({
           Cancel
         </Button>
         <Button
-            onClick={onDelete}
-            disabled={!selectedControlsToDelete}
+            onClick={onAction}
+            disabled={!selectedItems}
           variant="contained"
-          sx={{ borderRadius: 1, backgroundColor: "#CD0303" }}
+          sx={{ borderRadius: 1, backgroundColor: checkBoxColor }}
         >
-          Delete
+          {action}
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default DeleteMultipleControls;
+export default SelectMultipleModal;

@@ -6,9 +6,14 @@ module.exports = (sequelize) => {
     "Asset",
     {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4,
+      },
+      auto_increment_id: {
+        type: DataTypes.INTEGER,
         autoIncrement: true,
+        unique: true,
       },
       asset_code: {
         unique: true,
@@ -51,7 +56,7 @@ module.exports = (sequelize) => {
         type: DataTypes.ARRAY(
           DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES)
         ),
-        allowNull: false,
+        allowNull: true,
       },
       geographic_location: {
         type: DataTypes.STRING,
@@ -76,11 +81,6 @@ module.exports = (sequelize) => {
       asset_category: {
         type: DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
         allowNull: false,
-      },
-      asset_name: {
-        unique: true,
-        type: DataTypes.STRING,
-        allowNull: true,
       },
       asset_description: {
         type: DataTypes.TEXT,
@@ -116,7 +116,7 @@ module.exports = (sequelize) => {
   };
 
   Asset.afterCreate(async (instance, options) => {
-    const paddedId = String(instance.id).padStart(5, "0");
+    const paddedId = String(instance.auto_increment_id).padStart(5, "0");
     const code = `AT${paddedId}`;
     await instance.update(
       { asset_code: code },

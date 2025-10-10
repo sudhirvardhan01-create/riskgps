@@ -37,6 +37,21 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/unique-mitre-technique", async (req, res) => {
+  try {
+    const results = await MitreThreatControlService.getUniqueMitreTechniques();
+    res.status(HttpStatus.OK).json({
+      data: results,
+      msg: Messages.MITRE_THREAT_CONTROL.FETCHED,
+    });
+  } catch (err) {
+    console.log("Failed to fetch unique mitre techniques", err);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || Messages.GENERAL.SERVER_ERROR,
+    });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const searchPattern = req.query.search || null;
@@ -44,6 +59,15 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query?.page) || 0;
     const sortBy = req.query.sort_by || "created_at";
     const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+    const statusFilter = req.query.status ? req.query.status?.split(",") : [];
+    const attrFilters = (req.query.attrFilters || "")
+      .split(";")
+      .map((expr) => {
+        if (!expr) return null;
+        const [filterName, values] = expr.split(":");
+        return { filterName, values: values.split(",") };
+      })
+      .filter(Boolean);
 
     const mitreThreatControlRecords =
       await MitreThreatControlService.getAllMitreTheatControlRecords(
@@ -51,7 +75,9 @@ router.get("/", async (req, res) => {
         limit,
         searchPattern,
         sortBy,
-        sortOrder
+        sortOrder,
+        statusFilter,
+        attrFilters
       );
     res.status(HttpStatus.OK).json({
       data: mitreThreatControlRecords,
@@ -187,8 +213,10 @@ router.get("/:id", async (req, res) => {
  */
 router.delete("/delete-threats", async (req, res) => {
   try {
+    console.log(req.query.mitre_sub_technique_id);
     const mitreTechniqueId = req.query.mitre_technique_id ?? null;
     const mitreSubTechniqueId = req.query.mitre_sub_technique_id ?? null;
+    console.log(mitreSubTechniqueId);
 
     if (!mitreTechniqueId) {
       throw new CustomError(
@@ -215,19 +243,7 @@ router.delete("/delete-threats", async (req, res) => {
 
 router.put("/update", async (req, res) => {
   try {
-    const mitreTechniqueId = req.query.mitreTechniqueId || null;
-    const subTechniqueId = req.query.subTechniqueId || null;
-
-    if (!mitreTechniqueId) {
-      throw new CustomError(
-        Messages.MITRE_THREAT_CONTROL.INVALID_MITRE_TECHNIQUE_ID_REQUIRED,
-        HttpStatus.BAD_REQUEST
-      );
-    }
-
-    const data = await MitreThreatControlService.updateMitreThreatControlRecord(
-      mitreTechniqueId,
-      subTechniqueId,
+    const data = await MitreThreatControlService.updateMitreThreatControl(
       req.body
     );
     res.status(HttpStatus.OK).json({

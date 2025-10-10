@@ -20,10 +20,11 @@ export const ControlFrameworkService = {
     sort?: string
   ) => fetchFrameworkControls(page, limit, frameworkName, searchPattern, sort),
   download: () => downloadFrameworkControlsTemplateFile(),
-  export: () => exportFrameworkControls(),
+  export: (frameworkName: string) => exportFrameworkControls(frameworkName),
   import: (file: File) => importFrameworkControls(file),
   updateStatus: (id: number, status: string) =>
     updateFrameworkControlStatus(id, status),
   delete: (id: number) => deleteFrameworkControl(id),
-  update: (id: number, data: ControlFrameworkForm) => updateFrameworkControl(id, data),
+  update: (id: number, data: ControlFrameworkForm) =>
+    updateFrameworkControl(id, data),
 };

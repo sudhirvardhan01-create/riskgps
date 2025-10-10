@@ -25,17 +25,18 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
-import { Close, DoneOutlined, EditOutlined } from "@mui/icons-material";
+import {
+  Close,
+  DeleteOutlineOutlined,
+  DoneOutlined,
+  EditOutlined,
+} from "@mui/icons-material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
-import {
-  ControlForm,
-  MITREControlForm,
-  RelatedThreatForm,
-} from "@/types/control";
+import { MITREControlForm, RelatedThreatForm } from "@/types/control";
 import RelatedThreatFormModal from "./RelatedThreatFormModal";
 
 interface ControlFormModalProps {
@@ -72,14 +73,35 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
     useState<RelatedThreatForm | null>(null);
   const [selectedRecordID, setSelectedRecordID] = useState<number | null>(null);
 
-  // const editRelatedThreat = (id: number) => {
-  //   const updatedRelatedThreats = [...(formData?.subControls ?? [])];
-  //   updatedRelatedThreats[id].mitreControlDescription =
-  //     selectedRelatedThreat?.mitreControlDescription ?? "";
-  //   updatedRelatedThreats[id].bluOceanControlDescription =
-  //     selectedRelatedThreat?.bluOceanControlDescription ?? "";
-  //   setFormData((prev) => ({ ...prev, subControls: updatedRelatedThreats }));
-  // };
+  const editRelatedThreat = (id: number) => {
+    const updatedControlDetails = formData.controlDetails?.map((control) => {
+      if (control.mitreControlName === selectedTab) {
+        const updatedRelatedThreats = control?.subControls;
+        if (updatedRelatedThreats) {
+          updatedRelatedThreats[id].mitreControlDescription =
+            selectedRelatedThreat?.mitreControlDescription ?? "";
+          updatedRelatedThreats[id].bluOceanControlDescription =
+            selectedRelatedThreat?.bluOceanControlDescription ?? "";
+        }
+        return { ...control, subControls: updatedRelatedThreats };
+      }
+      return control;
+    });
+    setFormData((prev) => ({ ...prev, controlDetails: updatedControlDetails }));
+  };
+
+  const deleteRelatedThreat = (id: number) => {
+    const updatedControlDetails = formData?.controlDetails.map((control) => {
+      if (control.mitreControlName === selectedTab) {
+        return {
+          ...control,
+          subControls: control.subControls?.filter((_, i) => i !== id),
+        };
+      }
+      return control;
+    });
+    setFormData((prev) => ({ ...prev, controlDetails: updatedControlDetails }));
+  };
 
   const handleChange = useCallback(
     (field: keyof MITREControlForm, value: any) => {
@@ -145,9 +167,9 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
             }
           }}
           onSubmit={() => {
-            // if (typeof selectedRecordID === "number")
-            //   editRelatedThreat(selectedRecordID);
-            // setIsEditRelatedThreatModalOpen(false);
+            if (typeof selectedRecordID === "number")
+              editRelatedThreat(selectedRecordID);
+            setIsEditRelatedThreatModalOpen(false);
             console.log("Submitted");
           }}
         />
@@ -389,6 +411,15 @@ const ControlFormModal: React.FC<ControlFormModalProps> = ({
                                       >
                                         <EditOutlined
                                           sx={{ color: "primary.main" }}
+                                        />
+                                      </IconButton>
+                                      <IconButton
+                                        onClick={() =>
+                                          deleteRelatedThreat(index)
+                                        }
+                                      >
+                                        <DeleteOutlineOutlined
+                                          sx={{ color: "#cd0303" }}
                                         />
                                       </IconButton>
                                     </Stack>

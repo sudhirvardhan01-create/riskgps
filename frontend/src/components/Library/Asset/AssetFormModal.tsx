@@ -85,11 +85,14 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   );
 
   useEffect(() => {
-    if (isAssetThirdPartyManaged === false) {
-      handleChange("thirdPartyName", "");
-      handleChange("thirdPartyLocation", "");
+    if (!isAssetThirdPartyManaged) {
+      setAssetFormData((prev) => ({
+        ...prev,
+        thirdPartyName: "",
+        thirdPartyLocation: "",
+      }));
     }
-  }, [isAssetThirdPartyManaged, handleChange]);
+  }, [isAssetThirdPartyManaged]);
 
   const handleKeyValueChange = (
     index: number,
@@ -97,7 +100,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
     value: number | string[]
   ) => {
     const updatedKeyValues = [...(assetFormData.attributes ?? [])];
-    if (field == "meta_data_key_id" && typeof value == "number") {
+    if (field == "meta_data_key_id" && typeof value == "string") {
       updatedKeyValues[index].meta_data_key_id = value;
       updatedKeyValues[index].values = [];
     } else if (field === "values" && Array.isArray(value)) {
@@ -233,7 +236,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         <Grid container spacing={4}>
           {/* Asset Name */}
           <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled /// text 
+            <TextFieldStyled /// text
               label={labels.assetName}
               placeholder="Enter Asset Name"
               value={assetFormData.applicationName}
@@ -362,9 +365,9 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                     height={"12px"}
                   />
                 </Box>
-              </FormLabel> 
-              
-              <RadioGroup 
+              </FormLabel>
+
+              <RadioGroup
                 aria-labelledby="third-party-management-radio-buttons-group"
                 name="isThirdPartyManagement"
                 row
@@ -518,7 +521,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
           {/*Cloud Service Provider */}
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
-              value={assetFormData.cloudServiceProvider}
+              value={assetFormData.cloudServiceProvider ?? []}
               multiple
               label={labels.cloudServiceProvider}
               isTooltipRequired={true}
@@ -528,7 +531,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                 handleChange("cloudServiceProvider", e.target.value as string[])
               }
               renderValue={(selected: any) => {
-                if (selected?.length === 0) {
+                if (!selected || selected?.length === 0) {
                   return (
                     <Typography
                       variant="body1"
@@ -549,7 +552,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
                         textTransform: "capitalize",
                       }}
                     >
-                      {selected.join(", ")}
+                      {selected?.join(", ")}
                     </Typography>
                   );
                 }
