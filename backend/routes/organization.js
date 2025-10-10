@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const router = express.Router();
 const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
@@ -218,6 +218,113 @@ router.delete("/:id", async (req, res) => {
     } catch (err) {
         res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
             error: err.message || "Failed to delete organization"
+        });
+    }
+});
+
+// ---------------------------------------------------------------------------
+// ORGANIZATION BUSINESS UNIT
+// ---------------------------------------------------------------------------
+
+/**
+ * @route GET /organization/:orgId/business-units
+ * @desc Get all business units for a specific organization
+ */
+router.get("/:orgId/business-units", async (req, res) => {
+    try {
+        const { orgId } = req.params;
+        const searchPattern = req.query.search || "";
+        const page = parseInt(req.query.page) || 0;
+        const limit = parseInt(req.query.limit) || 10;
+        const sortBy = req.query.sort_by || "created_date";
+        const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+
+        const result = await OrganizationService.getBusinessUnitsByOrganizationId(
+            orgId,
+            page,
+            limit,
+            searchPattern,
+            sortBy,
+            sortOrder
+        );
+
+        res.status(HttpStatus.OK).json({
+            data: result,
+            msg: "Business units fetched successfully",
+        });
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
+});
+
+/**
+ * @route GET /organization/business-units/:id
+ * @desc Get single business unit by ID
+ */
+router.get("/business-unit/:id", async (req, res) => {
+    try {
+        const result = await OrganizationService.getBusinessUnitById(req.params.id);
+        res.status(HttpStatus.OK).json({
+            data: result,
+            msg: "Business unit fetched successfully",
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
+});
+
+/**
+ * @route POST /organization/:orgId/business-units
+ * @desc Create business unit under organization
+ */
+router.post("/:orgId/business-units", async (req, res) => {
+    try {
+        const { orgId } = req.params;
+        const result = await OrganizationService.createBusinessUnit(orgId, req.body);
+        res.status(HttpStatus.CREATED).json({
+            message: "Business unit created successfully",
+            data: result,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
+});
+
+/**
+ * @route PUT /organization/business-units/:id
+ * @desc Update business unit
+ */
+router.put("/business-unit/:id", async (req, res) => {
+    try {
+        const result = await OrganizationService.updateBusinessUnitById(req.params.id, req.body);
+        res.status(HttpStatus.OK).json({
+            message: "Business unit updated successfully",
+            data: result,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
+});
+
+/**
+ * @route DELETE /organization/business-units/:id
+ * @desc Soft delete business unit
+ */
+router.delete("/business-units/:id", async (req, res) => {
+    try {
+        const result = await OrganizationService.deleteBusinessUnitById(req.params.id, req.body.modifiedBy);
+        res.status(HttpStatus.OK).json({ message: result.message });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
         });
     }
 });

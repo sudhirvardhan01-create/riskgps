@@ -48,6 +48,7 @@ function BUProcessMappingPage() {
     "Process to Risk Scenarios Mapping",
     "Business Impact",
     "Process to Asset Mapping",
+    "Critical Systems Control Strength",
   ];
 
   const stepsTab = [

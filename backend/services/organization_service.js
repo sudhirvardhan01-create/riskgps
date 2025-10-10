@@ -1,4 +1,4 @@
-const {
+﻿const {
     Organization,
     OrganizationBusinessUnit,
     OrganizationProcess,
@@ -312,13 +312,10 @@ class OrganizationService {
             attributes: ['orgCode'],
         });
 
-        console.log(lastOrg);
-
         let newOrgCode = 'OR0001';
 
         if (lastOrg) {
             const lastOrgId = lastOrg.orgCode;
-            console.log(lastOrg.org_code);
             const orgNumber = parseInt(lastOrgId.slice(2), 10); // Get the number after 'OR'
             const nextOrgNumber = orgNumber + 1;
             newOrgCode = `OR${nextOrgNumber.toString().padStart(4, '0')}`;
@@ -497,6 +494,85 @@ class OrganizationService {
                 err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    // BUSINESS UNIT
+    // ---------------------------------------------------------------------------
+
+    static async getBusinessUnitsByOrganizationId(orgId, page = 0, limit = 10, searchPattern = "", sortBy = "name", sortOrder = "ASC") {
+        const offset = page * limit;
+        const whereClause = { isDeleted: false, organizationId: orgId };
+
+        if (searchPattern) {
+            whereClause[Op.or] = [
+                { name: { [Op.iLike]: `%${searchPattern}%` } }
+            ];
+        }
+
+        const { rows, count } = await OrganizationBusinessUnit.findAndCountAll({
+            where: whereClause,
+            offset,
+            limit,
+            order: [[sortBy, sortOrder]],
+        });
+
+        return { total: count, page, limit, businessUnits: rows };
+    }
+
+    static async getBusinessUnitById(id) {
+        const bu = await OrganizationBusinessUnit.findOne({
+            where: { orgBusinessUnitId: id, isDeleted: false },
+            include: [
+                {
+                    model: Organization,
+                    as: "organizationDetails",
+                    attributes: ["organizationId", "name"],
+                },
+            ],
+        });
+
+        if (!bu) throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
+        return bu;
+    }
+
+    static async createBusinessUnit(orgId, data) {
+        if (!data.name) throw new CustomError("Business unit name is required", HttpStatus.BAD_REQUEST);
+
+        const bu = await OrganizationBusinessUnit.create({
+            organizationId: orgId,
+            name: data.name,
+            desc: data.desc || "",
+            createdBy: data.createdBy,
+            createdDate: new Date()
+        });
+
+        return bu;
+    }
+
+    static async updateBusinessUnitById(id, data) {
+        const bu = await OrganizationBusinessUnit.findByPk(id);
+        if (!bu) throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
+
+        await bu.update({
+            ...data,
+            modifiedDate: new Date(),
+        });
+
+        return bu;
+    }
+
+    static async deleteBusinessUnitById(id, userId) {
+        const bu = await OrganizationBusinessUnit.findByPk(id);
+        if (!bu) throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
+
+        await bu.update({
+            isDeleted: true,
+            modifiedBy: userId,
+            modifiedDate: new Date()
+        });
+
+        return { message: "Business unit deleted successfully" };
     }
 }
 
