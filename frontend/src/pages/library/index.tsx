@@ -26,12 +26,11 @@ const LibraryPage = () => {
       }
     })();
   }, []);
-  
+
   const libs = [
     {
       name: constants.libProcessTitle,
-      description:
-        constants.libProcessDescription,
+      description: constants.libProcessDescription,
       tags: [
         {
           label: constants.allProcessesTitle,
@@ -55,8 +54,7 @@ const LibraryPage = () => {
     },
     {
       name: constants.libRiskScenarioTitle,
-      description:
-        constants.libRiskScenarioDescription,
+      description: constants.libRiskScenarioDescription,
       tags: [
         {
           label: constants.allRiskScenariosTitle,
@@ -80,8 +78,7 @@ const LibraryPage = () => {
     },
     {
       name: constants.libAssetTitle,
-      description:
-        constants.libAssetDescription,
+      description: constants.libAssetDescription,
       tags: [
         {
           label: constants.allAssetsTitle,
@@ -105,8 +102,7 @@ const LibraryPage = () => {
     },
     {
       name: constants.libThreatTitle,
-      description:
-        constants.libThreatDescription,
+      description: constants.libThreatDescription,
       tags: [
         {
           label: constants.allThreatsTitle,
@@ -130,8 +126,7 @@ const LibraryPage = () => {
     },
     {
       name: constants.libControlTitle,
-      description:
-        constants.libControlDescription,
+      description: constants.libControlDescription,
       tags: [
         {
           label: constants.allControlsTitle,
@@ -152,6 +147,30 @@ const LibraryPage = () => {
       ],
       icon: <ControlCardIcon height={24} width={24} />,
       href: "/library/controls",
+    },
+    {
+      name: constants.libQuestionnnaireTitle,
+      description: constants.libQuestionnaireDescription,
+      tags: [
+        {
+          label: constants.allQuestionnaireTitle,
+          value: libData?.mitreControls.total_count,
+        },
+        {
+          label: constants.publishedStatus,
+          value: libData?.mitreControls.published,
+        },
+        {
+          label: constants.disabledStatus,
+          value: libData?.mitreControls.not_published,
+        },
+        {
+          label: constants.draftStatus,
+          value: libData?.mitreControls.draft,
+        },
+      ],
+      icon: <LibraryCardIcon height={24} width={24} />,
+      href: "/library/questionnaire",
     },
   ];
 
