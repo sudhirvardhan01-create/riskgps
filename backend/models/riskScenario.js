@@ -75,7 +75,7 @@ module.exports = (sequelize) => {
 
   RiskScenario.afterCreate(async (instance, options) => {
     const paddedId = String(instance.auto_increment_id).padStart(5, "0");
-    const code = `RS-${paddedId}`;
+    const code = `RS${paddedId}`;
     await instance.update({ risk_code: code }, { transaction: options.transaction });
   });
 
