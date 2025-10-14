@@ -18,7 +18,7 @@ const seeds = [
   "seed-framework-controls.js",
   "seed-threat-bundle.js",
   "seed-questionnaire.js",
-  "seed-questionnaire-asset-control.js",
+  // "seed-questionnaire-asset-control.js",
 ];
 
 (async () => {
