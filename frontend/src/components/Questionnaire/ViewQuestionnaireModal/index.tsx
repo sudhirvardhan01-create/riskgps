@@ -20,14 +20,16 @@ import {
   Typography,
 } from "@mui/material";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
-import { AssetForm } from "@/types/asset";
 import { formatDate } from "@/utils/utility";
+import { QuestionnaireData } from "@/types/questionnaire";
 
 interface ViewQuestionnaireModalProps {
   open: boolean;
-  recordData: AssetForm;
+  recordData: QuestionnaireData;
   setIsEditQuestionnaireOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedRecord: React.Dispatch<React.SetStateAction<AssetForm | null>>;
+  setSelectedRecord: React.Dispatch<
+    React.SetStateAction<QuestionnaireData | null>
+  >;
   onClose: () => void;
 }
 const ViewQuestionnaireModal: React.FC<ViewQuestionnaireModalProps> = ({
@@ -102,7 +104,7 @@ const ViewQuestionnaireModal: React.FC<ViewQuestionnaireModalProps> = ({
             gap={2}
           >
             <Typography variant="h5" color="#121212" fontWeight={550}>
-              Question {recordData.assetCode}
+              Question {recordData?.questionCode}
             </Typography>
             {getStatusComponent()}
           </Stack>
@@ -151,9 +153,7 @@ const ViewQuestionnaireModal: React.FC<ViewQuestionnaireModalProps> = ({
                 Question
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {recordData.assetDescription
-                  ? recordData.assetDescription
-                  : "-"}
+                {recordData.question ? recordData.question : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -173,22 +173,20 @@ const ViewQuestionnaireModal: React.FC<ViewQuestionnaireModalProps> = ({
                       <TableCell>MITRE Control ID</TableCell>
                     </TableRow>
                   </TableHead>
-                  {/* <TableBody>
-                    {controlFrameworkRecord.mitreControls?.map(
-                      (control, index) => {
-                        return (
-                          <TableRow
-                            hover
-                            role="checkbox"
-                            tabIndex={-1}
-                            key={index}
-                          >
-                            <TableCell>{control}</TableCell>
-                          </TableRow>
-                        );
-                      }
-                    )}
-                  </TableBody> */}
+                  <TableBody>
+                    {recordData.mitreControlId?.map((control, index) => {
+                      return (
+                        <TableRow
+                          hover
+                          role="checkbox"
+                          tabIndex={-1}
+                          key={index}
+                        >
+                          <TableCell>{control}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
                 </Table>
               </TableContainer>
             </Paper>
@@ -222,7 +220,9 @@ const ViewQuestionnaireModal: React.FC<ViewQuestionnaireModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {recordData.createdAt ? formatDate(recordData.createdAt) : "-"}
+                {recordData.createdDate
+                  ? formatDate(recordData.createdDate)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -232,7 +232,9 @@ const ViewQuestionnaireModal: React.FC<ViewQuestionnaireModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {recordData.updatedAt ? formatDate(recordData.updatedAt) : "-"}
+                {recordData.modifiedDate
+                  ? formatDate(recordData.modifiedDate)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>

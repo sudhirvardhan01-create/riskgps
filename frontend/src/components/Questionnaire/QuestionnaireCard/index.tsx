@@ -25,7 +25,7 @@ interface QuestionnaireCardProps {
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (id: number, status: string) => void;
+  handleUpdateStatus: (id: string, status: string) => void;
   title: string;
   desc: string;
   status: string;
@@ -57,7 +57,10 @@ const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
                 const updatedStatus = e.target.checked
                   ? "published"
                   : "not_published";
-                handleUpdateStatus(recordData.id as number, updatedStatus);
+                handleUpdateStatus(
+                  recordData.questionnaireId as string,
+                  updatedStatus
+                );
               }}
               checked={status === "published"}
             />

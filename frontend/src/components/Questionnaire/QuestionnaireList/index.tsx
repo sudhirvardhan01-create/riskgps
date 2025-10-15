@@ -1,10 +1,10 @@
 import { Box, Stack, TablePagination } from "@mui/material";
-import { AssetForm } from "@/types/asset";
 import QuestionnaireCard from "../QuestionnaireCard";
+import { QuestionnaireData } from "@/types/questionnaire";
 
 interface Props {
   loading: boolean;
-  data: AssetForm[];
+  data: QuestionnaireData[];
   totalRows: number;
   page: number;
   rowsPerPage: number;
@@ -12,11 +12,13 @@ interface Props {
   onRowsPerPageChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  setSelectedRecord: React.Dispatch<React.SetStateAction<AssetForm | null>>;
+  setSelectedRecord: React.Dispatch<
+    React.SetStateAction<QuestionnaireData | null>
+  >;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleUpdateStatus: (id: number, status: string) => void;
+  handleUpdateStatus: (id: string, status: string) => void;
 }
 
 const QuestionnaireList: React.FC<Props> = ({
@@ -36,11 +38,17 @@ const QuestionnaireList: React.FC<Props> = ({
     <>
       <Stack
         spacing={2}
-        sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 390px)" }}
       >
         {data && data.length > 0 ? (
           data.map((item) => (
-            <div key={item.id ?? item.assetCode ?? JSON.stringify(item)}>
+            <div
+              key={
+                item.questionnaireId ??
+                item.questionCode ??
+                JSON.stringify(item)
+              }
+            >
               <QuestionnaireCard
                 recordData={item}
                 setSelectedRecordData={setSelectedRecord}
@@ -48,17 +56,17 @@ const QuestionnaireList: React.FC<Props> = ({
                 setIsEditOpen={setIsEditOpen}
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
-                title={item.assetCode ?? ""}
-                desc={item.applicationName ?? ""}
+                title={item.questionCode ?? ""}
+                desc={item.question ?? ""}
                 status={item.status ?? ""}
-                lastUpdated={item.updatedAt ?? ""}
+                lastUpdated={item.modifiedDate ?? ""}
                 tagItems={[
                   {
                     label: "Linked Controls",
                     value:
-                      item.relatedProcesses?.length === 0
+                      item.mitreControlId?.length === 0
                         ? "0"
-                        : item.relatedProcesses?.length,
+                        : item.mitreControlId?.length,
                   },
                 ]}
               />

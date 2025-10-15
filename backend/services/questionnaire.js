@@ -4,11 +4,7 @@ const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
 const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
-const {
-  createdDate,
-  modifiedBy,
-  isDeleted,
-} = require("../models/common_fields");
+const { QUESTIONNAIRE, GENERAL } = require("../constants/library");
 
 class QuestionnaireService {
   static async createQuestionnaire(data) {
@@ -32,10 +28,26 @@ class QuestionnaireService {
     page = 0,
     limit = 6,
     searchPattern = null,
-    sortBy = "created_date",
+    sortBy = "createdDate",
     sortOrder = "ASC"
   ) {
+    const offset = page * limit;
+    if (!QUESTIONNAIRE.ALLOWED_SORT_FIELD.includes(sortBy)) {
+      sortBy = "createdDate";
+    }
+    if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
+      sortOrder = "ASC";
+    }
     const data = await LibraryQuestionnaire.findAll({
+      ...(limit > 0 ? { limit, offset } : {}),
+      where: {
+        assetCategory: {
+          [Op.contains]: [assetCategory], // Checks if array contains the category
+        },
+      },
+      order: [[sortBy, sortOrder]],
+    });
+    const total = await LibraryQuestionnaire.count({
       where: {
         assetCategory: {
           [Op.contains]: [assetCategory], // Checks if array contains the category
@@ -56,6 +68,10 @@ class QuestionnaireService {
     }));
     return {
       data: result,
+      total,
+      page,
+      limit,
+      totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
     };
   }
 

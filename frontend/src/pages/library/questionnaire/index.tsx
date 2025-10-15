@@ -1,7 +1,8 @@
+import QuestionnaireContainer from "@/containers/QuestionnaireContainer";
 import withAuth from "@/hoc/withAuth";
 
 function QuestionnairePage() {
-  return <h1>Questionnaire</h1>;
+  return <QuestionnaireContainer />;
 }
 
 export default withAuth(QuestionnairePage);
