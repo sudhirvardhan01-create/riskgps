@@ -1,6 +1,17 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Box, Typography, Tabs, Tab, Chip, Stack, IconButton, Divider, Dialog, DialogContent } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Chip,
+  Stack,
+  IconButton,
+  Divider,
+  Dialog,
+  DialogContent,
+} from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { Organization } from "@/types/organization";
@@ -10,7 +21,6 @@ import { BusinessUnits } from "@/components/Organization/BusinessUnit";
 import { getOrganizationById } from "@/services/organizationService";
 import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTypography";
 import ToastComponent from "@/components/ToastComponent";
-
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -29,11 +39,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`org-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 }
@@ -53,7 +59,7 @@ function OrgDetailsPage() {
   const [toast, setToast] = useState({
     open: false,
     message: "",
-    severity: "error" as "error" | "warning" | "info" | "success"
+    severity: "error" as "error" | "warning" | "info" | "success",
   });
 
   // Parse form data from URL parameters
@@ -61,18 +67,20 @@ function OrgDetailsPage() {
     if (orgName || tags || businessContext) {
       try {
         const parsedTags = tags ? JSON.parse(tags as string) : [];
-        const parsedBusinessContext = businessContext ? JSON.parse(businessContext as string) : {};
+        const parsedBusinessContext = businessContext
+          ? JSON.parse(businessContext as string)
+          : {};
 
         setFormData({
           orgName: orgName as string,
           tags: parsedTags,
-          businessContext: parsedBusinessContext
+          businessContext: parsedBusinessContext,
         });
       } catch (error) {
         setToast({
           open: true,
           message: "Error parsing form data. Please try again.",
-          severity: "error"
+          severity: "error",
         });
       }
     }
@@ -109,9 +117,12 @@ function OrgDetailsPage() {
             // Ensure size is always present
             if (!tagsObject.Size && !tagsObject.size) {
               if (apiResponse.data.numberOfEmployees) {
-                tagsObject.size = apiResponse.data.numberOfEmployees < 500 ? "Small (< 500 Employees)" :
-                  apiResponse.data.numberOfEmployees < 2000 ? "Medium (500-2000 Employees)" :
-                    "Large (> 2000 Employees)";
+                tagsObject.size =
+                  apiResponse.data.numberOfEmployees < 500
+                    ? "Small (< 500 Employees)"
+                    : apiResponse.data.numberOfEmployees < 2000
+                    ? "Medium (500-2000 Employees)"
+                    : "Large (> 2000 Employees)";
               } else {
                 tagsObject.size = "Unknown";
               }
@@ -119,23 +130,36 @@ function OrgDetailsPage() {
 
             // Ensure industry is always present
             if (!tagsObject.Industry && !tagsObject.industry) {
-              tagsObject.industry = apiResponse.data.industryVertical || "Unknown";
+              tagsObject.industry =
+                apiResponse.data.industryVertical || "Unknown";
             }
 
             // Return the tags object with guaranteed industry and size properties
-            return tagsObject as { industry: string; size: string;[key: string]: string };
+            return tagsObject as {
+              industry: string;
+              size: string;
+              [key: string]: string;
+            };
           })(),
           members: {
-            avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-            additionalCount: 3
+            avatars: [
+              "/memberImage.jpg",
+              "/memberImage1.jpg",
+              "/memberImage2.jpg",
+            ],
+            additionalCount: 3,
           },
-          businessUnits: apiResponse.data.businessUnits && apiResponse.data.businessUnits.length > 0
-            ? apiResponse.data.businessUnits
-            : ["-", "-", "-"], // Use API data or default
+          businessUnits:
+            apiResponse.data.businessUnits &&
+            apiResponse.data.businessUnits.length > 0
+              ? apiResponse.data.businessUnits
+              : ["-", "-", "-"], // Use API data or default
           status: apiResponse.data.isDeleted ? "disabled" : "active", // Use isDeleted flag from API
-          lastUpdated: apiResponse.data.modifiedDate ?
-            new Date(apiResponse.data.modifiedDate).toISOString().split('T')[0] :
-            new Date().toISOString().split('T')[0],
+          lastUpdated: apiResponse.data.modifiedDate
+            ? new Date(apiResponse.data.modifiedDate)
+                .toISOString()
+                .split("T")[0]
+            : new Date().toISOString().split("T")[0],
           createdDate: apiResponse.data.createdDate || "-",
           modifiedDate: apiResponse.data.modifiedDate || "-",
           createdBy: apiResponse.data.createdBy || "-",
@@ -145,24 +169,46 @@ function OrgDetailsPage() {
             employeeCount: apiResponse.data.numberOfEmployees || "-",
             cisoName: apiResponse.data.cisoName || "-",
             cisoEmail: apiResponse.data.cisoEmail || "-",
-            annualRevenue: apiResponse.data.annualRevenue ? `$ ${parseInt(apiResponse.data.annualRevenue).toLocaleString()}` : "-",
-            riskAppetite: apiResponse.data.riskAppetite ? `$ ${parseInt(apiResponse.data.riskAppetite).toLocaleString()}` : "-",
-            cybersecurityBudget: apiResponse.data.cybersecurityBudget ? `$ ${parseInt(apiResponse.data.cybersecurityBudget).toLocaleString()}` : "-",
-            insuranceCoverage: apiResponse.data.insuranceCoverage ? `$ ${parseInt(apiResponse.data.insuranceCoverage).toLocaleString()}` : "-",
+            annualRevenue: apiResponse.data.annualRevenue
+              ? `$ ${parseInt(apiResponse.data.annualRevenue).toLocaleString()}`
+              : "-",
+            riskAppetite: apiResponse.data.riskAppetite
+              ? `$ ${parseInt(apiResponse.data.riskAppetite).toLocaleString()}`
+              : "-",
+            cybersecurityBudget: apiResponse.data.cybersecurityBudget
+              ? `$ ${parseInt(
+                  apiResponse.data.cybersecurityBudget
+                ).toLocaleString()}`
+              : "-",
+            insuranceCoverage: apiResponse.data.insuranceCoverage
+              ? `$ ${parseInt(
+                  apiResponse.data.insuranceCoverage
+                ).toLocaleString()}`
+              : "-",
             insuranceCarrier: apiResponse.data.insuranceCarrier || "-",
             claimsCount: apiResponse.data.numberOfClaims?.toString() || "-",
-            claimsValue: apiResponse.data.claimsValue ? `$ ${parseInt(apiResponse.data.claimsValue).toLocaleString()}` : "-",
+            claimsValue: apiResponse.data.claimsValue
+              ? `$ ${parseInt(apiResponse.data.claimsValue).toLocaleString()}`
+              : "-",
             regulators: apiResponse.data.regulators || "-",
-            regulatoryRequirements: apiResponse.data.regulatoryRequirements || "-",
-            additionalInformation: apiResponse.data.additionalInformation || "-",
+            regulatoryRequirements:
+              apiResponse.data.regulatoryRequirements || "-",
+            additionalInformation:
+              apiResponse.data.additionalInformation || "-",
             recordTypes: apiResponse.data.recordTypes || ["-", "-", "-"],
-            piiRecordsCount: apiResponse.data.piiRecordsCount?.toString() || "-",
-            pfiRecordsCount: apiResponse.data.pfiRecordsCount?.toString() || "-",
-            phiRecordsCount: apiResponse.data.phiRecordsCount?.toString() || "-",
-            governmentRecordsCount: apiResponse.data.governmentRecordsCount?.toString() || "-",
+            piiRecordsCount:
+              apiResponse.data.piiRecordsCount?.toString() || "-",
+            pfiRecordsCount:
+              apiResponse.data.pfiRecordsCount?.toString() || "-",
+            phiRecordsCount:
+              apiResponse.data.phiRecordsCount?.toString() || "-",
+            governmentRecordsCount:
+              apiResponse.data.governmentRecordsCount?.toString() || "-",
             certifications: apiResponse.data.certifications || ["-"],
-            intellectualPropertyPercentage: apiResponse.data.intellectualPropertyPercentage?.toString() || "-"
-          }
+            intellectualPropertyPercentage:
+              apiResponse.data.intellectualPropertyPercentage?.toString() ||
+              "-",
+          },
         };
 
         setOrganization(transformedOrg);
@@ -170,11 +216,11 @@ function OrgDetailsPage() {
         setToast({
           open: true,
           message: "Failed to load organization. Please try again.",
-          severity: "error"
+          severity: "error",
         });
         // If API fails, redirect back to org management after showing error
         setTimeout(() => {
-          router.push('/orgManagement');
+          router.push("/orgManagement");
         }, 2000);
       } finally {
         setLoading(false);
@@ -185,7 +231,7 @@ function OrgDetailsPage() {
   }, [orgId, router, formData]);
 
   useEffect(() => {
-    if (router.isReady && router.query.showSuccess === 'true') {
+    if (router.isReady && router.query.showSuccess === "true") {
       setShowSuccessPopup(true);
 
       // Auto-hide popup after 3 seconds
@@ -204,17 +250,24 @@ function OrgDetailsPage() {
   };
 
   const handleBackClick = () => {
-    router.push('/orgManagement');
+    router.push("/orgManagement");
   };
 
   if (loading) {
     return (
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+      <Box
+        sx={{
+          p: 3,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "200px",
+        }}
+      >
         <Typography>Loading organization details...</Typography>
       </Box>
     );
   }
-
 
   if (!organization) {
     return (
@@ -232,10 +285,10 @@ function OrgDetailsPage() {
     if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
+      return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
       });
     } catch (error) {
       return "N/A";
@@ -243,20 +296,26 @@ function OrgDetailsPage() {
   };
 
   return (
-    <Box sx={{
-      height: "calc(100vh - 72px)",
-      display: "flex",
-      flexDirection: "column",
-      overflow: "hidden",
-      backgroundColor: "#FFFFFF"
-    }}>
+    <Box
+      sx={{
+        height: "calc(100vh - 72px)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        backgroundColor: "#FFFFFF",
+      }}
+    >
       {/* Breadcrumb */}
       <Stack sx={{ backgroundColor: "#F0F2FB", height: "228px", pt: 3, pb: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3, pl: 2, }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3, pl: 2 }}>
           <IconButton onClick={handleBackClick} sx={{ mr: 1 }}>
             <ArrowBack />
           </IconButton>
-          <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center" }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ display: "flex", alignItems: "center" }}
+          >
             <Box
               component="span"
               sx={{
@@ -264,7 +323,7 @@ function OrgDetailsPage() {
                 fontSize: "14px",
                 lineHeight: "24px",
                 letterSpacing: "0px",
-                color: "#484848"
+                color: "#484848",
               }}
             >
               Org Management/
@@ -276,7 +335,7 @@ function OrgDetailsPage() {
                 fontSize: "14px",
                 lineHeight: "24px",
                 letterSpacing: "0px",
-                color: "#04139A"
+                color: "#04139A",
               }}
             >
               {organization.name}
@@ -315,9 +374,17 @@ function OrgDetailsPage() {
           </Box>
 
           {/* Details row below */}
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: "wrap" }}>
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ flexWrap: "wrap" }}
+          >
             <Typography variant="body1" sx={{ color: "#484848" }}>
-              #{organization.orgCode.length > 15 ? organization.orgCode.substring(0, 15) + "..." : organization.orgCode}
+              #
+              {organization.orgCode.length > 15
+                ? organization.orgCode.substring(0, 15) + "..."
+                : organization.orgCode}
             </Typography>
             <Box
               sx={{
@@ -346,7 +413,8 @@ function OrgDetailsPage() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: organization.status === "active" ? "#147A50" : "#757575",
+                  color:
+                    organization.status === "active" ? "#147A50" : "#757575",
                   fontWeight: 500,
                 }}
               >
@@ -362,31 +430,32 @@ function OrgDetailsPage() {
               }}
             />
             {/* Render all tags from API as chips, except Size */}
-            {organization.tags && Object.entries(organization.tags).map(([key, value]) => {
-              // Skip the size tag as requested
-              if (key === 'size') return null;
+            {organization.tags &&
+              Object.entries(organization.tags).map(([key, value]) => {
+                // Skip the size tag as requested
+                if (key === "size") return null;
 
-              return (
-                <Chip
-                  key={key}
-                  label={`${capitalizeFirstLetter(key)} - ${value}`}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    borderRadius: "4px",
-                    border: "1px solid #E7E7E8",
-                    backgroundColor: "#FFFFFF",
-                    fontSize: "14px",
-                    fontWeight: 400,
-                    lineHeight: "130%",
-                    letterSpacing: "0",
-                    "& .MuiChip-label": {
-                      padding: "7px 12px",
-                    },
-                  }}
-                />
-              );
-            })}
+                return (
+                  <Chip
+                    key={key}
+                    label={`${capitalizeFirstLetter(key)} - ${value}`}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      borderRadius: "4px",
+                      border: "1px solid #E7E7E8",
+                      backgroundColor: "#FFFFFF",
+                      fontSize: "14px",
+                      fontWeight: 400,
+                      lineHeight: "130%",
+                      letterSpacing: "0",
+                      "& .MuiChip-label": {
+                        padding: "7px 12px",
+                      },
+                    }}
+                  />
+                );
+              })}
           </Stack>
         </Box>
       </Stack>
@@ -428,7 +497,11 @@ function OrgDetailsPage() {
         >
           <Tab label="Org Details" />
           <Tab label="Repository" />
-          <Tab label={`Business Units (${organization.businessUnits?.length || 0})`} />
+          <Tab
+            label={`Business Units (${
+              organization.businessUnits?.length || 0
+            })`}
+          />
           <Tab label={`Users`} />
         </Tabs>
       </Box>
@@ -436,7 +509,15 @@ function OrgDetailsPage() {
       {/* Tab Content */}
       <Box sx={{ flex: 1, overflow: "auto", pr: "60px" }}>
         <TabPanel value={tabValue} index={0}>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", mb: 3, mt: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              mb: 3,
+              mt: 2,
+            }}
+          >
             <Box
               sx={{
                 display: "flex",
@@ -447,10 +528,15 @@ function OrgDetailsPage() {
                 fontSize: "14px",
                 fontWeight: 500,
               }}
-              onClick={() => router.push(`/orgManagement/${orgId}/editOrgDetails`)}
+              onClick={() =>
+                router.push(`/orgManagement/${orgId}/editOrgDetails`)
+              }
             >
               <Edit sx={{ fontSize: 16 }} />
-              <Typography variant="body1" sx={{ fontWeight: 500, color: "inherit" }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 500, color: "inherit" }}
+              >
                 Edit Org Details
               </Typography>
             </Box>
@@ -459,16 +545,19 @@ function OrgDetailsPage() {
           {/* Organization Details Content */}
           <Box sx={{ display: "grid", gap: 3, pl: "60px" }}>
             {/* Industry Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Industry</Typography>
+            <Box
+              sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Industry
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <OrgDetailsTypography>
-                    Industry Vertical
-                  </OrgDetailsTypography>
+                  <OrgDetailsTypography>Industry Vertical</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.industryVertical || organization.tags.industry}
+                    {organization.details?.industryVertical ||
+                      organization.tags.industry}
                   </OrgDetailsTypography>
                 </Box>
                 <Box>
@@ -490,34 +579,38 @@ function OrgDetailsPage() {
               </Box>
             </Box>
 
-
             {/* CISO/Security Head Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>CISO/Security Head</Typography>
+            <Box
+              sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                CISO/Security Head
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <OrgDetailsTypography>
-                    Name
-                  </OrgDetailsTypography>
+                  <OrgDetailsTypography>Name</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
                     {organization.details?.cisoName || "Vivek Kumar"}
                   </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <OrgDetailsTypography>
-                    Email
-                  </OrgDetailsTypography>
+                  <OrgDetailsTypography>Email</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.cisoEmail || "vivekkumar@abccompany.com"}
+                    {organization.details?.cisoEmail ||
+                      "vivekkumar@abccompany.com"}
                   </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Revenue Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Revenue</Typography>
+            <Box
+              sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Revenue
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
@@ -529,9 +622,7 @@ function OrgDetailsPage() {
                   </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <OrgDetailsTypography>
-                    Risk Appetite
-                  </OrgDetailsTypography>
+                  <OrgDetailsTypography>Risk Appetite</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
                     {organization.details?.riskAppetite || "$ 30,000,000"}
                   </OrgDetailsTypography>
@@ -541,15 +632,20 @@ function OrgDetailsPage() {
                     Allocated budget for cybersecurity operations
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.cybersecurityBudget || "$ 35,000,000"}
+                    {organization.details?.cybersecurityBudget ||
+                      "$ 35,000,000"}
                   </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Cyber Insurance and Claims Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Cyber Insurance and Claims</Typography>
+            <Box
+              sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Cyber Insurance and Claims
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "100px" }}>
                 <Box>
@@ -588,8 +684,12 @@ function OrgDetailsPage() {
             </Box>
 
             {/* Regulatory Information Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Regulatory Information</Typography>
+            <Box
+              sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Regulatory Information
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "150px", height: "36px" }}>
                 <Box>
@@ -597,7 +697,9 @@ function OrgDetailsPage() {
                     Who are your regulators?
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.regulators || formData.businessContext?.regulators || "-"}
+                    {organization.details?.regulators ||
+                      formData.businessContext?.regulators ||
+                      "-"}
                   </OrgDetailsTypography>
                 </Box>
                 <Box>
@@ -605,29 +707,40 @@ function OrgDetailsPage() {
                     What are your regulatory requirements?
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.regulatoryRequirements || formData.businessContext?.regulatoryRequirements || "-"}
+                    {organization.details?.regulatoryRequirements ||
+                      formData.businessContext?.regulatoryRequirements ||
+                      "-"}
                   </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Records section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Records</Typography>
+            <Box
+              sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px" }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Records
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
 
               {/* Question 1: Types of records */}
               <Box sx={{ mb: 3 }}>
                 <OrgDetailsTypography>
-                  What kinds of records does the company deal with? Check all that apply: PHI, PII, Intellectual Property, Government Records.
+                  What kinds of records does the company deal with? Check all
+                  that apply: PHI, PII, Intellectual Property, Government
+                  Records.
                 </OrgDetailsTypography>
                 <OrgDetailsTypography variant="value">
-                  {organization.details?.recordTypes && Array.isArray(organization.details.recordTypes) && organization.details.recordTypes.length > 0
+                  {organization.details?.recordTypes &&
+                  Array.isArray(organization.details.recordTypes) &&
+                  organization.details.recordTypes.length > 0
                     ? organization.details.recordTypes.join(", ")
-                    : formData.businessContext?.recordTypes && Array.isArray(formData.businessContext.recordTypes) && formData.businessContext.recordTypes.length > 0
-                      ? formData.businessContext.recordTypes.join(", ")
-                      : "PII, PFI, PHI, Government Records"
-                  }
+                    : formData.businessContext?.recordTypes &&
+                      Array.isArray(formData.businessContext.recordTypes) &&
+                      formData.businessContext.recordTypes.length > 0
+                    ? formData.businessContext.recordTypes.join(", ")
+                    : "PII, PFI, PHI, Government Records"}
                 </OrgDetailsTypography>
               </Box>
 
@@ -635,40 +748,55 @@ function OrgDetailsPage() {
               <Box sx={{ ml: 4 }}>
                 <Box sx={{ mb: 3 }}>
                   <OrgDetailsTypography>
-                    How many Personal Identifiable Information (PII) records does the company hold, including those related to employees, customers, and partners?
+                    How many Personal Identifiable Information (PII) records
+                    does the company hold, including those related to employees,
+                    customers, and partners?
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.piiRecordsCount || formData.businessContext?.piiRecordsCount || "1000"}
+                    {organization.details?.piiRecordsCount ||
+                      formData.businessContext?.piiRecordsCount ||
+                      "1000"}
                   </OrgDetailsTypography>
                 </Box>
 
                 {/* Question 3: PFI records count */}
                 <Box sx={{ mb: 3 }}>
                   <OrgDetailsTypography>
-                    How many Personal Financial Information (PFI) records does the company hold, including those of employees, customers, and partners?
+                    How many Personal Financial Information (PFI) records does
+                    the company hold, including those of employees, customers,
+                    and partners?
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.pfiRecordsCount || formData.businessContext?.pfiRecordsCount || "1000"}
+                    {organization.details?.pfiRecordsCount ||
+                      formData.businessContext?.pfiRecordsCount ||
+                      "1000"}
                   </OrgDetailsTypography>
                 </Box>
 
                 {/* Question 4: PHI records count */}
                 <Box sx={{ mb: 3 }}>
                   <OrgDetailsTypography>
-                    How many Protected Health Information (PHI) records does the company currently have for employees, customers, and partners?
+                    How many Protected Health Information (PHI) records does the
+                    company currently have for employees, customers, and
+                    partners?
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.phiRecordsCount || formData.businessContext?.phiRecordsCount || "2000"}
+                    {organization.details?.phiRecordsCount ||
+                      formData.businessContext?.phiRecordsCount ||
+                      "2000"}
                   </OrgDetailsTypography>
                 </Box>
 
                 {/* Question 5: Government records count */}
                 <Box sx={{ mb: 3 }}>
                   <OrgDetailsTypography>
-                    How many government classified information records does the company hold?
+                    How many government classified information records does the
+                    company hold?
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.governmentRecordsCount || formData.businessContext?.governmentRecordsCount || "100"}
+                    {organization.details?.governmentRecordsCount ||
+                      formData.businessContext?.governmentRecordsCount ||
+                      "100"}
                   </OrgDetailsTypography>
                 </Box>
               </Box>
@@ -676,32 +804,50 @@ function OrgDetailsPage() {
               {/* Question 6: Certifications */}
               <Box sx={{ mb: 3 }}>
                 <OrgDetailsTypography>
-                  Did the organization obtain PCI DSS, ISO 27001, or SOC2 certification in the past year? Please check the appropriate boxes if any.
+                  Did the organization obtain PCI DSS, ISO 27001, or SOC2
+                  certification in the past year? Please check the appropriate
+                  boxes if any.
                 </OrgDetailsTypography>
                 <OrgDetailsTypography variant="value">
-                  {organization.details?.certifications && Array.isArray(organization.details.certifications) && organization.details.certifications.length > 0
+                  {organization.details?.certifications &&
+                  Array.isArray(organization.details.certifications) &&
+                  organization.details.certifications.length > 0
                     ? organization.details.certifications.join(", ")
-                    : formData.businessContext?.certifications && Array.isArray(formData.businessContext.certifications) && formData.businessContext.certifications.length > 0
-                      ? formData.businessContext.certifications.join(", ")
-                      : "PCI DSS"
-                  }
+                    : formData.businessContext?.certifications &&
+                      Array.isArray(formData.businessContext.certifications) &&
+                      formData.businessContext.certifications.length > 0
+                    ? formData.businessContext.certifications.join(", ")
+                    : "PCI DSS"}
                 </OrgDetailsTypography>
               </Box>
 
               {/* Question 7: Intellectual property value */}
               <Box sx={{ mb: 3 }}>
                 <OrgDetailsTypography>
-                  How much is the company&apos;s intellectual property and trade secrets worth as a percentage of its yearly revenue?
+                  How much is the company&apos;s intellectual property and trade
+                  secrets worth as a percentage of its yearly revenue?
                 </OrgDetailsTypography>
                 <OrgDetailsTypography variant="value">
-                  {organization.details?.intellectualPropertyPercentage || formData.businessContext?.intellectualPropertyPercentage || "30"}%
+                  {organization.details?.intellectualPropertyPercentage ||
+                    formData.businessContext?.intellectualPropertyPercentage ||
+                    "30"}
+                  %
                 </OrgDetailsTypography>
               </Box>
             </Box>
 
             {/* Additional Information Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", minHeight: "120px" }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Additional Information</Typography>
+            <Box
+              sx={{
+                p: 2,
+                border: "1px solid #E7E7E8",
+                borderRadius: "8px",
+                minHeight: "120px",
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Additional Information
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "100px", height: "36px" }}>
                 <Box>
@@ -709,51 +855,54 @@ function OrgDetailsPage() {
                     Additional Information
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.additionalInformation || formData.businessContext?.additionalInformation || "-"}
+                    {organization.details?.additionalInformation ||
+                      formData.businessContext?.additionalInformation ||
+                      "-"}
                   </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
 
             {/* Activity Section */}
-            <Box sx={{ p: 2, border: "1px solid #E7E7E8", borderRadius: "8px", mb: 6 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>Activity</Typography>
+            <Box
+              sx={{
+                p: 2,
+                border: "1px solid #E7E7E8",
+                borderRadius: "8px",
+                mb: 6,
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Activity
+              </Typography>
               <Divider sx={{ borderColor: "#E0E0E0", mb: 2.5, mt: 1 }} />
               <Box sx={{ display: "flex", gap: "200px", height: "36px" }}>
                 <Box>
-                  <OrgDetailsTypography>
-                    Created On
-                  </OrgDetailsTypography>
+                  <OrgDetailsTypography>Created On</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
                     {formatDate(organization.createdDate)}
                   </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <OrgDetailsTypography>
-                    Created By
-                  </OrgDetailsTypography>
+                  <OrgDetailsTypography>Created By</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
                     {organization.createdBy || "Karan Gautam"}
                   </OrgDetailsTypography>
                 </Box>
                 <Box>
-                  <OrgDetailsTypography>
-                    Last Updated
-                  </OrgDetailsTypography>
+                  <OrgDetailsTypography>Last Updated</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
                     {formatDate(organization.modifiedDate)}
                   </OrgDetailsTypography>
                 </Box>
               </Box>
             </Box>
-
           </Box>
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Repository</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Repository content will be displayed here.
+          <Typography variant="h3" sx={{ mb: 2 }} textAlign={"center"}>
+            Coming soon!!
           </Typography>
         </TabPanel>
 
@@ -762,9 +911,8 @@ function OrgDetailsPage() {
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Users</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Users will be displayed here.
+          <Typography variant="h3" sx={{ mb: 2 }} textAlign={"center"}>
+            Coming soon!!
           </Typography>
         </TabPanel>
       </Box>
@@ -783,22 +931,24 @@ function OrgDetailsPage() {
             position: "relative",
             boxShadow: "none",
             margin: "auto",
-          }
+          },
         }}
       >
-        <DialogContent sx={{
-          p: "48px",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          gap: "24px",
-          height: "100%",
-          boxSizing: "border-box",
-          overflow: "hidden",
-          "&.MuiDialogContent-root": {
-            padding: "48px"
-          }
-        }}>
+        <DialogContent
+          sx={{
+            p: "48px",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
+            height: "100%",
+            boxSizing: "border-box",
+            overflow: "hidden",
+            "&.MuiDialogContent-root": {
+              padding: "48px",
+            },
+          }}
+        >
           {/* Close button */}
           <IconButton
             onClick={() => setShowSuccessPopup(false)}
@@ -809,14 +959,16 @@ function OrgDetailsPage() {
               color: "#9E9FA5",
               "&:hover": {
                 color: "#484848",
-              }
+              },
             }}
           >
             <Close />
           </IconButton>
 
           {/* Success icon */}
-          <Box sx={{ display: "flex", justifyContent: "center", flexShrink: 0 }}>
+          <Box
+            sx={{ display: "flex", justifyContent: "center", flexShrink: 0 }}
+          >
             <Image
               src={"/success_Icons.png"}
               alt="success-Icons"
@@ -834,7 +986,7 @@ function OrgDetailsPage() {
               flexShrink: 0,
               textAlign: "center",
               lineHeight: "100%",
-              verticalAlign: "bottom"
+              verticalAlign: "bottom",
             }}
           >
             Success
@@ -847,7 +999,7 @@ function OrgDetailsPage() {
               textAlign: "center",
               color: "#484848",
               flexShrink: 0,
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
             }}
           >
             {organization?.name || "Organization"} has been successfully created
@@ -857,7 +1009,7 @@ function OrgDetailsPage() {
 
       <ToastComponent
         open={toast.open}
-        onClose={() => setToast(prev => ({ ...prev, open: false }))}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
         message={toast.message}
         toastBorder={
           toast.severity === "success" ? "1px solid #147A50" : undefined
