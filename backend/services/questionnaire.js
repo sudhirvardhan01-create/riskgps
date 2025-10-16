@@ -14,7 +14,7 @@ class QuestionnaireService {
     const newQuestion = {
       questionnaireId: uuidv4(),
       question: data.question,
-      assetCategory: data.assetCategory,
+      assetCategory: data.assetCategories,
       mitreControlId: data.mitreControlId,
       createdDate: new Date(),
       modifiedDate: new Date(),
@@ -31,7 +31,8 @@ class QuestionnaireService {
     limit = 6,
     searchPattern = null,
     sortBy = "createdDate",
-    sortOrder = "ASC"
+    sortOrder = "ASC",
+    statusFilter
   ) {
     const offset = page * limit;
     if (!QUESTIONNAIRE.ALLOWED_SORT_FIELD.includes(sortBy)) {
@@ -40,12 +41,19 @@ class QuestionnaireService {
     if (!GENERAL.ALLOWED_SORT_ORDER.includes(sortOrder)) {
       sortOrder = "ASC";
     }
+
+    const whereClause = this.handleQuestionnaireFilters(
+      searchPattern,
+      statusFilter
+    );
+
     const data = await LibraryQuestionnaire.findAll({
       ...(limit > 0 ? { limit, offset } : {}),
       where: {
         assetCategory: {
           [Op.contains]: [assetCategory], // Checks if array contains the category
         },
+        ...whereClause,
       },
       order: [[sortBy, sortOrder]],
     });
@@ -54,6 +62,7 @@ class QuestionnaireService {
         assetCategory: {
           [Op.contains]: [assetCategory], // Checks if array contains the category
         },
+        ...whereClause,
       },
     });
     const result = data.map((item) => ({
@@ -61,6 +70,7 @@ class QuestionnaireService {
       questionCode: item.questionCode,
       question: item.question,
       assetCategory: assetCategory,
+      assetCategories: item.assetCategory,
       mitreControlId: item.mitreControlId,
       status: item.status,
       createdBy: item.createdBy,
@@ -75,6 +85,25 @@ class QuestionnaireService {
       limit,
       totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
     };
+  }
+
+  static async updateQuestionnaire(id, data) {
+    if (!id) {
+      throw new CustomError(
+        `${MESSAGES.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const question = await LibraryQuestionnaire.findByPk(id);
+    if (!question) {
+      throw new CustomError(
+        "No question found with the provided id",
+        HttpStatus.NOT_FOUND
+      );
+    }
+    this.validateQuestionnaireData(data);
+    const updatedQuestion = await question.update(data);
+    return updatedQuestion;
   }
 
   static async deleteQuestionnaire(id, assetCategory) {
@@ -209,7 +238,7 @@ class QuestionnaireService {
   }
 
   static validateQuestionnaireData(data) {
-    if (!data.assetCategory || data.assetCategory.length < 1) {
+    if (!data.assetCategories || data.assetCategories.length < 1) {
       throw new CustomError(
         "Asset Category(s) is/are required",
         HttpStatus.BAD_REQUEST
@@ -224,6 +253,28 @@ class QuestionnaireService {
         HttpStatus.BAD_REQUEST
       );
     }
+  }
+
+  static handleQuestionnaireFilters(searchPattern = null, statusFilter = []) {
+    let conditions = [];
+    if (searchPattern) {
+      conditions.push({
+        [Op.or]: [
+          {
+            questionCode: { [Op.iLike]: `%${searchPattern}%` },
+          },
+          {
+            question: { [Op.iLike]: `%${searchPattern}%` },
+          },
+        ],
+      });
+    }
+
+    if (statusFilter.length > 0) {
+      conditions.push({ status: { [Op.in]: statusFilter } });
+    }
+
+    return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }
 }
 

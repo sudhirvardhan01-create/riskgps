@@ -15,7 +15,7 @@ import ButtonTabs from "@/components/ButtonTabs";
 import { ControlService } from "@/services/controlService";
 
 const initialQuestionnaireData: QuestionnaireData = {
-  assetCategory: [],
+  assetCategories: [],
   question: "",
   mitreControlId: [],
 };
@@ -56,6 +56,22 @@ export default function QuestionnaireContainer() {
 
   const [selectedQuestion, setSelectedQuestion] =
     useState<QuestionnaireData | null>(null);
+
+  const asset_categories = fetchMetadataByKey("Asset Category")
+    ?.supported_values
+    ? fetchMetadataByKey("Asset Category")?.supported_values
+    : [
+        "Windows",
+        "macOS",
+        "Linux",
+        "Office 365",
+        "Azure AD",
+        "Google Workspace",
+        "SaaS",
+        "IaaS",
+        "Network Devices",
+        "Containers",
+      ];
 
   const [selectedAssetCategory, setSelectedAssetCategory] =
     useState<string>("Windows");
@@ -125,29 +141,29 @@ export default function QuestionnaireContainer() {
   }, [selectedAssetCategory]);
 
   // Create
-  // const handleCreate = async (status: string) => {
-  //   try {
-  //     const req = { ...formData, status };
-  //     await RiskScenarioService.create(req);
-  //     setFormData(initialRiskData);
-  //     setIsAddOpen(false);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: `Success! Risk scenario ${
-  //         status === "published" ? "published" : "saved as draft"
-  //       }`,
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to create risk scenario",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleCreate = async (status: string) => {
+    try {
+      const req = { ...formData, status };
+      await QuestionnaireService.create(req);
+      setFormData(initialQuestionnaireData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Success! Question ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to create question",
+        severity: "error",
+      });
+    }
+  };
 
   // Update
   // const handleUpdate = async (status: string) => {
@@ -384,68 +400,69 @@ export default function QuestionnaireContainer() {
       )}
 
       {/* Add form */}
-      {/* {isAddOpen && (
-        <RiskScenarioFormModal
+      {isAddOpen && asset_categories && (
+        <QuestionnaireFormModal
           operation="create"
           open={isAddOpen}
-          riskData={formData}
-          setRiskData={setFormData}
-          processes={processesData}
-          metaDatas={metaDatas}
-          onSubmit={handleFormValidation}
+          assetCategories={asset_categories}
+          controls={controlsForListing}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={() => console.log(formData)}
           // onSubmit={handleCreate}
           onClose={() => setIsAddConfirmOpen(true)}
         />
-      )} */}
+      )}
 
       {/* Edit form */}
-      {/* {isEditOpen && selectedRiskScenario && (
-        <RiskScenarioFormModal
+      {isEditOpen && selectedQuestion && asset_categories && (
+        <QuestionnaireFormModal
           operation="edit"
           open={isEditOpen}
-          riskData={selectedRiskScenario}
-          setRiskData={(val: any) => {
+          formData={selectedQuestion}
+          setFormData={(val: any) => {
             if (typeof val === "function") {
-              setSelectedRiskScenario((prev) => val(prev as RiskScenarioData));
+              setSelectedQuestion((prev) => val(prev as QuestionnaireData));
             } else {
-              setSelectedRiskScenario(val);
+              setSelectedQuestion(val);
             }
           }}
-          processes={processesData}
-          metaDatas={metaDatas}
-          onSubmit={handleUpdate}
+          assetCategories={asset_categories}
+          controls={controlsForListing}
+          onSubmit={() => console.log("Submitted")}
+          // onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
-      )} */}
+      )}
 
       {/* Confirm dialogs */}
-      {/* <ConfirmDialog
+      <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Risk Scenario Creation?"
-        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        title="Cancel Question Creation?"
+        description="Are you sure you want to cancel the question creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
-          setFormData(initialRiskData);
+          setFormData(initialQuestionnaireData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
-      /> */}
+      />
 
-      {/* <ConfirmDialog
+      <ConfirmDialog
         open={isEditConfirmOpen}
         onClose={() => setIsEditConfirmOpen(false)}
-        title="Cancel Risk Scenario Updation?"
-        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        title="Cancel Question Updation?"
+        description="Are you sure you want to cancel the question updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmOpen(false);
-          setSelectedRiskScenario(null);
+          setSelectedQuestion(null);
           setIsEditOpen(false);
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
-      /> */}
+      />
 
       <ConfirmDialog
         open={isDeleteConfirmOpen}
@@ -462,22 +479,13 @@ export default function QuestionnaireContainer() {
         <LibraryHeader {...headerProps} />
 
         {/* Tabs to select the Asset Category */}
-        <ButtonTabs
-          selectedTab={selectedAssetCategory}
-          setSelectedTab={setSelectedAssetCategory}
-          items={[
-            "Windows",
-            "macOS",
-            "Linux",
-            "Office 365",
-            "Azure AD",
-            "Google Workspace",
-            "SaaS",
-            "IaaS",
-            "Network Devices",
-            "Containers",
-          ]}
-        />
+        {asset_categories && (
+          <ButtonTabs
+            selectedTab={selectedAssetCategory}
+            setSelectedTab={setSelectedAssetCategory}
+            items={asset_categories}
+          />
+        )}
 
         <QuestionnaireList
           loading={loading}
