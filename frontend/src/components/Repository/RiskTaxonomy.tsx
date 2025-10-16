@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -6,7 +6,6 @@ import {
   Paper,
   TextField,
   Stack,
-  Divider,
   Slider,
   Button,
   ButtonGroup,
@@ -20,7 +19,6 @@ import { useRouter } from 'next/router';
 interface ImpactCategory {
   id: string;
   name: string;
-  description: string;
   isSelected: boolean;
 }
 
@@ -39,51 +37,43 @@ const RiskTaxonomy: React.FC = () => {
   const { organization } = useOrganization(orgId);
 
   const [selectedCategory, setSelectedCategory] = useState<string>('financial');
-  const [dollarRange, setDollarRange] = useState<number[]>([0, 0]);
   const [gradientType, setGradientType] = useState<'linear' | 'quadratic'>('linear');
 
-  // Get annual revenue from organization data
+  // Get annual revenue from organization data (with fallback for calculations)
   const annualRevenue = organization?.details?.annualRevenue
     ? parseInt(organization.details.annualRevenue.replace(/[^0-9]/g, ''))
-    : 1000000; // Default fallback
+    : 0;
 
-  // Fixed impact levels with default values (absolute min/max)
-  const [impactLevels, setImpactLevels] = useState({
-    veryLow: 0,       // Absolute minimum (Very Low)
-    low: 0,           // Low threshold (will be set by user)
-    medium: 0,        // Medium threshold (calculated as midpoint)
-    high: 0,          // High threshold (will be set by user)
-    critical: annualRevenue // Absolute maximum (Critical) - from organization data
-  });
+  // Set default dollar range to 25% and 75% of annual revenue (only if we have data)
+  const defaultMin = annualRevenue > 0 ? Math.round(annualRevenue * 0.25) : 0;
+  const defaultMax = annualRevenue > 0 ? Math.round(annualRevenue * 0.75) : 0;
 
-  // User-defined thresholds for calculations (points within the full range)
-  const [userThresholds, setUserThresholds] = useState({
-    low: 0,           // User's low threshold (will be set by user)
-    high: 0           // User's high threshold (will be set by user)
-  });
+  const [financialRange, setFinancialRange] = useState<number[]>([defaultMin, defaultMax]);
+  
+  // Separate ranges for each category
+  const [regulatoryRange, setRegulatoryRange] = useState<number[]>([defaultMin, defaultMax]);
+  const [reputationalRange, setReputationalRange] = useState<number[]>([defaultMin, defaultMax]);
+  const [operationalRange, setOperationalRange] = useState<number[]>([defaultMin, defaultMax]);
+
   const [impactCategories, setImpactCategories] = useState<ImpactCategory[]>([
     {
       id: 'financial',
       name: 'Financial',
-      description: 'Financial losses, or damage to operational assets',
       isSelected: true,
     },
     {
       id: 'regulatory',
       name: 'Regulatory',
-      description: 'Regulatory compliance issues',
       isSelected: false,
     },
     {
       id: 'reputational',
       name: 'Reputational',
-      description: 'Reputational damage',
       isSelected: false,
     },
     {
       id: 'operational',
       name: 'Operational',
-      description: 'Operational disruptions',
       isSelected: false,
     },
   ]);
@@ -92,10 +82,85 @@ const RiskTaxonomy: React.FC = () => {
     name: 'Financial',
     description: 'Financial losses, or damage to operational assets',
     thresholds: {
-      minimum: undefined,
-      maximum: undefined,
+      minimum: defaultMin,
+      maximum: defaultMax,
     },
   });
+
+  // Update state when organization data loads
+  useEffect(() => {
+    if (organization?.details?.annualRevenue) {
+      const newAnnualRevenue = parseInt(organization.details.annualRevenue.replace(/[^0-9]/g, ''));
+      const newDefaultMin = Math.round(newAnnualRevenue * 0.25);
+      const newDefaultMax = Math.round(newAnnualRevenue * 0.75);
+
+      setFinancialRange([newDefaultMin, newDefaultMax]);
+      setRegulatoryRange([newDefaultMin, newDefaultMax]);
+      setReputationalRange([newDefaultMin, newDefaultMax]);
+      setOperationalRange([newDefaultMin, newDefaultMax]);
+      setCategoryDetails(prev => ({
+        ...prev,
+        thresholds: {
+          minimum: newDefaultMin,
+          maximum: newDefaultMax,
+        },
+      }));
+    }
+  }, [organization?.details?.annualRevenue]);
+
+  // Show loading state until organization data is loaded
+  if (!organization?.details?.annualRevenue) {
+    return (
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '400px',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="h6" sx={{ color: '#484848' }}>
+          Loading organization data...
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#91939A' }}>
+          Please wait while we fetch your organization details
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Helper functions to get current range based on selected category
+  const getCurrentRange = () => {
+    switch (selectedCategory) {
+      case 'financial':
+        return financialRange;
+      case 'regulatory':
+        return regulatoryRange;
+      case 'reputational':
+        return reputationalRange;
+      case 'operational':
+        return operationalRange;
+      default:
+        return financialRange;
+    }
+  };
+
+  const setCurrentRange = (newRange: number[]) => {
+    switch (selectedCategory) {
+      case 'financial':
+        setFinancialRange(newRange);
+        break;
+      case 'regulatory':
+        setRegulatoryRange(newRange);
+        break;
+      case 'reputational':
+        setReputationalRange(newRange);
+        break;
+      case 'operational':
+        setOperationalRange(newRange);
+        break;
+    }
+  };
 
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -113,11 +178,11 @@ const RiskTaxonomy: React.FC = () => {
     if (selectedCategoryData) {
       setCategoryDetails({
         name: selectedCategoryData.name,
-        description: selectedCategoryData.description,
-        thresholds: categoryId === 'financial' ? {
+        description: selectedCategoryData.name, // Using name as description since description field is removed
+        thresholds: {
           minimum: undefined,
           maximum: undefined,
-        } : undefined,
+        },
       });
     }
   };
@@ -145,19 +210,6 @@ const RiskTaxonomy: React.FC = () => {
           [field]: numValue,
         };
 
-        // Update user-defined thresholds (these are points within the full range)
-        if (field === 'minimum') {
-          setUserThresholds(prev => ({
-            ...prev,
-            low: numValue,
-          }));
-        } else if (field === 'maximum') {
-          setUserThresholds(prev => ({
-            ...prev,
-            high: numValue,
-          }));
-        }
-
         return {
           ...prev,
           thresholds: newThresholds,
@@ -168,39 +220,36 @@ const RiskTaxonomy: React.FC = () => {
 
   const handleDollarRangeChange = (event: Event, newValue: number | number[]) => {
     const [min, max] = newValue as number[];
-    setDollarRange([min, max]);
+    setCurrentRange([min, max]);
 
-    // Update user-defined thresholds when slider changes (these are points within the full range)
-    if (selectedCategory === 'financial') {
-      setUserThresholds({
-        low: min,
-        high: max
-      });
-
-      setCategoryDetails(prev => ({
-        ...prev,
-        thresholds: {
-          ...prev.thresholds,
-          minimum: min,
-          maximum: max,
-        },
-      }));
-    }
+    setCategoryDetails(prev => ({
+      ...prev,
+      thresholds: {
+        ...prev.thresholds,
+        minimum: min,
+        maximum: max,
+      },
+    }));
   };
 
   const handleDollarInputChange = (index: number, value: string) => {
-    const numValue = parseInt(value.replace(/[^0-9]/g, '')) || 0;
-    const newRange = [...dollarRange];
-    newRange[index] = numValue;
-    setDollarRange(newRange);
+    const currentRange = getCurrentRange();
+    
+    // Allow empty string for user to clear and input new values
+    if (value === '') {
+      const newRange = [...currentRange];
+      newRange[index] = 0;
+      setCurrentRange(newRange);
+      return;
+    }
 
-    // Update user-defined thresholds when dollar input changes (these are points within the full range)
-    if (selectedCategory === 'financial') {
-      const [min, max] = newRange;
-      setUserThresholds({
-        low: min,
-        high: max
-      });
+    const numValue = parseInt(value.replace(/[^0-9]/g, ''));
+    
+    // Only update if we have a valid number (including 0)
+    if (!isNaN(numValue) && numValue >= 0) {
+      const newRange = [...currentRange];
+      newRange[index] = numValue;
+      setCurrentRange(newRange);
 
       setCategoryDetails(prev => ({
         ...prev,
@@ -223,28 +272,14 @@ const RiskTaxonomy: React.FC = () => {
   };
 
 
-  // Update medium value when low or high changes
-  const updateMediumValue = (lowValue: number, highValue: number) => {
-    const mediumValue = lowValue + (highValue - lowValue) / 2;
-    setImpactLevels(prev => ({
-      ...prev,
-      medium: mediumValue
-    }));
-  };
 
-  const calculateGraphValue = (sliderValue: number, type: 'linear' | 'quadratic') => {
-    const normalizedValue = sliderValue / 100; // Convert to 0-1 range
-    if (type === 'linear') {
-      return normalizedValue;
-    } else {
-      return normalizedValue * normalizedValue; // Quadratic function
-    }
-  };
 
-  const calculateFinancialImpact = (sliderValue: number, type: 'linear' | 'quadratic') => {
-    if (selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0) {
-      const userMin = dollarRange[0];    // User's minimum
-      const userMax = dollarRange[1];    // User's maximum
+
+  const calculateImpact = (sliderValue: number, type: 'linear' | 'quadratic') => {
+    const currentRange = getCurrentRange();
+    if (currentRange[0] >= 0 && currentRange[1] >= 0) {
+      const userMin = currentRange[0];    // User's minimum
+      const userMax = currentRange[1];    // User's maximum
       const range = userMax - userMin;
       const normalizedValue = sliderValue / 100;
       const impactValue = type === 'linear'
@@ -255,55 +290,21 @@ const RiskTaxonomy: React.FC = () => {
     return 0;
   };
 
-  // Calculate which impact level the slider value corresponds to
-  const getImpactLevel = (value: number) => {
-    const userMin = dollarRange[0];    // User's minimum (Very Low)
-    const userMax = dollarRange[1];    // User's maximum (Critical)
-    const range = userMax - userMin;
-
-    // Calculate the 5 levels based on user input
-    const veryLow = userMin;
-    const low = userMin + range * 0.25;
-    const medium = userMin + range * 0.5;
-    const high = userMin + range * 0.75;
-    const critical = userMax;
-
-    if (value <= veryLow) return { level: 'Very Low', color: '#3BB966', value: veryLow };
-    if (value <= low) return { level: 'Low', color: '#3366CC', value: low };
-    if (value <= medium) return { level: 'Medium', color: '#E3B52A', value: medium };
-    if (value <= high) return { level: 'High', color: '#DA7706', value: high };
-    return { level: 'Critical', color: '#B90D0D', value: critical };
-  };
-
-  // Calculate the current impact value based on slider position
-  const getCurrentImpactValue = (sliderValue: number) => {
-    const userMin = dollarRange[0];    // User's minimum
-    const userMax = dollarRange[1];    // User's maximum
-    const range = userMax - userMin;
-    const normalizedValue = sliderValue / 100;
-    return userMin + (normalizedValue * range);
-  };
 
 
+
+
+  // Generate graph data with proper scaling for all categories
   const generateGraphData = (type: 'linear' | 'quadratic') => {
-    const points = [];
-    for (let i = 0; i <= 100; i += 5) {
-      const normalizedValue = i / 100;
-      const y = type === 'linear' ? normalizedValue : normalizedValue * normalizedValue;
-      points.push({ x: i, y: y * 100 }); // Scale y to 0-100 for display
-    }
-    return points;
-  };
-
-  // Generate graph data with proper financial scaling
-  const generateFinancialGraphData = (type: 'linear' | 'quadratic') => {
-    if (selectedCategory !== 'financial' || dollarRange[0] === 0 || dollarRange[1] === 0) {
-      return generateGraphData(type);
+    const currentRange = getCurrentRange();
+    if (currentRange[0] === 0 || currentRange[1] === 0) {
+      // Return empty array if no range set
+      return [];
     }
 
     const points = [];
-    const userMin = dollarRange[0];
-    const userMax = dollarRange[1];
+    const userMin = currentRange[0];
+    const userMax = currentRange[1];
     const range = userMax - userMin;
 
     for (let i = 0; i <= 100; i += 5) {
@@ -312,7 +313,7 @@ const RiskTaxonomy: React.FC = () => {
         ? userMin + (normalizedValue * range)
         : userMin + (normalizedValue * normalizedValue * range);
 
-      // Scale the financial value to 0-100 for display
+      // Scale the value to 0-100 for display
       const scaledY = ((impactValue - userMin) / range) * 100;
       points.push({ x: i, y: scaledY });
     }
@@ -364,7 +365,7 @@ const RiskTaxonomy: React.FC = () => {
                   >
                     {category.name}
                   </Typography>
-                  <CheckCircle sx={{ color: '#B3B3B3', fontSize: 16 }} />
+                  <CheckCircle sx={{ color: '#0CA512', fontSize: 16 }} />
                 </Box>
               ))}
             </Stack>
@@ -399,11 +400,11 @@ const RiskTaxonomy: React.FC = () => {
                     minWidth: '200px'
                   }}
                 >
-                  Define Financial threshold:
+                  Define {categoryDetails.name} threshold:
                 </Typography>
               </Box>
-              {/* Only show Impact dollar value when both min and max are set */}
-              {selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0 && (
+              {/* Only show Impact value when both min and max are set */}
+              {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
                 <Typography
                   variant="body1"
                   sx={{
@@ -414,16 +415,16 @@ const RiskTaxonomy: React.FC = () => {
                     color: '#484848'
                   }}
                 >
-                  Impact dollar value: <span style={{
+                  Impact {selectedCategory === 'financial' ? 'dollar' : ''} value: <span style={{
                     fontWeight: 400,
                     letterSpacing: '0%',
                     verticalAlign: 'middle',
                     color: '#91939A'
                   }}>
-                    {formatCurrency(dollarRange[0])} - {formatCurrency(dollarRange[1])}
-                    {dollarRange[0] > 0 && dollarRange[1] > 0 && (
+                    {formatCurrency(getCurrentRange()[0])} - {formatCurrency(getCurrentRange()[1])}
+                    {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
                       <span style={{ marginLeft: '8px', color: '#04139A', fontWeight: 600 }}>
-                        (Mid: {formatCurrency(dollarRange[0] + (dollarRange[1] - dollarRange[0]) / 2)})
+                        (Mid: {formatCurrency(calculateImpact(50, gradientType))})
                       </span>
                     )}
                   </span>
@@ -434,7 +435,7 @@ const RiskTaxonomy: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="Minimum"
-                    value={dollarRange[0] > 0 ? formatCurrency(dollarRange[0]) : ''}
+                    value={getCurrentRange()[0] >= 0 ? formatCurrency(getCurrentRange()[0]) : ''}
                     onChange={(e) => handleDollarInputChange(0, e.target.value)}
                     variant="outlined"
                     size="small"
@@ -444,7 +445,7 @@ const RiskTaxonomy: React.FC = () => {
                       '& .MuiOutlinedInput-root': {
                         backgroundColor: 'white',
                         borderColor: '#E4E4E4',
-                        color: dollarRange[0] > 0 ? '#000000' : '#000000',
+                        color: getCurrentRange()[0] >= 0 ? '#000000' : '#000000',
                       },
                       '& .MuiInputBase-input': {
                         color: '#000000',
@@ -456,12 +457,12 @@ const RiskTaxonomy: React.FC = () => {
                 {/* Range slider */}
                 <Box sx={{ flex: 1, px: 2 }}>
                   <Slider
-                    value={dollarRange}
+                    value={getCurrentRange()}
                     onChange={handleDollarRangeChange}
                     valueLabelDisplay="off"
                     min={0}                    // Minimum is 0
                     max={annualRevenue}        // Maximum is annual revenue from organization
-                    step={1000}
+                    step={1}
                     sx={{
                       color: '#04139A',
                       '& .MuiSlider-track': {
@@ -492,7 +493,7 @@ const RiskTaxonomy: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="Maximum"
-                    value={dollarRange[1] > 0 ? formatCurrency(dollarRange[1]) : ''}
+                    value={getCurrentRange()[1] >= 0 ? formatCurrency(getCurrentRange()[1]) : ''}
                     onChange={(e) => handleDollarInputChange(1, e.target.value)}
                     variant="outlined"
                     size="small"
@@ -502,7 +503,7 @@ const RiskTaxonomy: React.FC = () => {
                       '& .MuiOutlinedInput-root': {
                         backgroundColor: 'white',
                         borderColor: '#E4E4E4',
-                        color: dollarRange[1] > 0 ? '#000000' : '#000000',
+                        color: getCurrentRange()[1] >= 0 ? '#000000' : '#000000',
                       },
                       '& .MuiInputBase-input': {
                         color: '#000000',
@@ -512,164 +513,119 @@ const RiskTaxonomy: React.FC = () => {
                 </Box>
               </Box>
 
-
-              {/* Current Impact Level Display */}
-              {selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0 && (
-                <Box sx={{
-                  backgroundColor: '#F8F9FA',
-                  border: '1px solid #E4E4E4',
-                  borderRadius: '4px',
-                  p: 2,
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2
-                }}>
-                  <Typography variant="body2" sx={{ color: '#6C757D', fontWeight: 500 }}>
-                    Current Impact Level:
-                  </Typography>
-                  <Box sx={{
-                    backgroundColor: getImpactLevel(getCurrentImpactValue(50)).color,
-                    color: 'white',
-                    px: 2,
-                    py: 1,
-                    borderRadius: '4px',
-                    fontWeight: 600,
-                    fontSize: '14px'
-                  }}>
-                    {getImpactLevel(getCurrentImpactValue(50)).level}
-                  </Box>
-                  <Typography variant="body2" sx={{ color: '#6C757D' }}>
-                    ({formatCurrency(getCurrentImpactValue(50))})
-                  </Typography>
-                </Box>
-              )}
-
-              {selectedCategory === 'financial' && (dollarRange[0] === 0 || dollarRange[1] === 0) && (
-                <Box sx={{
-                  backgroundColor: '#F8F9FA',
-                  border: '1px solid #E4E4E4',
-                  borderRadius: '4px',
-                  p: 2,
-                  mb: 2
-                }}>
-                  <Typography variant="body2" sx={{ color: '#6C757D', textAlign: 'center' }}>
-                    Set minimum and maximum thresholds from input field or slider
-                  </Typography>
-                </Box>
-              )}
-              <Typography
-                variant="h6"
-                sx={{
-                  mb: 3,
-                  fontWeight: 600,
-                  letterSpacing: '0%',
-                  color: '#484848'
-                }}
-              >
-                Gradient Configuration
-                {selectedCategory === 'financial' && (dollarRange[0] === 0 || dollarRange[1] === 0) && (
-                  <Typography variant="body2" sx={{ color: '#91939A', fontWeight: 400, mt: 1 }}>
-                    Set financial thresholds to see gradient calculations
-                  </Typography>
-                )}
-              </Typography>
-
-              {/* Gradient Type Selection */}
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    mb: 2,
-                    fontWeight: 500,
-                    color: '#484848'
-                  }}
-                >
-                  Select Gradient Type:
-                </Typography>
-                <ButtonGroup variant="outlined" size="small">
-                  <Button
-                    variant={gradientType === 'linear' ? 'contained' : 'outlined'}
-                    onClick={() => setGradientType('linear')}
-                    startIcon={<TrendingUp />}
-                    sx={{
-                      backgroundColor: gradientType === 'linear' ? '#04139A' : 'white',
-                      color: gradientType === 'linear' ? 'white' : '#04139A',
-                      borderColor: '#04139A',
-                      '&:hover': {
-                        backgroundColor: gradientType === 'linear' ? '#04139A' : '#EDF3FCA3',
-                        borderColor: '#04139A',
-                      }
-                    }}
-                  >
-                    Linear
-                  </Button>
-                  <Button
-                    variant={gradientType === 'quadratic' ? 'contained' : 'outlined'}
-                    onClick={() => setGradientType('quadratic')}
-                    startIcon={<ShowChart />}
-                    sx={{
-                      backgroundColor: gradientType === 'quadratic' ? '#04139A' : 'white',
-                      color: gradientType === 'quadratic' ? 'white' : '#04139A',
-                      borderColor: '#04139A',
-                      '&:hover': {
-                        backgroundColor: gradientType === 'quadratic' ? '#04139A' : '#EDF3FCA3',
-                        borderColor: '#04139A',
-                      }
-                    }}
-                  >
-                    Quadratic
-                  </Button>
-                </ButtonGroup>
-              </Box>
-
-              {/* Graph Visualization */}
-              <Card sx={{ mb: 3, backgroundColor: '#FAFAFA' }}>
-                <CardContent>
+              {/* Gradient Configuration Row */}
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                {/* Left side - Gradient Configuration */}
+                <Box sx={{ flex: 0.4 }}>
                   <Typography
-                    variant="body2"
+                    variant="h6"
                     sx={{
                       mb: 2,
-                      fontWeight: 500,
+                      fontWeight: 600,
+                      letterSpacing: '0%',
                       color: '#484848'
                     }}
                   >
-                    {gradientType === 'linear' ? 'Linear' : 'Quadratic'} Function Graph
+                    Gradient Configuration
                   </Typography>
 
+                  {/* Gradient Type Selection */}
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 500,
+                        color: '#484848'
+                      }}
+                    >
+                      Select Gradient Type:
+                    </Typography>
+                    <ButtonGroup variant="outlined" size="small">
+                      <Button
+                        variant={gradientType === 'linear' ? 'contained' : 'outlined'}
+                        onClick={() => setGradientType('linear')}
+                        startIcon={<TrendingUp />}
+                        sx={{
+                          backgroundColor: gradientType === 'linear' ? '#04139A' : 'white',
+                          color: gradientType === 'linear' ? 'white' : '#04139A',
+                          borderColor: '#04139A',
+                          '&:hover': {
+                            backgroundColor: gradientType === 'linear' ? '#04139A' : '#EDF3FCA3',
+                            borderColor: '#04139A',
+                          }
+                        }}
+                      >
+                        Linear
+                      </Button>
+                      <Button
+                        variant={gradientType === 'quadratic' ? 'contained' : 'outlined'}
+                        onClick={() => setGradientType('quadratic')}
+                        startIcon={<ShowChart />}
+                        sx={{
+                          backgroundColor: gradientType === 'quadratic' ? '#04139A' : 'white',
+                          color: gradientType === 'quadratic' ? 'white' : '#04139A',
+                          borderColor: '#04139A',
+                          '&:hover': {
+                            backgroundColor: gradientType === 'quadratic' ? '#04139A' : '#EDF3FCA3',
+                            borderColor: '#04139A',
+                          }
+                        }}
+                      >
+                        Quadratic
+                      </Button>
+                    </ButtonGroup>
+                  </Box>
+                </Box>
+
+                {/* Right side - Graph Visualization */}
+                <Box sx={{ flex: 0.6 }}>
+                  <Card sx={{ backgroundColor: '#FAFAFA' }}>
+                    <CardContent>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          mb: 1,
+                          fontWeight: 500,
+                          color: '#484848'
+                        }}
+                      >
+                        {gradientType === 'linear' ? 'Linear' : 'Quadratic'} Function Graph
+                      </Typography>
+
                   {/* Simple SVG Graph */}
-                  <Box sx={{ position: 'relative', height: 220, width: '100%' }}>
-                    <svg width="100%" height="220" style={{ border: '1px solid #E4E4E4', borderRadius: '4px' }}>
+                  <Box sx={{ position: 'relative', height: 180, width: '100%' }}>
+                    <svg width="100%" height="180" style={{ border: '1px solid #E4E4E4', borderRadius: '4px' }}>
                       {/* Main border lines */}
                       <line
                         x1="40"
-                        y1="40"
+                        y1="30"
                         x2="360"
-                        y2="40"
+                        y2="30"
                         stroke="#E4E4E4"
                         strokeWidth="1"
                       />
                       <line
                         x1="40"
-                        y1="40"
+                        y1="30"
                         x2="40"
-                        y2="160"
+                        y2="130"
                         stroke="#E4E4E4"
                         strokeWidth="1"
                       />
                       <line
                         x1="40"
-                        y1="160"
+                        y1="130"
                         x2="360"
-                        y2="160"
+                        y2="130"
                         stroke="#E4E4E4"
                         strokeWidth="1"
                       />
                       <line
                         x1="360"
-                        y1="40"
+                        y1="30"
                         x2="360"
-                        y2="160"
+                        y2="130"
                         stroke="#E4E4E4"
                         strokeWidth="1"
                       />
@@ -679,9 +635,9 @@ const RiskTaxonomy: React.FC = () => {
                         <line
                           key={`v-${i}`}
                           x1={40 + (i + 1) * 80}
-                          y1="40"
+                          y1="30"
                           x2={40 + (i + 1) * 80}
-                          y2="160"
+                          y2="130"
                           stroke="#F0F0F0"
                           strokeWidth="1"
                         />
@@ -690,26 +646,26 @@ const RiskTaxonomy: React.FC = () => {
                       {/* 2 vertical lines at Very Low and Critical nodes */}
                       <line
                         x1="40"
-                        y1="40"
+                        y1="30"
                         x2="40"
-                        y2="160"
+                        y2="130"
                         stroke="#E4E4E4"
                         strokeWidth="1"
                       />
                       <line
                         x1="360"
-                        y1="40"
+                        y1="30"
                         x2="360"
-                        y2="160"
+                        y2="130"
                         stroke="#E4E4E4"
                         strokeWidth="1"
                       />
 
                       {/* Graph line - properly aligned with Very Low and Critical nodes */}
                       <polyline
-                        points={generateFinancialGraphData(gradientType).map((point, index) => {
+                        points={generateGraphData(gradientType).map((point, index) => {
                           const x = 40 + (point.x / 100) * (360 - 40); // Start at 40, end at 360
-                          const y = 160 - (point.y / 100) * 120;
+                          const y = 130 - (point.y / 100) * 100;
                           return `${x},${y}`;
                         }).join(' ')}
                         fill="none"
@@ -719,11 +675,11 @@ const RiskTaxonomy: React.FC = () => {
 
                       {/* Current slider position indicator */}
                       <circle
-                        cx={selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0
+                        cx={getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
                           ? 40 + (50 / 100) * (360 - 40)
                           : 40}
-                        cy={160 - (selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0
-                          ? ((calculateFinancialImpact(50, gradientType) - dollarRange[0]) / (dollarRange[1] - dollarRange[0])) * 120
+                        cy={130 - (getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
+                          ? ((calculateImpact(50, gradientType) - getCurrentRange()[0]) / (getCurrentRange()[1] - getCurrentRange()[0])) * 100
                           : 0)}
                         r="6"
                         fill="#FF6B6B"
@@ -731,36 +687,38 @@ const RiskTaxonomy: React.FC = () => {
                         strokeWidth="2"
                       />
 
-                      {/* Financial impact value display */}
-                      {selectedCategory === 'financial' && categoryDetails.thresholds && (
+                      {/* Impact value display */}
+                      {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
                         <text
-                          x={selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0
+                          x={getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
                             ? 40 + (50 / 100) * (360 - 40)
                             : 40}
-                          y={160 - (selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0
-                            ? ((calculateFinancialImpact(50, gradientType) - dollarRange[0]) / (dollarRange[1] - dollarRange[0])) * 120
+                          y={130 - (getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
+                            ? ((calculateImpact(50, gradientType) - getCurrentRange()[0]) / (getCurrentRange()[1] - getCurrentRange()[0])) * 100
                             : 0) - 15}
                           fontSize="12"
                           fill="#04139A"
                           textAnchor="middle"
                           fontWeight="bold"
                         >
-                          {formatCurrency(calculateFinancialImpact(50, gradientType))}
+                          {formatCurrency(calculateImpact(50, gradientType))}
                         </text>
                       )}
 
 
                       {/* Y-axis labels (Min and Max only) - properly aligned */}
-                      <text x="15" y="165" fontSize="12" fill="#91939A" textAnchor="middle">Min</text>
-                      <text x="15" y="45" fontSize="12" fill="#91939A" textAnchor="middle">Max</text>
+                      <text x="15" y="135" fontSize="12" fill="#91939A" textAnchor="middle">Min</text>
+                      <text x="15" y="35" fontSize="12" fill="#91939A" textAnchor="middle">Max</text>
 
                       {/* X-axis labels (Very Low and Critical only) */}
-                      <text x="40" y="180" fontSize="12" fill="#91939A" textAnchor="start">Very Low</text>
-                      <text x="360" y="180" fontSize="12" fill="#91939A" textAnchor="end">Critical</text>
+                      <text x="40" y="150" fontSize="12" fill="#91939A" textAnchor="start">Very Low</text>
+                      <text x="360" y="150" fontSize="12" fill="#91939A" textAnchor="end">Critical</text>
                     </svg>
                   </Box>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </Box>
+              </Box>
 
             </Paper>
 
@@ -769,35 +727,30 @@ const RiskTaxonomy: React.FC = () => {
             <Paper
               elevation={1}
               sx={{
-                p: 3,
+                p: 2,
                 border: '1px solid #1363DF',
                 borderRadius: 2,
                 boxShadow: "#0000000A",
-                mb: 3
+                mb: 2
               }}
             >
               <Typography
                 variant="h6"
                 sx={{
-                  mb: 3,
+                  mb: 1,
                   fontWeight: 600,
                   letterSpacing: '0%',
                   color: '#484848'
                 }}
               >
                 Impact Scale
-                {selectedCategory === 'financial' && (dollarRange[0] === 0 || dollarRange[1] === 0) && (
-                  <Typography variant="body2" sx={{ color: '#91939A', fontWeight: 400, mt: 1 }}>
-                    Set financial thresholds above to see dollar values
-                  </Typography>
-                )}
               </Typography>
 
               {/* Segmented Impact Scale Bar */}
               <Box sx={{
                 display: 'flex',
                 width: '100%',
-                height: selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0 ? '80px' : '60px',
+                height: getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 ? '80px' : '60px',
                 borderRadius: '8px',
                 overflow: 'hidden',
                 border: '1px solid #E4E4E4'
@@ -822,12 +775,9 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Very Low
                   </Typography>
-                  {/* <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '16px', mt: 0.5 }}>
-                    1
-                  </Typography> */}
-                  {selectedCategory === 'financial' && dollarRange[0] > 0 && (
+                  {getCurrentRange()[0] >= 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(dollarRange[0])}
+                      {formatCurrency(getCurrentRange()[0])}
                     </Typography>
                   )}
                 </Box>
@@ -848,12 +798,9 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Low
                   </Typography>
-                  {/* <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '16px', mt: 0.5 }}>
-                    2
-                  </Typography> */}
-                  {selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0 && (
+                  {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(dollarRange[0] + (dollarRange[1] - dollarRange[0]) * 0.25)}
+                      {formatCurrency(calculateImpact(25, gradientType))}
                     </Typography>
                   )}
                 </Box>
@@ -874,12 +821,9 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Medium
                   </Typography>
-                  {/* <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '16px', mt: 0.5 }}>
-                    3
-                  </Typography> */}
-                  {selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0 && (
+                  {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(dollarRange[0] + (dollarRange[1] - dollarRange[0]) * 0.5)}
+                      {formatCurrency(calculateImpact(50, gradientType))}
                     </Typography>
                   )}
                 </Box>
@@ -900,12 +844,9 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     High
                   </Typography>
-                  {/* <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '16px', mt: 0.5 }}>
-                    4
-                  </Typography> */}
-                  {selectedCategory === 'financial' && dollarRange[0] > 0 && dollarRange[1] > 0 && (
+                  {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(dollarRange[0] + (dollarRange[1] - dollarRange[0]) * 0.75)}
+                      {formatCurrency(calculateImpact(75, gradientType))}
                     </Typography>
                   )}
                 </Box>
@@ -929,12 +870,9 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Critical
                   </Typography>
-                  {/* <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '16px', mt: 0.5 }}>
-                    5
-                  </Typography> */}
-                  {selectedCategory === 'financial' && dollarRange[1] > 0 && (
+                  {getCurrentRange()[1] >= 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(dollarRange[1])}
+                      {formatCurrency(getCurrentRange()[1])}
                     </Typography>
                   )}
                 </Box>
