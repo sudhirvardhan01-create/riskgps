@@ -1,6 +1,6 @@
 export interface QuestionnaireData {
-  questionnaireAssetControlId?: string;
-  assetCategory: string;
+  questionnaireId?: string;
+  assetCategory: string | string[];
   mitreControlId: string[];
   questionCode?: string;
   question: string;

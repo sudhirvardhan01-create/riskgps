@@ -2,40 +2,31 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Box } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import LibraryHeader from "@/components/Library/LibraryHeader";
-import RiskScenarioList from "@/components/Library/RiskScenarioList";
+import QuestionnaireList from "@/components/Questionnaire/QuestionnaireList";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import RiskScenarioFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
-import ViewRiskScenarioModal from "@/components/Library/RiskScenario/ViewRiskScenarioModalPopup";
-import {
-  RiskScenarioData,
-  RiskScenarioAttributes,
-} from "@/types/risk-scenario";
-import { RiskScenarioService } from "@/services/riskScenarioService";
-import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { Filter } from "@/types/filter";
+import QuestionnaireFormModal from "@/components/Questionnaire/QuestionnaireFormModal";
+import ViewQuestionnaireModal from "@/components/Questionnaire/ViewQuestionnaireModal";
+import { QuestionnaireData } from "@/types/questionnaire";
+import { QuestionnaireService } from "@/services/questionnaireService";
 import { FileService } from "@/services/fileService";
-import { ProcessService } from "@/services/processService";
+import { useConfig } from "@/context/ConfigContext";
+import ButtonTabs from "@/components/ButtonTabs";
+import { ControlService } from "@/services/controlService";
 
-const initialRiskData: RiskScenarioData = {
-  riskScenario: "",
-  riskStatement: "",
-  riskDescription: "",
-  ciaMapping: [],
-  riskField1: "",
-  riskField2: "",
-  attributes: [] as RiskScenarioAttributes[],
+const initialQuestionnaireData: QuestionnaireData = {
+  assetCategory: [],
+  question: "",
+  mitreControlId: [],
 };
 
 const sortItems = [
-  { label: "Risk ID (Ascending)", value: "id:asc" },
-  { label: "Risk ID (Descending)", value: "id:desc" },
-  { label: "Risk Name (Ascending)", value: "risk_scenario:asc" },
-  { label: "Risk Name (Descending)", value: "risk_scenario:desc" },
-  { label: "Created (Latest to Oldest)", value: "created_at:desc" },
-  { label: "Created (Oldest to Latest)", value: "created_at:asc" },
-  { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
-  { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
+  { label: "Question Code (Ascending)", value: "questionCode:asc" },
+  { label: "Question Code (Descending)", value: "questionCode:desc" },
+  { label: "Created (Latest to Oldest)", value: "createdDate:desc" },
+  { label: "Created (Oldest to Latest)", value: "createdDate:asc" },
+  { label: "Updated (Latest to Oldest)", value: "modifiedDate:desc" },
+  { label: "Updated (Oldest to Latest)", value: "modifiedDate:asc" },
 ];
 
 const breadcrumbItems = [
@@ -45,27 +36,29 @@ const breadcrumbItems = [
     onClick: () => (window.location.href = "/library"),
     icon: <ArrowBack fontSize="small" />,
   },
-  { label: "Risk Scenarios" },
+  { label: "Questionnaire" },
 ];
 
-export default function RiskScenarioContainer() {
+export default function QuestionnaireContainer() {
+  const { metadata, fetchMetadataByKey } = useConfig();
+
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>("id:asc");
+  const [sort, setSort] = useState<string>("questionCode:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
-  const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>(
-    []
-  );
-  const [processesData, setProcessesData] = useState<any[]>([]);
-  const [metaDatas, setMetaDatas] = useState<any[]>([]);
-  const [filters, setFilters] = useState<Filter[]>([]);
+  const [questionnaireData, setQuestionnaireData] = useState<
+    QuestionnaireData[]
+  >([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
 
-  const [selectedRiskScenario, setSelectedRiskScenario] =
-    useState<RiskScenarioData | null>(null);
+  const [selectedQuestion, setSelectedQuestion] =
+    useState<QuestionnaireData | null>(null);
+
+  const [selectedAssetCategory, setSelectedAssetCategory] =
+    useState<string>("Windows");
 
   // modals / confirm / toast
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -81,11 +74,11 @@ export default function RiskScenarioContainer() {
     severity: "success" as "success" | "error" | "info",
   });
 
-  const [formData, setFormData] = useState<RiskScenarioData>(initialRiskData);
+  const [formData, setFormData] = useState<QuestionnaireData>(
+    initialQuestionnaireData
+  );
+  const [controlsForListing, setControlsForListing] = useState<string[]>([]);
 
-  const [riskScenarioFilters, setRiskScenarioFilters] = useState<
-    { key: string; name: string; values: string[] }[]
-  >([]);
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
@@ -94,128 +87,96 @@ export default function RiskScenarioContainer() {
   const loadList = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await RiskScenarioService.fetch(
+      const data = await QuestionnaireService.fetch(
+        selectedAssetCategory,
         page,
         rowsPerPage,
         searchPattern,
         sort,
-        statusFilters,
-        filters
+        statusFilters
       );
-      setRiskScenarioData(data?.data ?? []);
+      setQuestionnaireData(data?.data ?? []);
       setTotalRows(data?.total ?? 0);
     } catch (err) {
       console.error(err);
       setToast({
         open: true,
-        message: "Failed to fetch risk scenarios",
+        message: "Failed to fetch questions",
         severity: "error",
       });
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, searchPattern, sort, statusFilters, filters]);
+  }, [
+    selectedAssetCategory,
+    page,
+    rowsPerPage,
+    searchPattern,
+    sort,
+    statusFilters,
+  ]);
 
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
 
-  // fetch processes & meta
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const [processes, meta] = await Promise.all([
-          ProcessService.fetchProcessesForListing(),
-          fetchMetaDatas(),
-        ]);
-        setProcessesData(processes.data ?? []);
-        setMetaDatas(meta.data ?? []);
-        const industryMeta = meta.data?.find(
-          (m: any) => m?.name?.toLowerCase() === "industry"
-        );
-
-        const baseFilters = [...riskScenarioFilters];
-
-        if (
-          industryMeta &&
-          !baseFilters.some((f) => f.key === industryMeta.name)
-        ) {
-          baseFilters.push({
-            key: industryMeta.name,
-            name: industryMeta.name,
-            values: industryMeta.supported_values ?? [],
-          });
-        }
-
-        // update state
-        setRiskScenarioFilters(baseFilters);
-      } catch (err) {
-        console.error(err);
-        setToast({
-          open: true,
-          message: "Failed to fetch supporting data",
-          severity: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    setPage(0);
+  }, [selectedAssetCategory]);
 
   // Create
-  const handleCreate = async (status: string) => {
-    try {
-      const req = { ...formData, status };
-      await RiskScenarioService.create(req);
-      setFormData(initialRiskData);
-      setIsAddOpen(false);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: `Success! Risk scenario ${
-          status === "published" ? "published" : "saved as draft"
-        }`,
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to create risk scenario",
-        severity: "error",
-      });
-    }
-  };
+  // const handleCreate = async (status: string) => {
+  //   try {
+  //     const req = { ...formData, status };
+  //     await RiskScenarioService.create(req);
+  //     setFormData(initialRiskData);
+  //     setIsAddOpen(false);
+  //     setRefreshTrigger((p) => p + 1);
+  //     setToast({
+  //       open: true,
+  //       message: `Success! Risk scenario ${
+  //         status === "published" ? "published" : "saved as draft"
+  //       }`,
+  //       severity: "success",
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     setToast({
+  //       open: true,
+  //       message: "Failed to create risk scenario",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
   // Update
-  const handleUpdate = async (status: string) => {
-    try {
-      if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
-      const body = { ...selectedRiskScenario, status };
-      await RiskScenarioService.update(selectedRiskScenario.id as number, body);
-      setIsEditOpen(false);
-      setSelectedRiskScenario(null);
-      setRefreshTrigger((p) => p + 1);
-      setToast({
-        open: true,
-        message: "Risk scenario updated",
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to update risk scenario",
-        severity: "error",
-      });
-    }
-  };
+  // const handleUpdate = async (status: string) => {
+  //   try {
+  //     if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
+  //     const body = { ...selectedRiskScenario, status };
+  //     await RiskScenarioService.update(selectedRiskScenario.id as number, body);
+  //     setIsEditOpen(false);
+  //     setSelectedRiskScenario(null);
+  //     setRefreshTrigger((p) => p + 1);
+  //     setToast({
+  //       open: true,
+  //       message: "Risk scenario updated",
+  //       severity: "success",
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     setToast({
+  //       open: true,
+  //       message: "Failed to update risk scenario",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
   // Update status only
-  const handleUpdateStatus = async (id: number, status: string) => {
+  const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      await RiskScenarioService.updateStatus(id, status);
+      await QuestionnaireService.updateStatus(id, status);
       setRefreshTrigger((p) => p + 1);
       setToast({ open: true, message: "Status updated", severity: "success" });
     } catch (err) {
@@ -231,21 +192,25 @@ export default function RiskScenarioContainer() {
   // Delete
   const handleDelete = async () => {
     try {
-      if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
-      await RiskScenarioService.delete(selectedRiskScenario.id as number);
+      if (!selectedQuestion?.questionnaireId)
+        throw new Error("Invalid selection");
+      await QuestionnaireService.delete(
+        selectedQuestion.questionnaireId as string,
+        selectedAssetCategory
+      );
       setIsDeleteConfirmOpen(false);
-      setSelectedRiskScenario(null);
+      setSelectedQuestion(null);
       setRefreshTrigger((p) => p + 1);
       setToast({
         open: true,
-        message: `Deleted RS-${selectedRiskScenario?.id}`,
+        message: `Deleted ${selectedQuestion?.questionCode}`,
         severity: "success",
       });
     } catch (err) {
       console.error(err);
       setToast({
         open: true,
-        message: "Failed to delete risk scenario",
+        message: "Failed to delete question",
         severity: "error",
       });
     }
@@ -262,145 +227,164 @@ export default function RiskScenarioContainer() {
     setPage(0);
   };
 
-  //Function to export the risk scenario
-  const handleExportRiskScenarios = async () => {
+  //Function to export the questionnaire
+  const handleExportQuestionnaire = async () => {
     try {
-      await FileService.exportLibraryDataCSV("risk-scenario");
+      await FileService.exportLibraryDataCSV("questionnaire");
       setToast({
         open: true,
-        message: `Risk scenario exported successfully`,
+        message: `Questionnaire exported successfully`,
         severity: "success",
       });
     } catch (error) {
       console.error(error);
       setToast({
         open: true,
-        message: "Error: unable to export the risk scenario",
+        message: "Error: unable to export the questionnaire",
         severity: "error",
       });
     }
   };
 
   //Function to import the process
-  const handleImportRiskScenarios = async () => {
+  // const handleImportRiskScenarios = async () => {
+  //   try {
+  //     if (!file) {
+  //       throw new Error("File not found");
+  //     }
+  //     await FileService.importLibraryDataCSV("risk-scenario", file as File);
+  //     setIsFileUploadOpen(false);
+  //     setToast({
+  //       open: true,
+  //       message: `Risk scenario Imported successfully`,
+  //       severity: "success",
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     setToast({
+  //       open: true,
+  //       message: "Error: unable to download the import risk scenario from file",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
+
+  //Function to download the questionnaire template file
+  const handledownloadQuestionnaireTemplateFile = async () => {
     try {
-      if (!file) {
-        throw new Error("File not found");
-      }
-      await FileService.importLibraryDataCSV("risk-scenario", file as File);
-      setIsFileUploadOpen(false);
+      await FileService.dowloadCSVTemplate("questionnaire");
       setToast({
         open: true,
-        message: `Risk scenario Imported successfully`,
+        message: `Questionnaire template file downloaded successfully`,
         severity: "success",
       });
     } catch (error) {
       console.error(error);
       setToast({
         open: true,
-        message: "Error: unable to download the import risk scenario from file",
+        message: "Error: unable to download the questionnaire template file",
         severity: "error",
       });
     }
   };
 
-  //Function to download the process template file
-  const handledownloadRiskScenarioTemplateFile = async () => {
-    try {
-      await FileService.dowloadCSVTemplate("risk-scenario");
-      setToast({
-        open: true,
-        message: `Risk scenario template file downloaded successfully`,
-        severity: "success",
-      });
-    } catch (error) {
-      console.error(error);
-      setToast({
-        open: true,
-        message: "Error: unable to download the risk scenario template file",
-        severity: "error",
-      });
-    }
-  };
+  // fetch controls for Listing
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ControlService.fetchControlsForListing(
+          "mitreControlId"
+        );
+        setControlsForListing(data.mitreControlId ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch controls for Listing purposes",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+  console.log(controlsForListing);
 
   // memoize props used by list/header
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas: riskScenarioFilters,
-      addButtonText: "Add Risk Scenario",
+      metaDatas: metadata,
+      addButtonText: "Add Question",
       addAction: () => setIsAddOpen(true),
       sortItems,
-      fileUploadTitle: "Import Risk Scenarios",
+      fileUploadTitle: "Import Questions",
       file,
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-      handleImport: handleImportRiskScenarios,
-      handledownloadTemplateFile: handledownloadRiskScenarioTemplateFile,
+      handleImport: () => console.log("Imported"), //handleImportRiskScenarios,
+      handledownloadTemplateFile: handledownloadQuestionnaireTemplateFile,
       onImport: () => setIsFileUploadOpen(true),
       isImportRequired: true,
-      onExport: () => handleExportRiskScenarios(),
+      onExport: () => handleExportQuestionnaire(),
       searchPattern,
       setSearchPattern,
       sort,
       setSort,
       statusFilters,
       setStatusFilters,
-      filters,
-      setFilters,
     }),
-    [statusFilters, filters, metaDatas, file, isFileUploadOpen]
+    [statusFilters, file, isFileUploadOpen]
   );
 
   //Function for Form Validation
-  const handleFormValidation = async (status: string) => {
-    try {
-      const res = await RiskScenarioService.fetch(
-        0,
-        1,
-        formData.riskScenario.trim(),
-        "id:asc"
-      );
-      if (
-        res.data?.length > 0 &&
-        res.data[0].riskScenario === formData.riskScenario.trim()
-      ) {
-        setToast({
-          open: true,
-          message: `Risk Scenario already exists`,
-          severity: "error",
-        });
-      } else {
-        handleCreate(status);
-      }
-    } catch (error) {
-      console.error(error);
-      setToast({
-        open: true,
-        message: "Failed to create risk scenario",
-        severity: "error",
-      });
-    }
-  };
+  // const handleFormValidation = async (status: string) => {
+  //   try {
+  //     const res = await RiskScenarioService.fetch(
+  //       0,
+  //       1,
+  //       formData.riskScenario.trim(),
+  //       "id:asc"
+  //     );
+  //     if (
+  //       res.data?.length > 0 &&
+  //       res.data[0].riskScenario === formData.riskScenario.trim()
+  //     ) {
+  //       setToast({
+  //         open: true,
+  //         message: `Risk Scenario already exists`,
+  //         severity: "error",
+  //       });
+  //     } else {
+  //       handleCreate(status);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     setToast({
+  //       open: true,
+  //       message: "Failed to create risk scenario",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
   return (
     <>
       {/* View modal */}
-      {selectedRiskScenario && isViewOpen && (
-        <ViewRiskScenarioModal
+      {selectedQuestion && isViewOpen && (
+        <ViewQuestionnaireModal
           open={isViewOpen}
           onClose={() => setIsViewOpen(false)}
-          riskScenarioData={selectedRiskScenario}
-          setIsEditRiskScenarioOpen={setIsEditOpen}
-          setSelectedRiskScenario={setSelectedRiskScenario}
-          processes={processesData}
-          metaDatas={metaDatas}
+          recordData={selectedQuestion}
+          setIsEditQuestionnaireOpen={setIsEditOpen}
+          setSelectedRecord={setSelectedQuestion}
         />
       )}
 
       {/* Add form */}
-      {isAddOpen && (
+      {/* {isAddOpen && (
         <RiskScenarioFormModal
           operation="create"
           open={isAddOpen}
@@ -412,10 +396,10 @@ export default function RiskScenarioContainer() {
           // onSubmit={handleCreate}
           onClose={() => setIsAddConfirmOpen(true)}
         />
-      )}
+      )} */}
 
       {/* Edit form */}
-      {isEditOpen && selectedRiskScenario && (
+      {/* {isEditOpen && selectedRiskScenario && (
         <RiskScenarioFormModal
           operation="edit"
           open={isEditOpen}
@@ -432,10 +416,10 @@ export default function RiskScenarioContainer() {
           onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
-      )}
+      )} */}
 
       {/* Confirm dialogs */}
-      <ConfirmDialog
+      {/* <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
         title="Cancel Risk Scenario Creation?"
@@ -447,9 +431,9 @@ export default function RiskScenarioContainer() {
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
-      />
+      /> */}
 
-      <ConfirmDialog
+      {/* <ConfirmDialog
         open={isEditConfirmOpen}
         onClose={() => setIsEditConfirmOpen(false)}
         title="Cancel Risk Scenario Updation?"
@@ -461,13 +445,13 @@ export default function RiskScenarioContainer() {
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
-      />
+      /> */}
 
       <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Confirm Risk Scenario Deletion?"
-        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.risk_code}? All associated data will be removed from the system.`}
+        title="Confirm Question Deletion?"
+        description={`Are you sure you want to delete question ${selectedQuestion?.questionCode} for platform ${selectedAssetCategory}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"
@@ -476,15 +460,34 @@ export default function RiskScenarioContainer() {
       {/* Page content */}
       <Box p={5}>
         <LibraryHeader {...headerProps} />
-        <RiskScenarioList
+
+        {/* Tabs to select the Asset Category */}
+        <ButtonTabs
+          selectedTab={selectedAssetCategory}
+          setSelectedTab={setSelectedAssetCategory}
+          items={[
+            "Windows",
+            "macOS",
+            "Linux",
+            "Office 365",
+            "Azure AD",
+            "Google Workspace",
+            "SaaS",
+            "IaaS",
+            "Network Devices",
+            "Containers",
+          ]}
+        />
+
+        <QuestionnaireList
           loading={loading}
-          data={riskScenarioData}
+          data={questionnaireData}
           totalRows={totalRows}
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          setSelectedRiskScenario={setSelectedRiskScenario}
+          setSelectedRecord={setSelectedQuestion}
           setIsViewOpen={setIsViewOpen}
           setIsEditOpen={setIsEditOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}

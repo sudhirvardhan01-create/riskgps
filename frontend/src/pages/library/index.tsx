@@ -154,19 +154,19 @@ const LibraryPage = () => {
       tags: [
         {
           label: constants.allQuestionnaireTitle,
-          value: libData?.mitreControls.total_count,
+          value: libData?.questionnaire.total_count,
         },
         {
           label: constants.publishedStatus,
-          value: libData?.mitreControls.published,
+          value: libData?.questionnaire.published,
         },
         {
           label: constants.disabledStatus,
-          value: libData?.mitreControls.not_published,
+          value: libData?.questionnaire.not_published,
         },
         {
           label: constants.draftStatus,
-          value: libData?.mitreControls.draft,
+          value: libData?.questionnaire.draft,
         },
       ],
       icon: <LibraryCardIcon height={24} width={24} />,
