@@ -47,6 +47,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/download-template-file", async (req, res) => {
+  try {
+    await QuestionnaireService.downloadQuestionnaireTemplateFile(res);
+  } catch (err) {
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message || "Failed to download Qustionnaire Template file",
+    });
+  }
+});
+
+router.get("/export", async (req, res) => {
+  try {
+    await QuestionnaireService.exportQuestionnaireCSV(res);
+  } catch (err) {
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message || "Failed to export Questions File",
+    });
+  }
+});
+
 router.delete("/:id", async (req, res) => {
   try {
     const id = req.params.id;

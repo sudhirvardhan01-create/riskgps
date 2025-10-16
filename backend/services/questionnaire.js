@@ -4,6 +4,8 @@ const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
 const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
+const { format } = require("@fast-csv/format");
+const QueryStream = require("pg-query-stream");
 const { QUESTIONNAIRE, GENERAL } = require("../constants/library");
 
 class QuestionnaireService {
@@ -147,6 +149,63 @@ class QuestionnaireService {
     return {
       message: "Status of question updated successfully",
     };
+  }
+
+  static async downloadQuestionnaireTemplateFile(res) {
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=questionnaire_import_template.csv"
+    );
+
+    const csvStream = format({ headers: true });
+    csvStream.pipe(res);
+
+    csvStream.write({
+      "Asset Category":
+        "List of asset categories separated by comma. E.g., Windows,macOS,Linux,Office 365,Azure AD,Google Workspace,SaaS,IaaS,Network Devices,Containers",
+      Question: "Question (Text)",
+      "MITRE Control ID":
+        "List of MITRE Control IDs separated by comma. E.g., M1049,M1040,M1050,M1044,M1021",
+    });
+
+    csvStream.end();
+  }
+
+  static async exportQuestionnaireCSV(res) {
+    const connection = await sequelize.connectionManager.getConnection();
+    try {
+      const sql = `SELECT * FROM library_questionnaire ORDER BY created_date ASC`;
+      const query = new QueryStream(sql);
+      const stream = connection.query(query);
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader(
+        "Content-disposition",
+        "attachment; filename=questionnaire_export.csv"
+      );
+
+      const csvStream = format({
+        headers: true,
+        transform: (row) => ({
+          "Question Code": row.question_code,
+          Question: row.question,
+          "Asset Category": row.asset_category,
+          "MITRE Control ID": row.mitre_control_id,
+          Status: row.status,
+          "Created Date": row.created_date,
+          "Modified Date": row.modified_date,
+        }),
+      });
+
+      stream.on("end", () => {
+        sequelize.connectionManager.releaseConnection(connection);
+      });
+      stream.pipe(csvStream).pipe(res);
+    } catch (err) {
+      sequelize.connectionManager.releaseConnection(connection);
+      throw new Error(err);
+    }
   }
 
   static validateQuestionnaireData(data) {

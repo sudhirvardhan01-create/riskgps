@@ -12,6 +12,7 @@ import { QuestionnaireService } from "@/services/questionnaireService";
 import { FileService } from "@/services/fileService";
 import { useConfig } from "@/context/ConfigContext";
 import ButtonTabs from "@/components/ButtonTabs";
+import { ControlService } from "@/services/controlService";
 
 const initialQuestionnaireData: QuestionnaireData = {
   assetCategory: [],
@@ -76,6 +77,7 @@ export default function QuestionnaireContainer() {
   const [formData, setFormData] = useState<QuestionnaireData>(
     initialQuestionnaireData
   );
+  const [controlsForListing, setControlsForListing] = useState<string[]>([]);
 
   //Related to Import/Export
   const [file, setFile] = useState<File | null>(null);
@@ -117,6 +119,10 @@ export default function QuestionnaireContainer() {
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [selectedAssetCategory]);
 
   // Create
   // const handleCreate = async (status: string) => {
@@ -197,7 +203,7 @@ export default function QuestionnaireContainer() {
       setRefreshTrigger((p) => p + 1);
       setToast({
         open: true,
-        message: `Deleted ${selectedQuestion.questionnaireId}`,
+        message: `Deleted ${selectedQuestion?.questionCode}`,
         severity: "success",
       });
     } catch (err) {
@@ -221,24 +227,24 @@ export default function QuestionnaireContainer() {
     setPage(0);
   };
 
-  //Function to export the risk scenario
-  // const handleExportRiskScenarios = async () => {
-  //   try {
-  //     await FileService.exportLibraryDataCSV("risk-scenario");
-  //     setToast({
-  //       open: true,
-  //       message: `Risk scenario exported successfully`,
-  //       severity: "success",
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     setToast({
-  //       open: true,
-  //       message: "Error: unable to export the risk scenario",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  //Function to export the questionnaire
+  const handleExportQuestionnaire = async () => {
+    try {
+      await FileService.exportLibraryDataCSV("questionnaire");
+      setToast({
+        open: true,
+        message: `Questionnaire exported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to export the questionnaire",
+        severity: "error",
+      });
+    }
+  };
 
   //Function to import the process
   // const handleImportRiskScenarios = async () => {
@@ -263,24 +269,47 @@ export default function QuestionnaireContainer() {
   //   }
   // };
 
-  //Function to download the process template file
-  // const handledownloadRiskScenarioTemplateFile = async () => {
-  //   try {
-  //     await FileService.dowloadCSVTemplate("risk-scenario");
-  //     setToast({
-  //       open: true,
-  //       message: `Risk scenario template file downloaded successfully`,
-  //       severity: "success",
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     setToast({
-  //       open: true,
-  //       message: "Error: unable to download the risk scenario template file",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  //Function to download the questionnaire template file
+  const handledownloadQuestionnaireTemplateFile = async () => {
+    try {
+      await FileService.dowloadCSVTemplate("questionnaire");
+      setToast({
+        open: true,
+        message: `Questionnaire template file downloaded successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to download the questionnaire template file",
+        severity: "error",
+      });
+    }
+  };
+
+  // fetch controls for Listing
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ControlService.fetchControlsForListing(
+          "mitreControlId"
+        );
+        setControlsForListing(data.mitreControlId ?? []);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch controls for Listing purposes",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+  console.log(controlsForListing);
 
   // memoize props used by list/header
   const headerProps = useMemo(
@@ -296,10 +325,10 @@ export default function QuestionnaireContainer() {
       isFileUploadOpen,
       setIsFileUploadOpen,
       handleImport: () => console.log("Imported"), //handleImportRiskScenarios,
-      //handledownloadTemplateFile: handledownloadRiskScenarioTemplateFile,
+      handledownloadTemplateFile: handledownloadQuestionnaireTemplateFile,
       onImport: () => setIsFileUploadOpen(true),
       isImportRequired: true,
-      onExport: () => console.log("Exported"),
+      onExport: () => handleExportQuestionnaire(),
       searchPattern,
       setSearchPattern,
       sort,
@@ -418,15 +447,15 @@ export default function QuestionnaireContainer() {
         confirmText="Yes, Cancel"
       /> */}
 
-      {/* <ConfirmDialog
+      <ConfirmDialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Confirm Risk Scenario Deletion?"
-        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.risk_code}? All associated data will be removed from the system.`}
+        title="Confirm Question Deletion?"
+        description={`Are you sure you want to delete question ${selectedQuestion?.questionCode} for platform ${selectedAssetCategory}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"
-      /> */}
+      />
 
       {/* Page content */}
       <Box p={5}>
