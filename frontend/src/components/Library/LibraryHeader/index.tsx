@@ -44,8 +44,8 @@ interface Props {
   setSort?: (val: string) => void;
   statusFilters: string[];
   setStatusFilters: Dispatch<SetStateAction<string[]>>;
-  filters: Filter[];
-  setFilters: Dispatch<SetStateAction<Filter[]>>;
+  filters?: Filter[];
+  setFilters?: Dispatch<SetStateAction<Filter[]>>;
 }
 
 const LibraryHeader: React.FC<Props> = ({
@@ -218,19 +218,21 @@ const LibraryHeader: React.FC<Props> = ({
         </Stack>
       </Box>
 
-      <FilterComponent
-        metaDatas={metaDatas}
-        statusFilters={statusFilters}
-        setStatusFilters={setStatusFilters}
-        filters={filters}
-        setFilters={setFilters}
-        items={["Published", "Draft", "Not Published"]}
-        open={isOpenFilter}
-        onClose={() => setIsOpenFilter(false)}
-        onClear={() => setIsOpenFilter(false)}
-        onApply={() => setIsOpenFilter(false)}
-      />
-      
+      {filters && setFilters && (
+        <FilterComponent
+          metaDatas={metaDatas}
+          statusFilters={statusFilters}
+          setStatusFilters={setStatusFilters}
+          filters={filters}
+          setFilters={setFilters}
+          items={["Published", "Draft", "Not Published"]}
+          open={isOpenFilter}
+          onClose={() => setIsOpenFilter(false)}
+          onClear={() => setIsOpenFilter(false)}
+          onApply={() => setIsOpenFilter(false)}
+        />
+      )}
+
       {isImportRequired &&
         setIsFileUploadOpen &&
         handleImport &&
