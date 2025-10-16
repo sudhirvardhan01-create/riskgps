@@ -71,3 +71,31 @@ a {
 .scroll-container:hover {
   scrollbar-color: rgba(0,0,0,0.3) transparent;
 }
+
+/* Link appearance */
+.rd3t-link path {
+  stroke: #cbd5e1; /* light slate gray */
+  stroke-width: 1.8px;
+  fill: none;
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+  animation: drawLink 0.8s ease-in-out;
+}
+
+/* Animate the path drawing */
+@keyframes drawLink {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Hover glow effect */
+.rd3t-link path:hover {
+  stroke: #3b82f6; /* blue accent */
+  stroke-width: 2.2px;
+  filter: drop-shadow(0 0 6px rgba(59,130,246,0.4));
+}
