@@ -1,4 +1,11 @@
-import { Box, Chip, Typography, Stack, FormControlLabel } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Typography,
+  Stack,
+  Divider,
+  FormControlLabel,
+} from "@mui/material";
 import {
   DeleteOutlineOutlined,
   DoneOutlined,
@@ -6,41 +13,38 @@ import {
 } from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
-import { ControlFrameworkForm } from "@/types/control";
 
-interface FooterChip {
+interface TagItem {
   label: string;
-  value: string;
+  value: any;
 }
 
-interface ControlFrameworkCardProps {
-  controlFrameworkRecord: ControlFrameworkForm;
-  setSelectedControlFrameworkRecord: React.Dispatch<React.SetStateAction<any>>;
+interface QuestionnaireCardProps {
+  recordData: any;
+  setSelectedRecordData: React.Dispatch<React.SetStateAction<any>>;
   setIsViewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsEditOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsDeleteConfirmPopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  rowID: string;
-  headerChip?: string;
+  handleUpdateStatus: (id: string, status: string) => void;
   title: string;
-  handleUpdateStatus: (id: number, status: string) => void;
-  lastUpdated?: string | Date;
+  desc: string;
   status: string;
-  footerChips?: FooterChip[];
+  lastUpdated?: string | Date;
+  tagItems: TagItem[];
 }
 
-const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
-  controlFrameworkRecord,
-  setSelectedControlFrameworkRecord,
+const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
+  recordData,
+  setSelectedRecordData,
   setIsViewOpen,
   setIsEditOpen,
   setIsDeleteConfirmPopupOpen,
   handleUpdateStatus,
-  rowID,
-  headerChip,
   title,
+  desc,
   status,
   lastUpdated,
-  footerChips,
+  tagItems,
 }) => {
   const getStatusComponent = () => {
     if (["published", "not_published"].includes(status)) {
@@ -53,8 +57,10 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
                 const updatedStatus = e.target.checked
                   ? "published"
                   : "not_published";
-                if (typeof controlFrameworkRecord.id === "string")
-                  handleUpdateStatus(controlFrameworkRecord.id, updatedStatus);
+                handleUpdateStatus(
+                  recordData.questionnaireId as string,
+                  updatedStatus
+                );
               }}
               checked={status === "published"}
             />
@@ -79,7 +85,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
   const dialogData = [
     {
       onAction: () => {
-        setSelectedControlFrameworkRecord(controlFrameworkRecord);
+        setSelectedRecordData(recordData);
         setIsEditOpen(true);
       },
       color: "primary.main",
@@ -88,7 +94,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
     },
     {
       onAction: () => {
-        setSelectedControlFrameworkRecord(controlFrameworkRecord);
+        setSelectedRecordData(recordData);
         setIsDeleteConfirmPopupOpen(true);
       },
       color: "#CD0303",
@@ -130,7 +136,7 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography variant="body1" color={"text.primary"}>
-              {rowID}
+              {title}
             </Typography>
           </Stack>
 
@@ -149,63 +155,45 @@ const ControlFrameworkCard: React.FC<ControlFrameworkCardProps> = ({
       {/* Body */}
       <Box
         onClick={() => {
-          setSelectedControlFrameworkRecord(controlFrameworkRecord);
+          setSelectedRecordData(recordData);
           setIsViewOpen(true);
         }}
         sx={{ cursor: "pointer" }}
       >
         <Typography variant="body1" fontWeight={550} sx={{ px: 3 }}>
-          {title}
+          {desc}
         </Typography>
+
+        <Divider sx={{ mx: 3, my: 1 }} />
 
         {/* Meta Info */}
         <Stack display={"flex"} flexDirection={"row"} ml={3} gap={1.25}>
-          {footerChips?.map((item, index) => (
-            <Box
-              key={index}
-              sx={{
-                pb: 1,
-                display: "flex",
-                alignItems: "center",
-                mt: 1,
-                mb: 1.5,
-                gap: 1.25,
-              }}
-            >
-              <Chip
-                label={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Typography variant="body2" color="#91939A">
-                      {item.label}
-                    </Typography>
-                    &nbsp;
-                    <Typography variant="body2" color="text.primary">
-                      {item.value}
-                    </Typography>
-                  </Box>
-                }
-                size="small"
-                sx={{
-                  borderRadius: 0.5,
-                  height: 24,
-                  backgroundColor: "#FFF9C7",
-                }}
-              />
-              {index !== footerChips?.length - 1 && (
+          <Box sx={{ pb: 1, display: "flex", gap: 1.25 }}>
+            {tagItems.map((item, index) => (
+              <Stack
+                key={index}
+                display={"flex"}
+                flexDirection={"row"}
+                gap={1.25}
+              >
                 <Typography color="#D9D9D9">•</Typography>
-              )}
-            </Box>
-          ))}
+                <Typography key={index} variant="body2" color="text.primary">
+                  {`${item.label}: `}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.primary"
+                  fontWeight={600}
+                >
+                  {item.value}
+                </Typography>
+              </Stack>
+            ))}
+          </Box>
         </Stack>
       </Box>
     </Box>
   );
 };
 
-export default ControlFrameworkCard;
+export default QuestionnaireCard;
