@@ -105,12 +105,29 @@ class LibraryService {
     );
     mitreControlsCountByStatus.total_count = mitreControlsCount;
 
+    const [questionnaireSummaryData] = await sequelize.query(`
+            SELECT 
+            COUNT(*) AS total_count,
+            SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft,
+            SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) AS published,
+            SUM(CASE WHEN status = 'not_published' THEN 1 ELSE 0 END) AS not_published
+            FROM "library_questionnaire";
+  `);
+
+    const questionnaireSummary = {
+      total_count: parseInt(questionnaireSummaryData[0].total_count, 10),
+      draft: parseInt(questionnaireSummaryData[0].draft, 10),
+      published: parseInt(questionnaireSummaryData[0].published, 10),
+      not_published: parseInt(questionnaireSummaryData[0].not_published, 10),
+    };
+
     return {
       riskScenario: riskScenariosSummary,
       asset: assetSummary,
       process: processSummary,
       mitreThreats: mitreThreatsCountByStatus,
       mitreControls: mitreControlsCountByStatus,
+      questionnaire: questionnaireSummary,
     };
   }
 }
