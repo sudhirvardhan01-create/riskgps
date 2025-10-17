@@ -155,39 +155,43 @@ export default function QuestionnaireContainer() {
         }`,
         severity: "success",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setToast({
         open: true,
-        message: "Failed to create question",
+        message: err.message || "Failed to create question",
         severity: "error",
       });
     }
   };
 
   // Update
-  // const handleUpdate = async (status: string) => {
-  //   try {
-  //     if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
-  //     const body = { ...selectedRiskScenario, status };
-  //     await RiskScenarioService.update(selectedRiskScenario.id as number, body);
-  //     setIsEditOpen(false);
-  //     setSelectedRiskScenario(null);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: "Risk scenario updated",
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to update risk scenario",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedQuestion?.questionnaireId)
+        throw new Error("Invalid selection");
+      const body = { ...selectedQuestion, status };
+      await QuestionnaireService.update(
+        selectedQuestion.questionnaireId as string,
+        body
+      );
+      setIsEditOpen(false);
+      setSelectedQuestion(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Question updated successfully",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update question",
+        severity: "error",
+      });
+    }
+  };
 
   // Update status only
   const handleUpdateStatus = async (id: string, status: string) => {
@@ -355,37 +359,6 @@ export default function QuestionnaireContainer() {
     [statusFilters, file, isFileUploadOpen]
   );
 
-  //Function for Form Validation
-  // const handleFormValidation = async (status: string) => {
-  //   try {
-  //     const res = await RiskScenarioService.fetch(
-  //       0,
-  //       1,
-  //       formData.riskScenario.trim(),
-  //       "id:asc"
-  //     );
-  //     if (
-  //       res.data?.length > 0 &&
-  //       res.data[0].riskScenario === formData.riskScenario.trim()
-  //     ) {
-  //       setToast({
-  //         open: true,
-  //         message: `Risk Scenario already exists`,
-  //         severity: "error",
-  //       });
-  //     } else {
-  //       handleCreate(status);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to create risk scenario",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
-
   return (
     <>
       {/* View modal */}
@@ -408,8 +381,8 @@ export default function QuestionnaireContainer() {
           controls={controlsForListing}
           formData={formData}
           setFormData={setFormData}
-          onSubmit={() => console.log(formData)}
-          // onSubmit={handleCreate}
+          // onSubmit={() => console.log(formData)}
+          onSubmit={handleCreate}
           onClose={() => setIsAddConfirmOpen(true)}
         />
       )}
@@ -429,8 +402,8 @@ export default function QuestionnaireContainer() {
           }}
           assetCategories={asset_categories}
           controls={controlsForListing}
-          onSubmit={() => console.log("Submitted")}
-          // onSubmit={handleUpdate}
+          // onSubmit={() => console.log("Submitted")}
+          onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}

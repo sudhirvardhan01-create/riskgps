@@ -13,8 +13,14 @@ router.post("/", async (req, res) => {
       message: "Question created successfully",
     });
   } catch (err) {
-    res.status(HttpStatus.BAD_REQUEST).json({
-      error: err.message || Messages.GENERAL.BAD_REQUEST,
+    console.error("Error creating question:", err);
+
+    const statusCode = err.statusCode || HttpStatus.BAD_REQUEST;
+
+    res.status(statusCode).json({
+      message:
+        err.message || "Something went wrong while creating the question.",
+      details: err.details || null,
     });
   }
 });
@@ -78,6 +84,7 @@ router.put("/:id", async (req, res) => {
       message: "Question updated successfully",
     });
   } catch (err) {
+    console.log(err);
     res.status(HttpStatus.NOT_FOUND).json({
       error: err.message,
     });

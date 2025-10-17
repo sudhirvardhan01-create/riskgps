@@ -11,6 +11,25 @@ const { QUESTIONNAIRE, GENERAL } = require("../constants/library");
 class QuestionnaireService {
   static async createQuestionnaire(data) {
     this.validateQuestionnaireData(data);
+
+    // Check for existing question (case-insensitive match)
+    const existing = await LibraryQuestionnaire.findOne({
+      where: {
+        question: sequelize.where(
+          sequelize.fn("LOWER", sequelize.col("question")),
+          sequelize.fn("LOWER", data.question.trim())
+        ),
+      },
+    });
+
+    // Throw an error if duplicate found
+    if (existing) {
+      throw new CustomError(
+        "A question with the same text already exists.",
+        HttpStatus.CONFLICT // 409
+      );
+    }
+
     const newQuestion = {
       questionnaireId: uuidv4(),
       question: data.question,
@@ -102,7 +121,13 @@ class QuestionnaireService {
       );
     }
     this.validateQuestionnaireData(data);
-    const updatedQuestion = await question.update(data);
+    const updatedQuestion = await question.update({
+      question: data.question,
+      assetCategory: data.assetCategories,
+      mitreControlId: data.mitreControlId,
+      modifiedDate: new Date(),
+      status: data.status,
+    });
     return updatedQuestion;
   }
 
