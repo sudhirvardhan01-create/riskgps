@@ -354,68 +354,6 @@ class ProcessService {
     }
   }
 
-  // static async importProcessesFromCSV(filePath) {
-  //     function parseBoolean(value) {
-  //         if (!value) return null; // catch empty string or undefined
-  //         const v = value.toString().trim().toLowerCase();
-  //         return ["yes", "true", "1"].includes(v)
-  //             ? true
-  //             : ["no", "false", "0"].includes(v)
-  //                 ? false
-  //                 : null; // invalid case
-  //     }
-
-  //     function parseDataProcessed(value) {
-  //         if (!value) return [];
-  //         return value
-  //             .split(",")
-  //             .map((v) => v.trim())
-  //             .filter((v) => GENERAL.DATA_TYPES.includes(v));
-  //     }
-
-  //     return new Promise((resolve, reject) => {
-  //         const rows = [];
-
-  //         fs.createReadStream(filePath)
-  //             .pipe(parse({ headers: true }))
-  //             .on("error", (error) => reject(error))
-  //             .on("data", (row) => {
-  //                 rows.push({
-  //                     process_name: row["Process Name"],
-  //                     process_description: row["Process Description"],
-  //                     senior_executive__owner_name: row["Senior Executive Name"],
-  //                     senior_executive__owner_email: row["Senior Executive Email"],
-  //                     operations__owner_name: row["Operations Owner Name"],
-  //                     operations__owner_email: row["Operations Owner Email"],
-  //                     technology_owner_name: row["Technology Owner Name"],
-  //                     technology_owner_email: row["Technology Owner Email"],
-  //                     organizational_revenue_impact_percentage: parseFloat(row["Oraganizational Revenue Impact Percentage"]),
-  //                     financial_materiality: parseBoolean(row["Financial Materiality"]),
-  //                     third_party_involvement: parseBoolean(row["Third Party Involvement"]),
-  //                     users_customers: row["Users"],
-  //                     regulatory_and_compliance: row["Regulatory and Compliance"],
-  //                     criticality_of_data_processed: row["Criticality Of Data Processed"],
-  //                     data_processed: parseDataProcessed(row["Data Processes"]),
-  //                     status: "published"
-  //                 });
-  //             })
-  //             .on("end", async () => {
-  //                 try {
-  //                     await Process.bulkCreate(rows, { ignoreDuplicates: true });
-  //                     await sequelize.query(`
-  //                     UPDATE "library_processes"
-  //                     SET process_code = '#BP-' || LPAD(id::text, 5, '0')
-  //                     WHERE process_code IS NULL;
-  //                     `);
-  //                     fs.unlinkSync(filePath);
-  //                     resolve(rows.length);
-  //                 } catch (err) {
-  //                     reject(err);
-  //                 }
-  //             });
-  //     });
-  // };
-
   static async importProcessesFromCSV(filePath) {
     const [rows, details] = await sequelize.query(
       `select * from library_meta_datas where name ILIKE 'industry'`

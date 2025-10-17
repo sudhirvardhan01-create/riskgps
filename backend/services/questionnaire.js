@@ -301,6 +301,49 @@ class QuestionnaireService {
 
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }
+
+  static async importQuestionnaireFromCSV(filePath) {
+    function parseQuestion(value) {
+      if (!value) throw new Error("no question provided");
+      return value?.trim();
+    }
+
+    function parseAssetCategory(value) {
+      if (!value) throw new Error("no assset category provided");
+      return value.split(",").map((v) => v.trim());
+    }
+
+    function parseMitreControlId(value) {
+      if (!value) throw new Error("no mitre control id provided");
+      return value.split(",").map((v) => v.trim());
+    }
+
+
+    return new Promise((resolve, reject) => {
+      let totalInserted = 0;
+      fs.createReadStream(filePath)
+        .pipe(parse({ headers: true }))
+        .on("error", (error) => reject(error))
+        .on("data", async (row) => {
+          const data = {
+            question: parseQuestion(row["Question"]),
+            assetCategory: parseAssetCategory(row["Asset Category"]),
+            mitreControlId: parseMitreControlId(row["MITRE Control ID"]),
+            status: "published",
+          };
+          await LibraryQuestionnaire.upsert(data);
+          totalInserted++;
+        })
+        .on("end", async () => {
+          try {
+            fs.unlinkSync(filePath);
+            resolve(totalInserted);
+          } catch (err) {
+            reject(err);
+          }
+        });
+    });
+  }
 }
 
 module.exports = QuestionnaireService;
