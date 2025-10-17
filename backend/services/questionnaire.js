@@ -318,26 +318,61 @@ class QuestionnaireService {
       return value.split(",").map((v) => v.trim());
     }
 
-
     return new Promise((resolve, reject) => {
       let totalInserted = 0;
       fs.createReadStream(filePath)
         .pipe(parse({ headers: true }))
         .on("error", (error) => reject(error))
         .on("data", async (row) => {
-          const data = {
-            question: parseQuestion(row["Question"]),
-            assetCategory: parseAssetCategory(row["Asset Category"]),
-            mitreControlId: parseMitreControlId(row["MITRE Control ID"]),
-            status: "published",
-          };
-          await LibraryQuestionnaire.upsert(data);
-          totalInserted++;
+          try {
+            const question = parseQuestion(row["Question"]);
+            const assetCategory = parseAssetCategory(row["Asset Category"]);
+            const mitreControlId = parseMitreControlId(row["MITRE Control ID"]);
+
+            const existing = await LibraryQuestionnaire.findOne({
+              where: { question },
+            });
+
+            if (existing) {
+              const mergedAssetCategory = Array.from(
+                new Set([...(existing.assetCategory || []), ...assetCategory])
+              );
+              const mergedMitreControlId = Array.from(
+                new Set([...(existing.mitreControlId || []), ...mitreControlId])
+              );
+
+              await existing.update({
+                assetCategory: mergedAssetCategory,
+                mitreControlId: mergedMitreControlId,
+              });
+
+              totalUpdated++;
+            } else {
+              await LibraryQuestionnaire.create({
+                question,
+                assetCategory,
+                mitreControlId,
+                status: "published",
+              });
+
+              totalInserted++;
+            }
+          } catch (err) {
+            console.error(`Error processing row: ${err.message}`);
+          }
         })
         .on("end", async () => {
           try {
-            fs.unlinkSync(filePath);
-            resolve(totalInserted);
+            
+            fs.unlink(filePath, (err) => {
+              if (err) {
+                console.log(
+                  `Failed to delete file ${filePath}:`,
+                  err.message
+                );
+              } 
+            });
+            resolve({ totalInserted, totalUpdated });
           } catch (err) {
             reject(err);
           }
