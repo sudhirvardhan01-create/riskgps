@@ -7,6 +7,8 @@ const { Op } = require("sequelize");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
 const { QUESTIONNAIRE, GENERAL } = require("../constants/library");
+const fs = require("fs");
+const { parse } = require("fast-csv");
 
 class QuestionnaireService {
   static async createQuestionnaire(data) {
@@ -260,6 +262,81 @@ class QuestionnaireService {
       sequelize.connectionManager.releaseConnection(connection);
       throw new Error(err);
     }
+  }
+
+  static async importQuestionnaireFromCSV(filePath) {
+    function parseQuestion(value) {
+      if (!value) throw new Error("no question provided");
+      return value?.trim();
+    }
+
+    function parseAssetCategory(value) {
+      if (!value) throw new Error("no assset category provided");
+      return value.split(",").map((v) => v.trim());
+    }
+
+    function parseMitreControlId(value) {
+      if (!value) throw new Error("no mitre control id provided");
+      return value.split(",").map((v) => v.trim());
+    }
+
+    return new Promise((resolve, reject) => {
+      let totalInserted = 0;
+      let totalUpdated = 0;
+      fs.createReadStream(filePath)
+        .pipe(parse({ headers: true }))
+        .on("error", (error) => reject(error))
+        .on("data", async (row) => {
+          try {
+            const question = parseQuestion(row["Question"]);
+            const assetCategory = parseAssetCategory(row["Asset Category"]);
+            const mitreControlId = parseMitreControlId(row["MITRE Control ID"]);
+
+            const existing = await LibraryQuestionnaire.findOne({
+              where: { question },
+            });
+
+            if (existing) {
+              const mergedAssetCategory = Array.from(
+                new Set([...(existing.assetCategory || []), ...assetCategory])
+              );
+              const mergedMitreControlId = Array.from(
+                new Set([...(existing.mitreControlId || []), ...mitreControlId])
+              );
+
+              await existing.update({
+                assetCategory: mergedAssetCategory,
+                mitreControlId: mergedMitreControlId,
+              });
+
+              totalUpdated++;
+            } else {
+              await LibraryQuestionnaire.create({
+                question,
+                assetCategory,
+                mitreControlId,
+                status: "published",
+              });
+
+              totalInserted++;
+            }
+          } catch (err) {
+            console.error(`Error processing row: ${err.message}`);
+          }
+        })
+        .on("end", async () => {
+          try {
+            fs.unlink(filePath, (err) => {
+              if (err) {
+                console.log(`Failed to delete file ${filePath}:`, err.message);
+              }
+            });
+            resolve({ totalInserted, totalUpdated });
+          } catch (err) {
+            reject(err);
+          }
+        });
+    });
   }
 
   static validateQuestionnaireData(data) {

@@ -13,6 +13,7 @@ import { FileService } from "@/services/fileService";
 import { useConfig } from "@/context/ConfigContext";
 import ButtonTabs from "@/components/ButtonTabs";
 import { ControlService } from "@/services/controlService";
+import { Filter } from "@/types/filter";
 
 const initialQuestionnaireData: QuestionnaireData = {
   assetCategories: [],
@@ -40,7 +41,7 @@ const breadcrumbItems = [
 ];
 
 export default function QuestionnaireContainer() {
-  const { metadata, fetchMetadataByKey } = useConfig();
+  const { fetchMetadataByKey } = useConfig();
 
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -52,7 +53,18 @@ export default function QuestionnaireContainer() {
   const [questionnaireData, setQuestionnaireData] = useState<
     QuestionnaireData[]
   >([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+
+  const [questionFilters, setQuestionFilters] = useState<
+    { key: string; name: string; values: string[] }[]
+  >([
+    {
+      key: "",
+      name: "",
+      values: [],
+    },
+  ]);
 
   const [selectedQuestion, setSelectedQuestion] =
     useState<QuestionnaireData | null>(null);
@@ -266,28 +278,28 @@ export default function QuestionnaireContainer() {
     }
   };
 
-  //Function to import the process
-  // const handleImportRiskScenarios = async () => {
-  //   try {
-  //     if (!file) {
-  //       throw new Error("File not found");
-  //     }
-  //     await FileService.importLibraryDataCSV("risk-scenario", file as File);
-  //     setIsFileUploadOpen(false);
-  //     setToast({
-  //       open: true,
-  //       message: `Risk scenario Imported successfully`,
-  //       severity: "success",
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     setToast({
-  //       open: true,
-  //       message: "Error: unable to download the import risk scenario from file",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  //Function to import the questions
+  const handleImportQuestions = async () => {
+    try {
+      if (!file) {
+        throw new Error("File not found");
+      }
+      await FileService.importLibraryDataCSV("questionnaire", file as File);
+      setIsFileUploadOpen(false);
+      setToast({
+        open: true,
+        message: `Qustions imported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to import the questions from file",
+        severity: "error",
+      });
+    }
+  };
 
   //Function to download the questionnaire template file
   const handledownloadQuestionnaireTemplateFile = async () => {
@@ -335,7 +347,7 @@ export default function QuestionnaireContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas: metadata,
+      metaDatas: questionFilters,
       addButtonText: "Add Question",
       addAction: () => setIsAddOpen(true),
       sortItems,
@@ -344,7 +356,7 @@ export default function QuestionnaireContainer() {
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-      handleImport: () => console.log("Imported"), //handleImportRiskScenarios,
+      handleImport: handleImportQuestions,
       handledownloadTemplateFile: handledownloadQuestionnaireTemplateFile,
       onImport: () => setIsFileUploadOpen(true),
       isImportRequired: true,
@@ -355,6 +367,8 @@ export default function QuestionnaireContainer() {
       setSort,
       statusFilters,
       setStatusFilters,
+      filters,
+      setFilters,
     }),
     [statusFilters, file, isFileUploadOpen]
   );
@@ -381,7 +395,6 @@ export default function QuestionnaireContainer() {
           controls={controlsForListing}
           formData={formData}
           setFormData={setFormData}
-          // onSubmit={() => console.log(formData)}
           onSubmit={handleCreate}
           onClose={() => setIsAddConfirmOpen(true)}
         />
@@ -402,7 +415,6 @@ export default function QuestionnaireContainer() {
           }}
           assetCategories={asset_categories}
           controls={controlsForListing}
-          // onSubmit={() => console.log("Submitted")}
           onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
