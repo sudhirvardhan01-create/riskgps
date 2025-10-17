@@ -4,7 +4,6 @@ const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
 const CustomError = require("../utils/CustomError");
 const QuestionnaireService = require("../services/questionnaire");
-const LibraryService = require("../services/library_service");
 
 router.post("/", async (req, res) => {
   try {
@@ -14,8 +13,14 @@ router.post("/", async (req, res) => {
       message: "Question created successfully",
     });
   } catch (err) {
-    res.status(HttpStatus.BAD_REQUEST).json({
-      error: err.message || Messages.GENERAL.BAD_REQUEST,
+    console.error("Error creating question:", err);
+
+    const statusCode = err.statusCode || HttpStatus.BAD_REQUEST;
+
+    res.status(statusCode).json({
+      message:
+        err.message || "Something went wrong while creating the question.",
+      details: err.details || null,
     });
   }
 });
@@ -28,13 +33,15 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query?.page) || 0;
     const sortBy = req.query.sort_by || "createdDate";
     const sortOrder = req.query.sort_order?.toUpperCase() || "ASC";
+    const statusFilter = req.query.status ? req.query.status?.split(",") : [];
     const questionnaires = await QuestionnaireService.getAllQuestionnaire(
       assetCategory,
       page,
       limit,
       searchPattern,
       sortBy,
-      sortOrder
+      sortOrder,
+      statusFilter
     );
     res.status(HttpStatus.OK).json({
       result: questionnaires,
@@ -63,6 +70,23 @@ router.get("/export", async (req, res) => {
   } catch (err) {
     res.status(HttpStatus.NOT_FOUND).json({
       error: err.message || "Failed to export Questions File",
+    });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const body = req.body;
+    const response = await QuestionnaireService.updateQuestionnaire(id, body);
+    res.status(HttpStatus.OK).json({
+      data: response,
+      message: "Question updated successfully",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message,
     });
   }
 });

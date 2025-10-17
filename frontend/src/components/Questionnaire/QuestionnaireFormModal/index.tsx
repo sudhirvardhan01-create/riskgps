@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -14,23 +14,37 @@ import {
   Chip,
   FormControlLabel,
   Stack,
+  Autocomplete,
+  TextField,
+  Paper,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
-import { Close, DoneOutlined } from "@mui/icons-material";
-import { AssetForm } from "@/types/asset";
+import {
+  Close,
+  DeleteOutlineOutlined,
+  DoneOutlined,
+} from "@mui/icons-material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
+import TooltipComponent from "@/components/TooltipComponent";
+import { QuestionnaireData } from "@/types/questionnaire";
 
 interface QuestionnaireFormModalProps {
   operation: "create" | "edit";
   open: boolean;
   onClose: () => void;
-  assetFormData: AssetForm;
-  processes: any[];
-  metaDatas: any[];
-  setAssetFormData: React.Dispatch<React.SetStateAction<AssetForm>>;
+  assetCategories: string[];
+  controls: any[];
+  formData: QuestionnaireData;
+  setFormData: React.Dispatch<React.SetStateAction<QuestionnaireData>>;
   onSubmit: (status: string) => void;
 }
 
@@ -38,47 +52,57 @@ const QuestionnaireFormModal: React.FC<QuestionnaireFormModalProps> = ({
   operation,
   open,
   onClose,
-  assetFormData,
-  setAssetFormData,
-  metaDatas,
+  assetCategories,
+  controls,
+  formData,
+  setFormData,
   onSubmit,
 }) => {
-  const assetCategoryItems = [
-    "Windows",
-    "macOS",
-    "Linux",
-    "Office 365",
-    "Azure AD",
-    "Google Workspace",
-    "SaaS",
-    "IaaS",
-    "Network Devices",
-    "Containers",
-    "Android",
-    "iOS",
-  ];
+  const [selectedMITREControlID, setSelectedMITREControlID] = useState<
+    string | null
+  >(null);
 
   const handleChange = useCallback(
-    (field: keyof AssetForm, value: any) => {
-      setAssetFormData((prev) => ({ ...prev, [field]: value }));
+    (field: keyof QuestionnaireData, value: any) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
     },
-    [setAssetFormData] // only depends on setter from props
+    [setFormData] // only depends on setter from props
   );
+
+  const addMITREControlID = () => {
+    if (selectedMITREControlID) {
+      setFormData((prev) => ({
+        ...prev,
+        mitreControlId: [
+          ...(formData.mitreControlId ?? []),
+          selectedMITREControlID,
+        ],
+      }));
+    }
+    setSelectedMITREControlID(null);
+  };
+
+  const deleteMITREControlID = (id: number) => {
+    const updatedMITREControls = formData.mitreControlId.filter(
+      (_, i) => i !== id
+    );
+    setFormData((prev) => ({ ...prev, mitreControlId: updatedMITREControls }));
+  };
 
   const getStatusComponent = () => {
     if (
-      assetFormData.status === "published" ||
-      assetFormData.status === "not_published"
+      formData.status === "published" ||
+      formData.status === "not_published"
     ) {
       return (
         <FormControlLabel
           control={
             <ToggleSwitch
               color="success"
-              checked={assetFormData.status === "published"}
+              checked={formData.status === "published"}
             />
           }
-          label={assetFormData.status === "published" ? "Enabled" : "Disabled"}
+          label={formData.status === "published" ? "Enabled" : "Disabled"}
           sx={{ width: 30, height: 18, marginLeft: "0 !important", gap: 1 }}
         />
       );
@@ -133,8 +157,8 @@ const QuestionnaireFormModal: React.FC<QuestionnaireFormModalProps> = ({
           >
             <Typography variant="h5" fontWeight={550} color="#121212">
               {operation === "create"
-                ? "Add Asset"
-                : `Edit Asset ${assetFormData.assetCode}`}
+                ? "Add Question"
+                : `Edit Question ${formData.questionCode}`}
             </Typography>
             {operation === "edit" ? getStatusComponent() : null}
           </Stack>
@@ -148,16 +172,17 @@ const QuestionnaireFormModal: React.FC<QuestionnaireFormModalProps> = ({
       <DialogContent sx={{ padding: 0 }}>
         <Grid container spacing={4}>
           {/* Asset Category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+          <Grid mt={1} size={{ xs: 12 }}>
             <SelectStyled /// this is select
               required
+              multiple
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetCategory}
-              value={assetFormData.assetCategory}
-              label={labels.assetCategory}
+              tooltipTitle={tooltips.questionnaireAssetCategory}
+              value={formData.assetCategories}
+              label={labels.questionnaireAssetCategory}
               displayEmpty
               onChange={(e) =>
-                handleChange("assetCategory", e.target.value as string)
+                handleChange("assetCategories", e.target.value as string[])
               }
               renderValue={(selected: any) => {
                 if (!selected) {
@@ -168,7 +193,7 @@ const QuestionnaireFormModal: React.FC<QuestionnaireFormModalProps> = ({
                         color: "#9E9FA5",
                       }}
                     >
-                      Select Asset Category
+                      {tooltips.questionnaireAssetCategory}
                     </Typography>
                   );
                 } else {
@@ -179,47 +204,199 @@ const QuestionnaireFormModal: React.FC<QuestionnaireFormModalProps> = ({
                         color: "text.primary",
                       }}
                     >
-                      {selected}
+                      {selected.join(", ")}
                     </Typography>
                   );
                 }
               }}
             >
-              {metaDatas?.find((item) => item.name === "Asset Category")
-                ?.supported_values &&
-              metaDatas?.find((item) => item.name === "Asset Category")
-                ?.supported_values?.length > 0
-                ? metaDatas
-                    ?.find((item) => item.name === "Asset Category")
-                    ?.supported_values?.map((item: string) => {
-                      return (
-                        <MenuItem key={item} value={item}>
-                          {item}
-                        </MenuItem>
-                      );
-                    })
-                : assetCategoryItems.map((item) => {
-                    return (
-                      <MenuItem key={item} value={item}>
-                        {item}
-                      </MenuItem>
-                    );
-                  })}
+              {assetCategories.map((item) => {
+                return (
+                  <MenuItem key={item} value={item}>
+                    {item}
+                  </MenuItem>
+                );
+              })}
             </SelectStyled>
           </Grid>
 
-          {/* Asset Description */}
+          {/* Question */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled
-              label={labels.assetDescription}
+              label={labels.questionText}
               isTooltipRequired={true}
-              tooltipTitle={tooltips.assetDescription}
-              placeholder="Enter Asset Description"
-              value={assetFormData.assetDescription}
+              tooltipTitle={tooltips.questionText}
+              placeholder="Enter Question"
+              value={formData.question}
               multiline
               minRows={1}
-              onChange={(e) => handleChange("assetDescription", e.target.value)}
+              onChange={(e) => handleChange("question", e.target.value)}
             />
+          </Grid>
+
+          {/* RELATED CONTROLS SECTION */}
+          <Grid mt={1} size={{ xs: 12 }}>
+            <Stack display={"flex"} flexDirection={"column"} gap={2}>
+              <Typography variant="h6" fontWeight={600}>
+                Mapping with MITRE Controls
+              </Typography>
+              <Stack
+                display={"flex"}
+                flexDirection={"row"}
+                gap={2}
+                alignItems={"center"}
+              >
+                <Grid size={{ xs: 10 }}>
+                  <Autocomplete
+                    disablePortal
+                    options={controls}
+                    value={selectedMITREControlID}
+                    onChange={(event: any, newValue: string | null) => {
+                      setSelectedMITREControlID(newValue);
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        height: "52px",
+                        borderRadius: "8px",
+                        backgroundColor: "#ffffff",
+                        "& fieldset": {
+                          borderColor: "#cecfd2",
+                          borderWidth: "1px",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "#cecfd2",
+                          borderWidth: "1.5px",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#cecfd2",
+                          borderWidth: "1.5px",
+                        },
+                        "& input": {
+                          padding: "14px 16px",
+                          fontSize: "16px",
+                          color: "#484848",
+                          "&::placeholder": {
+                            color: "#9E9FA5",
+                            opacity: 1,
+                          },
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#121212",
+                        "&.Mui-focused": {
+                          color: "#121212",
+                        },
+                        "&.MuiInputLabel-shrink": {
+                          transform: "translate(14px, -9px) scale(0.75)",
+                        },
+                      },
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Typography
+                              variant="body1"
+                              color="#121212"
+                              fontWeight={500}
+                            >
+                              {labels.mitreControlId}
+                            </Typography>
+                            <Typography
+                              color="#FB2020"
+                              variant="body1"
+                              fontWeight={600}
+                            >
+                              *
+                            </Typography>
+                            <TooltipComponent title={tooltips.mitreControlId} />
+                          </Box>
+                        }
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid size={{ xs: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={addMITREControlID}
+                    disabled={
+                      !selectedMITREControlID ||
+                      formData.mitreControlId.find(
+                        (item) => item === selectedMITREControlID
+                      )
+                        ? true
+                        : false
+                    }
+                    sx={{
+                      backgroundColor: "main.color",
+                      "&:hover": {
+                        backgroundColor: "#1565c0",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#9e9e9e",
+                      },
+                    }}
+                  >
+                    Add
+                  </Button>
+                </Grid>
+              </Stack>
+              {formData?.mitreControlId &&
+                formData?.mitreControlId?.length > 0 && (
+                  <Grid size={{ xs: 12 }}>
+                    <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                      <TableContainer sx={{ maxHeight: 440 }}>
+                        <Table stickyHeader>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>MITRE Control ID</TableCell>
+                              <TableCell>Actions</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {formData.mitreControlId?.map((control, index) => {
+                              return (
+                                <TableRow
+                                  hover
+                                  role="checkbox"
+                                  tabIndex={-1}
+                                  key={index}
+                                >
+                                  <TableCell>{control}</TableCell>
+                                  <TableCell>
+                                    <IconButton
+                                      onClick={() =>
+                                        deleteMITREControlID(index)
+                                      }
+                                    >
+                                      <DeleteOutlineOutlined
+                                        sx={{ color: "#cd0303" }}
+                                      />
+                                    </IconButton>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Paper>
+                  </Grid>
+                )}
+            </Stack>
           </Grid>
         </Grid>
       </DialogContent>
@@ -268,8 +445,9 @@ const QuestionnaireFormModal: React.FC<QuestionnaireFormModalProps> = ({
               onSubmit("published");
             }}
             disabled={
-              assetFormData.applicationName === "" ||
-              assetFormData.assetCategory?.length === 0
+              formData.assetCategory?.length === 0 ||
+              formData.question === "" ||
+              formData.mitreControlId?.length === 0
             }
             disableRipple
           >
