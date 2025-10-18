@@ -9,6 +9,7 @@ import {
   Stack,
   SxProps,
   Theme,
+  Tooltip,
 } from '@mui/material';
 import {
   Info as InfoIcon,
@@ -20,6 +21,7 @@ import ControlCardIcon from "@/icons/controls-card.svg";
 import ProcessCardIcon from "@/icons/processes-card.svg";
 import { constants } from "@/utils/constants";
 import RiskTaxonomy from './RiskTaxonomy';
+import Scales from './Scales';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,7 +56,7 @@ interface RepositoryCardProps {
 
 function RepositoryCard({ name, description, icon, href, count }: RepositoryCardProps) {
   const router = useRouter();
-  
+
   const handleCardClick = () => {
     // Extract orgId from current route
     const orgId = router.query.orgId;
@@ -191,7 +193,40 @@ function Repository() {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 Risk Taxonomy
-                <InfoIcon sx={{ fontSize: 14, color: '#04139A' }} />
+                <Tooltip
+                  title={
+                    <Box sx={{ p: 1 }}>
+                      <Typography variant="h6" fontWeight={600} sx={{ mb: 1, color: '#484848' }}>
+                        Risk Taxonomy
+                      </Typography>
+                      <Typography variant="body2" sx={{ lineHeight: 1.4, color: '#91939A' }}>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula. Maecenas aliquet ac magna nec cursus. Integer quis dolor eget quam ultricies auctor.                      </Typography>
+                    </Box>
+                  }
+                  placement="bottom"
+                  arrow
+                  componentsProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: '#FFFFFF',
+                        color: '#484848',
+                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+                        borderRadius: '8px',
+                        border: '1px solid #E7E7E8',
+                        maxWidth: '300px',
+                        fontSize: '0.875rem',
+                        '& .MuiTooltip-arrow': {
+                          color: '#FFFFFF',
+                          '&::before': {
+                            border: '1px solid #E7E7E8',
+                          }
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <InfoIcon sx={{ fontSize: 14, color: '#04139A', cursor: 'pointer' }} />
+                </Tooltip>
               </Box>
             }
           />
@@ -199,7 +234,41 @@ function Repository() {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 Scales
-                <InfoIcon sx={{ fontSize: 14, color: '#04139A' }} />
+                <Tooltip
+                  title={
+                    <Box sx={{ p: 1 }}>
+                      <Typography variant="h6" fontWeight={600} sx={{ mb: 1, color: '#484848' }}>
+                        Scales
+                      </Typography>
+                      <Typography variant="body2" sx={{ lineHeight: 1.4, color: '#91939A' }}>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula. Maecenas aliquet ac magna nec cursus. Integer quis dolor eget quam ultricies auctor.
+                      </Typography>
+                    </Box>
+                  }
+                  placement="bottom"
+                  arrow
+                  componentsProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: '#FFFFFF',
+                        color: '#484848',
+                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+                        borderRadius: '8px',
+                        border: '1px solid #E7E7E8',
+                        maxWidth: '300px',
+                        fontSize: '0.875rem',
+                        '& .MuiTooltip-arrow': {
+                          color: '#FFFFFF',
+                          '&::before': {
+                            border: '1px solid #E7E7E8',
+                          }
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <InfoIcon sx={{ fontSize: 14, color: '#04139A', cursor: 'pointer' }} />
+                </Tooltip>
               </Box>
             }
           />
@@ -207,7 +276,7 @@ function Repository() {
       </Box>
 
       {/* Repository Tab Content */}
-      <TabPanel value={repositoryTabValue} index={0} sx={{ pl: "25px", pr: "25px"}}>
+      <TabPanel value={repositoryTabValue} index={0} sx={{ pl: "25px", pr: "25px" }}>
         <Grid
           container
           rowSpacing={3}
@@ -228,14 +297,12 @@ function Repository() {
         </Grid>
       </TabPanel>
 
-      <TabPanel value={repositoryTabValue} index={1} sx={{ pl: "25px", pr: "25px"}}>
+      <TabPanel value={repositoryTabValue} index={1} sx={{ pl: "25px", pr: "25px" }}>
         <RiskTaxonomy />
       </TabPanel>
 
-      <TabPanel value={repositoryTabValue} index={2} sx={{ pl: "25px", pr: "25px"}}>
-        <Typography variant="h3" sx={{ mb: 2 }} textAlign="center">
-          Scales - Coming Soon!!
-        </Typography>
+      <TabPanel value={repositoryTabValue} index={2} sx={{ pl: "25px", pr: "25px" }}>
+        <Scales />
       </TabPanel>
     </Box>
   );
