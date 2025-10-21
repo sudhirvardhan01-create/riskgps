@@ -1,18 +1,8 @@
-import { Box, Typography } from "@mui/material";
+import UserDetailsPage from "./[userId]";
+import withAuth from "@/hoc/withAuth";
 
-function UserManagement() {
-  return (
-    <>
-      <Box
-        display={"flex"}
-        flexDirection={"row"}
-        justifyContent={"center"}
-        alignItems={"center"}
-      >
-        <Typography variant="h3">Coming soon!!</Typography>
-      </Box>
-    </>
-  );
+function UserManagementPage() {
+  return <UserDetailsPage />;
 }
 
-export default UserManagement;
+export default withAuth(UserManagementPage);
