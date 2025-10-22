@@ -5,32 +5,33 @@ import Tree from "react-d3-tree";
 const buildTreeData = (processes) => {
   return processes.map((process) => ({
     name: process.name,
-    children: [
-      {
-        name: "Assets",
-        children: process.assets.map((asset) => ({
-          name: asset.name,
-          attributes: {
-            Description: asset.description,
-          },
-        })),
+    // children: [
+    //   {
+    //     name: "Assets",
+
+    //   },
+    //   {
+    //     name: "Risks",
+    //     children: process.risks.map((risk) => ({
+    //       name: risk.name,
+    //       attributes: { Description: risk.description },
+    //       children: risk.taxonomy.map((tax) => ({
+    //         name: tax.name,
+    //         attributes: {
+    //           Severity: tax.severityDetails?.name,
+    //           Range: `${tax.severityDetails?.minRange} - ${tax.severityDetails?.maxRange}`,
+    //           Color: tax.severityDetails?.color,
+    //         },
+    //       })),
+    //     })),
+    //   },
+    // ],
+    children: process.assets.map((asset) => ({
+      name: asset.name,
+      attributes: {
+        Description: asset.description,
       },
-      {
-        name: "Risks",
-        children: process.risks.map((risk) => ({
-          name: risk.name,
-          attributes: { Description: risk.description },
-          children: risk.taxonomy.map((tax) => ({
-            name: tax.name,
-            attributes: {
-              Severity: tax.severityDetails?.name,
-              Range: `${tax.severityDetails?.minRange} - ${tax.severityDetails?.maxRange}`,
-              Color: tax.severityDetails?.color,
-            },
-          })),
-        })),
-      },
-    ],
+    })),
   }));
 };
 

@@ -1,10 +1,45 @@
 import React from "react";
 import TreeChart from "@/components/Reports/TreeChart";
+import { Box, Tab, Tabs, Typography } from "@mui/material";
+import { TabContext, TabPanel } from "@mui/lab";
 
 const processes = [
   {
     assessmentProcessId: "79d4acc2-7548-4739-96e1-e79179aa4649",
     assets: [
+      {
+        createdBy: null,
+        createdDate: "2025-10-10T07:00:25.244Z",
+        description:
+          "Stores sensitive customer information, including personally identifiable information (PII), contact details, and account relationships.",
+        modifiedBy: null,
+        modifiedDate: "2025-10-10T07:00:25.244Z",
+        name: "Customer Database",
+        orgAssetId: "62353e20-b3ac-495e-84b0-98300d6259e9",
+        organizationId: "998b826c-3eb5-4eb4-a8c3-4d65c2204e1c",
+      },
+      {
+        createdBy: null,
+        createdDate: "2025-10-10T07:00:25.244Z",
+        description:
+          "Stores sensitive customer information, including personally identifiable information (PII), contact details, and account relationships.",
+        modifiedBy: null,
+        modifiedDate: "2025-10-10T07:00:25.244Z",
+        name: "Customer Database",
+        orgAssetId: "62353e20-b3ac-495e-84b0-98300d6259e9",
+        organizationId: "998b826c-3eb5-4eb4-a8c3-4d65c2204e1c",
+      },
+      {
+        createdBy: null,
+        createdDate: "2025-10-10T07:00:25.244Z",
+        description:
+          "Stores sensitive customer information, including personally identifiable information (PII), contact details, and account relationships.",
+        modifiedBy: null,
+        modifiedDate: "2025-10-10T07:00:25.244Z",
+        name: "Customer Database",
+        orgAssetId: "62353e20-b3ac-495e-84b0-98300d6259e9",
+        organizationId: "998b826c-3eb5-4eb4-a8c3-4d65c2204e1c",
+      },
       {
         createdBy: null,
         createdDate: "2025-10-10T07:00:25.244Z",
@@ -99,14 +134,109 @@ const processes = [
   },
 ];
 
-function Reports() {
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
   return (
-    <div className="App">
-      <h1 style={{ textAlign: "center", margin: "1rem" }}>
-        Process Tree Visualization
-      </h1>
-      <TreeChart processes={processes} />
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  };
+}
+
+function Reports() {
+  const [currentTab, setCurrentTab] = React.useState(0);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setCurrentTab(newValue);
+  };
+
+  return (
+    <Box sx={{ m: 5, height: "63vh" }}>
+      <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
+        Reports
+      </Typography>
+      <Tabs
+        value={currentTab}
+        onChange={handleChange}
+        sx={{
+          "& .MuiTab-root": {
+            textTransform: "none",
+            fontWeight: 550,
+            py: 2,
+            px: 6,
+          },
+          "& .MuiTabs-indicator": { display: "none" },
+          mx: -5,
+        }}
+        variant="scrollable"
+        scrollButtons
+      >
+        <Tab
+          label={
+            <Typography variant="body2" fontWeight={550}>
+              Generated Reports
+            </Typography>
+          }
+          sx={{
+            border:
+              currentTab == 0 ? "1px solid #E7E7E8" : "1px solid transparent",
+            borderRadius: "8px 8px 0px 0px",
+            borderBottom:
+              currentTab == 0 ? "1px solid transparent" : "1px solid #E7E7E8",
+            maxHeight: 48,
+          }}
+        />
+        <Tab
+          label={
+            <Typography variant="body2" fontWeight={550}>
+              Organization Tree
+            </Typography>
+          }
+          sx={{
+            border:
+              currentTab == 1 ? "1px solid #E7E7E8" : "1px solid transparent",
+            borderRadius: "8px 8px 0px 0px",
+            borderBottom:
+              currentTab == 1 ? "1px solid transparent" : "1px solid #E7E7E8",
+            maxHeight: 48,
+          }}
+        />
+      </Tabs>
+
+      {/* Tab Content */}
+      {currentTab == 0 && (
+        <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
+          <Typography>Coming Soon!!!</Typography>
+        </Box>
+      )}
+
+      {/* Tab Content */}
+      {currentTab == 1 && (
+        <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
+          <TreeChart processes={processes} />
+        </Box>
+      )}
+    </Box>
   );
 }
 

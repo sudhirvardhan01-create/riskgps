@@ -9,7 +9,6 @@ import {
   Typography,
   TextField,
 } from "@mui/material";
-import { WatchLater, CheckCircle } from "@mui/icons-material";
 import { Asset } from "@/types/assessment";
 
 interface AssetListProps {
@@ -32,14 +31,6 @@ export default function AssetStrength({
 
   const toggleExpand = (idx: number) => {
     setExpanded((prev) => ({ ...prev, [idx]: !prev[idx] }));
-  };
-
-  const isassetComplete = (s: Asset) => {
-    return (
-      s.thresholdHours !== undefined &&
-      s.thresholdCost !== undefined &&
-      s.taxonomy?.length == 4
-    );
   };
 
   return (
@@ -91,7 +82,6 @@ export default function AssetStrength({
               : s.description;
 
           const isSelected = selectedAsset?.orgAssetId === s.orgAssetId;
-          const isComplete = isassetComplete(s);
 
           return (
             <ListItemButton
@@ -134,11 +124,6 @@ export default function AssetStrength({
                   </Typography>
                 }
               />
-              {isComplete ? (
-                <CheckCircle fontSize="small" color="success" sx={{ ml: 1 }} />
-              ) : (
-                <WatchLater fontSize="small" sx={{ ml: 1, color: "#91939A" }} />
-              )}
             </ListItemButton>
           );
         })}
