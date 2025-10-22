@@ -144,6 +144,34 @@ router.post(
     }
 );
 
+/**
+ * @route GET /assessments/all/details
+ * @desc Get all assessments with full consecutive details
+ */
+router.get("/all/details", async (req, res) => {
+    try {
+        const { page, limit, sortBy, sortOrder } = req.query;
+
+        const result = await AssessmentService.getAllAssessmentsWithDetails({
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 10,
+            sortBy: sortBy || "createdDate",
+            sortOrder: sortOrder || "DESC",
+        });
+
+        res.status(HttpStatus.OK).json({
+            message: "Assessments with full details fetched successfully",
+            data: result,
+        });
+    } catch (error) {
+        console.error("Error fetching assessment details:", error);
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Failed to fetch assessment details",
+        });
+    }
+});
+
+
 
 
 module.exports = router;
