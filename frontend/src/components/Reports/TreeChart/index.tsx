@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import Tree from "react-d3-tree";
 
-const buildTreeData = (processes) => {
-  return processes.map((process) => ({
+const buildTreeData = (processes: any) => {
+  return processes.map((process: any) => ({
     name: process.name,
     // children: [
     //   {
@@ -26,7 +26,7 @@ const buildTreeData = (processes) => {
     //     })),
     //   },
     // ],
-    children: process.assets.map((asset) => ({
+    children: process.assets.map((asset: any) => ({
       name: asset.name,
       attributes: {
         Description: asset.description,
@@ -35,7 +35,7 @@ const buildTreeData = (processes) => {
   }));
 };
 
-const TreeChart = ({ processes }) => {
+const TreeChart = ({ processes }: any) => {
   const [treeData, setTreeData] = useState([]);
   const treeContainer = useRef(null);
 
@@ -54,7 +54,7 @@ const TreeChart = ({ processes }) => {
     overflow: "hidden",
   };
 
-  const getSeverityColor = (level) => {
+  const getSeverityColor = (level: string) => {
     if (!level) return "#cbd5e1";
     const map = {
       "Very Low": "#22c55e",
@@ -63,10 +63,10 @@ const TreeChart = ({ processes }) => {
       High: "#f97316",
       "Very High": "#ef4444",
     };
-    return map[level] || "#3b82f6";
+    // return map[level] || "#3b82f6";
   };
 
-  const renderNode = ({ nodeDatum, toggleNode, hierarchyPointNode }) => {
+  const renderNode = ({ nodeDatum, toggleNode, hierarchyPointNode }: any) => {
     const severity = nodeDatum.attributes?.Severity;
     const badgeColor = getSeverityColor(severity);
     const borderColor = nodeDatum.attributes?.Color || badgeColor;
@@ -114,7 +114,7 @@ const TreeChart = ({ processes }) => {
           <div
             onClick={toggleNode}
             style={{
-              ...nodeStyle,
+              // ...nodeStyle,
               overflow: "visible",
               whiteSpace: "normal",
               wordBreak: "break-word",
@@ -164,7 +164,7 @@ const TreeChart = ({ processes }) => {
                     }}
                   >
                     <strong>{key}: </strong>
-                    {val}
+                    {/* {val} */}
                   </div>
                 );
               })}
