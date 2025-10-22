@@ -6,6 +6,8 @@
   AssessmentRiskTaxonomy,
   Organization,
   OrganizationBusinessUnit,
+  AssessmentProcessAsset,
+  SeverityLevel,
   sequelize,
 } = require("../models");
 const CustomError = require("../utils/CustomError");
@@ -296,25 +298,6 @@ class AssessmentService {
       const { count, rows } = await Assessment.findAndCountAll({
         limit,
         offset,
-        include: [
-          {
-            model: AssessmentProcess,
-            as: "processes",
-            include: [
-              {
-                model: AssessmentProcessRiskScenario,
-                as: "processRiskScenarios",
-                include: [
-                  {
-                    model: AssessmentRiskScenarioBusinessImpact,
-                    as: "riskScenarioBusinessImpacts",
-                  },
-                  { model: AssessmentRiskTaxonomy, as: "riskTaxonomies" },
-                ],
-              },
-            ],
-          },
-        ],
       });
 
       return {
@@ -332,7 +315,7 @@ class AssessmentService {
   }
 
   /**
-   * Get assessment by ID
+   * Get assessment by ID (new JSON structure)
    */
   static async getAssessmentById(assessmentId) {
     try {
@@ -343,8 +326,41 @@ class AssessmentService {
         );
       }
 
+      // Main Assessment record
       const assessment = await Assessment.findOne({
         where: { assessmentId },
+        include: [
+          {
+            model: AssessmentProcess,
+            as: "processes",
+            include: [
+              {
+                // Include related assets
+                model: AssessmentProcessAsset,
+                as: "assets",
+              },
+              {
+                // Each process can have multiple risks
+                model: AssessmentProcessRiskScenario,
+                as: "risks",
+                include: [
+                  {
+                    // Each risk has multiple taxonomies
+                    model: AssessmentRiskTaxonomy,
+                    as: "riskTaxonomies",
+                    //include: [
+                    //    {
+                    //        // Nested severity details for taxonomy
+                    //        model: SeverityLevel,
+                    //        as: "severityDetails",
+                    //    },
+                    //],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       });
 
       if (!assessment) {
@@ -412,10 +428,10 @@ class AssessmentService {
             modifiedDate: new Date(),
             isDeleted: false,
           }))
-          );
+        );
 
-          console.log("BI Records:", biRecords);
-          console.log("Taxonomy Records:", taxonomyRecords);
+        console.log("BI Records:", biRecords);
+        console.log("Taxonomy Records:", taxonomyRecords);
 
         await AssessmentRiskScenarioBusinessImpact.bulkCreate(biRecords, {
           transaction,
@@ -434,6 +450,75 @@ class AssessmentService {
       await transaction.rollback();
       throw new CustomError(
         err.message || "Failed to save business impacts & taxonomies",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Save assets for an assessment process and update assessment status
+   * @param {Object} payload
+   * @param {string} payload.assessmentId
+   * @param {Array} payload.assets
+   * @param {string} payload.status
+   * @param {string} userId
+   */
+  static async addAssetsAndUpdateStatus(payload, userId) {
+    const transaction = await sequelize.transaction();
+    try {
+      const { assessmentId, assets, status } = payload;
+
+      if (!assessmentId) {
+        throw new CustomError(
+          "assessmentId is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      if (!assets || !Array.isArray(assets) || assets.length === 0) {
+        throw new CustomError(
+          "At least one asset must be provided",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // Prepare assets
+      const assetsToInsert = assets.map((a) => ({
+        assessmentProcessAssetId: uuidv4(),
+        assessmentProcessId: a.assessmentProcessId,
+        assessmentId,
+        assetName: a.assetName,
+        assetDesc: a.assetDesc || null,
+        createdBy: userId,
+        createdDate: new Date(),
+      }));
+
+      console.log(assetsToInsert);
+      // Insert assets
+      await AssessmentProcessAsset.bulkCreate(assetsToInsert, { transaction });
+
+      //// Update assessment status if provided
+      //if (status) {
+      //    await Assessment.update(
+      //        {
+      //            status,
+      //            modifiedBy: userId,
+      //            modifiedDate: new Date(),
+      //        },
+      //        { where: { assessmentId }, transaction }
+      //    );
+      //}
+
+      await transaction.commit();
+
+      return {
+        message: "Assets saved and assessment status updated successfully",
+        assets: assetsToInsert,
+      };
+    } catch (err) {
+      await transaction.rollback();
+      throw new CustomError(
+        err.message || "Failed to save assets and update assessment status",
         err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }

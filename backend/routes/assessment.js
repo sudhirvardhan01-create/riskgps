@@ -125,6 +125,25 @@ router.post(
     }
 );
 
+/**
+ * @route POST /assessment-process-assets
+ * @desc Save assets for an assessment process and update assessment status
+ */
+router.post(
+    "/assessment-process-assets",
+    async (req, res) => {
+        const { userId } = req.body; // userId comes in body
+        const payload = req.body;
+
+        const result = await AssessmentService.addAssetsAndUpdateStatus(
+            payload,
+            userId
+        );
+
+        res.status(HttpStatus.OK).json(result);
+    }
+);
+
 
 
 module.exports = router;

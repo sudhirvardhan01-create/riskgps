@@ -1,4 +1,4 @@
-const commonFields = require("../common_fields");
+﻿const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
   const OrganizationBusinessUnit = sequelize.define(
@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       organizationId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "org_id", // DB column, alias remains organizationId
+        field: "org_id",
       },
       name: {
         type: DataTypes.STRING,
@@ -23,20 +23,45 @@ module.exports = (sequelize, DataTypes) => {
       desc: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "desc",
+        field: "description",
       },
-      ...commonFields, // adds createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
+      head: {
+        type: DataTypes.JSONB, // stores { name, email }
+        allowNull: true,
+        field: "head",
+      },
+      pocBiso: {
+        type: DataTypes.JSONB, // stores { name, email }
+        allowNull: true,
+        field: "poc_biso",
+      },
+      itPoc: {
+        type: DataTypes.JSONB, // stores { name, email }
+        allowNull: true,
+        field: "it_poc",
+      },
+      financeLead: {
+        type: DataTypes.JSONB, // stores { name, email }
+        allowNull: true,
+        field: "finance_lead",
+      },
+      tags: {
+        type: DataTypes.JSONB, // stores [{ key, value }, ...]
+        allowNull: true,
+        field: "tags",
+      },
+      ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
     },
     {
       tableName: "organization_business_unit",
-      timestamps: false, // we manage timestamps manually
+      timestamps: false,
     }
   );
 
   OrganizationBusinessUnit.associate = (models) => {
-    // belongsTo Organization
+    // Belongs to Organization
     OrganizationBusinessUnit.belongsTo(models.Organization, {
-      foreignKey: "organizationId", // alias, maps to org_id
+      foreignKey: "organizationId",
       targetKey: "organizationId",
       as: "organizationDetails",
     });
@@ -44,7 +69,7 @@ module.exports = (sequelize, DataTypes) => {
     // One Organization -> Many Business Units
     if (models.Organization) {
       models.Organization.hasMany(OrganizationBusinessUnit, {
-        foreignKey: "organizationId", // alias
+        foreignKey: "organizationId",
         sourceKey: "organizationId",
         as: "organizationBusinessUnits",
       });

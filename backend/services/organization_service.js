@@ -1,4 +1,4 @@
-const {
+﻿const {
     Organization,
     OrganizationBusinessUnit,
     OrganizationProcess,
@@ -312,13 +312,10 @@ class OrganizationService {
             attributes: ['orgCode'],
         });
 
-        console.log(lastOrg);
-
         let newOrgCode = 'OR0001';
 
         if (lastOrg) {
             const lastOrgId = lastOrg.orgCode;
-            console.log(lastOrg.org_code);
             const orgNumber = parseInt(lastOrgId.slice(2), 10); // Get the number after 'OR'
             const nextOrgNumber = orgNumber + 1;
             newOrgCode = `OR${nextOrgNumber.toString().padStart(4, '0')}`;
@@ -497,6 +494,183 @@ class OrganizationService {
                 err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    // BUSINESS UNIT
+    // ---------------------------------------------------------------------------
+
+    static async getBusinessUnitsByOrganizationId(
+        orgId,
+        page = 0,
+        limit = 10,
+        searchPattern = "",
+        sortBy = "created_date",
+        sortOrder = "DESC"
+    ) {
+        if (!orgId) {
+            throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+        }
+
+        const offset = page * limit;
+        const whereClause = {
+            isDeleted: false,
+            organizationId: orgId,
+        };
+
+        if (searchPattern) {
+            whereClause[Op.or] = [
+                { name: { [Op.iLike]: `%${searchPattern}%` } },
+                { desc: { [Op.iLike]: `%${searchPattern}%` } },
+            ];
+        }
+
+        try {
+            const { count, rows } = await OrganizationBusinessUnit.findAndCountAll({
+                where: whereClause,
+                offset,
+                limit,
+                order: [[sortBy, sortOrder]],
+                attributes: [
+                    "orgBusinessUnitId",
+                    "organizationId",
+                    "name",
+                    "head",
+                    "pocBiso",
+                    "itPoc",
+                    "financeLead",
+                    "tags",
+                    "createdBy",
+                    "modifiedBy",
+                    "createdDate",
+                    "modifiedDate",
+                    "isDeleted"
+                ],
+            });
+
+            return {
+                total: count,
+                page,
+                limit,
+                businessUnits: rows,
+            };
+        } catch (error) {
+            console.error("Error in getBusinessUnitsByOrganizationId:", error);
+            throw new CustomError("Failed to fetch business units", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    static async getBusinessUnitById(id) {
+        if (!id) {
+            throw new CustomError("Business unit ID is required", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            const bu = await OrganizationBusinessUnit.findOne({
+                where: {
+                    orgBusinessUnitId: id,
+                    isDeleted: false
+                },
+                attributes: [
+                    "orgBusinessUnitId",
+                    "organizationId",
+                    "name",
+                    "head",
+                    "pocBiso",
+                    "itPoc",
+                    "financeLead",
+                    "tags",
+                    "createdBy",
+                    "modifiedBy",
+                    "createdDate",
+                    "modifiedDate",
+                    "isDeleted"
+                ],
+            });
+
+            if (!bu) {
+                throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
+            }
+
+            return bu;
+        } catch (error) {
+            console.error("Error fetching Business Unit by ID:", error);
+            throw new CustomError("Failed to fetch Business Unit", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    static async createBusinessUnit(orgId, data) {
+        if (!data || !data.name) {
+            throw new CustomError("Business unit name is required", HttpStatus.BAD_REQUEST);
+        }
+
+        // Prepare payload for DB insert
+        const payload = {
+            organizationId: orgId,
+            name: data.name,
+            head: data.head || null,
+            pocBiso: data.pocBiso || null,
+            itPoc: data.itPoc || null,
+            financeLead: data.financeLead || null,
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            createdBy: data.createdBy || null,
+            createdDate: new Date()
+        };
+
+        try {
+            const newBusinessUnit = await OrganizationBusinessUnit.create(payload);
+            return newBusinessUnit;
+        } catch (error) {
+            console.error("Error creating Business Unit:", error);
+            throw new CustomError("Failed to create Business Unit", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    static async updateBusinessUnitById(id, data) {
+        if (!id) {
+            throw new CustomError("Business unit ID is required", HttpStatus.BAD_REQUEST);
+        }
+
+        const bu = await OrganizationBusinessUnit.findOne({
+            where: { orgBusinessUnitId: id, isDeleted: false },
+        });
+
+        if (!bu) {
+            throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
+        }
+
+        // Prepare allowed fields to update
+        const updateData = {
+            name: data.name ?? bu.name,
+            head: data.head ?? bu.head,
+            pocBiso: data.pocBiso ?? bu.pocBiso,
+            itPoc: data.itPoc ?? bu.itPoc,
+            financeLead: data.financeLead ?? bu.financeLead,
+            tags: data.tags ?? bu.tags,
+            modifiedBy: data.modifiedBy || "system",
+            modifiedDate: new Date(),
+        };
+
+        await bu.update(updateData);
+
+        return bu;
+    }
+
+
+    static async deleteBusinessUnitById(id, userId) {
+        const bu = await OrganizationBusinessUnit.findByPk(id);
+        if (!bu) throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
+
+        await bu.update({
+            isDeleted: true,
+            modifiedBy: userId,
+            modifiedDate: new Date()
+        });
+
+        return { message: "Business unit deleted successfully" };
     }
 }
 

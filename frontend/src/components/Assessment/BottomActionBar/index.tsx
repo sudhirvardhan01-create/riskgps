@@ -28,6 +28,7 @@ export default function BottomActionBar({
         position: "fixed",
         bottom: 0,
         width: "91.5%",
+        zIndex: 10,
       }}
     >
       {/* Left Side - Prev */}
@@ -77,7 +78,7 @@ export default function BottomActionBar({
             borderRadius: "4px",
             "&:hover": { bgcolor: "#02106f" },
           }}
-          disabled={activeStep == 3}
+          disabled={activeStep == 4}
         >
           Save & Continue
         </Button>

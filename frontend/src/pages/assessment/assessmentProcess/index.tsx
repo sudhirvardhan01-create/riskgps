@@ -19,7 +19,7 @@ import {
   saveAssessmentRisk,
   saveAssessmentRiskTaxonomy,
 } from "@/pages/api/assessment";
-import BusinessImpact from "@/components/Assessment/BusinessImpact";
+import ProcessTabs from "@/components/Assessment/ProcessTabs";
 import {
   Assessment,
   BusinessUnit,
@@ -29,6 +29,7 @@ import {
 import Cookies from "js-cookie";
 import withAuth from "@/hoc/withAuth";
 import DragDropAssets from "@/components/Assessment/DragDropAssets";
+import ProcessTabsAssets from "@/components/Assessment/ProcessTabsAssets";
 
 function BUProcessMappingPage() {
   const {
@@ -48,6 +49,7 @@ function BUProcessMappingPage() {
     "Process to Risk Scenarios Mapping",
     "Business Impact",
     "Process to Asset Mapping",
+    "Critical Systems Control Strength",
   ];
 
   const stepsTab = [
@@ -202,6 +204,8 @@ function BUProcessMappingPage() {
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
+
+          console.log(selectedProcesses);
           break;
 
         case 3:
@@ -274,8 +278,9 @@ function BUProcessMappingPage() {
               )}
 
               {activeStep === 1 && <DragDropRiskScenarios />}
-              {activeStep === 2 && <BusinessImpact />}
+              {activeStep === 2 && <ProcessTabs />}
               {activeStep === 3 && <DragDropAssets />}
+              {activeStep === 4 && <ProcessTabsAssets />}
             </Box>
           </Box>
 
