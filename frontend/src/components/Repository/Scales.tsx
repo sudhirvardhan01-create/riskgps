@@ -236,11 +236,11 @@ const Scales: React.FC = () => {
 
             {/* Business Impacts Content */}
             <Box sx={{ p: 3 }}>
-              <Typography variant="body1" color="#91939A" sx={{ mb: 1 }}>
+              <Typography variant="body1" color="#91939A" sx={{ mb: 3 }}>
                 Add weightage for different types of business Impact:
               </Typography>
               
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 7 }}>
                 {[
                   { key: 'financial', label: 'Financial' },
                   { key: 'regulatory', label: 'Regulatory' },

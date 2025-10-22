@@ -75,4 +75,10 @@ export const tooltips = {
   frameworkControlCategory: "Enter Control Category",
   frameworkControlSubcategoryId: "Enter Control Sub-category ID",
   frameworkControlSubcategory: "Enter Control Sub-category",
+
+  //orgManagement
+  RiskTaxonomyLabel: "Risk Taxonomy",
+  RiskTaxonomyDes: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula.",
+  scaleLabel: "Scales",
+  scaleDes: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula.",
 };

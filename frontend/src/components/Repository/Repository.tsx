@@ -22,6 +22,7 @@ import ProcessCardIcon from "@/icons/processes-card.svg";
 import { constants } from "@/utils/constants";
 import RiskTaxonomy from './RiskTaxonomy';
 import Scales from './Scales';
+import { tooltips } from "@/utils/tooltips";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -197,10 +198,11 @@ function Repository() {
                   title={
                     <Box sx={{ p: 1 }}>
                       <Typography variant="h6" fontWeight={600} sx={{ mb: 1, color: '#484848' }}>
-                        Risk Taxonomy
+                        {tooltips.RiskTaxonomyLabel}
                       </Typography>
                       <Typography variant="body2" sx={{ lineHeight: 1.4, color: '#91939A' }}>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula. Maecenas aliquet ac magna nec cursus. Integer quis dolor eget quam ultricies auctor.                      </Typography>
+                        {tooltips.RiskTaxonomyDes}
+                      </Typography>
                     </Box>
                   }
                   placement="bottom"
@@ -238,10 +240,10 @@ function Repository() {
                   title={
                     <Box sx={{ p: 1 }}>
                       <Typography variant="h6" fontWeight={600} sx={{ mb: 1, color: '#484848' }}>
-                        Scales
+                        {tooltips.scaleLabel}
                       </Typography>
                       <Typography variant="body2" sx={{ lineHeight: 1.4, color: '#91939A' }}>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula. Maecenas aliquet ac magna nec cursus. Integer quis dolor eget quam ultricies auctor.
+                        {tooltips.scaleDes}
                       </Typography>
                     </Box>
                   }
