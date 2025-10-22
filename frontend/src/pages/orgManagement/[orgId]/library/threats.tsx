@@ -6,7 +6,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import { ArrowBack, Add } from "@mui/icons-material";
+import { ArrowBack } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
@@ -159,7 +159,7 @@ function ThreatsPage() {
           </Box>
 
           <Typography variant="h6" sx={{ mb: 2, color: "#484848" }}>
-            Looks like there are no threats added yet. <br /> Click on 'Add Threats' to start adding threats.
+            Looks like there are no threats added yet. <br /> Click on &apos;Add Threats&apos; to start adding threats.
           </Typography>
 
           <Button
