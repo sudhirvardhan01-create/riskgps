@@ -260,7 +260,7 @@ router.get("/:orgId/business-units", async (req, res) => {
 });
 
 /**
- * @route GET /organization/business-units/:id
+ * @route GET /organization/business-unit/:id
  * @desc Get single business unit by ID
  */
 router.get("/business-unit/:id", async (req, res) => {
@@ -297,7 +297,7 @@ router.post("/:orgId/business-units", async (req, res) => {
 });
 
 /**
- * @route PUT /organization/business-units/:id
+ * @route PUT /organization/business-unit/:id
  * @desc Update business unit
  */
 router.put("/business-unit/:id", async (req, res) => {
@@ -315,10 +315,10 @@ router.put("/business-unit/:id", async (req, res) => {
 });
 
 /**
- * @route DELETE /organization/business-units/:id
+ * @route DELETE /organization/business-unit/:id
  * @desc Soft delete business unit
  */
-router.delete("/business-units/:id", async (req, res) => {
+router.delete("/business-unit/:id", async (req, res) => {
     try {
         const result = await OrganizationService.deleteBusinessUnitById(req.params.id, req.body.modifiedBy);
         res.status(HttpStatus.OK).json({ message: result.message });
