@@ -52,7 +52,7 @@ class OrganizationService {
                         attributes: [
                             "orgBusinessUnitId",
                             "name",
-                            "desc",
+                            "description",
                             "createdBy",
                             "modifiedBy",
                             "createdDate",
