@@ -29,34 +29,34 @@ interface ImpactScale {
 
 const Scales: React.FC = () => {
   const [businessImpacts, setBusinessImpacts] = useState<BusinessImpact>({
-    financial: 0,
-    regulatory: 0,
-    reputational: 0,
-    operational: 0,
+    financial: 40,
+    regulatory: 30,
+    operational: 20,
+    reputational: 10,
   });
 
   const [isWeightageModalOpen, setIsWeightageModalOpen] = useState(false);
   const [isLabelsModalOpen, setIsLabelsModalOpen] = useState(false);
   const [weightageInputs, setWeightageInputs] = useState<BusinessImpact>({
-    financial: 0,
-    regulatory: 0,
-    reputational: 0,
-    operational: 0,
+    financial: 40,
+    regulatory: 30,
+    operational: 20,
+    reputational: 10,
   });
   const [labelsInputs, setLabelsInputs] = useState<ImpactScale[]>([
-    { id: 1, label: '', value: 1, color: '#3BB966' },
-    { id: 2, label: '', value: 2, color: '#3366CC' },
-    { id: 3, label: '', value: 3, color: '#E3B52A' },
-    { id: 4, label: '', value: 4, color: '#DA7706' },
-    { id: 5, label: '', value: 5, color: '#B90D0D' },
+    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' },
+    { id: 2, label: 'Low', value: 2, color: '#3366CC' },
+    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' },
+    { id: 4, label: 'High', value: 4, color: '#DA7706' },
+    { id: 5, label: 'Critical', value: 5, color: '#B90D0D' },
   ]);
 
   const [impactScales, setImpactScales] = useState<ImpactScale[]>([
-    { id: 1, label: 'Label 1', value: 1, color: '#3BB966' }, // Green
-    { id: 2, label: 'Label 2', value: 2, color: '#3366CC' }, // Blue
-    { id: 3, label: 'Label 3', value: 3, color: '#E3B52A' }, // Yellow
-    { id: 4, label: 'Label 4', value: 4, color: '#DA7706' }, // Orange
-    { id: 5, label: 'Label 5', value: 5, color: '#B90D0D' }, // Red
+    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' }, // Green
+    { id: 2, label: 'Low', value: 2, color: '#3366CC' }, // Blue
+    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' }, // Yellow
+    { id: 4, label: 'High', value: 4, color: '#DA7706' }, // Orange
+    { id: 5, label: 'Critical', value: 5, color: '#B90D0D' }, // Red
   ]);
 
   const [toast, setToast] = useState({
@@ -90,12 +90,12 @@ const Scales: React.FC = () => {
   };
 
   const handleAddWeightage = () => {
-    // Reset weightage inputs to empty state
+    // Prefill with existing values if they exist, otherwise reset to empty state
     setWeightageInputs({
-      financial: 0,
-      regulatory: 0,
-      reputational: 0,
-      operational: 0,
+      financial: businessImpacts.financial || 0,
+      regulatory: businessImpacts.regulatory || 0,
+      reputational: businessImpacts.reputational || 0,
+      operational: businessImpacts.operational || 0,
     });
     setIsWeightageModalOpen(true);
   };
@@ -116,6 +116,16 @@ const Scales: React.FC = () => {
   // Validation function to check if all label inputs are filled
   const isAllLabelInputsFilled = () => {
     return labelsInputs.every(scale => scale.label.trim() !== '');
+  };
+
+  // Helper function to check if weightage values exist
+  const hasWeightageValues = () => {
+    return Object.values(businessImpacts).some(value => value > 0);
+  };
+
+  // Helper function to check if label values exist
+  const hasLabelValues = () => {
+    return impactScales.some(scale => scale.label.trim() !== '');
   };
 
   const handleSaveWeightage = () => {
@@ -148,14 +158,11 @@ const Scales: React.FC = () => {
   };
 
   const handleAddLabels = () => {
-    // Reset labels inputs to empty state
-    setLabelsInputs([
-      { id: 1, label: '', value: 1, color: '#3BB966' },
-      { id: 2, label: '', value: 2, color: '#3366CC' },
-      { id: 3, label: '', value: 3, color: '#E3B52A' },
-      { id: 4, label: '', value: 4, color: '#DA7706' },
-      { id: 5, label: '', value: 5, color: '#B90D0D' },
-    ]);
+    // Prefill with existing values if they exist, otherwise reset to empty state
+    setLabelsInputs(impactScales.map(scale => ({
+      ...scale,
+      label: scale.label || ''
+    })));
     setIsLabelsModalOpen(true);
   };
 
@@ -223,7 +230,7 @@ const Scales: React.FC = () => {
                   }
                 }}
               >
-                Add weightage
+                {hasWeightageValues() ? 'Edit weightage' : 'Add weightage'}
               </Button>
             </Box>
 
@@ -233,12 +240,12 @@ const Scales: React.FC = () => {
                 Add weightage for different types of business Impact:
               </Typography>
               
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {[
                   { key: 'financial', label: 'Financial' },
                   { key: 'regulatory', label: 'Regulatory' },
-                  { key: 'reputational', label: 'Reputational' },
-                  { key: 'operational', label: 'Operational' }
+                  { key: 'operational', label: 'Operational' },
+                  { key: 'reputational', label: 'Reputational' }
                 ].map(({ key, label }) => (
                   <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body1" color="#484848" sx={{ minWidth: 'fit-content', fontWeight: 400 }}>
@@ -300,13 +307,13 @@ const Scales: React.FC = () => {
                   }
                 }}
               >
-                Add labels
+                {hasLabelValues() ? 'Edit labels' : 'Add labels'}
               </Button>
             </Box>
 
             {/* Impact Scale Content */}
             <Box sx={{ p: 3 }}>
-              <Typography variant="body1" color="#484848" sx={{ mb: 3 }}>
+              <Typography variant="body1" color="#91939A" sx={{ mb: 3 }}>
                 Add labels for impact scale
               </Typography>
               
@@ -428,7 +435,7 @@ const Scales: React.FC = () => {
             }}
           >
             <Typography variant="h6" fontWeight={600} color="#484848">
-              Add weightage for Business Impact
+              {hasWeightageValues() ? 'Edit weightage for Business Impact' : 'Add weightage for Business Impact'}
             </Typography>
             <IconButton
               onClick={handleCancelWeightage}
@@ -542,7 +549,7 @@ const Scales: React.FC = () => {
                   },
                 }}
               >
-                Add
+                {hasWeightageValues() ? 'Update' : 'Add'}
               </Button>
             </Box>
           </Box>
@@ -582,7 +589,7 @@ const Scales: React.FC = () => {
             }}
           >
             <Typography variant="h6" fontWeight={600} color="#484848">
-              Add labels for Impact Scale
+              {hasLabelValues() ? 'Edit labels for Impact Scale' : 'Add labels for Impact Scale'}
             </Typography>
             <IconButton
               onClick={handleCancelLabels}
@@ -723,7 +730,7 @@ const Scales: React.FC = () => {
                   },
                 }}
               >
-                Add
+                {hasLabelValues() ? 'Update' : 'Add'}
               </Button>
             </Box>
           </Box>

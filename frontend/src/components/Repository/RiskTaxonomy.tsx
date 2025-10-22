@@ -11,8 +11,10 @@ import {
   ButtonGroup,
   Card,
   CardContent,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
-import { CheckCircle, TrendingUp, ShowChart } from '@mui/icons-material';
+import { CheckCircle, TrendingUp, ShowChart, Save } from '@mui/icons-material';
 import { useOrganization } from "@/hooks/useOrganization";
 import { useRouter } from 'next/router';
 
@@ -20,6 +22,7 @@ interface ImpactCategory {
   id: string;
   name: string;
   isSelected: boolean;
+  isEnabled: boolean;
 }
 
 interface ImpactCategoryDetails {
@@ -38,6 +41,9 @@ const RiskTaxonomy: React.FC = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>('financial');
   const [gradientType, setGradientType] = useState<'linear' | 'quadratic'>('linear');
+  const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
+  const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
+  const [saveStates, setSaveStates] = useState<Record<string, boolean>>({});
 
   // Get annual revenue from organization data (with fallback for calculations)
   const annualRevenue = organization?.details?.annualRevenue
@@ -60,21 +66,25 @@ const RiskTaxonomy: React.FC = () => {
       id: 'financial',
       name: 'Financial',
       isSelected: true,
+      isEnabled: true,
     },
     {
       id: 'regulatory',
       name: 'Regulatory',
       isSelected: false,
-    },
-    {
-      id: 'reputational',
-      name: 'Reputational',
-      isSelected: false,
+      isEnabled: true,
     },
     {
       id: 'operational',
       name: 'Operational',
       isSelected: false,
+      isEnabled: true,
+    },
+    {
+      id: 'reputational',
+      name: 'Reputational',
+      isSelected: false,
+      isEnabled: true,
     },
   ]);
 
@@ -187,6 +197,22 @@ const RiskTaxonomy: React.FC = () => {
     }
   };
 
+  const handleSwitchToggle = (categoryId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation(); // Prevent category selection when toggling switch
+    
+    setImpactCategories(prev =>
+      prev.map(category => ({
+        ...category,
+        isEnabled: category.id === categoryId ? event.target.checked : category.isEnabled,
+      }))
+    );
+  };
+
+  // Helper function to check if current category is enabled
+  const isCurrentCategoryEnabled = () => {
+    return impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled || false;
+  };
+
   const handleThresholdChange = (field: 'minimum' | 'maximum', value: string) => {
     // Allow empty string for user to clear and input new values
     if (value === '') {
@@ -238,8 +264,17 @@ const RiskTaxonomy: React.FC = () => {
     // Allow empty string for user to clear and input new values
     if (value === '') {
       const newRange = [...currentRange];
-      newRange[index] = 0;
+      newRange[index] = -1; // Use -1 to indicate empty/cleared state
       setCurrentRange(newRange);
+      
+      setCategoryDetails(prev => ({
+        ...prev,
+        thresholds: {
+          ...prev.thresholds,
+          minimum: index === 0 ? undefined : prev.thresholds?.minimum,
+          maximum: index === 1 ? undefined : prev.thresholds?.maximum,
+        },
+      }));
       return;
     }
 
@@ -271,13 +306,49 @@ const RiskTaxonomy: React.FC = () => {
     }).format(value);
   };
 
+  const handleSaveImpactScale = async (categoryId: string) => {
+    setSavingStates(prev => ({ ...prev, [categoryId]: true }));
+    
+    try {
+      // Get current range for the category
+      const currentRange = getCurrentRange();
+      
+      // Prepare the data to save
+      const impactScaleData = {
+        categoryId,
+        range: currentRange,
+        gradientType,
+        thresholds: {
+          minimum: currentRange[0],
+          maximum: currentRange[1],
+        },
+        timestamp: new Date().toISOString(),
+      };
+
+      // Simulate API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update saved state
+      setSavedStates(prev => ({ ...prev, [categoryId]: true }));
+      
+      // Reset saving state
+      setSavingStates(prev => ({ ...prev, [categoryId]: false }));
+      
+      console.log('Impact Scale saved for category:', categoryId, impactScaleData);
+      
+    } catch (error) {
+      console.error('Error saving Impact Scale:', error);
+      setSavingStates(prev => ({ ...prev, [categoryId]: false }));
+    }
+  };
+
 
 
 
 
   const calculateImpact = (sliderValue: number, type: 'linear' | 'quadratic') => {
     const currentRange = getCurrentRange();
-    if (currentRange[0] >= 0 && currentRange[1] >= 0) {
+    if (currentRange[0] > 0 && currentRange[1] > 0) {
       const userMin = currentRange[0];    // User's minimum
       const userMax = currentRange[1];    // User's maximum
       const range = userMax - userMin;
@@ -297,7 +368,7 @@ const RiskTaxonomy: React.FC = () => {
   // Generate graph data with proper scaling for all categories
   const generateGraphData = (type: 'linear' | 'quadratic') => {
     const currentRange = getCurrentRange();
-    if (currentRange[0] === 0 || currentRange[1] === 0) {
+    if (currentRange[0] <= 0 || currentRange[1] <= 0) {
       // Return empty array if no range set
       return [];
     }
@@ -365,7 +436,7 @@ const RiskTaxonomy: React.FC = () => {
                   >
                     {category.name}
                   </Typography>
-                  <CheckCircle sx={{ color: '#0CA512', fontSize: 16 }} />
+                  <CheckCircle sx={{ color: savedStates[category.id] ? '#0CA512' : '#B3B3B3', fontSize: 16 }} />
                 </Box>
               ))}
             </Stack>
@@ -375,9 +446,37 @@ const RiskTaxonomy: React.FC = () => {
         {/* Right Panel - Category Details */}
         <Grid size={{ xs: 12, md: 8 }}>
           <Box>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              {categoryDetails.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {categoryDetails.name}
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled || false}
+                    onChange={(e) => handleSwitchToggle(selectedCategory, e)}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: '#04139A',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: '#04139A',
+                        },
+                      },
+                    }}
+                  />
+                }
+                label={impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled ? "ON" : "OFF"}
+                sx={{ 
+                  margin: 0,
+                  '& .MuiFormControlLabel-label': {
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled ? '#04139A' : '#91939A',
+                    marginLeft: 1
+                  }
+                }}
+              />
+            </Box>
 
             {/* Right Panel - Gradient Linear & Quadratic */}
             <Paper
@@ -387,7 +486,10 @@ const RiskTaxonomy: React.FC = () => {
                 border: '1px solid #1363DF',
                 borderRadius: 2,
                 boxShadow: "#0000000A",
-                mb: 3
+                mb: 3,
+                opacity: isCurrentCategoryEnabled() ? 1 : 0.5,
+                pointerEvents: isCurrentCategoryEnabled() ? 'auto' : 'none',
+                transition: 'opacity 0.3s ease',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -404,7 +506,7 @@ const RiskTaxonomy: React.FC = () => {
                 </Typography>
               </Box>
               {/* Only show Impact value when both min and max are set */}
-              {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
+              {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
                 <Typography
                   variant="body1"
                   sx={{
@@ -422,7 +524,7 @@ const RiskTaxonomy: React.FC = () => {
                     color: '#91939A'
                   }}>
                     {formatCurrency(getCurrentRange()[0])} - {formatCurrency(getCurrentRange()[1])}
-                    {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
+                    {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
                       <span style={{ marginLeft: '8px', color: '#04139A', fontWeight: 600 }}>
                         (Mid: {formatCurrency(calculateImpact(50, gradientType))})
                       </span>
@@ -435,7 +537,7 @@ const RiskTaxonomy: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="Minimum"
-                    value={getCurrentRange()[0] >= 0 ? formatCurrency(getCurrentRange()[0]) : ''}
+                    value={getCurrentRange()[0] > 0 ? formatCurrency(getCurrentRange()[0]) : ''}
                     onChange={(e) => handleDollarInputChange(0, e.target.value)}
                     variant="outlined"
                     size="small"
@@ -445,7 +547,7 @@ const RiskTaxonomy: React.FC = () => {
                       '& .MuiOutlinedInput-root': {
                         backgroundColor: 'white',
                         borderColor: '#E4E4E4',
-                        color: getCurrentRange()[0] >= 0 ? '#000000' : '#000000',
+                        color: getCurrentRange()[0] > 0 ? '#000000' : '#000000',
                       },
                       '& .MuiInputBase-input': {
                         color: '#000000',
@@ -493,7 +595,7 @@ const RiskTaxonomy: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="Maximum"
-                    value={getCurrentRange()[1] >= 0 ? formatCurrency(getCurrentRange()[1]) : ''}
+                    value={getCurrentRange()[1] > 0 ? formatCurrency(getCurrentRange()[1]) : ''}
                     onChange={(e) => handleDollarInputChange(1, e.target.value)}
                     variant="outlined"
                     size="small"
@@ -503,7 +605,7 @@ const RiskTaxonomy: React.FC = () => {
                       '& .MuiOutlinedInput-root': {
                         backgroundColor: 'white',
                         borderColor: '#E4E4E4',
-                        color: getCurrentRange()[1] >= 0 ? '#000000' : '#000000',
+                        color: getCurrentRange()[1] > 0 ? '#000000' : '#000000',
                       },
                       '& .MuiInputBase-input': {
                         color: '#000000',
@@ -675,10 +777,10 @@ const RiskTaxonomy: React.FC = () => {
 
                       {/* Current slider position indicator */}
                       <circle
-                        cx={getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
+                        cx={getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
                           ? 40 + (50 / 100) * (360 - 40)
                           : 40}
-                        cy={130 - (getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
+                        cy={130 - (getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
                           ? ((calculateImpact(50, gradientType) - getCurrentRange()[0]) / (getCurrentRange()[1] - getCurrentRange()[0])) * 100
                           : 0)}
                         r="6"
@@ -688,12 +790,12 @@ const RiskTaxonomy: React.FC = () => {
                       />
 
                       {/* Impact value display */}
-                      {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
+                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
                         <text
-                          x={getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
+                          x={getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
                             ? 40 + (50 / 100) * (360 - 40)
                             : 40}
-                          y={130 - (getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0
+                          y={130 - (getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
                             ? ((calculateImpact(50, gradientType) - getCurrentRange()[0]) / (getCurrentRange()[1] - getCurrentRange()[0])) * 100
                             : 0) - 15}
                           fontSize="12"
@@ -731,7 +833,10 @@ const RiskTaxonomy: React.FC = () => {
                 border: '1px solid #1363DF',
                 borderRadius: 2,
                 boxShadow: "#0000000A",
-                mb: 2
+                mb: 2,
+                opacity: isCurrentCategoryEnabled() ? 1 : 0.5,
+                pointerEvents: isCurrentCategoryEnabled() ? 'auto' : 'none',
+                transition: 'opacity 0.3s ease',
               }}
             >
               <Typography
@@ -750,7 +855,7 @@ const RiskTaxonomy: React.FC = () => {
               <Box sx={{
                 display: 'flex',
                 width: '100%',
-                height: getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 ? '80px' : '60px',
+                height: getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 ? '80px' : '60px',
                 borderRadius: '8px',
                 overflow: 'hidden',
                 border: '1px solid #E4E4E4'
@@ -775,7 +880,7 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Very Low
                   </Typography>
-                  {getCurrentRange()[0] >= 0 && (
+                  {getCurrentRange()[0] > 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
                       {formatCurrency(getCurrentRange()[0])}
                     </Typography>
@@ -798,7 +903,7 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Low
                   </Typography>
-                  {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
+                  {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
                       {formatCurrency(calculateImpact(25, gradientType))}
                     </Typography>
@@ -821,7 +926,7 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Medium
                   </Typography>
-                  {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
+                  {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
                       {formatCurrency(calculateImpact(50, gradientType))}
                     </Typography>
@@ -844,7 +949,7 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     High
                   </Typography>
-                  {getCurrentRange()[0] >= 0 && getCurrentRange()[1] >= 0 && (
+                  {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
                       {formatCurrency(calculateImpact(75, gradientType))}
                     </Typography>
@@ -870,7 +975,7 @@ const RiskTaxonomy: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
                     Critical
                   </Typography>
-                  {getCurrentRange()[1] >= 0 && (
+                  {getCurrentRange()[1] > 0 && (
                     <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
                       {formatCurrency(getCurrentRange()[1])}
                     </Typography>
@@ -878,6 +983,33 @@ const RiskTaxonomy: React.FC = () => {
                 </Box>
               </Box>
             </Paper>
+
+            {/* Save Button for Impact Scale */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+              <Button
+                variant="contained"
+                startIcon={<Save />}
+                onClick={() => handleSaveImpactScale(selectedCategory)}
+                disabled={savingStates[selectedCategory] || !isCurrentCategoryEnabled()}
+                sx={{
+                  backgroundColor: '#04139A',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  '&:hover': {
+                    backgroundColor: '#04139A',
+                    opacity: 0.9,
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#E4E4E4',
+                    color: '#91939A',
+                  },
+                }}
+              >
+                {savingStates[selectedCategory] ? 'Saving...' : 'Save'}
+              </Button>
+            </Box>
           </Box>
         </Grid>
       </Grid>
