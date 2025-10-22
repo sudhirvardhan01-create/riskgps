@@ -177,9 +177,10 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
           buFinanceLead: { name: '', email: '' },
           tags: [{ key: '', value: '' }],
         });
+        setErrors({});
+        onClose();
       }
-      setErrors({});
-      onClose();
+      // In edit mode, don't close immediately - let the parent handle the close after API call
     }
   };
 
