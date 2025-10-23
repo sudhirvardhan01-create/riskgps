@@ -75,4 +75,8 @@ export const tooltips = {
   frameworkControlCategory: "Enter Control Category",
   frameworkControlSubcategoryId: "Enter Control Sub-category ID",
   frameworkControlSubcategory: "Enter Control Sub-category",
+
+  //Questionnaire
+  questionnaireAssetCategory: "Select the Asset Category(s)",
+  questionText: "Enter the question",
 };
