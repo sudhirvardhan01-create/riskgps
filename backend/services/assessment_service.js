@@ -264,41 +264,31 @@ class AssessmentService {
     static async getAssessmentById(assessmentId) {
         try {
             if (!assessmentId) {
-                throw new CustomError(
-                    "Assessment ID is required",
-                    HttpStatus.BAD_REQUEST
-                );
+                throw new CustomError("Assessment ID is required", HttpStatus.BAD_REQUEST);
             }
 
-            // Main Assessment record
             const assessment = await Assessment.findOne({
                 where: { assessmentId },
                 include: [
                     {
                         model: AssessmentProcess,
                         as: "processes",
+                        required: false,
                         include: [
                             {
-                                // Include related assets
                                 model: AssessmentProcessAsset,
                                 as: "assets",
+                                required: false,
                             },
                             {
-                                // Each process can have multiple risks
                                 model: AssessmentProcessRiskScenario,
                                 as: "risks",
+                                required: false,
                                 include: [
                                     {
-                                        // Each risk has multiple taxonomies
                                         model: AssessmentRiskTaxonomy,
                                         as: "taxonomy",
-                                        //include: [
-                                        //    {
-                                        //        // Nested severity details for taxonomy
-                                        //        model: SeverityLevel,
-                                        //        as: "severityDetails",
-                                        //    },
-                                        //],
+                                        required: false,
                                     },
                                 ],
                             },
@@ -311,7 +301,33 @@ class AssessmentService {
                 throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
             }
 
-            return assessment;
+            // 🔹 Convert to plain JSON immediately to remove Sequelize circular refs
+            const plainAssessment = assessment.toJSON();
+
+            // 🔹 Transform output
+            const formattedAssessment = {
+                ...plainAssessment,
+                processes: (plainAssessment.processes || []).map((process) => ({
+                    ...process,
+                    risks: (process.risks || []).map((risk) => ({
+                        ...risk,
+                        taxonomy: (risk.taxonomy || []).map((t) => ({
+                            taxonomyId: t.assessmentRiskTaxonomyId,
+                            name: t.taxonomyName,
+                            orgId: plainAssessment.orgId,
+                            weightage: t.weightage,
+                            severityDetails: {
+                                name: t.severityName,
+                                minRange: t.severityMinRange,
+                                maxRange: t.severityMaxRange,
+                                color: t.color,
+                            },
+                        })),
+                    })),
+                })),
+            };
+
+            return formattedAssessment;
         } catch (err) {
             throw new CustomError(
                 err.message || "Failed to fetch assessment",
@@ -319,6 +335,7 @@ class AssessmentService {
             );
         }
     }
+
 
     /**
      * Save business impacts & taxonomies for an assessment process risk
