@@ -170,6 +170,7 @@ export interface CreateBusinessUnitRequest {
     value: string;
   }>;
   createdBy: string;
+  status?: string;
 }
 
 export interface CreateBusinessUnitResponse {
@@ -237,6 +238,7 @@ export interface UpdateBusinessUnitRequest {
     key: string;
     value: string;
   }>;
+  status?: string;
   modifiedBy: string;
 }
 

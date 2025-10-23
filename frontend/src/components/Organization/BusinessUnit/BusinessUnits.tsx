@@ -125,6 +125,7 @@ const BusinessUnits: React.FC = () => {
           itPoc: data.buItPoc,
           financeLead: data.buFinanceLead,
           createdBy: userId,
+          status: "active"
         });
 
         // Add new business unit to local state
@@ -216,14 +217,59 @@ const BusinessUnits: React.FC = () => {
     setErrorMessage("");
   };
 
-  const handleStatusChange = (id: string, status: "active" | "disable") => {
-    setBusinessUnits((prev) =>
-      prev.map((bu) => (bu.id === id ? { ...bu, status } : bu))
-    );
+  const handleStatusChange = async (id: string, status: "active" | "disable") => {
+    try {
+      // Get current user ID from cookies
+      const user = JSON.parse(Cookies.get("user") ?? "{}");
+      const userId = user.id;
+      
+      if (!userId) {
+        setError("User ID not found. Please login again.");
+        setErrorMessage("User ID not found. Please login again.");
+        setShowErrorToast(true);
+        return;
+      }
 
-    // Update selectedBusinessUnit if it's the one being changed
-    if (selectedBusinessUnit && selectedBusinessUnit.id === id) {
-      setSelectedBusinessUnit((prev) => (prev ? { ...prev, status } : null));
+      // Find the business unit to get its current data
+      const businessUnit = businessUnits.find(bu => bu.id === id);
+      if (!businessUnit) {
+        setError("Business unit not found.");
+        setErrorMessage("Business unit not found.");
+        setShowErrorToast(true);
+        return;
+      }
+
+      // Call API to update business unit with current data and status
+      await updateBusinessUnit(id, {
+        name: businessUnit.businessUnitName,
+        head: businessUnit.buHead,
+        pocBiso: businessUnit.buPocBiso,
+        itPoc: businessUnit.buItPoc,
+        financeLead: businessUnit.buFinanceLead,
+        tags: businessUnit.tags,
+        status: status,
+        modifiedBy: userId,
+      });
+
+      // Update local state only after successful API call
+      setBusinessUnits((prev) =>
+        prev.map((bu) => (bu.id === id ? { ...bu, status } : bu))
+      );
+
+      // Update selectedBusinessUnit if it's the one being changed
+      if (selectedBusinessUnit && selectedBusinessUnit.id === id) {
+        setSelectedBusinessUnit((prev) => (prev ? { ...prev, status } : null));
+      }
+
+      // Show success message
+      setSuccessMessage(`Business Unit status updated to ${status}`);
+      setShowSuccessToast(true);
+    } catch (err) {
+      console.error("Error updating business unit status:", err);
+      const errorMsg = err instanceof Error ? err.message : "Failed to update business unit status";
+      setError(errorMsg);
+      setErrorMessage(errorMsg);
+      setShowErrorToast(true);
     }
   };
 

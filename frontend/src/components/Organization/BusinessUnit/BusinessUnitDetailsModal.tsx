@@ -12,9 +12,11 @@ import {
   FormControlLabel,
   Stack,
   Divider,
+  Button,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import Image from "next/image";
+import { useRouter } from 'next/router';
 import DisableConfirmationModal from './DisableConfirmationModal';
 import AssessmentTable from '../../Assessment/AssessmentTable';
 import { Assessment } from '@/types/assessment';
@@ -77,6 +79,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   onEdit,
   onStatusChange,
 }) => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [showDisableModal, setShowDisableModal] = useState(false);
 
@@ -110,6 +113,11 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
   const handleDisableCancel = () => {
     setShowDisableModal(false);
+  };
+
+  const handleCreateAssessment = () => {
+    // Navigate to assessment route
+    router.push('/assessment');
   };
 
   // Sample assessment data for testing
@@ -199,23 +207,23 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   const contactRoles = [
     {
       role: 'BU Head',
-      name: businessUnit.buHead?.name || 'Karan Gautam',
-      email: businessUnit.buHead?.email || 'karangautam@abccompany.com',
+      name: businessUnit.buHead?.name || '-',
+      email: businessUnit.buHead?.email || '-',
     },
     {
       role: 'BU POC/BISO',
-      name: businessUnit.buPocBiso?.name || 'Nishant Saxena',
-      email: businessUnit.buPocBiso?.email || 'nishant.s@abccompany.com',
+      name: businessUnit.buPocBiso?.name || '-',
+      email: businessUnit.buPocBiso?.email || '-',
     },
     {
       role: 'BU IT POC',
-      name: businessUnit.buItPoc?.name || 'Akriti Sharma',
-      email: businessUnit.buItPoc?.email || 'sharma.akriti@abccompany.com',
+      name: businessUnit.buItPoc?.name || '-',
+      email: businessUnit.buItPoc?.email || '-',
     },
     {
       role: 'BU Finance Lead',
-      name: businessUnit.buFinanceLead?.name || 'Siva Prasad',
-      email: businessUnit.buFinanceLead?.email || 'siva@abccompany.com',
+      name: businessUnit.buFinanceLead?.name || '-',
+      email: businessUnit.buFinanceLead?.email || '-',
     },
   ];
 
@@ -313,7 +321,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
         <Divider sx={{ mb: 3 }} />
 
-        <Box >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
@@ -351,6 +359,34 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
             <Tab label="Basic Details" />
             <Tab label="Assessments" />
           </Tabs>
+
+          {activeTab === 1 && (
+            <Button
+              variant="contained"
+              onClick={handleCreateAssessment}
+              disabled={businessUnit.status === 'disable'}
+              sx={{
+                minHeight: '32px',
+                height: '32px',
+                backgroundColor: businessUnit.status === 'disable' ? '#E7E7E8' : '#04139A',
+                color: businessUnit.status === 'disable' ? '#91939A' : '#FFFFFF',
+                textTransform: 'none',
+                fontWeight: 500,
+                padding: '7px 12px',
+                borderRadius: '2px',
+                '&:hover': {
+                  backgroundColor: businessUnit.status === 'disable' ? '#E7E7E8' : '#04139A',
+                  opacity: businessUnit.status === 'disable' ? 1 : 0.9,
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: '#E7E7E8',
+                  color: '#91939A',
+                },
+              }}
+            >
+              Create Assessment
+            </Button>
+          )}
         </Box>
 
         <DialogContent

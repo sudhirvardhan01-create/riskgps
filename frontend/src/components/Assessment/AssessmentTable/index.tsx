@@ -191,7 +191,7 @@ const AssessmentTable: React.FC<Props> = ({
             fontWeight: 600
           }}
         >
-          No assessments available for {businessUnitName || 'business unit'}.
+          No assessments available for {businessUnitName || 'business unit'}. Create new assessment.
         </Typography>
       </Box>
     );
