@@ -88,6 +88,40 @@ router.get("/", async (req, res) => {
     res.status(HttpStatus.OK).json(result);
 });
 
+
+/**
+ * @route GET /assessments/by-org-or-bu
+ * @desc Get assessments filtered by organization ID or business unit ID
+ * @query orgId, businessUnitId
+ */
+router.get("/by-org-or-bu", async (req, res) => {
+    try {
+        const { orgId, businessUnitId } = req.query;
+
+        if (!orgId && !businessUnitId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Either orgId or businessUnitId is required",
+            });
+        }
+
+        const result = await AssessmentService.getAssessmentsByOrgOrBU({
+            orgId,
+            businessUnitId,
+        });
+
+        res.status(HttpStatus.OK).json({
+            message: "Assessments fetched successfully",
+            data: result,
+        });
+    } catch (error) {
+        console.error("Error fetching assessments by org or BU:", error);
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Failed to fetch assessments",
+        });
+    }
+
+
+});
 /**
  * @route GET /assessments/:id
  * @desc Get assessment by ID
@@ -170,8 +204,5 @@ router.get("/all/details", async (req, res) => {
         });
     }
 });
-
-
-
 
 module.exports = router;
