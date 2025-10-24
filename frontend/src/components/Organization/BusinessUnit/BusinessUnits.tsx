@@ -259,7 +259,7 @@ const BusinessUnits: React.FC = () => {
             }}
           >
             <Image
-              src={"/create-bu.png"}
+              src={"/create.png"}
               alt="org-image"
               width={120}
               height={120}

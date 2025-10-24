@@ -2,44 +2,59 @@
 
 import React, { useEffect, useState } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
-import RiskScenarioList from "../RiskScenarioBussiness";
-import BusinessImpactPanel from "../BusinessImpactPanel";
 import { useAssessment } from "@/context/AssessmentContext";
-import { Risk } from "@/types/assessment";
+import { Asset } from "@/types/assessment";
+import AssetStrength from "../AssetStrength";
+import QuestionnaireForAsset from "../QuestionnaireForAsset";
+import { getAssetQuestionnaire } from "@/pages/api/assessment";
 
-export default function ProcessTabs() {
+export default function ProcessTabsAssets() {
   const { selectedProcesses, setSelectedProcesses } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
-  const [selectedScenario, setSelectedScenario] = useState<Risk | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<Asset>();
+  const [questionnaire, setQuestionnaire] = useState([]);
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedScenario(selectedProcesses[newValue].risks[0]); // reset selection when switching process
+    setSelectedAsset(selectedProcesses[newValue].assets[0]); // reset selection when switching process
   };
 
-  const handleUpdateScenario = (updatedScenario: Risk) => {
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      try {
+        const res = await getAssetQuestionnaire();
+        setQuestionnaire(res.result.data);
+      } catch (error) {
+        console.error("Error fetching organisations:", error);
+      }
+    };
+
+    fetchOrgs();
+  }, []);
+
+  const handleUpdateScenario = (updatedAsset: Asset) => {
     // update inside context
     const updatedProcesses = selectedProcesses.map((p, idx) => {
       if (idx !== currentTab) return p;
 
       return {
         ...p,
-        risks: p.risks.map((r: Risk) =>
-          r.orgRiskId === updatedScenario.orgRiskId ? updatedScenario : r
+        assets: p.assets.map((a: Asset) =>
+          a.orgAssetId === updatedAsset.orgAssetId ? updatedAsset : a
         ),
       };
     });
 
     setSelectedProcesses(updatedProcesses); // push back to context
-    setSelectedScenario(updatedScenario);
+    setSelectedAsset(updatedAsset);
   };
 
   const activeProcess = selectedProcesses[currentTab];
 
   useEffect(() => {
     if (selectedProcesses.length > 0) {
-      setSelectedScenario(selectedProcesses[0].risks[0]);
+      setSelectedAsset(selectedProcesses[0].assets[0]);
     }
   }, []);
 
@@ -76,7 +91,7 @@ export default function ProcessTabs() {
               <Typography
                 variant="body2"
                 fontWeight={550}
-              >{`${p.name} (${p.risks.length})`}</Typography>
+              >{`${p.name} (${p.assets.length})`}</Typography>
             }
             sx={{
               border:
@@ -96,17 +111,20 @@ export default function ProcessTabs() {
 
       {/* Tab Content */}
       <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
-        {/* Left Panel: Risk Scenarios */}
-        <RiskScenarioList
-          scenarios={activeProcess.risks}
-          onSelect={setSelectedScenario}
-          selectedScenario={selectedScenario}
+        {/* Left Panel: Asset Scenarios */}
+        <AssetStrength
+          assets={activeProcess.assets}
+          onSelect={setSelectedAsset}
+          selectedAsset={selectedAsset}
         />
 
-        {/* Right Panel: Business Impact */}
-        <BusinessImpactPanel
-          selectedScenario={selectedScenario}
-          onUpdateScenario={handleUpdateScenario}
+        {/* Right Panel: Questionnaire*/}
+        <QuestionnaireForAsset
+          questionnaires={questionnaire}
+          assetCategory={selectedAsset?.assetCategory}
+          // onSubmit={() => {
+          //   console.log("questionnaire");
+          // }}
         />
       </Box>
     </Box>

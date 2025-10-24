@@ -74,4 +74,10 @@ export const labels = {
   frameworkControlCategory: "Control Category",
   frameworkControlSubcategoryId: "Control Sub-category ID",
   frameworkControlSubcategory: "Control Sub-category",
+
+  //Questionnaire
+  questionnaireAssetCategory: "Asset Category",
+  questionText: "Question",
+
+  //User Management
 };

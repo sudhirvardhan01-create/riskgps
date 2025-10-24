@@ -22,7 +22,7 @@ interface AssessmentProcess {
 
 interface Process {
   processName: string;
-  order: number;
+  order: number | undefined;
 }
 
 interface AssessmentRisk {
@@ -60,6 +60,22 @@ export const saveAssessment = async (data: AssessmentData) => {
 export const getAssessment = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/assessment`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch api data");
+  }
+  return response.json();
+};
+
+export const getAssessmentById = async (assessmentId: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/assessment/${assessmentId}`,
     {
       method: "GET",
       headers: {
@@ -120,6 +136,39 @@ export const saveAssessmentRiskTaxonomy = async (data: AssessmentRisk) => {
   );
   if (!response.ok) {
     throw new Error("Failed to fetch api data");
+  }
+  return response.json();
+};
+
+export const saveAssessmentAssets = async (data: any) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/assessment/assessment-process-assets`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch api data");
+  }
+  return response.json();
+};
+
+export const getAssetQuestionnaire = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/questionnaire`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch login data");
   }
   return response.json();
 };

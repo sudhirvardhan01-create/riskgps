@@ -15,11 +15,12 @@ import {
   getOrganizationProcess,
 } from "../../api/organization";
 import {
+  saveAssessmentAssets,
   saveAssessmentProcess,
   saveAssessmentRisk,
   saveAssessmentRiskTaxonomy,
 } from "@/pages/api/assessment";
-import BusinessImpact from "@/components/Assessment/BusinessImpact";
+import ProcessTabs from "@/components/Assessment/ProcessTabs";
 import {
   Assessment,
   BusinessUnit,
@@ -29,6 +30,7 @@ import {
 import Cookies from "js-cookie";
 import withAuth from "@/hoc/withAuth";
 import DragDropAssets from "@/components/Assessment/DragDropAssets";
+import ProcessTabsAssets from "@/components/Assessment/ProcessTabsAssets";
 
 function BUProcessMappingPage() {
   const {
@@ -38,7 +40,6 @@ function BUProcessMappingPage() {
     selectedBU,
     selectedProcesses,
     setSelectedProcesses,
-    orderedProcesses,
   } = useAssessment();
   const router = useRouter();
 
@@ -48,6 +49,7 @@ function BUProcessMappingPage() {
     "Process to Risk Scenarios Mapping",
     "Business Impact",
     "Process to Asset Mapping",
+    "Critical Systems Control Strength",
   ];
 
   const stepsTab = [
@@ -128,6 +130,18 @@ function BUProcessMappingPage() {
     return obj;
   };
 
+  const prepareAssetPayload = () => {
+    const obj = selectedProcesses.flatMap((process) =>
+      process.assets.map((asset) => ({
+        assessmentProcessId: process.assessmentProcessId,
+        assetName: asset.name,
+        assetDesc: asset.description,
+        assetCategory: asset.assetCategory,
+      }))
+    );
+    return obj;
+  };
+
   // Navigation
   const handlePrev = () => {
     if (activeTab > 0) {
@@ -149,7 +163,7 @@ function BUProcessMappingPage() {
             processes: selectedProcesses.map((item) => {
               return {
                 processName: item.name,
-                order: orderedProcesses[item.orgProcessId],
+                order: item.order,
               };
             }),
             status: status,
@@ -192,7 +206,6 @@ function BUProcessMappingPage() {
           }));
 
           setSelectedProcesses(updatedProcessesRisk);
-
           break;
 
         case 2:
@@ -202,10 +215,34 @@ function BUProcessMappingPage() {
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
+
+          console.log(selectedProcesses);
           break;
 
         case 3:
-          console.log("clicked asset function");
+          const assets = prepareAssetPayload();
+          const result = await saveAssessmentAssets({
+            assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            assets,
+          });
+
+          const updatedProcessesAsset = selectedProcesses.map((process) => ({
+            ...process,
+            assets: process.assets.map((asset) => {
+              const match = result.assets.find(
+                (obj: any) => obj.assetName === asset.name
+              );
+
+              return {
+                ...asset,
+                assessmentProcessAssetId:
+                  match?.assessmentProcessAssetId ?? null,
+              };
+            }),
+          }));
+
+          setSelectedProcesses(updatedProcessesAsset);
           break;
       }
 
@@ -274,8 +311,9 @@ function BUProcessMappingPage() {
               )}
 
               {activeStep === 1 && <DragDropRiskScenarios />}
-              {activeStep === 2 && <BusinessImpact />}
+              {activeStep === 2 && <ProcessTabs />}
               {activeStep === 3 && <DragDropAssets />}
+              {activeStep === 4 && <ProcessTabsAssets />}
             </Box>
           </Box>
 
