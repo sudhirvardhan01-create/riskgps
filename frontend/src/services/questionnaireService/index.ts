@@ -2,6 +2,7 @@ import {
   createQuestionnaire,
   deleteQuestionnaire,
   fetchAllQuestionnaire,
+  updateQuestionnaire,
   updateQuestionnaireStatus,
 } from "@/pages/api/questionnaire";
 import { QuestionnaireData } from "@/types/questionnaire";
@@ -24,6 +25,8 @@ export const QuestionnaireService = {
       statusFilter
     ),
   create: (data: QuestionnaireData) => createQuestionnaire(data),
+  update: (id: string, data: QuestionnaireData) =>
+    updateQuestionnaire(id, data),
   delete: (id: string, assetCategory: string) =>
     deleteQuestionnaire(id, assetCategory),
   updateStatus: (id: string, status: string) =>

@@ -17,7 +17,7 @@ interface Props {
   data: Assessment[];
   onMenuClick: (event: React.MouseEvent<HTMLElement>, runId: string) => void;
   onCardClick: (runId: string) => void;
-  variant?: 'default' | 'businessUnit';
+  variant?: "default" | "businessUnit";
   businessUnitName?: string;
 }
 
@@ -56,7 +56,7 @@ const AssessmentRow: React.FC<{
         width: "100%",
         cursor: "pointer",
       }}
-      onClick={() => onCardClick(assessment.runId)}
+      onClick={() => onCardClick(assessment.assessmentId)}
     >
       {/* Run ID */}
       <Typography>{assessment.runId}</Typography>
@@ -145,17 +145,20 @@ const AssessmentTable: React.FC<Props> = ({
   data,
   onMenuClick,
   onCardClick,
-  variant = 'default',
-  businessUnitName
+  variant = "default",
+  businessUnitName,
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(
+    new Set()
+  );
 
   // Different column templates based on variant
-  const columnTemplate = variant === 'businessUnit'
-    ? "42px 170px 90px 90px 90px 120px 130px 15px"
-    : "42px 160px 260px 80px 80px 80px 130px 145px 20px";
+  const columnTemplate =
+    variant === "businessUnit"
+      ? "42px 170px 90px 90px 90px 120px 130px 15px"
+      : "42px 160px 260px 80px 80px 80px 130px 145px 20px";
 
   const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(event.target.value);
@@ -163,7 +166,7 @@ const AssessmentTable: React.FC<Props> = ({
   };
 
   const toggleDescription = (runId: string) => {
-    setExpandedDescriptions(prev => {
+    setExpandedDescriptions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(runId)) {
         newSet.delete(runId);
@@ -176,19 +179,19 @@ const AssessmentTable: React.FC<Props> = ({
 
   const truncateText = (text: string, maxLength: number = 35) => {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    return text.substring(0, maxLength) + "...";
   };
 
   // Empty state for business unit variant
-  if (variant === 'businessUnit' && data.length === 0) {
+  if (variant === "businessUnit" && data.length === 0) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
+      <Box sx={{ p: 3, textAlign: "center" }}>
         <Typography
           variant="body1"
           sx={{
-            color: '#121212',
-            fontSize: '16px',
-            fontWeight: 600
+            color: "#121212",
+            fontSize: "16px",
+            fontWeight: 600,
           }}
         >
           No assessments available for {businessUnitName || 'business unit'}. Create new assessment.
@@ -198,9 +201,10 @@ const AssessmentTable: React.FC<Props> = ({
   }
 
   // Get data to display (with pagination for business unit variant)
-  const displayData = variant === 'businessUnit'
-    ? data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-    : data;
+  const displayData =
+    variant === "businessUnit"
+      ? data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+      : data;
 
   return (
     <Box>
@@ -217,28 +221,28 @@ const AssessmentTable: React.FC<Props> = ({
           width: "100%",
         }}
       >
-        {(variant === 'businessUnit'
+        {(variant === "businessUnit"
           ? [
-            "Run ID",
-            "Assessment Run Name",
-            "Start Date",
-            "Last Activity",
-            "End Date",
-            "Last Updated By",
-            "Status",
-            "",
-          ]
+              "Run ID",
+              "Assessment Run Name",
+              "Start Date",
+              "Last Activity",
+              "End Date",
+              "Last Updated By",
+              "Status",
+              "",
+            ]
           : [
-            "Run ID",
-            "Org",
-            "Assessment Run Name",
-            "Start Date",
-            "Last Activity",
-            "End Date",
-            "Last Updated By",
-            "Status",
-            "",
-          ]
+              "Run ID",
+              "Org",
+              "Assessment Run Name",
+              "Start Date",
+              "Last Activity",
+              "End Date",
+              "Last Updated By",
+              "Status",
+              "",
+            ]
         ).map((header, ind) => (
           <Typography
             key={header}
@@ -253,7 +257,7 @@ const AssessmentTable: React.FC<Props> = ({
       </Box>
 
       {/* Table Body */}
-      {variant === 'default' ? (
+      {variant === "default" ? (
         // Default variant - use AssessmentRow component
         <Box sx={{ mt: 2, overflow: "auto", maxHeight: "calc(100vh - 344px)" }}>
           {displayData.map((assessment) => (
@@ -298,10 +302,10 @@ const AssessmentTable: React.FC<Props> = ({
                   variant="body2"
                   sx={{
                     fontWeight: 400,
-                    verticalAlign: 'middle',
-                    color: '#484848',
+                    verticalAlign: "middle",
+                    color: "#484848",
                     margin: 0,
-                    padding: 0
+                    padding: 0,
                   }}
                 >
                   {assessment.assessmentName}
@@ -310,19 +314,18 @@ const AssessmentTable: React.FC<Props> = ({
                   variant="caption"
                   sx={{
                     fontWeight: 400,
-                    verticalAlign: 'middle',
-                    color: '#91939A',
-                    maxWidth: '100%',
-                    wordWrap: 'break-word',
+                    verticalAlign: "middle",
+                    color: "#91939A",
+                    maxWidth: "100%",
+                    wordWrap: "break-word",
                     margin: 0,
-                    padding: 0
+                    padding: 0,
                   }}
                 >
-                  <span style={{ color: '#484848' }}>Description: </span>
+                  <span style={{ color: "#484848" }}>Description: </span>
                   {expandedDescriptions.has(assessment.runId)
                     ? assessment.assessmentDesc
-                    : truncateText(assessment.assessmentDesc || "")
-                  }{" "}
+                    : truncateText(assessment.assessmentDesc || "")}{" "}
                   {(assessment.assessmentDesc || "").length > 35 && (
                     <span
                       style={{ color: "#04139A", cursor: "pointer" }}
@@ -331,7 +334,9 @@ const AssessmentTable: React.FC<Props> = ({
                         toggleDescription(assessment.runId);
                       }}
                     >
-                      {expandedDescriptions.has(assessment.runId) ? 'read less' : 'read more'}
+                      {expandedDescriptions.has(assessment.runId)
+                        ? "read less"
+                        : "read more"}
                     </span>
                   )}
                 </Typography>
@@ -342,9 +347,9 @@ const AssessmentTable: React.FC<Props> = ({
                 variant="body2"
                 sx={{
                   fontWeight: 400,
-                  fontStyle: 'normal',
-                  verticalAlign: 'middle',
-                  color: '#484848'
+                  fontStyle: "normal",
+                  verticalAlign: "middle",
+                  color: "#484848",
                 }}
               >
                 {new Date(assessment.startDate).toLocaleDateString()}
@@ -353,9 +358,9 @@ const AssessmentTable: React.FC<Props> = ({
                 variant="body2"
                 sx={{
                   fontWeight: 400,
-                  fontStyle: 'normal',
-                  verticalAlign: 'middle',
-                  color: '#484848'
+                  fontStyle: "normal",
+                  verticalAlign: "middle",
+                  color: "#484848",
                 }}
               >
                 {new Date(assessment.lastActivity).toLocaleDateString()}
@@ -364,29 +369,28 @@ const AssessmentTable: React.FC<Props> = ({
                 variant="body2"
                 sx={{
                   fontWeight: 400,
-                  fontStyle: 'normal',
-                  verticalAlign: 'middle',
-                  color: '#484848'
+                  fontStyle: "normal",
+                  verticalAlign: "middle",
+                  color: "#484848",
                 }}
               >
-                {assessment.endDate ? new Date(assessment.endDate).toLocaleDateString() : ''}
+                {assessment.endDate
+                  ? new Date(assessment.endDate).toLocaleDateString()
+                  : ""}
               </Typography>
 
               {/* Last Modified */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Avatar
-                  src={userData.avatar}
-                  sx={{ width: 24, height: 24 }}
-                >
+                <Avatar src={userData.avatar} sx={{ width: 24, height: 24 }}>
                   {userData.name.charAt(0)}
                 </Avatar>
                 <Typography
                   variant="body2"
                   sx={{
                     fontWeight: 400,
-                    fontStyle: 'normal',
-                    verticalAlign: 'middle',
-                    color: "#484848"
+                    fontStyle: "normal",
+                    verticalAlign: "middle",
+                    color: "#484848",
                   }}
                 >
                   {userData.name}
@@ -399,9 +403,9 @@ const AssessmentTable: React.FC<Props> = ({
                   variant="caption"
                   sx={{
                     fontWeight: 500,
-                    fontStyle: 'normal',
-                    color: '#484848',
-                    mb: 1
+                    fontStyle: "normal",
+                    color: "#484848",
+                    mb: 1,
                   }}
                 >
                   {assessment.status == "in_progress" ? 61 : 100}
@@ -416,7 +420,9 @@ const AssessmentTable: React.FC<Props> = ({
                     borderRadius: 1,
                     "& .MuiLinearProgress-bar": {
                       backgroundColor:
-                        assessment.status == "completed" ? "#147A50" : "#FFD966",
+                        assessment.status == "completed"
+                          ? "#147A50"
+                          : "#FFD966",
                     },
                   }}
                 />
@@ -432,24 +438,26 @@ const AssessmentTable: React.FC<Props> = ({
       )}
 
       {/* Pagination (only for business unit variant) */}
-      {variant === 'businessUnit' && (
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          mt: 2,
-          px: 1,
-          gap: 4,
-          mb: 1,
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {variant === "businessUnit" && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            mt: 2,
+            px: 1,
+            gap: 4,
+            mb: 1,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography
               variant="body2"
               sx={{
                 fontWeight: 400,
-                fontStyle: 'normal',
-                textAlign: 'center',
-                color: '#191919'
+                fontStyle: "normal",
+                textAlign: "center",
+                color: "#191919",
               }}
             >
               View users per page
@@ -459,23 +467,23 @@ const AssessmentTable: React.FC<Props> = ({
                 value={rowsPerPage}
                 onChange={handleChangeRowsPerPage}
                 sx={{
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: '1px solid #E7E7E8',
-                    borderRadius: '8px',
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid #E7E7E8",
+                    borderRadius: "8px",
                   },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    border: '1px solid #002F75',
-                    borderRadius: '8px',
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid #002F75",
+                    borderRadius: "8px",
                   },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    border: '1px solid #002F75',
-                    borderRadius: '8px',
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid #002F75",
+                    borderRadius: "8px",
                   },
-                  height: '37px',
-                  fontSize: '14px',
+                  height: "37px",
+                  fontSize: "14px",
                   color: "#191919",
-                  borderRadius: '8px',
-                  backgroundColor: "#E7E7E84D"
+                  borderRadius: "8px",
+                  backgroundColor: "#E7E7E84D",
                 }}
               >
                 {[5, 10, 25].map((value) => (
@@ -487,50 +495,55 @@ const AssessmentTable: React.FC<Props> = ({
             </FormControl>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Typography
               variant="body2"
               sx={{
                 fontWeight: 400,
-                fontStyle: 'normal',
-                textAlign: 'center',
-                color: '#191919'
+                fontStyle: "normal",
+                textAlign: "center",
+                color: "#191919",
               }}
             >
-              {page * rowsPerPage + 1}-{Math.min((page + 1) * rowsPerPage, data.length)} of {data.length}
+              {page * rowsPerPage + 1}-
+              {Math.min((page + 1) * rowsPerPage, data.length)} of {data.length}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: "flex", gap: 1 }}>
               <IconButton
                 onClick={() => setPage(page - 1)}
                 disabled={page === 0}
                 size="small"
                 sx={{
-                  border: '1px solid #002F75',
+                  border: "1px solid #002F75",
                   borderRadius: "8px",
                   width: 36,
                   height: 36,
-                  '&:disabled': {
+                  "&:disabled": {
                     opacity: 0.5,
-                  }
+                  },
                 }}
               >
-                <Typography variant="h6" sx={{ color: '#002F75' }}>&lt;</Typography>
+                <Typography variant="h6" sx={{ color: "#002F75" }}>
+                  &lt;
+                </Typography>
               </IconButton>
               <IconButton
                 onClick={() => setPage(page + 1)}
                 disabled={page >= Math.ceil(data.length / rowsPerPage) - 1}
                 size="small"
                 sx={{
-                  border: '1px solid #002F75',
+                  border: "1px solid #002F75",
                   borderRadius: "8px",
                   width: 36,
                   height: 36,
-                  '&:disabled': {
+                  "&:disabled": {
                     opacity: 0.5,
-                  }
+                  },
                 }}
               >
-                <Typography variant="h6" sx={{ color: '#002F75' }}>&gt;</Typography>
+                <Typography variant="h6" sx={{ color: "#002F75" }}>
+                  &gt;
+                </Typography>
               </IconButton>
             </Box>
           </Box>

@@ -13,10 +13,9 @@ const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 
 class OrganizationService {
-
     /**
-   * Get all organizations with pagination, search & sorting, including business units
-   */
+     * Get all organizations with pagination, search & sorting, including business units
+     */
     static async getAllOrganizations(
         page = 0,
         limit = 10,
@@ -28,7 +27,7 @@ class OrganizationService {
             const offset = page * limit;
 
             const whereClause = {
-                isDeleted: false
+                isDeleted: false,
             };
 
             if (searchPattern) {
@@ -52,7 +51,7 @@ class OrganizationService {
                         attributes: [
                             "orgBusinessUnitId",
                             "name",
-                            "desc",
+                            "description",
                             "createdBy",
                             "modifiedBy",
                             "createdDate",
@@ -286,6 +285,7 @@ class OrganizationService {
                     "organizationId",
                     "name",
                     "description",
+                    "assetCategory",
                     "createdBy",
                     "modifiedBy",
                     "createdDate",
@@ -308,17 +308,17 @@ class OrganizationService {
      */
     static async generateOrgCode() {
         const lastOrg = await Organization.findOne({
-            order: [['created_date', 'DESC']],
-            attributes: ['orgCode'],
+            order: [["created_date", "DESC"]],
+            attributes: ["orgCode"],
         });
 
-        let newOrgCode = 'OR0001';
+        let newOrgCode = "OR0001";
 
         if (lastOrg) {
             const lastOrgId = lastOrg.orgCode;
             const orgNumber = parseInt(lastOrgId.slice(2), 10); // Get the number after 'OR'
             const nextOrgNumber = orgNumber + 1;
-            newOrgCode = `OR${nextOrgNumber.toString().padStart(4, '0')}`;
+            newOrgCode = `OR${nextOrgNumber.toString().padStart(4, "0")}`;
         }
 
         return newOrgCode;
@@ -509,7 +509,10 @@ class OrganizationService {
         sortOrder = "DESC"
     ) {
         if (!orgId) {
-            throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+            throw new CustomError(
+                "Organization ID is required",
+                HttpStatus.BAD_REQUEST
+            );
         }
 
         const offset = page * limit;
@@ -544,7 +547,8 @@ class OrganizationService {
                     "modifiedBy",
                     "createdDate",
                     "modifiedDate",
-                    "isDeleted"
+                    "isDeleted",
+                    "status"
                 ],
             });
 
@@ -556,21 +560,26 @@ class OrganizationService {
             };
         } catch (error) {
             console.error("Error in getBusinessUnitsByOrganizationId:", error);
-            throw new CustomError("Failed to fetch business units", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new CustomError(
+                "Failed to fetch business units",
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
-
     static async getBusinessUnitById(id) {
         if (!id) {
-            throw new CustomError("Business unit ID is required", HttpStatus.BAD_REQUEST);
+            throw new CustomError(
+                "Business unit ID is required",
+                HttpStatus.BAD_REQUEST
+            );
         }
 
         try {
             const bu = await OrganizationBusinessUnit.findOne({
                 where: {
                     orgBusinessUnitId: id,
-                    isDeleted: false
+                    isDeleted: false,
                 },
                 attributes: [
                     "orgBusinessUnitId",
@@ -585,7 +594,8 @@ class OrganizationService {
                     "modifiedBy",
                     "createdDate",
                     "modifiedDate",
-                    "isDeleted"
+                    "isDeleted",
+                    "status"
                 ],
             });
 
@@ -596,14 +606,19 @@ class OrganizationService {
             return bu;
         } catch (error) {
             console.error("Error fetching Business Unit by ID:", error);
-            throw new CustomError("Failed to fetch Business Unit", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new CustomError(
+                "Failed to fetch Business Unit",
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
-
     static async createBusinessUnit(orgId, data) {
         if (!data || !data.name) {
-            throw new CustomError("Business unit name is required", HttpStatus.BAD_REQUEST);
+            throw new CustomError(
+                "Business unit name is required",
+                HttpStatus.BAD_REQUEST
+            );
         }
 
         // Prepare payload for DB insert
@@ -616,7 +631,8 @@ class OrganizationService {
             financeLead: data.financeLead || null,
             tags: Array.isArray(data.tags) ? data.tags : [],
             createdBy: data.createdBy || null,
-            createdDate: new Date()
+            createdDate: new Date(),
+            status: data.status
         };
 
         try {
@@ -624,14 +640,19 @@ class OrganizationService {
             return newBusinessUnit;
         } catch (error) {
             console.error("Error creating Business Unit:", error);
-            throw new CustomError("Failed to create Business Unit", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new CustomError(
+                "Failed to create Business Unit",
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
-
     static async updateBusinessUnitById(id, data) {
         if (!id) {
-            throw new CustomError("Business unit ID is required", HttpStatus.BAD_REQUEST);
+            throw new CustomError(
+                "Business unit ID is required",
+                HttpStatus.BAD_REQUEST
+            );
         }
 
         const bu = await OrganizationBusinessUnit.findOne({
@@ -652,6 +673,7 @@ class OrganizationService {
             tags: data.tags ?? bu.tags,
             modifiedBy: data.modifiedBy || "system",
             modifiedDate: new Date(),
+            status: data.status ?? bu.status
         };
 
         await bu.update(updateData);
@@ -659,15 +681,15 @@ class OrganizationService {
         return bu;
     }
 
-
     static async deleteBusinessUnitById(id, userId) {
         const bu = await OrganizationBusinessUnit.findByPk(id);
-        if (!bu) throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
+        if (!bu)
+            throw new CustomError("Business unit not found", HttpStatus.NOT_FOUND);
 
         await bu.update({
             isDeleted: true,
             modifiedBy: userId,
-            modifiedDate: new Date()
+            modifiedDate: new Date(),
         });
 
         return { message: "Business unit deleted successfully" };

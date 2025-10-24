@@ -88,6 +88,40 @@ router.get("/", async (req, res) => {
     res.status(HttpStatus.OK).json(result);
 });
 
+
+/**
+ * @route GET /assessments/by-org-or-bu
+ * @desc Get assessments filtered by organization ID or business unit ID
+ * @query orgId, businessUnitId
+ */
+router.get("/by-org-or-bu", async (req, res) => {
+    try {
+        const { orgId, businessUnitId } = req.query;
+
+        if (!orgId && !businessUnitId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Either orgId or businessUnitId is required",
+            });
+        }
+
+        const result = await AssessmentService.getAssessmentsByOrgOrBU({
+            orgId,
+            businessUnitId,
+        });
+
+        res.status(HttpStatus.OK).json({
+            message: "Assessments fetched successfully",
+            data: result,
+        });
+    } catch (error) {
+        console.error("Error fetching assessments by org or BU:", error);
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Failed to fetch assessments",
+        });
+    }
+
+
+});
 /**
  * @route GET /assessments/:id
  * @desc Get assessment by ID
@@ -144,6 +178,31 @@ router.post(
     }
 );
 
+/**
+ * @route GET /assessments/all/details
+ * @desc Get all assessments with full consecutive details
+ */
+router.get("/all/details", async (req, res) => {
+    try {
+        const { page, limit, sortBy, sortOrder } = req.query;
 
+        const result = await AssessmentService.getAllAssessmentsWithDetails({
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 10,
+            sortBy: sortBy || "createdDate",
+            sortOrder: sortOrder || "DESC",
+        });
+
+        res.status(HttpStatus.OK).json({
+            message: "Assessments with full details fetched successfully",
+            data: result,
+        });
+    } catch (error) {
+        console.error("Error fetching assessment details:", error);
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Failed to fetch assessment details",
+        });
+    }
+});
 
 module.exports = router;

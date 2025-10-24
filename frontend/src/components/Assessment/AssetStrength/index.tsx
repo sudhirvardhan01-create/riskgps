@@ -14,7 +14,7 @@ import { Asset } from "@/types/assessment";
 interface AssetListProps {
   assets: Asset[];
   onSelect: (asset: Asset) => void;
-  selectedAsset: Asset | null;
+  selectedAsset: Asset | undefined;
 }
 
 export default function AssetStrength({
