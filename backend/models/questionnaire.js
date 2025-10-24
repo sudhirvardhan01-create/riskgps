@@ -19,13 +19,13 @@ module.exports = (sequelize, DataTypes) => {
       },
       questionCode: {
         type: DataTypes.STRING,
-        allowNull: false,
         unique: true,
         field: "question_code",
       },
       question: {
         type: DataTypes.TEXT,
         allowNull: false,
+        unique: true,
         field: "question",
       },
       assetCategory: {

@@ -49,8 +49,32 @@ export const createQuestionnaire = async (data: QuestionnaireData) => {
       body: JSON.stringify(data),
     }
   );
+  const res = await response.json();
   if (!response.ok) {
-    throw new Error("Failed to create question");
+    throw new Error(res.message || "Failed to create question");
+  }
+  return res.data;
+};
+
+export const updateQuestionnaire = async (
+  id: string,
+  data: QuestionnaireData
+) => {
+  if (!id) {
+    throw new Error("Failed to perform the operation, invalid arguments");
+  }
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/questionnaire/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to update question");
   }
   const res = await response.json();
   return res.data;

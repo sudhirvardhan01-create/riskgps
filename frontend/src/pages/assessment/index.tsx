@@ -2,11 +2,12 @@ import AssessmentModal from "@/components/Assessment/AssessmentModal";
 import AssessmentTable from "@/components/Assessment/AssessmentTable";
 import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { Box, Button, Menu, MenuItem, Typography } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { getAssessment } from "../api/assessment";
+import React, { useContext, useEffect, useState } from "react";
+import { getAssessment, getAssessmentById } from "../api/assessment";
 import { useRouter } from "next/router";
 import { Assessment } from "@/types/assessment";
 import withAuth from "@/hoc/withAuth";
+import { useAssessment } from "@/context/AssessmentContext";
 
 const options = [
   { label: "All", value: 0 },
@@ -27,6 +28,7 @@ const AssessmentDashboard = () => {
     Assessment[]
   >([]);
   const [open, setOpen] = useState(false);
+  // const { setAssessment } = useAssessment();
 
   useEffect(() => {
     const getAssessments = async () => {
@@ -45,8 +47,10 @@ const AssessmentDashboard = () => {
     setSelectedAssessment(runId);
   };
 
-  const handleCardClick = (runId: string) => {
-    setSelectedAssessment(runId);
+  const handleCardClick = async (assessmentId: string) => {
+    // const response = await getAssessmentById(assessmentId);
+    // setAssessment(response.data);
+
     router.push("/assessment/assessmentProcess");
   };
 

@@ -13,9 +13,10 @@ import { FileService } from "@/services/fileService";
 import { useConfig } from "@/context/ConfigContext";
 import ButtonTabs from "@/components/ButtonTabs";
 import { ControlService } from "@/services/controlService";
+import { Filter } from "@/types/filter";
 
 const initialQuestionnaireData: QuestionnaireData = {
-  assetCategory: [],
+  assetCategories: [],
   question: "",
   mitreControlId: [],
 };
@@ -40,7 +41,7 @@ const breadcrumbItems = [
 ];
 
 export default function QuestionnaireContainer() {
-  const { metadata, fetchMetadataByKey } = useConfig();
+  const { fetchMetadataByKey } = useConfig();
 
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -52,10 +53,37 @@ export default function QuestionnaireContainer() {
   const [questionnaireData, setQuestionnaireData] = useState<
     QuestionnaireData[]
   >([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+
+  const [questionFilters, setQuestionFilters] = useState<
+    { key: string; name: string; values: string[] }[]
+  >([
+    {
+      key: "",
+      name: "",
+      values: [],
+    },
+  ]);
 
   const [selectedQuestion, setSelectedQuestion] =
     useState<QuestionnaireData | null>(null);
+
+  const asset_categories = fetchMetadataByKey("Asset Category")
+    ?.supported_values
+    ? fetchMetadataByKey("Asset Category")?.supported_values
+    : [
+        "Windows",
+        "macOS",
+        "Linux",
+        "Office 365",
+        "Azure AD",
+        "Google Workspace",
+        "SaaS",
+        "IaaS",
+        "Network Devices",
+        "Containers",
+      ];
 
   const [selectedAssetCategory, setSelectedAssetCategory] =
     useState<string>("Windows");
@@ -125,53 +153,57 @@ export default function QuestionnaireContainer() {
   }, [selectedAssetCategory]);
 
   // Create
-  // const handleCreate = async (status: string) => {
-  //   try {
-  //     const req = { ...formData, status };
-  //     await RiskScenarioService.create(req);
-  //     setFormData(initialRiskData);
-  //     setIsAddOpen(false);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: `Success! Risk scenario ${
-  //         status === "published" ? "published" : "saved as draft"
-  //       }`,
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to create risk scenario",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleCreate = async (status: string) => {
+    try {
+      const req = { ...formData, status };
+      await QuestionnaireService.create(req);
+      setFormData(initialQuestionnaireData);
+      setIsAddOpen(false);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: `Success! Question ${
+          status === "published" ? "published" : "saved as draft"
+        }`,
+        severity: "success",
+      });
+    } catch (err: any) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: err.message || "Failed to create question",
+        severity: "error",
+      });
+    }
+  };
 
   // Update
-  // const handleUpdate = async (status: string) => {
-  //   try {
-  //     if (!selectedRiskScenario?.id) throw new Error("Invalid selection");
-  //     const body = { ...selectedRiskScenario, status };
-  //     await RiskScenarioService.update(selectedRiskScenario.id as number, body);
-  //     setIsEditOpen(false);
-  //     setSelectedRiskScenario(null);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: "Risk scenario updated",
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to update risk scenario",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedQuestion?.questionnaireId)
+        throw new Error("Invalid selection");
+      const body = { ...selectedQuestion, status };
+      await QuestionnaireService.update(
+        selectedQuestion.questionnaireId as string,
+        body
+      );
+      setIsEditOpen(false);
+      setSelectedQuestion(null);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "Question updated successfully",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update question",
+        severity: "error",
+      });
+    }
+  };
 
   // Update status only
   const handleUpdateStatus = async (id: string, status: string) => {
@@ -246,28 +278,28 @@ export default function QuestionnaireContainer() {
     }
   };
 
-  //Function to import the process
-  // const handleImportRiskScenarios = async () => {
-  //   try {
-  //     if (!file) {
-  //       throw new Error("File not found");
-  //     }
-  //     await FileService.importLibraryDataCSV("risk-scenario", file as File);
-  //     setIsFileUploadOpen(false);
-  //     setToast({
-  //       open: true,
-  //       message: `Risk scenario Imported successfully`,
-  //       severity: "success",
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     setToast({
-  //       open: true,
-  //       message: "Error: unable to download the import risk scenario from file",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
+  //Function to import the questions
+  const handleImportQuestions = async () => {
+    try {
+      if (!file) {
+        throw new Error("File not found");
+      }
+      await FileService.importLibraryDataCSV("questionnaire", file as File);
+      setIsFileUploadOpen(false);
+      setToast({
+        open: true,
+        message: `Qustions imported successfully`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: "Error: unable to import the questions from file",
+        severity: "error",
+      });
+    }
+  };
 
   //Function to download the questionnaire template file
   const handledownloadQuestionnaireTemplateFile = async () => {
@@ -315,7 +347,7 @@ export default function QuestionnaireContainer() {
   const headerProps = useMemo(
     () => ({
       breadcrumbItems,
-      metaDatas: metadata,
+      metaDatas: questionFilters,
       addButtonText: "Add Question",
       addAction: () => setIsAddOpen(true),
       sortItems,
@@ -324,7 +356,7 @@ export default function QuestionnaireContainer() {
       setFile,
       isFileUploadOpen,
       setIsFileUploadOpen,
-      handleImport: () => console.log("Imported"), //handleImportRiskScenarios,
+      handleImport: handleImportQuestions,
       handledownloadTemplateFile: handledownloadQuestionnaireTemplateFile,
       onImport: () => setIsFileUploadOpen(true),
       isImportRequired: true,
@@ -335,40 +367,11 @@ export default function QuestionnaireContainer() {
       setSort,
       statusFilters,
       setStatusFilters,
+      filters,
+      setFilters,
     }),
     [statusFilters, file, isFileUploadOpen]
   );
-
-  //Function for Form Validation
-  // const handleFormValidation = async (status: string) => {
-  //   try {
-  //     const res = await RiskScenarioService.fetch(
-  //       0,
-  //       1,
-  //       formData.riskScenario.trim(),
-  //       "id:asc"
-  //     );
-  //     if (
-  //       res.data?.length > 0 &&
-  //       res.data[0].riskScenario === formData.riskScenario.trim()
-  //     ) {
-  //       setToast({
-  //         open: true,
-  //         message: `Risk Scenario already exists`,
-  //         severity: "error",
-  //       });
-  //     } else {
-  //       handleCreate(status);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to create risk scenario",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
 
   return (
     <>
@@ -384,68 +387,67 @@ export default function QuestionnaireContainer() {
       )}
 
       {/* Add form */}
-      {/* {isAddOpen && (
-        <RiskScenarioFormModal
+      {isAddOpen && asset_categories && (
+        <QuestionnaireFormModal
           operation="create"
           open={isAddOpen}
-          riskData={formData}
-          setRiskData={setFormData}
-          processes={processesData}
-          metaDatas={metaDatas}
-          onSubmit={handleFormValidation}
-          // onSubmit={handleCreate}
+          assetCategories={asset_categories}
+          controls={controlsForListing}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreate}
           onClose={() => setIsAddConfirmOpen(true)}
         />
-      )} */}
+      )}
 
       {/* Edit form */}
-      {/* {isEditOpen && selectedRiskScenario && (
-        <RiskScenarioFormModal
+      {isEditOpen && selectedQuestion && asset_categories && (
+        <QuestionnaireFormModal
           operation="edit"
           open={isEditOpen}
-          riskData={selectedRiskScenario}
-          setRiskData={(val: any) => {
+          formData={selectedQuestion}
+          setFormData={(val: any) => {
             if (typeof val === "function") {
-              setSelectedRiskScenario((prev) => val(prev as RiskScenarioData));
+              setSelectedQuestion((prev) => val(prev as QuestionnaireData));
             } else {
-              setSelectedRiskScenario(val);
+              setSelectedQuestion(val);
             }
           }}
-          processes={processesData}
-          metaDatas={metaDatas}
+          assetCategories={asset_categories}
+          controls={controlsForListing}
           onSubmit={handleUpdate}
           onClose={() => setIsEditConfirmOpen(true)}
         />
-      )} */}
+      )}
 
       {/* Confirm dialogs */}
-      {/* <ConfirmDialog
+      <ConfirmDialog
         open={isAddConfirmOpen}
         onClose={() => setIsAddConfirmOpen(false)}
-        title="Cancel Risk Scenario Creation?"
-        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        title="Cancel Question Creation?"
+        description="Are you sure you want to cancel the question creation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsAddConfirmOpen(false);
-          setFormData(initialRiskData);
+          setFormData(initialQuestionnaireData);
           setIsAddOpen(false);
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
-      /> */}
+      />
 
-      {/* <ConfirmDialog
+      <ConfirmDialog
         open={isEditConfirmOpen}
         onClose={() => setIsEditConfirmOpen(false)}
-        title="Cancel Risk Scenario Updation?"
-        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        title="Cancel Question Updation?"
+        description="Are you sure you want to cancel the question updation? Any unsaved changes will be lost."
         onConfirm={() => {
           setIsEditConfirmOpen(false);
-          setSelectedRiskScenario(null);
+          setSelectedQuestion(null);
           setIsEditOpen(false);
         }}
         cancelText="Continue Editing"
         confirmText="Yes, Cancel"
-      /> */}
+      />
 
       <ConfirmDialog
         open={isDeleteConfirmOpen}
@@ -462,22 +464,13 @@ export default function QuestionnaireContainer() {
         <LibraryHeader {...headerProps} />
 
         {/* Tabs to select the Asset Category */}
-        <ButtonTabs
-          selectedTab={selectedAssetCategory}
-          setSelectedTab={setSelectedAssetCategory}
-          items={[
-            "Windows",
-            "macOS",
-            "Linux",
-            "Office 365",
-            "Azure AD",
-            "Google Workspace",
-            "SaaS",
-            "IaaS",
-            "Network Devices",
-            "Containers",
-          ]}
-        />
+        {asset_categories && (
+          <ButtonTabs
+            selectedTab={selectedAssetCategory}
+            setSelectedTab={setSelectedAssetCategory}
+            items={asset_categories}
+          />
+        )}
 
         <QuestionnaireList
           loading={loading}
