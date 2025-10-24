@@ -15,6 +15,7 @@ import {
   getOrganizationProcess,
 } from "../../api/organization";
 import {
+  saveAssessmentAssets,
   saveAssessmentProcess,
   saveAssessmentRisk,
   saveAssessmentRiskTaxonomy,
@@ -39,7 +40,6 @@ function BUProcessMappingPage() {
     selectedBU,
     selectedProcesses,
     setSelectedProcesses,
-    orderedProcesses,
   } = useAssessment();
   const router = useRouter();
 
@@ -130,6 +130,18 @@ function BUProcessMappingPage() {
     return obj;
   };
 
+  const prepareAssetPayload = () => {
+    const obj = selectedProcesses.flatMap((process) =>
+      process.assets.map((asset) => ({
+        assessmentProcessId: process.assessmentProcessId,
+        assetName: asset.name,
+        assetDesc: asset.description,
+        assetCategory: asset.assetCategory,
+      }))
+    );
+    return obj;
+  };
+
   // Navigation
   const handlePrev = () => {
     if (activeTab > 0) {
@@ -151,7 +163,7 @@ function BUProcessMappingPage() {
             processes: selectedProcesses.map((item) => {
               return {
                 processName: item.name,
-                order: orderedProcesses[item.orgProcessId],
+                order: item.order,
               };
             }),
             status: status,
@@ -194,7 +206,6 @@ function BUProcessMappingPage() {
           }));
 
           setSelectedProcesses(updatedProcessesRisk);
-
           break;
 
         case 2:
@@ -209,7 +220,29 @@ function BUProcessMappingPage() {
           break;
 
         case 3:
-          console.log("clicked asset function");
+          const assets = prepareAssetPayload();
+          const result = await saveAssessmentAssets({
+            assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            assets,
+          });
+
+          const updatedProcessesAsset = selectedProcesses.map((process) => ({
+            ...process,
+            assets: process.assets.map((asset) => {
+              const match = result.assets.find(
+                (obj: any) => obj.assetName === asset.name
+              );
+
+              return {
+                ...asset,
+                assessmentProcessAssetId:
+                  match?.assessmentProcessAssetId ?? null,
+              };
+            }),
+          }));
+
+          setSelectedProcesses(updatedProcessesAsset);
           break;
       }
 

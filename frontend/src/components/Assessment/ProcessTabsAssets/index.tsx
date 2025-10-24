@@ -5,17 +5,33 @@ import { Tabs, Tab, Box, Typography } from "@mui/material";
 import { useAssessment } from "@/context/AssessmentContext";
 import { Asset } from "@/types/assessment";
 import AssetStrength from "../AssetStrength";
+import QuestionnaireForAsset from "../QuestionnaireForAsset";
+import { getAssetQuestionnaire } from "@/pages/api/assessment";
 
 export default function ProcessTabsAssets() {
   const { selectedProcesses, setSelectedProcesses } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<Asset>();
+  const [questionnaire, setQuestionnaire] = useState([]);
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
     setSelectedAsset(selectedProcesses[newValue].assets[0]); // reset selection when switching process
   };
+
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      try {
+        const res = await getAssetQuestionnaire();
+        setQuestionnaire(res.result.data);
+      } catch (error) {
+        console.error("Error fetching organisations:", error);
+      }
+    };
+
+    fetchOrgs();
+  }, []);
 
   const handleUpdateScenario = (updatedAsset: Asset) => {
     // update inside context
@@ -102,11 +118,14 @@ export default function ProcessTabsAssets() {
           selectedAsset={selectedAsset}
         />
 
-        {/* Right Panel: Business Impact */}
-        {/* <BusinessImpactPanel
-          selectedAsset={selectedAsset}
-          onUpdateScenario={handleUpdateScenario}
-        /> */}
+        {/* Right Panel: Questionnaire*/}
+        <QuestionnaireForAsset
+          questionnaires={questionnaire}
+          assetCategory={selectedAsset?.assetCategory}
+          onSubmit={() => {
+            console.log("questionnaire");
+          }}
+        />
       </Box>
     </Box>
   );

@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: "description",
       },
+      assetCategory: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        field: "asset_category",
+      },
       ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
     },
     {
