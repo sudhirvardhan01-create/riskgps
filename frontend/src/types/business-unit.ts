@@ -16,6 +16,7 @@ export interface BusinessUnitData {
   tags: { key: string; value: string }[];
   status: "active" | "disable";
   lastUpdated?: string;
+  orgId?: string; // Add orgId field
   // Contact roles
   buHead?: { name: string; email: string };
   buPocBiso?: { name: string; email: string };

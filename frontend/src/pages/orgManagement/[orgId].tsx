@@ -152,8 +152,8 @@ function OrgDetailsPage() {
           businessUnits:
             apiResponse.data.businessUnits &&
             apiResponse.data.businessUnits.length > 0
-              ? apiResponse.data.businessUnits
-              : ["-", "-", "-"], // Use API data or default
+              ? apiResponse.data.businessUnits.map((bu: any) => bu.name || bu)
+              : [], // Use API data or empty array
           status: apiResponse.data.isDeleted ? "disabled" : "active", // Use isDeleted flag from API
           lastUpdated: apiResponse.data.modifiedDate
             ? new Date(apiResponse.data.modifiedDate)

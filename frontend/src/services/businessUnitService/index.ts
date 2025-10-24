@@ -1,4 +1,5 @@
 import { BusinessUnitData } from "@/types/business-unit";
+import { Assessment } from "@/types/assessment";
 
 // API Response interfaces for Business Units
 export interface ApiBusinessUnit {
@@ -6,6 +7,7 @@ export interface ApiBusinessUnit {
   organizationId: string;
   name: string;
   desc?: string | null;
+  status?: string;
   head?: {
     name: string;
     email: string;
@@ -43,13 +45,59 @@ export interface ApiBusinessUnitsResponse {
   msg: string;
 }
 
+// Assessment API interfaces
+export interface AssessmentApiResponse {
+  total: number;
+  page: number;
+  limit: number;
+  data: AssessmentApiData[];
+}
+
+export interface AssessmentApiData {
+  assessmentId: string;
+  assessmentName: string;
+  assessmentDesc: string;
+  runId: string;
+  orgId: string;
+  orgName: string;
+  orgDesc: string | null;
+  businessUnitId: string;
+  businessUnitName: string;
+  businessUnitDesc: string | null;
+  status: string;
+  startDate: string;
+  endDate: string | null;
+  lastActivity: string | null;
+  createdBy: string;
+  modifiedBy: string;
+  createdDate: string;
+  modifiedDate: string;
+  isDeleted: boolean;
+  organizationId: string | null;
+}
+
 export interface ApiBusinessUnitResponse {
   data: ApiBusinessUnit;
   msg: string;
 }
 
 // Transform API business unit data to frontend format
-export const transformApiBusinessUnitToFrontend = (apiBu: ApiBusinessUnit): BusinessUnitData => {
+export const transformApiBusinessUnitToFrontend = (apiBu: ApiBusinessUnit, orgId?: string): BusinessUnitData => {
+  // Handle status mapping - convert API status to frontend format
+  const getStatus = (apiStatus?: string): "active" | "disable" => {
+    if (!apiStatus) return "active"; // Default to active if no status provided
+    
+    // Handle case sensitivity - convert to lowercase for comparison
+    const normalizedStatus = apiStatus.toLowerCase();
+    
+    if (normalizedStatus === "disable" || normalizedStatus === "disabled") {
+      return "disable";
+    }
+    
+    // Default to active for any other status (including "active", "Active", etc.)
+    return "active";
+  };
+
   return {
     id: apiBu.orgBusinessUnitId,
     businessUnitName: apiBu.name,
@@ -57,8 +105,9 @@ export const transformApiBusinessUnitToFrontend = (apiBu: ApiBusinessUnit): Busi
     buSize: 0, // Default size since API doesn't provide it
     assessments: 0, // Default assessments since API doesn't provide it
     tags: apiBu.tags || [],
-    status: "active", // Default status since API doesn't provide it
+    status: getStatus(apiBu.status), // Use actual API status with proper mapping
     lastUpdated: apiBu.modifiedDate,
+    orgId: orgId || apiBu.organizationId, // Include orgId
     buHead: apiBu.head,
     buPocBiso: apiBu.pocBiso,
     buItPoc: apiBu.itPoc,
@@ -67,9 +116,9 @@ export const transformApiBusinessUnitToFrontend = (apiBu: ApiBusinessUnit): Busi
 };
 
 // Transform API response to frontend format
-export const transformApiResponseToFrontend = (apiResponse: ApiBusinessUnitsResponse) => {
+export const transformApiResponseToFrontend = (apiResponse: ApiBusinessUnitsResponse, orgId?: string) => {
   return {
-    businessUnits: apiResponse.data.businessUnits.map(transformApiBusinessUnitToFrontend),
+    businessUnits: apiResponse.data.businessUnits.map(bu => transformApiBusinessUnitToFrontend(bu, orgId)),
     total: apiResponse.data.total,
     page: apiResponse.data.page,
     limit: apiResponse.data.limit
@@ -107,7 +156,7 @@ export const getBusinessUnits = async (orgId: string): Promise<BusinessUnitData[
   }
 
   const apiResponse: ApiBusinessUnitsResponse = await response.json();
-  const transformedData = transformApiResponseToFrontend(apiResponse);
+  const transformedData = transformApiResponseToFrontend(apiResponse, orgId);
   
   return transformedData.businessUnits;
 };
@@ -324,4 +373,58 @@ export const deleteBusinessUnit = async (
   }
 
   return response.json();
+};
+
+// Assessment functions for business units
+export const getAssessmentsByBusinessUnit = async (orgId?: string, businessUnitId?: string): Promise<AssessmentApiResponse> => {
+  const params = new URLSearchParams();
+  if (orgId) params.append('orgId', orgId);
+  if (businessUnitId) params.append('businessUnitId', businessUnitId);
+  
+  // Get access token from cookies
+  const token = typeof window !== 'undefined' ? document.cookie
+    .split('; ')
+    .find(row => row.startsWith('accessToken='))
+    ?.split('=')[1] : null;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add authorization header if token exists
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/assessment/by-org-or-bu?${params}`,
+    {
+      method: "GET",
+      headers,
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch assessment data");
+  }
+  return response.json();
+};
+
+// Helper function to format API response to match Assessment interface
+export const formatAssessmentData = (apiData: AssessmentApiData): Assessment => {
+  return {
+    assessmentId: apiData.assessmentId,
+    assessmentName: apiData.assessmentName,
+    assessmentDesc: apiData.assessmentDesc,
+    runId: apiData.runId,
+    orgId: apiData.orgId,
+    orgName: apiData.orgName,
+    orgDesc: apiData.orgDesc || undefined,
+    businessUnitId: apiData.businessUnitId,
+    businessUnitName: apiData.businessUnitName,
+    businessUnitDesc: apiData.businessUnitDesc || undefined,
+    status: apiData.status,
+    startDate: new Date(apiData.startDate),
+    endDate: apiData.endDate ? new Date(apiData.endDate) : null,
+    lastActivity: apiData.lastActivity ? new Date(apiData.lastActivity) : new Date(apiData.createdDate),
+  };
 };
