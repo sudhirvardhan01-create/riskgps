@@ -95,7 +95,7 @@ export default function ProcessTabs() {
       </Tabs>
 
       {/* Tab Content */}
-      <Box sx={{ display: "flex", flex: 1 }}>
+      <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
         {/* Left Panel: Risk Scenarios */}
         <RiskScenarioList
           scenarios={activeProcess.risks}

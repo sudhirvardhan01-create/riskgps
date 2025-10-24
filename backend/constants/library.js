@@ -84,7 +84,7 @@ module.exports = {
       "created_at",
       "updated_at",
       "mitreControlId",
-      "mitreControlName"
+      "mitreControlName",
     ],
   },
   FRAMEWORK_CONTROLS: {
@@ -94,7 +94,10 @@ module.exports = {
       "updated_at",
       "frameWorkControlCategoryId",
       "frameWorkControlCategory",
-      "frameWorkControlDescription"
+      "frameWorkControlDescription",
     ],
-  }
+  },
+  QUESTIONNAIRE: {
+    ALLOWED_SORT_FIELD: ["questionCode", "createdDate", "modifiedDate"],
+  },
 };
