@@ -78,4 +78,6 @@ export const labels = {
   //Questionnaire
   questionnaireAssetCategory: "Asset Category",
   questionText: "Question",
+
+  //User Management
 };
