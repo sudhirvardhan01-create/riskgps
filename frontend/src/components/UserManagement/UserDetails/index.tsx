@@ -16,29 +16,13 @@ import { Edit, Delete } from "@mui/icons-material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useRouter } from "next/router";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
+import { UserData } from "@/types/user";
 
 export interface UserDetailsProps {
-  user: {
-    id: string;
-    name: string;
-    employeeId: string;
-    email: string;
-    phone: string;
-    userType: string;
-    organisation: string;
-    businessUnit?: string;
-    position: string;
-    communicationPreference: string;
-    isActive: boolean;
-    createdOn: string;
-    createdBy: string;
-    invitationStatus: string;
-    lastLoginDate: string;
-    passwordLastChanged: string;
-  };
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
-  onResetPassword?: (id: string) => void;
+  user: UserData;
+  onEdit?: (id: string | undefined) => void;
+  onDelete?: (id: string | undefined) => void;
+  onResetPassword?: (id: string | undefined) => void;
 }
 
 const UserDetails: React.FC<UserDetailsProps> = ({
@@ -101,7 +85,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   color="text.primary"
                   fontWeight={550}
                 >
-                  {user.employeeId}
+                  {user.userCode}
                 </Typography>
               </Stack>
             </Stack>
@@ -112,25 +96,34 @@ const UserDetails: React.FC<UserDetailsProps> = ({
               height={"24px"}
             >
               <Stack display={"flex"} flexDirection={"row"} gap={1}>
-                <ToggleSwitch sx={{ m: 0 }} checked={user.isActive} />
+                <ToggleSwitch
+                  sx={{ m: 0 }}
+                  checked={user.status === "active"}
+                />
                 <Typography
                   variant="body2"
                   sx={{
-                    color: user.isActive ? "#147A50" : "#757575",
+                    color: user.status === "active" ? "#147A50" : "#757575",
                     fontWeight: 500,
                   }}
                 >
-                  {user.isActive ? "Active" : "Disabled"}
+                  {user.status === "active" ? "Active" : "Disabled"}
                 </Typography>
               </Stack>
               <Divider orientation="vertical" flexItem />
               <Tooltip title="Edit">
-                <IconButton onClick={() => onEdit?.(user.id)} color="primary">
+                <IconButton
+                  onClick={() => onEdit?.(user.userId)}
+                  color="primary"
+                >
                   <Edit />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete">
-                <IconButton onClick={() => onDelete?.(user.id)} color="error">
+                <IconButton
+                  onClick={() => onDelete?.(user.userId)}
+                  color="error"
+                >
                   <Delete />
                 </IconButton>
               </Tooltip>
@@ -189,14 +182,14 @@ const UserDetails: React.FC<UserDetailsProps> = ({
               </Typography>
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
+            {/* <Grid size={{ xs: 12 }}>
               <Typography variant="body1" color="#91939A" fontWeight={500}>
                 Position / Title
               </Typography>
               <Typography fontSize={18} fontWeight={550} color="text.primary">
                 {user.position}
               </Typography>
-            </Grid>
+            </Grid> */}
           </Grid>
         </CardContent>
       </Card>
@@ -224,7 +217,9 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Created On
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.createdOn}
+                  {user.createdDate
+                    ? new Date(user.createdDate)?.toDateString()
+                    : "-"}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -240,7 +235,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Invitation / Terms and Conditions
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.invitationStatus}
+                  {user.isTermsAndConditionsAccepted}
                 </Typography>
               </Grid>
 
@@ -249,7 +244,9 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Last Login Date
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.lastLoginDate}
+                  {user.lastLoginDate
+                    ? new Date(user.lastLoginDate).toDateString()
+                    : "-"}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -257,13 +254,15 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Password Last Changed
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.passwordLastChanged}
+                  {user.passwordLastChanged
+                    ? new Date(user.passwordLastChanged)?.toDateString()
+                    : "-"}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }} display={"flex"} alignItems={"center"}>
                 <Typography
                   component={Link}
-                  onClick={() => onResetPassword?.(user.id)}
+                  onClick={() => onResetPassword?.(user.userId)}
                   sx={{
                     cursor: "pointer",
                     color: "primary.main",

@@ -7,11 +7,10 @@ export interface UserData {
   phone: string;
   communicationPreference: string;
   password?: string;
+  company: string;
   organisation: string;
   businessUnit: string;
   userType: string;
-  location?: string;
-  title?: string;
   isTermsAndConditionsAccepted?: boolean;
   status: string;
   createdDate?: Date;

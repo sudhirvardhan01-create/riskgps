@@ -214,7 +214,7 @@ const UserTableHeader: React.FC<UserTableHeaderProps> = ({
         variant="body1"
         fontWeight={600}
         color="#FFFFFF"
-        textAlign="center"
+        textAlign="start"
       >
         Status
       </Typography>
