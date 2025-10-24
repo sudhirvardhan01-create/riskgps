@@ -1,8 +1,8 @@
-import UserDetailsPage from "./[userId]";
+import UserManagementContainer from "@/containers/UserManagementContainer";
 import withAuth from "@/hoc/withAuth";
 
 function UserManagementPage() {
-  return <UserDetailsPage />;
+  return <UserManagementContainer />;
 }
 
 export default withAuth(UserManagementPage);
