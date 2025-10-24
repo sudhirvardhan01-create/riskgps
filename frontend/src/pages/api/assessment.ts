@@ -22,7 +22,7 @@ interface AssessmentProcess {
 
 interface Process {
   processName: string;
-  order: number;
+  order: number | undefined;
 }
 
 interface AssessmentRisk {

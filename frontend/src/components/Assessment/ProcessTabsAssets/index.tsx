@@ -122,9 +122,9 @@ export default function ProcessTabsAssets() {
         <QuestionnaireForAsset
           questionnaires={questionnaire}
           assetCategory={selectedAsset?.assetCategory}
-          onSubmit={() => {
-            console.log("questionnaire");
-          }}
+          // onSubmit={() => {
+          //   console.log("questionnaire");
+          // }}
         />
       </Box>
     </Box>

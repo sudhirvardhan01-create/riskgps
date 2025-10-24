@@ -21,7 +21,7 @@ interface Questionnaire {
 }
 
 interface QuestionnaireProps {
-  assetCategory: string; // coming from props
+  assetCategory: string | undefined; // coming from props
   questionnaires: Questionnaire[];
 }
 
@@ -32,18 +32,18 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
   const [filteredQuestions, setFilteredQuestions] = useState<Questionnaire[]>(
     []
   );
-  const [responses, setResponses] = useState({});
+  const [responses, setResponses] = useState<any>({});
 
   useEffect(() => {
-    const filterQuestions = questionnaires.filter((q) =>
-      q.assetCategories.includes(assetCategory)
+    const filterQuestions = questionnaires.filter(
+      (q) => assetCategory && q.assetCategories.includes(assetCategory)
     );
 
     setFilteredQuestions(filterQuestions);
   }, [assetCategory, questionnaires]);
 
   const handleResponseChange = (questionCode: string, value: number) => {
-    setResponses((prev) => ({
+    setResponses((prev: any) => ({
       ...prev,
       [questionCode]: value,
     }));
