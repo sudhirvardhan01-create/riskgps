@@ -2,22 +2,7 @@ import React, { useState } from 'react';
 import { Box, Chip, Typography, Stack, Divider, FormControlLabel, Switch } from '@mui/material';
 import Image from "next/image";
 import DisableConfirmationModal from './DisableConfirmationModal';
-
-interface BusinessUnitData {
-  id: string;
-  businessUnitName: string;
-  buCode: string;
-  buSize: number;
-  assessments: number;
-  tags: { key: string; value: string }[];
-  status: 'active' | 'disable';
-  lastUpdated?: string;
-  // Contact roles
-  buHead?: { name: string; email: string };
-  buPocBiso?: { name: string; email: string };
-  buItPoc?: { name: string; email: string };
-  buFinanceLead?: { name: string; email: string };
-}
+import { BusinessUnitData } from '@/types/business-unit';
 
 interface BusinessUnitCardProps {
   businessUnit: BusinessUnitData;
