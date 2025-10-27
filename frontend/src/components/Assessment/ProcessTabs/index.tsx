@@ -8,19 +8,19 @@ import { useAssessment } from "@/context/AssessmentContext";
 import { Risk } from "@/types/assessment";
 
 export default function ProcessTabs() {
-  const { selectedProcesses, setSelectedProcesses } = useAssessment();
+  const { assessment?.processes, setSelectedProcesses } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
   const [selectedScenario, setSelectedScenario] = useState<Risk | null>(null);
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedScenario(selectedProcesses[newValue].risks[0]); // reset selection when switching process
+    setSelectedScenario(assessment?.processes[newValue].risks[0]); // reset selection when switching process
   };
 
   const handleUpdateScenario = (updatedScenario: Risk) => {
     // update inside context
-    const updatedProcesses = selectedProcesses.map((p, idx) => {
+    const updatedProcesses = assessment?.processes.map((p, idx) => {
       if (idx !== currentTab) return p;
 
       return {
@@ -35,11 +35,11 @@ export default function ProcessTabs() {
     setSelectedScenario(updatedScenario);
   };
 
-  const activeProcess = selectedProcesses[currentTab];
+  const activeProcess = assessment?.processes[currentTab];
 
   useEffect(() => {
-    if (selectedProcesses.length > 0) {
-      setSelectedScenario(selectedProcesses[0].risks[0]);
+    if (assessment?.processes.length > 0) {
+      setSelectedScenario(assessment?.processes[0].risks[0]);
     }
   }, []);
 
@@ -69,7 +69,7 @@ export default function ProcessTabs() {
         variant="scrollable"
         scrollButtons
       >
-        {selectedProcesses.map((p, idx) => (
+        {assessment?.processes.map((p, idx) => (
           <Tab
             key={idx}
             label={

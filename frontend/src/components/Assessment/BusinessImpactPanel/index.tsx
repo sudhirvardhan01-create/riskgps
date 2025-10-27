@@ -17,7 +17,7 @@ export default function BusinessImpactPanel({
   selectedScenario: Risk | null;
   onUpdateScenario: (risk: Risk) => void;
 }) {
-  const { selectedOrg } = useAssessment();
+  const { assessment?.orgId } = useAssessment();
 
   const [thresholdHours, setThresholdHours] = useState<number | undefined>();
   const [thresholdCost, setThresholdCost] = useState<number | undefined>();
@@ -29,7 +29,7 @@ export default function BusinessImpactPanel({
   // fetch taxonomies
   useEffect(() => {
     const getTaxonomies = async () => {
-      const res = await getOrganizationTaxonomy(selectedOrg);
+      const res = await getOrganizationTaxonomy(assessment?.orgId);
       setTaxonomies(res.data);
 
       // initialize taxonomyValue
@@ -43,7 +43,7 @@ export default function BusinessImpactPanel({
       );
     };
     getTaxonomies();
-  }, [selectedOrg]);
+  }, [assessment?.orgId]);
 
   // Reset form when selectedScenario changes
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function BusinessImpactPanel({
           selectedScenario.taxonomy.map((t: any) => ({
             taxonomyId: t.taxonomyId,
             name: t.name ?? "",
-            orgId: t.orgId ?? selectedOrg,
+            orgId: t.orgId ?? assessment?.orgId,
             severityDetails: t.severityDetails ?? {},
           }))
         );
@@ -71,7 +71,7 @@ export default function BusinessImpactPanel({
     }
 
     setIsInternalChange(false);
-  }, [selectedScenario, selectedOrg]);
+  }, [selectedScenario, assessment?.orgId]);
 
   // Push updates back into parent
   useEffect(() => {

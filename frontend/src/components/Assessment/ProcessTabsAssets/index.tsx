@@ -9,7 +9,7 @@ import QuestionnaireForAsset from "../QuestionnaireForAsset";
 import { getAssetQuestionnaire } from "@/pages/api/assessment";
 
 export default function ProcessTabsAssets() {
-  const { selectedProcesses, setSelectedProcesses } = useAssessment();
+  const { assessment?.processes, setSelectedProcesses } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
   const [selectedAsset, setSelectedAsset] = useState<Asset>();
@@ -17,7 +17,7 @@ export default function ProcessTabsAssets() {
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedAsset(selectedProcesses[newValue].assets[0]); // reset selection when switching process
+    setSelectedAsset(assessment?.processes[newValue].assets[0]); // reset selection when switching process
   };
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function ProcessTabsAssets() {
 
   const handleUpdateScenario = (updatedAsset: Asset) => {
     // update inside context
-    const updatedProcesses = selectedProcesses.map((p, idx) => {
+    const updatedProcesses = assessment?.processes.map((p, idx) => {
       if (idx !== currentTab) return p;
 
       return {
@@ -50,11 +50,11 @@ export default function ProcessTabsAssets() {
     setSelectedAsset(updatedAsset);
   };
 
-  const activeProcess = selectedProcesses[currentTab];
+  const activeProcess = assessment?.processes[currentTab];
 
   useEffect(() => {
-    if (selectedProcesses.length > 0) {
-      setSelectedAsset(selectedProcesses[0].assets[0]);
+    if (assessment?.processes.length > 0) {
+      setSelectedAsset(assessment?.processes[0].assets[0]);
     }
   }, []);
 
@@ -84,7 +84,7 @@ export default function ProcessTabsAssets() {
         variant="scrollable"
         scrollButtons
       >
-        {selectedProcesses.map((p, idx) => (
+        {assessment?.processes.map((p, idx) => (
           <Tab
             key={idx}
             label={

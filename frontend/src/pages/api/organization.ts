@@ -14,7 +14,10 @@ export const getOrganization = async () => {
   return response.json();
 };
 
-export const getOrganizationProcess = async (orgId: string, buId: string) => {
+export const getOrganizationProcess = async (
+  orgId: string | undefined,
+  buId: string | undefined
+) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/processes`,
     {

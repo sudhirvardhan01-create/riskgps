@@ -12,12 +12,12 @@ import { getOrganizationAssets } from "@/pages/api/organization";
 import { ProcessUnit, Asset } from "@/types/assessment";
 
 const DragDropAssets = () => {
-  const { selectedOrg, selectedProcesses, setSelectedProcesses } =
+  const { assessment?.orgId, assessment?.processes, setSelectedProcesses } =
     useAssessment();
 
   const [assetPool, setAssetPool] = useState<Asset[]>([]);
 
-  const [processes, setProcesses] = useState<ProcessUnit[]>(selectedProcesses);
+  const [processes, setProcesses] = useState<ProcessUnit[]>(assessment?.processes);
 
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
@@ -28,7 +28,7 @@ const DragDropAssets = () => {
 
   useEffect(() => {
     const getOrg = async () => {
-      const res = await getOrganizationAssets(selectedOrg);
+      const res = await getOrganizationAssets(assessment?.orgId);
       setAssetPool(res.data);
     };
 

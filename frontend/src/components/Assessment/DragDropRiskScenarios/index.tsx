@@ -12,12 +12,12 @@ import { getOrganizationRisks } from "@/pages/api/organization";
 import { ProcessUnit, Risk } from "@/types/assessment";
 
 const DragDropRiskScenarios = () => {
-  const { selectedOrg, selectedProcesses, setSelectedProcesses } =
+  const { assessment?.orgId, assessment?.processes, setSelectedProcesses } =
     useAssessment();
 
   const [riskPool, setRiskPool] = useState<Risk[]>([]);
 
-  const [processes, setProcesses] = useState<ProcessUnit[]>(selectedProcesses);
+  const [processes, setProcesses] = useState<ProcessUnit[]>(assessment?.processes);
 
   const [selectedRisks, setSelectedRisks] = useState<string[]>([]);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
@@ -28,7 +28,7 @@ const DragDropRiskScenarios = () => {
 
   useEffect(() => {
     const getOrg = async () => {
-      const res = await getOrganizationRisks(selectedOrg);
+      const res = await getOrganizationRisks(assessment?.orgId);
       setRiskPool(res.data);
     };
 

@@ -3,29 +3,30 @@ import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { useState } from "react";
 import ProcessCard from "./ProcessCard";
 import { ProcessUnit } from "@/types/assessment";
+import { useAssessment } from "@/context/AssessmentContext";
 
 interface SectionProcessesProps {
   processes: ProcessUnit[];
-  selected: ProcessUnit[];
-  onSelectionChange: (selected: ProcessUnit[]) => void;
+  selected: ProcessUnit[] | undefined;
 }
 
 export default function SectionProcesses({
   processes,
   selected,
-  onSelectionChange,
 }: SectionProcessesProps) {
+  const { updateAssessment } = useAssessment();
+
   const [search, setSearch] = useState("");
 
   const isSelected = (process: ProcessUnit) =>
-    selected.some((p) => p.orgProcessId === process.orgProcessId);
+    selected?.some((p) => p.processName === process.name);
 
   const toggleSelection = (process: ProcessUnit) => {
     const updated = isSelected(process)
-      ? selected.filter((p) => p.orgProcessId !== process.orgProcessId)
-      : [...selected, process];
+      ? selected?.filter((p) => p.orgProcessId !== process.orgProcessId)
+      : selected && [...selected, process];
 
-    onSelectionChange(updated);
+    updateAssessment({ processes: updated });
   };
 
   const filteredProcesses = processes.filter((p) =>
