@@ -17,7 +17,7 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
     ? new Date(record.createdDate).toISOString().split("T")[0]
     : "";
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = () => {
     // Navigate to user details page
     router.push(`/userManagement/${record.userId}`);
   };
@@ -50,20 +50,26 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
             position: "relative",
           }}
         >
-          {/* {record.userImage && (
+          {record.userImage ? (
             <Image
               src={record.userImage}
               alt="user-image"
               fill
               style={{ objectFit: "cover" }}
             />
-          )} */}
+          ) : (
+            <Avatar
+              src="/default-user.png"
+              alt={record.name}
+              sx={{ width: 48, height: 48 }}
+            />
+          )}
         </Box>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography
             variant="body1"
             fontWeight={600}
-            color="#484848"
+            color="text.primary"
             sx={{
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -82,7 +88,7 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
               whiteSpace: "nowrap",
             }}
           >
-            {record.userCode}
+            {`${record.userCode}  •  ${record.email}  •  ${record.phone}`}
           </Typography>
         </Box>
       </Box>
@@ -96,7 +102,7 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
             textAlign: "start",
           }}
         >
-          {record.userType}
+          {record.role}
         </Typography>
       </Box>
 

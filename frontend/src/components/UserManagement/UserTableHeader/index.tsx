@@ -153,61 +153,9 @@ const UserTableHeader: React.FC<UserTableHeaderProps> = ({
       </Box>
 
       {/* Organisation Column */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          height: "20px",
-        }}
-      >
-        <Typography variant="body1" fontWeight={600} color="#FFFFFF">
-          Organisation
-        </Typography>
-        <IconButton
-          onClick={() => handleSort("name")}
-          sx={{
-            padding: 0,
-            color: "#FFFFFF",
-            "&:hover": {
-              backgroundColor: "transparent",
-              color: "#FFFFFF",
-            },
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <KeyboardArrowUp
-              sx={{
-                fontSize: "16px",
-                opacity:
-                  sortField === "name" && sortDirection === "asc" ? 1 : 0.6,
-                color:
-                  sortField === "name" && sortDirection === "asc"
-                    ? "#FFFFFF"
-                    : "#FFFFFF",
-              }}
-            />
-            <KeyboardArrowDown
-              sx={{
-                fontSize: "16px",
-                marginTop: "-4px",
-                opacity:
-                  sortField === "name" && sortDirection === "desc" ? 1 : 0.6,
-                color:
-                  sortField === "name" && sortDirection === "desc"
-                    ? "#FFFFFF"
-                    : "#FFFFFF",
-              }}
-            />
-          </Box>
-        </IconButton>
-      </Box>
+      <Typography variant="body1" fontWeight={600} color="#FFFFFF">
+        Organisation
+      </Typography>
 
       {/* Status Column */}
       <Typography

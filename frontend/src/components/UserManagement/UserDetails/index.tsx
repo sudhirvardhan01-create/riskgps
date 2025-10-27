@@ -17,6 +17,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useRouter } from "next/router";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 import { UserData } from "@/types/user";
+import { formatDate } from "@/utils/utility";
 
 export interface UserDetailsProps {
   user: UserData;
@@ -162,25 +163,25 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                 User Type
               </Typography>
               <Typography fontSize={18} fontWeight={550} color="text.primary">
-                {user.userType}
+                {user.role}
               </Typography>
             </Grid>
             <Grid size={{ xs: 4 }}>
               <Typography variant="body1" color="#91939A" fontWeight={500}>
-                Organisation
+                Company
               </Typography>
               <Typography fontSize={18} fontWeight={550} color="text.primary">
-                {user.organisation}
+                {user.company}
               </Typography>
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            {/* <Grid size={{ xs: 4 }}>
               <Typography variant="body1" color="#91939A" fontWeight={500}>
                 Business Unit
               </Typography>
               <Typography fontSize={18} fontWeight={550} color="text.primary">
                 {user.businessUnit || "-"}
               </Typography>
-            </Grid>
+            </Grid> */}
 
             {/* <Grid size={{ xs: 12 }}>
               <Typography variant="body1" color="#91939A" fontWeight={500}>
@@ -193,6 +194,35 @@ const UserDetails: React.FC<UserDetailsProps> = ({
           </Grid>
         </CardContent>
       </Card>
+
+      <Box sx={{ mt: 4 }}>
+        <Typography
+          variant="h6"
+          fontWeight={600}
+          gutterBottom
+          color="text.primary"
+          marginBottom={2}
+        >
+          Organisation
+        </Typography>
+        <Card
+          variant="outlined"
+          sx={{ borderRadius: 2, border: "1px solid #D9D9D9" }}
+        >
+          <CardContent sx={{ p: "0 !important" }}>
+            <Grid container spacing={3} sx={{ p: 3 }}>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="body1" color="#91939A" fontWeight={500}>
+                  Assigned Organisation
+                </Typography>
+                <Typography fontSize={18} fontWeight={550} color="text.primary">
+                  {user.organisation}
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Box>
 
       {/* Activity Section */}
       <Box sx={{ mt: 4 }}>
@@ -217,9 +247,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Created On
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.createdDate
-                    ? new Date(user.createdDate)?.toDateString()
-                    : "-"}
+                  {user.createdDate ? formatDate(user.createdDate) : "-"}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -235,7 +263,9 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Invitation / Terms and Conditions
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.isTermsAndConditionsAccepted}
+                  {user.isTermsAndConditionsAccepted
+                    ? "Accepted"
+                    : "Not Accepted"}
                 </Typography>
               </Grid>
 
@@ -244,9 +274,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Last Login Date
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.lastLoginDate
-                    ? new Date(user.lastLoginDate).toDateString()
-                    : "-"}
+                  {user.lastLoginDate ? formatDate(user.lastLoginDate) : "-"}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -255,7 +283,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
                   {user.passwordLastChanged
-                    ? new Date(user.passwordLastChanged)?.toDateString()
+                    ? formatDate(user.passwordLastChanged)
                     : "-"}
                 </Typography>
               </Grid>

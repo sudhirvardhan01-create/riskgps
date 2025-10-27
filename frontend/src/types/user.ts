@@ -8,9 +8,8 @@ export interface UserData {
   communicationPreference: string;
   password?: string;
   company: string;
-  organisation: string;
-  businessUnit: string;
-  userType: string;
+  organisation?: string;
+  role: string;
   isTermsAndConditionsAccepted?: boolean;
   status: string;
   createdDate?: Date;

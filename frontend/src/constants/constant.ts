@@ -22,4 +22,4 @@ export const COUNTRIES = [
 
 export const ORG_COLUMN_TEMPLATE = "240px 260px 120px 280px 120px 10px";
 export const USER_TABLE_HEADER_COLUMN_TEMPLATE =
-  "400px 140px 140px 220px 120px";
+  "500px 140px 140px 260px 100px";
