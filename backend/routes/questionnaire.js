@@ -4,6 +4,22 @@ const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
 const CustomError = require("../utils/CustomError");
 const QuestionnaireService = require("../services/questionnaire");
+const multer = require("multer");
+
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (req, file, cb) => {
+    if (
+      file.mimetype === "text/csv" ||
+      file.mimetype === "application/vnd.ms-excel"
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only CSV files are allowed"));
+    }
+  },
+});
 
 router.post("/", async (req, res) => {
   try {
@@ -21,6 +37,29 @@ router.post("/", async (req, res) => {
       message:
         err.message || "Something went wrong while creating the question.",
       details: err.details || null,
+    });
+  }
+});
+
+router.post("/import", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      throw new Error("File is required!");
+    }
+    const filePath = req.file.path;
+    const insertedRowCount =
+      await QuestionnaireService.importQuestionnaireFromCSV(filePath);
+    res.status(HttpStatus.OK).json({
+      data: insertedRowCount,
+      message: "Questions imported successfully",
+    });
+  } catch (err) {
+    console.log(
+      "Failed to upload questions",
+      err || "Failed to import questions from csv file"
+    );
+    res.status(HttpStatus.BAD_REQUEST).json({
+      error: err.message || "Failed to import questions from csv file",
     });
   }
 });

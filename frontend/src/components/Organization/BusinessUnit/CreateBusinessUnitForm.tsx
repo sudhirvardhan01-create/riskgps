@@ -41,6 +41,27 @@ interface BusinessUnitFormData {
   tags: Tag[];
 }
 
+// Centralized field configuration - control all required fields from here
+const FIELD_CONFIG = {
+  businessUnitName: { required: true },
+  buHead: { 
+    name: { required: true },
+    email: { required: true }
+  },
+  buPocBiso: { 
+    name: { required: true },
+    email: { required: true }
+  },
+  buItPoc: { 
+    name: { required: true },
+    email: { required: true }
+  },
+  buFinanceLead: { 
+    name: { required: true },
+    email: { required: true }
+  }
+} as const;
+
 const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
   open,
   onClose,
@@ -142,20 +163,23 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.businessUnitName.trim()) {
+    // Validate business unit name
+    if (FIELD_CONFIG.businessUnitName.required && !formData.businessUnitName.trim()) {
       newErrors.businessUnitName = 'Business Unit Name is required';
     }
 
-    // Validate contact information
+    // Validate contact information using centralized config
     const contactFields = ['buHead', 'buPocBiso', 'buItPoc', 'buFinanceLead'] as const;
     contactFields.forEach(contactType => {
       const contact = formData[contactType];
-      if (!contact.name.trim()) {
+      const contactConfig = FIELD_CONFIG[contactType];
+      
+      if (contactConfig.name.required && !contact.name.trim()) {
         newErrors[`${contactType}Name`] = 'Name is required';
       }
-      if (!contact.email.trim()) {
+      if (contactConfig.email.required && !contact.email.trim()) {
         newErrors[`${contactType}Email`] = 'Email is required';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
+      } else if (contact.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
         newErrors[`${contactType}Email`] = 'Please enter a valid email';
       }
     });
@@ -177,9 +201,10 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
           buFinanceLead: { name: '', email: '' },
           tags: [{ key: '', value: '' }],
         });
+        setErrors({});
+        onClose();
       }
-      setErrors({});
-      onClose();
+      // In edit mode, don't close immediately - let the parent handle the close after API call
     }
   };
 
@@ -260,7 +285,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
           <Box>
             <TextFieldStyled
               label="Business Unit Name"
-              required
+              required={FIELD_CONFIG.businessUnitName.required}
               value={formData.businessUnitName}
               onChange={(e) => handleInputChange('businessUnitName', e.target.value)}
               placeholder="Enter name"
@@ -286,6 +311,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Name"
+                    required={FIELD_CONFIG.buHead.name.required}
                     value={formData.buHead.name}
                     onChange={(e) => handleContactChange('buHead', 'name', e.target.value)}
                     placeholder="Enter name"
@@ -296,6 +322,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Email"
+                    required={FIELD_CONFIG.buHead.email.required}
                     value={formData.buHead.email}
                     onChange={(e) => handleContactChange('buHead', 'email', e.target.value)}
                     placeholder="Enter email"
@@ -322,6 +349,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Name"
+                    required={FIELD_CONFIG.buPocBiso.name.required}
                     value={formData.buPocBiso.name}
                     onChange={(e) => handleContactChange('buPocBiso', 'name', e.target.value)}
                     placeholder="Enter name"
@@ -332,6 +360,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Email"
+                    required={FIELD_CONFIG.buPocBiso.email.required}
                     value={formData.buPocBiso.email}
                     onChange={(e) => handleContactChange('buPocBiso', 'email', e.target.value)}
                     placeholder="Enter email"
@@ -358,6 +387,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Name"
+                    required={FIELD_CONFIG.buItPoc.name.required}
                     value={formData.buItPoc.name}
                     onChange={(e) => handleContactChange('buItPoc', 'name', e.target.value)}
                     placeholder="Enter name"
@@ -368,6 +398,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Email"
+                    required={FIELD_CONFIG.buItPoc.email.required}
                     value={formData.buItPoc.email}
                     onChange={(e) => handleContactChange('buItPoc', 'email', e.target.value)}
                     placeholder="Enter email"
@@ -394,6 +425,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Name"
+                    required={FIELD_CONFIG.buFinanceLead.name.required}
                     value={formData.buFinanceLead.name}
                     onChange={(e) => handleContactChange('buFinanceLead', 'name', e.target.value)}
                     placeholder="Enter name"
@@ -404,6 +436,7 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
                 <Box sx={{ flex: 1 }}>
                   <TextFieldStyled
                     label="Email"
+                    required={FIELD_CONFIG.buFinanceLead.email.required}
                     value={formData.buFinanceLead.email}
                     onChange={(e) => handleContactChange('buFinanceLead', 'email', e.target.value)}
                     placeholder="Enter email"

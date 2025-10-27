@@ -58,6 +58,7 @@ export interface Asset {
   assessmentProcessAssetId?: string;
   name: string;
   description: string;
+  assetCategory: string;
 }
 
 export interface ProcessUnit {

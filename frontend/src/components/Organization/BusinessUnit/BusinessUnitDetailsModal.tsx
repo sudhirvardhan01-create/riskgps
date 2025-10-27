@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,38 +12,30 @@ import {
   FormControlLabel,
   Stack,
   Divider,
+  Button,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import Image from "next/image";
+import { useRouter } from 'next/router';
 import DisableConfirmationModal from './DisableConfirmationModal';
 import AssessmentTable from '../../Assessment/AssessmentTable';
 import { Assessment } from '@/types/assessment';
+import { BusinessUnitData } from '@/types/business-unit';
+import { getAssessmentsByBusinessUnit, formatAssessmentData } from '@/services/businessUnitService';
+import ToastComponent from '@/components/ToastComponent';
 
-// Using the Assessment type from @/types/assessment
-
-interface BusinessUnitData {
-  id: string;
-  businessUnitName: string;
-  buCode: string;
-  buSize: number;
-  assessments: number;
-  tags: { key: string; value: string }[];
-  status: 'active' | 'disable';
-  lastUpdated?: string;
-  // Contact roles
-  buHead?: { name: string; email: string };
-  buPocBiso?: { name: string; email: string };
-  buItPoc?: { name: string; email: string };
-  buFinanceLead?: { name: string; email: string };
-  // Assessment data
+// Extended interface for modal-specific data
+interface BusinessUnitDataWithAssessment extends BusinessUnitData {
   assessmentData?: Assessment[];
 }
 
 interface BusinessUnitDetailsModalProps {
   open: boolean;
   onClose: () => void;
-  businessUnit: BusinessUnitData | null;
-  onEdit: (businessUnit: BusinessUnitData) => void;
+  businessUnit: BusinessUnitDataWithAssessment | null;
+  onEdit: (businessUnit: BusinessUnitDataWithAssessment) => void;
   onStatusChange: (id: string, status: 'active' | 'disable') => void;
 }
 
@@ -77,21 +69,78 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   onEdit,
   onStatusChange,
 }) => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [showDisableModal, setShowDisableModal] = useState(false);
+  const [assessmentData, setAssessmentData] = useState<Assessment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'error' | 'warning' | 'info' | 'success'
+  });
 
-  if (!businessUnit) return null;
+
+  // Fetch assessment data when modal opens or business unit changes
+  useEffect(() => {
+    if (open && businessUnit?.id && activeTab === 1) {
+      fetchAssessmentData();
+    }
+  }, [open, businessUnit?.id, activeTab]);
+
+  const fetchAssessmentData = async () => {
+    if (!businessUnit?.id) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await getAssessmentsByBusinessUnit(businessUnit.orgId, businessUnit.id);
+      const formattedData = response.data.map(formatAssessmentData);
+      setAssessmentData(formattedData);
+
+      // Show success toast
+      setToast({
+        open: true,
+        message: 'Assessment data loaded successfully',
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error fetching assessment data:', err);
+      setError('Failed to load assessment data');
+      setAssessmentData([]);
+
+      // Show error toast
+      setToast({
+        open: true,
+        message: 'Failed to load assessment data',
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
-  const handleEdit = () => {
-    onEdit(businessUnit);
+  const handleClose = () => {
+    setActiveTab(0); // Reset to Basic Details tab
     onClose();
   };
 
+  const handleEdit = () => {
+    if (businessUnit) {
+      onEdit(businessUnit);
+      handleClose();
+    }
+  };
+
   const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!businessUnit) return;
+
     const newStatus = event.target.checked ? 'active' : 'disable';
 
     // If trying to disable, show confirmation modal
@@ -104,118 +153,45 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   };
 
   const handleDisableConfirm = () => {
-    onStatusChange(businessUnit.id, 'disable');
-    setShowDisableModal(false);
+    if (businessUnit) {
+      onStatusChange(businessUnit.id, 'disable');
+      setShowDisableModal(false);
+    }
   };
 
   const handleDisableCancel = () => {
     setShowDisableModal(false);
   };
 
-  // Sample assessment data for testing
-  const sampleAssessmentData: Assessment[] = [
-    {
-      assessmentId: "1",
-      assessmentName: "Outpatient Services - Mar 23",
-      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
-      runId: "8299",
-      orgId: "org1",
-      orgName: businessUnit.businessUnitName,
-      orgDesc: "Healthcare Organization",
-      businessUnitId: businessUnit.id,
-      businessUnitName: businessUnit.businessUnitName,
-      businessUnitDesc: "Healthcare Business Unit",
-      status: "completed",
-      startDate: new Date("2024-02-10"),
-      endDate: new Date("2024-02-10"),
-      lastActivity: new Date("2024-02-10"),
-    },
-    {
-      assessmentId: "2",
-      assessmentName: "Outpatient Services - Mar 23",
-      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
-      runId: "8299",
-      orgId: "org1",
-      orgName: businessUnit.businessUnitName,
-      orgDesc: "Healthcare Organization",
-      businessUnitId: businessUnit.id,
-      businessUnitName: businessUnit.businessUnitName,
-      businessUnitDesc: "Healthcare Business Unit",
-      status: "in_progress",
-      startDate: new Date("2024-02-10"),
-      endDate: new Date("2024-02-10"),
-      lastActivity: new Date("2024-02-10"),
-    },
-    {
-      assessmentId: "3",
-      assessmentName: "Outpatient Services - Mar 23",
-      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
-      runId: "8299",
-      orgId: "org1",
-      orgName: businessUnit.businessUnitName,
-      orgDesc: "Healthcare Organization",
-      businessUnitId: businessUnit.id,
-      businessUnitName: businessUnit.businessUnitName,
-      businessUnitDesc: "Healthcare Business Unit",
-      status: "in_progress",
-      startDate: new Date("2024-02-10"),
-      endDate: null,
-      lastActivity: new Date("2024-02-10"),
-    },
-    {
-      assessmentId: "4",
-      assessmentName: "Outpatient Services - Mar 23",
-      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
-      runId: "8299",
-      orgId: "org1",
-      orgName: businessUnit.businessUnitName,
-      orgDesc: "Healthcare Organization",
-      businessUnitId: businessUnit.id,
-      businessUnitName: businessUnit.businessUnitName,
-      businessUnitDesc: "Healthcare Business Unit",
-      status: "in_progress",
-      startDate: new Date("2024-02-10"),
-      endDate: null,
-      lastActivity: new Date("2024-02-10"),
-    },
-    {
-      assessmentId: "5",
-      assessmentName: "Outpatient Services - Mar 23",
-      assessmentDesc: "Lorem Ipsum is simply dummy text of the printing.",
-      runId: "8299",
-      orgId: "org1",
-      orgName: businessUnit.businessUnitName,
-      orgDesc: "Healthcare Organization",
-      businessUnitId: businessUnit.id,
-      businessUnitName: businessUnit.businessUnitName,
-      businessUnitDesc: "Healthcare Business Unit",
-      status: "in_progress",
-      startDate: new Date("2024-02-10"),
-      endDate: null,
-      lastActivity: new Date("2024-02-10"),
-    },
-  ];
+  const handleCreateAssessment = () => {
+    // Navigate to assessment route
+    router.push('/assessment');
+  };
+
+  // Early return after all hooks
+  if (!businessUnit) return null;
+
 
   const contactRoles = [
     {
       role: 'BU Head',
-      name: businessUnit.buHead?.name || 'Karan Gautam',
-      email: businessUnit.buHead?.email || 'karangautam@abccompany.com',
+      name: businessUnit.buHead?.name || '-',
+      email: businessUnit.buHead?.email || '-',
     },
     {
       role: 'BU POC/BISO',
-      name: businessUnit.buPocBiso?.name || 'Nishant Saxena',
-      email: businessUnit.buPocBiso?.email || 'nishant.s@abccompany.com',
+      name: businessUnit.buPocBiso?.name || '-',
+      email: businessUnit.buPocBiso?.email || '-',
     },
     {
       role: 'BU IT POC',
-      name: businessUnit.buItPoc?.name || 'Akriti Sharma',
-      email: businessUnit.buItPoc?.email || 'sharma.akriti@abccompany.com',
+      name: businessUnit.buItPoc?.name || '-',
+      email: businessUnit.buItPoc?.email || '-',
     },
     {
       role: 'BU Finance Lead',
-      name: businessUnit.buFinanceLead?.name || 'Siva Prasad',
-      email: businessUnit.buFinanceLead?.email || 'siva@abccompany.com',
+      name: businessUnit.buFinanceLead?.name || '-',
+      email: businessUnit.buFinanceLead?.email || '-',
     },
   ];
 
@@ -223,7 +199,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
     <>
       <Dialog
         open={open}
-        onClose={onClose}
+        onClose={handleClose}
         maxWidth="md"
         fullWidth
         sx={{
@@ -296,7 +272,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
               />
             </IconButton>}
             <IconButton
-              onClick={onClose}
+              onClick={handleClose}
               sx={{
                 width: 24,
                 height: 24,
@@ -313,7 +289,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
         <Divider sx={{ mb: 3 }} />
 
-        <Box >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
@@ -351,6 +327,34 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
             <Tab label="Basic Details" />
             <Tab label="Assessments" />
           </Tabs>
+
+          {activeTab === 1 && (
+            <Button
+              variant="contained"
+              onClick={handleCreateAssessment}
+              disabled={businessUnit.status === 'disable'}
+              sx={{
+                minHeight: '32px',
+                height: '32px',
+                backgroundColor: businessUnit.status === 'disable' ? '#E7E7E8' : '#04139A',
+                color: businessUnit.status === 'disable' ? '#91939A' : '#FFFFFF',
+                textTransform: 'none',
+                fontWeight: 500,
+                padding: '7px 12px',
+                borderRadius: '2px',
+                '&:hover': {
+                  backgroundColor: businessUnit.status === 'disable' ? '#E7E7E8' : '#04139A',
+                  opacity: businessUnit.status === 'disable' ? 1 : 0.9,
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: '#E7E7E8',
+                  color: '#91939A',
+                },
+              }}
+            >
+              Create Assessment
+            </Button>
+          )}
         </Box>
 
         <DialogContent
@@ -533,19 +537,29 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
           <TabPanel value={activeTab} index={1} sx={{ p: 0, m: 0 }}>
             <Box sx={{ p: 0 }}>
-              <AssessmentTable
-                data={businessUnit.assessmentData || sampleAssessmentData}
-                onMenuClick={(event: React.MouseEvent<HTMLElement>, runId: string) => {
-                  console.log('Menu clicked for runId:', runId);
-                  // Handle menu click - you can add your logic here
-                }}
-                onCardClick={(runId: string) => {
-                  console.log('Card clicked for runId:', runId);
-                  // Handle card click - you can add your logic here
-                }}
-                variant="businessUnit"
-                businessUnitName={businessUnit.businessUnitName}
-              />
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : error ? (
+                <Alert severity="error" sx={{ m: 2 }}>
+                  {error}
+                </Alert>
+              ) : (
+                <AssessmentTable
+                  data={assessmentData}
+                  onMenuClick={(event: React.MouseEvent<HTMLElement>, runId: string) => {
+                    console.log('Menu clicked for runId:', runId);
+                    // Handle menu click - you can add your logic here
+                  }}
+                  onCardClick={(runId: string) => {
+                    console.log('Card clicked for runId:', runId);
+                    // Handle card click - you can add your logic here
+                  }}
+                  variant="businessUnit"
+                  businessUnitName={businessUnit.businessUnitName}
+                />
+              )}
             </Box>
           </TabPanel>
         </DialogContent>
@@ -556,6 +570,16 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
         onClose={handleDisableCancel}
         onConfirm={handleDisableConfirm}
         businessUnitName={businessUnit.businessUnitName}
+      />
+
+      <ToastComponent
+        open={toast.open}
+        onClose={() => setToast(prev => ({ ...prev, open: false }))}
+        message={toast.message}
+        toastSeverity={toast.severity}
+        toastBorder={toast.severity === "success" ? "1px solid #147A50" : undefined}
+        toastColor={toast.severity === "success" ? "#147A50" : undefined}
+        toastBackgroundColor={toast.severity === "success" ? "#DDF5EB" : undefined}
       />
     </>
   );

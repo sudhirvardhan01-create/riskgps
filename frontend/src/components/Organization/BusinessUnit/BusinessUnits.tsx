@@ -1,38 +1,20 @@
-import React, { useState } from "react";
-import { Box, Typography, Button, Stack } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import Image from "next/image";
+import { useRouter } from "next/router";
+import Cookies from "js-cookie";
 import CreateBusinessUnitForm from "./CreateBusinessUnitForm";
 import BusinessUnitCard from "./BusinessUnitCard";
 import BusinessUnitDetailsModal from "./BusinessUnitDetailsModal";
 import ToastComponent from "../../ToastComponent";
 import { Add as AddIcon } from "@mui/icons-material";
-
-interface BusinessUnitFormData {
-  businessUnitName: string;
-  buHead: { name: string; email: string };
-  buPocBiso: { name: string; email: string };
-  buItPoc: { name: string; email: string };
-  buFinanceLead: { name: string; email: string };
-  tags: { key: string; value: string }[];
-}
-
-interface BusinessUnitData {
-  id: string;
-  businessUnitName: string;
-  buCode: string;
-  buSize: number;
-  assessments: number;
-  tags: { key: string; value: string }[];
-  status: "active" | "disable";
-  lastUpdated?: string;
-  // Contact roles
-  buHead?: { name: string; email: string };
-  buPocBiso?: { name: string; email: string };
-  buItPoc?: { name: string; email: string };
-  buFinanceLead?: { name: string; email: string };
-}
+import { getBusinessUnits, createBusinessUnit, updateBusinessUnit } from "@/services/businessUnitService";
+import { BusinessUnitFormData, BusinessUnitData } from "@/types/business-unit";
 
 const BusinessUnits: React.FC = () => {
+  const router = useRouter();
+  const { orgId } = router.query;
+  
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedBusinessUnit, setSelectedBusinessUnit] =
@@ -41,83 +23,36 @@ const BusinessUnits: React.FC = () => {
   const [editData, setEditData] = useState<BusinessUnitFormData | null>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for business units - replace with actual API call
-  // To test empty state, change this to an empty array: []
-  const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([
-    {
-      id: "1",
-      businessUnitName: "Retail Banking",
-      buCode: "BU283692",
-      buSize: 33,
-      assessments: 0,
-      tags: [
-        { key: "department", value: "Banking" },
-        { key: "location", value: "Main Campus" },
-        { key: "priority", value: "High" },
-      ],
-      status: "active",
-      lastUpdated: "2024-01-15",
-      buHead: {
-        name: "Dr. Sarah Johnson",
-        email: "sarah.johnson@hospital.com",
-      },
-      buPocBiso: { name: "Mike Chen", email: "mike.chen@abc.com" },
-      buItPoc: { name: "Lisa Wang", email: "lisa.wang@abc.com" },
-      buFinanceLead: {
-        name: "Robert Davis",
-        email: "robert.davis@abc.com",
-      },
-    },
-    {
-      id: "2",
-      businessUnitName: "Loan Services",
-      buCode: "BU283693",
-      buSize: 25,
-      assessments: 0,
-      tags: [
-        { key: "department", value: "Loan" },
-        { key: "location", value: "Headquarters" },
-        { key: "priority", value: "Critical" },
-      ],
-      status: "active",
-      lastUpdated: "2024-01-15",
-      buHead: {
-        name: "Dr. Michael Brown",
-        email: "michael.brown@abc.com",
-      },
-      buPocBiso: { name: "Jennifer Lee", email: "jennifer.lee@abc.com" },
-      buItPoc: { name: "David Kim", email: "david.kim@abc.com" },
-      buFinanceLead: {
-        name: "Amanda Wilson",
-        email: "amanda.wilson@abc.com",
-      },
-    },
-    {
-      id: "3",
-      businessUnitName: "Investor Services",
-      buCode: "BU283694",
-      buSize: 45,
-      assessments: 0,
-      tags: [
-        { key: "department", value: "Wealth" },
-        { key: "location", value: "Headquarters" },
-        { key: "priority", value: "Medium" },
-      ],
-      status: "active",
-      lastUpdated: "2024-01-15",
-      buHead: { name: "Dr. Emily Taylor", email: "emily.taylor@abc.com" },
-      buPocBiso: {
-        name: "James Rodriguez",
-        email: "james.rodriguez@abc.com",
-      },
-      buItPoc: { name: "Maria Garcia", email: "maria.garcia@abc.com" },
-      buFinanceLead: {
-        name: "Kevin Thompson",
-        email: "kevin.thompson@abc.com",
-      },
-    },
-  ]);
+  // State for business units from API
+  const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([]);
+
+  // Fetch business units from API
+  useEffect(() => {
+    const fetchBusinessUnits = async () => {
+      if (!orgId) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await getBusinessUnits(orgId as string);
+        setBusinessUnits(data);
+      } catch (err) {
+        console.error("Error fetching business units:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch business units");
+        // Keep empty array for empty state
+        setBusinessUnits([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBusinessUnits();
+  }, [orgId]);
 
   const handleCreateBusinessUnit = () => {
     setIsEditMode(false);
@@ -125,68 +60,123 @@ const BusinessUnits: React.FC = () => {
     setIsCreateFormOpen(true);
   };
 
-  const handleFormSubmit = (data: BusinessUnitFormData) => {
-    // TODO: Implement API call to create/update business unit
-    console.log("Business Unit Data:", data);
-
-    if (isEditMode && selectedBusinessUnit) {
-      // Update existing business unit
-      setBusinessUnits((prev) =>
-        prev.map((bu) =>
-          bu.id === selectedBusinessUnit.id
-            ? {
-                ...bu,
-                businessUnitName: data.businessUnitName,
-                buHead: data.buHead,
-                buPocBiso: data.buPocBiso,
-                buItPoc: data.buItPoc,
-                buFinanceLead: data.buFinanceLead,
-                tags: data.tags,
-                lastUpdated: new Date().toISOString().split("T")[0],
-              }
-            : bu
-        )
-      );
-      setSuccessMessage(
-        `${data.businessUnitName} Business Unit has been updated`
-      );
-    } else {
-      // Create new business unit from form data
-      const newBusinessUnit: BusinessUnitData = {
-        id: Date.now().toString(),
-        businessUnitName: data.businessUnitName,
-        buCode: `BU${Math.floor(Math.random() * 1000000)}`,
-        buSize: 0, // This would come from the form or be calculated
-        assessments: 0,
-        tags: data.tags,
-        status: "active",
-        lastUpdated: new Date().toISOString().split("T")[0],
-        buHead: data.buHead,
-        buPocBiso: data.buPocBiso,
-        buItPoc: data.buItPoc,
-        buFinanceLead: data.buFinanceLead,
-      };
-
-      setBusinessUnits((prev) => [...prev, newBusinessUnit]);
-      setSuccessMessage(
-        `${data.businessUnitName} Business Unit has been created`
-      );
+  const handleFormSubmit = async (data: BusinessUnitFormData) => {
+    console.log('Form submitted. isEditMode:', isEditMode, 'selectedBusinessUnit:', selectedBusinessUnit?.id);
+    if (!orgId) {
+      setError("Organization ID is required");
+      return;
     }
 
-    // Show success notification
-    setShowSuccessToast(true);
-    setIsCreateFormOpen(false);
-    setIsEditMode(false);
-    setEditData(null);
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Get current user ID from cookies
+      const user = JSON.parse(Cookies.get("user") ?? "{}");
+      const userId = user.id;
+      
+      if (!userId) {
+        setError("User ID not found. Please login again.");
+        setLoading(false);
+        return;
+      }
+
+      if (isEditMode && selectedBusinessUnit) {
+        // Update existing business unit
+        console.log('Updating business unit with ID:', selectedBusinessUnit.id);
+        await updateBusinessUnit(selectedBusinessUnit.id, {
+          name: data.businessUnitName,
+          tags: data.tags,
+          head: data.buHead,
+          pocBiso: data.buPocBiso,
+          itPoc: data.buItPoc,
+          financeLead: data.buFinanceLead,
+          modifiedBy: userId,
+        });
+
+        // Update local state
+        setBusinessUnits((prev) =>
+          prev.map((bu) =>
+            bu.id === selectedBusinessUnit.id
+              ? {
+                  ...bu,
+                  businessUnitName: data.businessUnitName,
+                  buHead: data.buHead,
+                  buPocBiso: data.buPocBiso,
+                  buItPoc: data.buItPoc,
+                  buFinanceLead: data.buFinanceLead,
+                  tags: data.tags,
+                  lastUpdated: new Date().toISOString().split("T")[0],
+                }
+              : bu
+          )
+        );
+        setSuccessMessage(
+          `${data.businessUnitName} Business Unit has been updated`
+        );
+      } else {
+        // Create new business unit
+        console.log('Creating new business unit');
+        const response = await createBusinessUnit(orgId as string, {
+          name: data.businessUnitName,
+          tags: data.tags,
+          head: data.buHead,
+          pocBiso: data.buPocBiso,
+          itPoc: data.buItPoc,
+          financeLead: data.buFinanceLead,
+          createdBy: userId,
+          status: "active"
+        });
+
+        // Add new business unit to local state
+        const newBusinessUnit: BusinessUnitData = {
+          id: response.data.orgBusinessUnitId,
+          businessUnitName: response.data.name,
+          buCode: `BU${Math.floor(Math.random() * 1000000)}`, // Generate random BU code
+          buSize: 0, // Default size
+          assessments: 0, // Default assessments
+          tags: response.data.tags || [],
+          status: "active", // Default status
+          lastUpdated: response.data.modifiedDate,
+          buHead: response.data.head,
+          buPocBiso: response.data.pocBiso,
+          buItPoc: response.data.itPoc,
+          buFinanceLead: response.data.financeLead,
+        };
+
+        setBusinessUnits((prev) => [...prev, newBusinessUnit]);
+        setSuccessMessage(
+          `${data.businessUnitName} Business Unit has been created`
+        );
+      }
+
+      // Show success notification
+      setShowSuccessToast(true);
+      setIsCreateFormOpen(false);
+      setIsEditMode(false);
+      setEditData(null);
+      setSelectedBusinessUnit(null);
+    } catch (err) {
+      console.error("Error saving business unit:", err);
+      const errorMsg = err instanceof Error ? err.message : "Failed to save business unit";
+      setError(errorMsg);
+      setErrorMessage(errorMsg);
+      setShowErrorToast(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFormClose = () => {
+    console.log('Form closing. Resetting edit mode and selected business unit');
     setIsCreateFormOpen(false);
     setIsEditMode(false);
     setEditData(null);
+    setSelectedBusinessUnit(null);
   };
 
   const handleEditBusinessUnit = (businessUnit: BusinessUnitData) => {
+    console.log('Edit business unit clicked for:', businessUnit.businessUnitName, 'with ID:', businessUnit.id);
     // Convert BusinessUnitData to BusinessUnitFormData for editing
     const formData: BusinessUnitFormData = {
       businessUnitName: businessUnit.businessUnitName,
@@ -200,6 +190,7 @@ const BusinessUnits: React.FC = () => {
           : [{ key: "", value: "" }],
     };
 
+    console.log('Setting edit mode with business unit:', businessUnit);
     setSelectedBusinessUnit(businessUnit);
     setEditData(formData);
     setIsEditMode(true);
@@ -221,16 +212,130 @@ const BusinessUnits: React.FC = () => {
     setSuccessMessage("");
   };
 
-  const handleStatusChange = (id: string, status: "active" | "disable") => {
-    setBusinessUnits((prev) =>
-      prev.map((bu) => (bu.id === id ? { ...bu, status } : bu))
-    );
+  const handleErrorToastClose = () => {
+    setShowErrorToast(false);
+    setErrorMessage("");
+  };
 
-    // Update selectedBusinessUnit if it's the one being changed
-    if (selectedBusinessUnit && selectedBusinessUnit.id === id) {
-      setSelectedBusinessUnit((prev) => (prev ? { ...prev, status } : null));
+  const handleStatusChange = async (id: string, status: "active" | "disable") => {
+    try {
+      // Get current user ID from cookies
+      const user = JSON.parse(Cookies.get("user") ?? "{}");
+      const userId = user.id;
+      
+      if (!userId) {
+        setError("User ID not found. Please login again.");
+        setErrorMessage("User ID not found. Please login again.");
+        setShowErrorToast(true);
+        return;
+      }
+
+      // Find the business unit to get its current data
+      const businessUnit = businessUnits.find(bu => bu.id === id);
+      if (!businessUnit) {
+        setError("Business unit not found.");
+        setErrorMessage("Business unit not found.");
+        setShowErrorToast(true);
+        return;
+      }
+
+      // Call API to update business unit with current data and status
+      await updateBusinessUnit(id, {
+        name: businessUnit.businessUnitName,
+        head: businessUnit.buHead,
+        pocBiso: businessUnit.buPocBiso,
+        itPoc: businessUnit.buItPoc,
+        financeLead: businessUnit.buFinanceLead,
+        tags: businessUnit.tags,
+        status: status,
+        modifiedBy: userId,
+      });
+
+      // Update local state only after successful API call
+      setBusinessUnits((prev) =>
+        prev.map((bu) => (bu.id === id ? { ...bu, status } : bu))
+      );
+
+      // Update selectedBusinessUnit if it's the one being changed
+      if (selectedBusinessUnit && selectedBusinessUnit.id === id) {
+        setSelectedBusinessUnit((prev) => (prev ? { ...prev, status } : null));
+      }
+
+      // Show success message
+      setSuccessMessage(`Business Unit status updated to ${status}`);
+      setShowSuccessToast(true);
+    } catch (err) {
+      console.error("Error updating business unit status:", err);
+      const errorMsg = err instanceof Error ? err.message : "Failed to update business unit status";
+      setError(errorMsg);
+      setErrorMessage(errorMsg);
+      setShowErrorToast(true);
     }
   };
+
+  // Show loading state
+  if (loading && businessUnits.length === 0) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '200px',
+        pt: 2, pl: 3, pr: 3, pb: 3 
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Show error state
+  if (error && businessUnits.length === 0) {
+    return (
+      <Box sx={{ pt: 2, pl: 3, pr: 3, pb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            px: 2,
+            py: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 400,
+              color: "#d32f2f",
+              mb: 2,
+            }}
+          >
+            Error loading business units: {error}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => window.location.reload()}
+            sx={{
+              backgroundColor: "#04139A",
+              color: "#F4F4F4",
+              fontWeight: 600,
+              textTransform: "none",
+              p: "12px 40px",
+              borderRadius: "4px",
+              minWidth: "229px",
+              height: "40px",
+              "&:hover": {
+                backgroundColor: "#04139A",
+              },
+            }}
+          >
+            Retry
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ pt: 2, pl: 3, pr: 3, pb: 3 }}>
@@ -259,7 +364,7 @@ const BusinessUnits: React.FC = () => {
             }}
           >
             <Image
-              src={"/create-bu.png"}
+              src={"/create.png"}
               alt="org-image"
               width={120}
               height={120}
@@ -347,6 +452,7 @@ const BusinessUnits: React.FC = () => {
               "@media (max-width: 768px)": {
                 gridTemplateColumns: "1fr",
               },
+              mb: 4
             }}
           >
             {businessUnits.map((businessUnit) => (
@@ -389,6 +495,17 @@ const BusinessUnits: React.FC = () => {
         toastBorder="1px solid #4CAF50"
         toastColor="#2E7D32"
         toastBackgroundColor="#E8F5E8"
+      />
+
+      {/* Error Toast Notification */}
+      <ToastComponent
+        open={showErrorToast}
+        message={errorMessage}
+        onClose={handleErrorToastClose}
+        toastSeverity="error"
+        toastBorder="1px solid #f44336"
+        toastColor="#d32f2f"
+        toastBackgroundColor="#ffebee"
       />
     </Box>
   );

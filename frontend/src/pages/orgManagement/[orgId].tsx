@@ -11,6 +11,8 @@ import {
   Divider,
   Dialog,
   DialogContent,
+  SxProps, 
+  Theme,
 } from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
@@ -21,15 +23,17 @@ import { BusinessUnits } from "@/components/Organization/BusinessUnit";
 import { getOrganizationById } from "@/services/organizationService";
 import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTypography";
 import ToastComponent from "@/components/ToastComponent";
+import Repository from "@/components/Repository/Repository";
 
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
+  sx?: SxProps<Theme>;
 }
 
 function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+  const { children, value, index, sx, ...other } = props;
 
   return (
     <div
@@ -39,14 +43,14 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`org-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: 3, ...sx }}>{children}</Box>}
     </div>
   );
 }
 
 function OrgDetailsPage() {
   const router = useRouter();
-  const { orgId, orgName, tags, businessContext } = router.query;
+  const { orgId, orgName, tags, businessContext, tab } = router.query;
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -152,8 +156,8 @@ function OrgDetailsPage() {
           businessUnits:
             apiResponse.data.businessUnits &&
             apiResponse.data.businessUnits.length > 0
-              ? apiResponse.data.businessUnits
-              : ["-", "-", "-"], // Use API data or default
+              ? apiResponse.data.businessUnits.map((bu: any) => bu.name || bu)
+              : [], // Use API data or empty array
           status: apiResponse.data.isDeleted ? "disabled" : "active", // Use isDeleted flag from API
           lastUpdated: apiResponse.data.modifiedDate
             ? new Date(apiResponse.data.modifiedDate)
@@ -245,8 +249,23 @@ function OrgDetailsPage() {
     }
   }, [router.isReady, router.query.showSuccess, orgId, router]);
 
+  // Handle tab query parameter
+  useEffect(() => {
+    if (tab && typeof tab === 'string') {
+      const tabIndex = parseInt(tab, 10);
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
+        setTabValue(tabIndex);
+      }
+    } else if (!tab && router.isReady) {
+      // If no tab parameter exists, add it to the URL with default value (0)
+      router.replace(`/orgManagement/${orgId}?tab=0`, undefined, { shallow: true });
+    }
+  }, [tab, router.isReady, orgId, router]);
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    // Update URL with tab parameter
+    router.push(`/orgManagement/${orgId}?tab=${newValue}`, undefined, { shallow: true });
   };
 
   const handleBackClick = () => {
@@ -507,8 +526,8 @@ function OrgDetailsPage() {
       </Box>
 
       {/* Tab Content */}
-      <Box sx={{ flex: 1, overflow: "auto", pr: "60px" }}>
-        <TabPanel value={tabValue} index={0}>
+      <Box sx={{ flex: 1, overflow: "auto" }}>
+        <TabPanel value={tabValue} index={0} sx={{ pr: "80px" }}>
           <Box
             sx={{
               display: "flex",
@@ -901,18 +920,16 @@ function OrgDetailsPage() {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          <Typography variant="h3" sx={{ mb: 2 }} textAlign={"center"}>
-            Coming soon!!
-          </Typography>
+          <Repository />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={2} >
           <BusinessUnits />
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
           <Typography variant="h3" sx={{ mb: 2 }} textAlign={"center"}>
-            Coming soon!!
+            Coming soon user!!
           </Typography>
         </TabPanel>
       </Box>
