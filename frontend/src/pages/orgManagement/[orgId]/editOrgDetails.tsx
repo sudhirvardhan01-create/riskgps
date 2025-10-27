@@ -129,7 +129,7 @@ function EditOrgDetailsPage() {
           },
           businessUnits: apiResponse.data.businessUnits && apiResponse.data.businessUnits.length > 0
             ? apiResponse.data.businessUnits
-            : ["-", "-", "-"], // Use API data or default
+            : [], // Use API data or default
           status: "active", // Default since API doesn't provide this
           lastUpdated: apiResponse.data.modifiedDate ?
             new Date(apiResponse.data.modifiedDate).toISOString().split('T')[0] :
