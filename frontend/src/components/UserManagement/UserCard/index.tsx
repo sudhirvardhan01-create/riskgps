@@ -50,20 +50,11 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
             position: "relative",
           }}
         >
-          {record.userImage ? (
-            <Image
-              src={record.userImage}
-              alt="user-image"
-              fill
-              style={{ objectFit: "cover" }}
-            />
-          ) : (
-            <Avatar
-              src="/default-user.png"
-              alt={record.name}
-              sx={{ width: 48, height: 48 }}
-            />
-          )}
+          <Avatar
+            src="/default-user.png"
+            alt={record.name}
+            sx={{ width: 48, height: 48 }}
+          />
         </Box>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography

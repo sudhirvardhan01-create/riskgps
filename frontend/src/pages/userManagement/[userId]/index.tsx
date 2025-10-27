@@ -24,8 +24,6 @@ export default function UserDetailsPage() {
       createdBy: "system",
       modifiedBy: "admin",
       isDeleted: false,
-      lastLoginDate: new Date("2025-10-10T09:00:00Z"),
-      passwordLastChanged: new Date("2025-07-15T08:30:00Z"),
     },
     {
       userId: "u002",
@@ -44,8 +42,6 @@ export default function UserDetailsPage() {
       createdBy: "admin",
       modifiedBy: "admin",
       isDeleted: false,
-      lastLoginDate: new Date("2025-10-11T07:10:00Z"),
-      passwordLastChanged: new Date("2025-08-12T09:30:00Z"),
     },
     {
       userId: "u003",
@@ -64,8 +60,6 @@ export default function UserDetailsPage() {
       createdBy: "admin",
       modifiedBy: "system",
       isDeleted: false,
-      lastLoginDate: new Date("2025-09-20T10:20:00Z"),
-      passwordLastChanged: new Date("2025-05-10T11:10:00Z"),
     },
     {
       userId: "u004",
@@ -84,8 +78,6 @@ export default function UserDetailsPage() {
       createdBy: "system",
       modifiedBy: "admin",
       isDeleted: false,
-      lastLoginDate: new Date("2025-10-12T08:30:00Z"),
-      passwordLastChanged: new Date("2025-09-01T10:15:00Z"),
     },
     {
       userId: "u005",
@@ -104,8 +96,6 @@ export default function UserDetailsPage() {
       createdBy: "admin",
       modifiedBy: null,
       isDeleted: false,
-      lastLoginDate: new Date("2025-09-25T12:00:00Z"),
-      passwordLastChanged: new Date("2025-08-25T14:45:00Z"),
     },
   ];
 

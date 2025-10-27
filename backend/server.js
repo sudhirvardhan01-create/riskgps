@@ -14,6 +14,7 @@ const organizationRoutes = require("./routes/organization");
 const assessmentRoutes = require("./routes/assessment");
 const libraryRoutes = require("./routes/library");
 const questionnaireRoutes = require("./routes/questionnaire");
+const userRoutes = require("./routes/user");
 const cors = require("cors");
 app.use(express.json());
 
@@ -43,7 +44,7 @@ app.use("/library/", libraryRoutes);
 app.use("/library/questionnaire", questionnaireRoutes);
 
 app.use("/auth", authRoutes);
-// app.use('/users', userRoutes);
+app.use("/users", userRoutes);
 app.use("/organization", organizationRoutes);
 app.use("/assessment", assessmentRoutes);
 

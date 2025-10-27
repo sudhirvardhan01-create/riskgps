@@ -274,7 +274,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Last Login Date
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.lastLoginDate ? formatDate(user.lastLoginDate) : "-"}
+                  09 Aug, 2025
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -282,9 +282,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Password Last Changed
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.passwordLastChanged
-                    ? formatDate(user.passwordLastChanged)
-                    : "-"}
+                  04 Aug, 2025
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }} display={"flex"} alignItems={"center"}>

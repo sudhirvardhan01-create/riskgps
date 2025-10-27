@@ -1,7 +1,6 @@
 export interface UserData {
   userId?: string;
   userCode?: string;
-  userImage?: string;
   name: string;
   email: string;
   phone: string;
@@ -17,6 +16,4 @@ export interface UserData {
   createdBy?: string | null;
   modifiedBy?: string | null;
   isDeleted?: boolean;
-  lastLoginDate?: Date;
-  passwordLastChanged?: Date;
 }
