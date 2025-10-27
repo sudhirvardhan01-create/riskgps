@@ -15,6 +15,26 @@ const HttpStatus = require("../constants/httpStatusCodes");
 const { v4: uuidv4 } = require("uuid");
 
 class AssessmentService {
+
+    /**
+     * Generate next runId based on the last RunId in the database
+     */
+    static async generateRunId() {
+        const lastAssessment = await Assessment.findOne({
+            order: [["created_date", "DESC"]],
+            attributes: ["runId"],
+        });
+
+        let newRunId = "1001";
+
+        if (lastAssessment && lastAssessment.runId) {
+            const lastRunId = parseInt(lastAssessment.runId, 10);
+            newRunId = (lastRunId + 1).toString();
+        }
+
+        return newRunId;
+    }
+
     /**
      * Create a new assessment
      * @param {Object} assessmentData - Assessment payload
@@ -35,9 +55,9 @@ class AssessmentService {
                     HttpStatus.BAD_REQUEST
                 );
             }
-            if (!assessmentData.runId) {
-                throw new CustomError("Run ID is required", HttpStatus.BAD_REQUEST);
-            }
+
+            // Generate the new RunId
+            assessmentData.runId = await this.generateRunId();
 
             // Prepare payload
             const newAssessment = {
