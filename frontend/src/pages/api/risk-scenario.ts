@@ -52,7 +52,7 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
   const transformRiskData = (data: any[]): RiskScenarioData[] => {
   return data.map((item) => ({
     id: item.id,
-    risk_code: item.riskCode,
+    riskCode: item.riskCode,
     riskScenario: item.riskScenario,
     riskStatement: item.riskStatement,
     riskDescription: item.riskDescription,

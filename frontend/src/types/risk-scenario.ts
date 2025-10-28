@@ -6,7 +6,7 @@ export interface RiskScenarioAttributes {
 
 export interface RiskScenarioData {
   id? : number;
-  risk_code?: string;
+  riskCode?: string;
   riskScenario: string;
   riskStatement: string;
   riskDescription: string;

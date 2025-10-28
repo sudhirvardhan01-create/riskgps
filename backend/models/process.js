@@ -140,6 +140,14 @@ module.exports = (sequelize) => {
       as: 'riskScenarios',
     });
 
+    // Many-to-many with RiskScenario
+    Process.belongsToMany(models.Asset, {
+      through: models.AssetProcessMappings,
+      foreignKey: 'process_id',
+      otherKey: 'asset_id',
+      as: 'assets',
+    });
+
     Process.hasMany(models.ProcessAttribute, {
       foreignKey: 'process_id',
       as: 'attributes',
@@ -149,7 +157,7 @@ module.exports = (sequelize) => {
   Process.afterCreate(async (instance, options) => {
     const paddedId = String(instance.autoIncrementId).padStart(5, "0");
     const code = `BP${paddedId}`;
-    await instance.update({ process_code: code }, { transaction: options.transaction });
+    await instance.update({ processCode: code }, { transaction: options.transaction });
   });
   return Process;
 

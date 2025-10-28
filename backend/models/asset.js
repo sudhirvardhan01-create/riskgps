@@ -139,7 +139,7 @@ module.exports = (sequelize) => {
     const paddedId = String(instance.auto_increment_id).padStart(5, "0");
     const code = `AT${paddedId}`;
     await instance.update(
-      { asset_code: code },
+      { assetCode: code },
       { transaction: options.transaction }
     );
   });
