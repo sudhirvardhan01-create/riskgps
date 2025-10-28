@@ -119,6 +119,14 @@ module.exports = (sequelize) => {
       as: 'riskScenarios',
     });
 
+    // Many-to-many with RiskScenario
+    Process.belongsToMany(models.Asset, {
+      through: models.AssetProcessMappings,
+      foreignKey: 'process_id',
+      otherKey: 'asset_id',
+      as: 'assets',
+    });
+
     Process.hasMany(models.ProcessAttribute, {
       foreignKey: 'process_id',
       as: 'attributes',
