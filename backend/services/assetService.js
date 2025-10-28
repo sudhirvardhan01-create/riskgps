@@ -44,7 +44,7 @@ class AssetService {
 
   static async getAllAssets(
     page = 0,
-    limit = 6,
+    limit = -1,
     searchPattern = null,
     sortBy = "created_at",
     sortOrder = "ASC",
@@ -72,7 +72,7 @@ class AssetService {
     });
     
     const data = await Asset.findAll({
-      limit,
+      ...(limit > 0 ? { limit, offset } : {}),
       offset,
       order: [[sortBy, sortOrder]],
       where: whereClause,
@@ -122,7 +122,6 @@ class AssetService {
         },
       ],
     });
-    console.log(asset);
 
     if (!asset) {
       console.log("Asset not found with id", id);

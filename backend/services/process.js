@@ -7,6 +7,7 @@ const {
   ProcessAttribute,
   RiskScenario,
   Sequelize,
+  Asset,
 } = require("../models");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
@@ -53,7 +54,7 @@ class ProcessService {
 
   static async getAllProcesses(
     page = 0,
-    limit = 6,
+    limit = -1,
     searchPattern = null,
     sortBy = "created_at",
     sortOrder = "ASC",
@@ -171,14 +172,80 @@ class ProcessService {
   }
 
   static async getProcessById(id) {
-    const process = await Process.findByPk(id);
+    const includeRelations = [
+      {
+        model: ProcessAttribute,
+        as: "attributes",
+        include: [{ model: MetaData, as: "metaData" }],
+      },
+      {
+        model: RiskScenario,
+        as: "riskScenarios",
+        include: [],
+        through: { attributes: [] },
+      },
+      {
+        model: Asset,
+        as: "assets",
+        include: [],
+        through: { attributes: [] },
+      },
+      {
+        model: ProcessRelationship,
+        as: "sourceRelationships",
+      },
+      {
+        model: ProcessRelationship,
+        as: "targetRelationships",
+      },
+    ];
+    const process = await Process.findByPk(id, { include: includeRelations });
 
     if (!process) {
       console.log("Process not found:", id);
       throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
-    return process;
+    const p = process.toJSON();
+
+    p.industry = p.attributes
+      ?.filter((val) => val.metaData?.name?.toLowerCase() === "industry")
+      ?.flatMap((val) => val.values);
+    p.domain = p.attributes
+      ?.filter((val) => val.metaData?.name?.toLowerCase() === "domain")
+      ?.flatMap((val) => val.values);
+
+    p.attributes = p.attributes.map((val) => ({
+      meta_data_key_id: val.meta_data_key_id,
+      values: val.values,
+    }));
+
+    p.process_dependency = [];
+
+    if (p?.sourceRelationships?.length > 0) {
+      p.process_dependency.push(
+        ...p.sourceRelationships.map((val) => ({
+          source_process_id: val.source_process_id,
+          target_process_id: val.target_process_id,
+          relationship_type: val.relationship_type,
+        }))
+      );
+    }
+
+    if (p?.targetRelationships?.length > 0) {
+      p.process_dependency.push(
+        ...p.targetRelationships.map((val) => ({
+          source_process_id: val.source_process_id,
+          target_process_id: val.target_process_id,
+          relationship_type: val.relationship_type,
+        }))
+      );
+    }
+
+    delete p.sourceRelationships;
+    delete p.targetRelationships;
+
+    return p;
   }
 
   static async updateProcess(id, data) {
@@ -416,9 +483,7 @@ class ProcessService {
               row["Oraganizational Revenue Impact Percentage"]
             ),
             financialMateriality: parseBoolean(row["Financial Materiality"]),
-            thirdPartyInvolvement: parseBoolean(
-              row["Third Party Involvement"]
-            ),
+            thirdPartyInvolvement: parseBoolean(row["Third Party Involvement"]),
             usersCustomers: row["Users"],
             regulatoryAndCompliance: parseRegulatoryAndCompliance(
               row["Regulatory and Compliance"]
@@ -576,9 +641,7 @@ class ProcessService {
         );
       }
 
-      if (
-        !dependency.target_process_id 
-      ) {
+      if (!dependency.target_process_id) {
         console.log("Invalid or missing target_process_id:", dependency);
         throw new CustomError(
           Messages.PROCESS.MISSING_TARGET_ID,
@@ -756,7 +819,6 @@ class ProcessService {
 
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }
-
 }
 
 module.exports = ProcessService;

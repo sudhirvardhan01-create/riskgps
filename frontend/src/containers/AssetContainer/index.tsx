@@ -61,7 +61,7 @@ export default function AssetContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>("asset_code:asc");
+  const [sort, setSort] = useState<string>("assetCode:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
   const [assetsData, setAssetsData] = useState<AssetForm[]>([]);
   const [processesData, setProcessesData] = useState<any[]>([]);
@@ -131,7 +131,6 @@ export default function AssetContainer() {
   // fetch list
   const loadList = useCallback(async () => {
     try {
-      console.log(filters, "Aaa");
       setLoading(true);
       const data = await AssetService.fetch(
         page,

@@ -53,7 +53,7 @@ class RiskScenarioService {
 
   static async getAllRiskScenarios(
     page = 0,
-    limit = 6,
+    limit = -1,
     searchPattern = null,
     sortBy = "created_at",
     sortOrder = "ASC",
@@ -81,7 +81,7 @@ class RiskScenarioService {
     });
 
     const data = await RiskScenario.findAll({
-      limit,
+      ...(limit > 0 ? { limit, offset } : {}),
       offset,
       order: [[sortBy, sortOrder]],
       where: whereClause,

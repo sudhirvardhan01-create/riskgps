@@ -527,11 +527,14 @@ module.exports = {
       const processRiskScenarioMappings = [];
       for (const risk of seedRiskScenarios) {
         const riskData = {};
-        riskData["riskScenario"] = risk["risk_field_2"];
+        riskData["riskScenario"] = risk["risk_scenario"];
         riskData["riskDescription"] = risk["risk_description"];
         riskData["riskStatement"] = risk["risk_statement"];
         riskData["ciaMapping"] = risk["cia_mapping"];
         riskData["status"] = risk["status"];
+        riskData["riskField1"] = risk["risk_field_1"];
+        riskData["riskField2"] = risk["risk_field_2"]
+
 
         const [createdRisk, created] = await RiskScenario.findOrCreate({
           where: { riskScenario: riskData.riskScenario },

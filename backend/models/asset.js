@@ -136,7 +136,7 @@ module.exports = (sequelize) => {
   };
 
   Asset.afterCreate(async (instance, options) => {
-    const paddedId = String(instance.auto_increment_id).padStart(5, "0");
+    const paddedId = String(instance.autoIncrementId).padStart(5, "0");
     const code = `AT${paddedId}`;
     await instance.update(
       { assetCode: code },
