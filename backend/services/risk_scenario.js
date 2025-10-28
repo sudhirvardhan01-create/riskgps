@@ -252,46 +252,6 @@ class RiskScenarioService {
     csvStream.end();
   }
 
-  // static async importRiskScenariosFromCSV(filePath) {
-  //   function parseCIAMapping(value) {
-  //     if (!value) return [];
-  //     return value
-  //       .split(",") // split by comma
-  //       .map((v) => v.trim())
-  //       .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
-  //   }
-  //   return new Promise((resolve, reject) => {
-  //     const rows = [];
-
-  //     fs.createReadStream(filePath)
-  //       .pipe(parse({ headers: true }))
-  //       .on("error", (error) => reject(error))
-  //       .on("data", (row) => {
-  //         rows.push({
-  //           risk_scenario: row["Risk Scenario"],
-  //           risk_description: row["Risk Description"] ?? null,
-  //           risk_statement: row["Risk Statement"] ?? null,
-  //           cia_mapping: parseCIAMapping(row["CIA Mapping"]),
-  //           status: "published",
-  //         });
-  //       })
-  //       .on("end", async () => {
-  //         try {
-  //           await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
-  //           await sequelize.query(`
-  //                       UPDATE "library_risk_scenarios"
-  //                       SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
-  //                       WHERE risk_code IS NULL;
-  //                       `);
-  //           fs.unlinkSync(filePath);
-  //           resolve(rows.length);
-  //         } catch (err) {
-  //           reject(err);
-  //         }
-  //       });
-  //   });
-  // }
-
   static async importRiskScenariosFromCSV(filePath) {
     const [rows, details] = await sequelize.query(
       `select * from library_meta_datas where name ILIKE 'industry'`
@@ -622,7 +582,9 @@ class RiskScenarioService {
           // Direct column filter
           const columnType = RiskScenario.rawAttributes[f.filterName].type.key;
           if (columnType === "ARRAY") {
-            riskScenarioWhere.push({ [f.filterName]: { [Op.overlap]: f.values } });
+            riskScenarioWhere.push({
+              [f.filterName]: { [Op.overlap]: f.values },
+            });
           } else {
             riskScenarioWhere.push({ [f.filterName]: { [Op.in]: f.values } });
           }
@@ -657,14 +619,16 @@ class RiskScenarioService {
 
           const valuesArray = filter.values
             .map((v) => sequelize.escape(v))
-            .join(",");
+            .join(","); 
+
           if (idx > 0) subquery += " INTERSECT ";
-          subquery += `
-          SELECT "risk_scenario_id"
-          FROM library_attributes_risk_scenario_mapping
-          WHERE "meta_data_key_id" = ${metaDataKeyId}
-          AND "values" && ARRAY[${valuesArray}]::varchar[]
-        `;
+
+              subquery += `
+        SELECT "risk_scenario_id"
+        FROM library_attributes_risk_scenario_mapping
+        WHERE "meta_data_key_id" = '${metaDataKeyId}'::uuid
+        AND "values" && ARRAY[${valuesArray}]::varchar[]
+      `;
         });
 
         conditions.push({
