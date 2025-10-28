@@ -42,7 +42,7 @@ const RiskScenarioList: React.FC<Props> = ({
       >
         {data && data.length > 0 ? (
           data.map((item) => (
-            <div key={item.id ?? item.risk_code ?? JSON.stringify(item)}>
+            <div key={item.id ?? item.riskCode ?? JSON.stringify(item)}>
               <LibraryCard
                 libraryData={item}
                 setSelectedLibraryData={setSelectedRiskScenario}
@@ -50,7 +50,7 @@ const RiskScenarioList: React.FC<Props> = ({
                 setIsEditLibraryOpen={setIsEditOpen}
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
-                title={item.risk_code ?? ""}
+                title={item.riskCode ?? ""}
                 desc={item.riskScenario ?? ""}
                 chip={
                   item.industry?.length

@@ -362,7 +362,6 @@ class MitreThreatControlService {
             grouped[key] = { ...JSON.parse(key), platforms: [] };
           }
           // Merge platforms incrementally
-          console.log(parsePlatforms(row["Platforms"]));
           grouped[key].platforms = [
             ...new Set([
               ...grouped[key].platforms,

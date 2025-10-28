@@ -34,14 +34,14 @@ const initialProcessData: ProcessData = {
 };
 
 const sortItems = [
+  { label: "Process ID (Ascending)", value: "processCode:asc" },
+  { label: "Process ID (Descending)", value: "processCode:desc" },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
   { label: "Created (Oldest to Latest)", value: "created_at:asc" },
   { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
   { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
-  { label: "Process ID (Ascending)", value: "process_code:asc" },
-  { label: "Process ID (Descending)", value: "process_code:desc" },
-  { label: "Process Name (Ascending)", value: "process_name:asc" },
-  { label: "Process Name (Descending)", value: "process_name:desc" },
+  { label: "Process Name (Ascending)", value: "processName:asc" },
+  { label: "Process Name (Descending)", value: "processName:desc" },
 
 ];
 
@@ -61,7 +61,7 @@ export default function ProcessContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>("id:asc");
+  const [sort, setSort] = useState<string>("processCode:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
