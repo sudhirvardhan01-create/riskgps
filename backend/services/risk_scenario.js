@@ -600,10 +600,9 @@ class RiskScenarioService {
     if (searchPattern) {
       conditions.push({
         [Op.or]: [
-          { risk_scenario: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_description: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_statement: { [Op.iLike]: `%${searchPattern}%` } },
-
+          { riskScenario: { [Op.iLike]: `%${searchPattern}%` } },
+          { riskDescription: { [Op.iLike]: `%${searchPattern}%` } },
+          { riskStatement: { [Op.iLike]: `%${searchPattern}%` } },
         ],
       });
     }
@@ -624,7 +623,9 @@ class RiskScenarioService {
           // Direct column filter
           const columnType = RiskScenario.rawAttributes[f.filterName].type.key;
           if (columnType === "ARRAY") {
-            riskScenarioWhere.push({ [f.filterName]: { [Op.overlap]: f.values } });
+            riskScenarioWhere.push({
+              [f.filterName]: { [Op.overlap]: f.values },
+            });
           } else {
             riskScenarioWhere.push({ [f.filterName]: { [Op.in]: f.values } });
           }
@@ -659,14 +660,16 @@ class RiskScenarioService {
 
           const valuesArray = filter.values
             .map((v) => sequelize.escape(v))
-            .join(",");
+            .join(","); 
+
           if (idx > 0) subquery += " INTERSECT ";
-          subquery += `
-          SELECT "risk_scenario_id"
-          FROM library_attributes_risk_scenario_mapping
-          WHERE "meta_data_key_id" = ${metaDataKeyId}
-          AND "values" && ARRAY[${valuesArray}]::varchar[]
-        `;
+
+              subquery += `
+        SELECT "risk_scenario_id"
+        FROM library_attributes_risk_scenario_mapping
+        WHERE "meta_data_key_id" = '${metaDataKeyId}'::uuid
+        AND "values" && ARRAY[${valuesArray}]::varchar[]
+      `;
         });
 
         conditions.push({

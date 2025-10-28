@@ -635,7 +635,7 @@ class AssetService {
           subquery += `
           SELECT "asset_id"
           FROM library_attributes_asset_mapping
-          WHERE "meta_data_key_id" = ${metaDataKeyId}
+          WHERE "meta_data_key_id" = '${metaDataKeyId}'::uuid
           AND "values" && ARRAY[${valuesArray}]::varchar[]
         `;
         });

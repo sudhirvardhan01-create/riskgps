@@ -806,7 +806,7 @@ class ProcessService {
           subquery += `
           SELECT "process_id"
           FROM library_attributes_process_mapping
-          WHERE "meta_data_key_id" = ${metaDataKeyId}
+          WHERE "meta_data_key_id" = '${metaDataKeyId}'::uuid
           AND "values" && ARRAY[${valuesArray}]::varchar[]
         `;
         });
