@@ -1,11 +1,10 @@
 const ProcessService = require("./process");
 const { Process, RiskScenario, ProcessRelationship, Asset } = require("../models");
-class DashboardService {
+class ReportsService {
   static async getOrganizationalDependencyData(
     organizationName = null,
     businessUnit = null
   ) {
-    const process = await ProcessService.getAllProcesses();
     console.log("Fetching all processes");
 
     const includeRelations = [
@@ -73,4 +72,4 @@ class DashboardService {
   }
 }
 
-module.exports = DashboardService;
+module.exports = ReportsService;
