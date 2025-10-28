@@ -97,18 +97,15 @@ const UserDetails: React.FC<UserDetailsProps> = ({
               height={"24px"}
             >
               <Stack display={"flex"} flexDirection={"row"} gap={1}>
-                <ToggleSwitch
-                  sx={{ m: 0 }}
-                  checked={user.status === "active"}
-                />
+                <ToggleSwitch sx={{ m: 0 }} checked={user.isActive} />
                 <Typography
                   variant="body2"
                   sx={{
-                    color: user.status === "active" ? "#147A50" : "#757575",
+                    color: user.isActive ? "#147A50" : "#757575",
                     fontWeight: 500,
                   }}
                 >
-                  {user.status === "active" ? "Active" : "Disabled"}
+                  {user.isActive ? "Active" : "Disabled"}
                 </Typography>
               </Stack>
               <Divider orientation="vertical" flexItem />
@@ -195,34 +192,40 @@ const UserDetails: React.FC<UserDetailsProps> = ({
         </CardContent>
       </Card>
 
-      <Box sx={{ mt: 4 }}>
-        <Typography
-          variant="h6"
-          fontWeight={600}
-          gutterBottom
-          color="text.primary"
-          marginBottom={2}
-        >
-          Organisation
-        </Typography>
-        <Card
-          variant="outlined"
-          sx={{ borderRadius: 2, border: "1px solid #D9D9D9" }}
-        >
-          <CardContent sx={{ p: "0 !important" }}>
-            <Grid container spacing={3} sx={{ p: 3 }}>
-              <Grid size={{ xs: 4 }}>
-                <Typography variant="body1" color="#91939A" fontWeight={500}>
-                  Assigned Organisation
-                </Typography>
-                <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.organisation}
-                </Typography>
+      {user.organization && (
+        <Box sx={{ mt: 4 }}>
+          <Typography
+            variant="h6"
+            fontWeight={600}
+            gutterBottom
+            color="text.primary"
+            marginBottom={2}
+          >
+            Organisation
+          </Typography>
+          <Card
+            variant="outlined"
+            sx={{ borderRadius: 2, border: "1px solid #D9D9D9" }}
+          >
+            <CardContent sx={{ p: "0 !important" }}>
+              <Grid container spacing={3} sx={{ p: 3 }}>
+                <Grid size={{ xs: 4 }}>
+                  <Typography variant="body1" color="#91939A" fontWeight={500}>
+                    Assigned Organisation
+                  </Typography>
+                  <Typography
+                    fontSize={18}
+                    fontWeight={550}
+                    color="text.primary"
+                  >
+                    {user.organization}
+                  </Typography>
+                </Grid>
               </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </Box>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
 
       {/* Activity Section */}
       <Box sx={{ mt: 4 }}>
@@ -255,7 +258,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   Created By
                 </Typography>
                 <Typography fontSize={18} fontWeight={550} color="text.primary">
-                  {user.createdBy}
+                  {user.createdBy ? user.createdBy : "-"}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 4 }}>

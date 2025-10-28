@@ -4,6 +4,7 @@ import { UserData } from "@/types/user";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { USER_TABLE_HEADER_COLUMN_TEMPLATE } from "@/constants/constant";
+import { formatDate } from "@/utils/utility";
 
 interface UserCardProps {
   record: UserData;
@@ -12,10 +13,6 @@ interface UserCardProps {
 
 const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
   const router = useRouter();
-
-  const formattedDate = record.createdDate
-    ? new Date(record.createdDate).toISOString().split("T")[0]
-    : "";
 
   const handleCardClick = () => {
     // Navigate to user details page
@@ -106,7 +103,7 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
             textAlign: "start",
           }}
         >
-          {formattedDate}
+          {record.createdDate ? formatDate(record.createdDate) : "-"}
         </Typography>
       </Box>
 
@@ -121,7 +118,7 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
             whiteSpace: "nowrap",
           }}
         >
-          {record.organisation}
+          {record.organization ? record.organization : "-"}
         </Typography>
       </Box>
 
@@ -129,19 +126,19 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <ToggleSwitch
           sx={{ m: 0 }}
-          checked={record.status === "active"}
+          checked={record.isActive}
           //   onClick={handleInteractiveClick}
         />
         <Typography
           variant="body2"
           sx={{
-            color: record.status === "active" ? "#147A50" : "#757575",
+            color: record.isActive ? "#147A50" : "#757575",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
         >
-          {record.status === "active" ? "Active" : "Disabled"}
+          {record.isActive ? "Active" : "Disabled"}
         </Typography>
       </Box>
     </Paper>

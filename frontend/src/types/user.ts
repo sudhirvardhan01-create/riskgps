@@ -7,10 +7,10 @@ export interface UserData {
   communicationPreference: string;
   password?: string;
   company: string;
-  organisation?: string;
+  organization?: string;
   role: string;
   isTermsAndConditionsAccepted?: boolean;
-  status: string;
+  isActive?: boolean;
   createdDate?: Date;
   modifiedDate?: Date;
   createdBy?: string | null;

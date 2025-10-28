@@ -1,111 +1,48 @@
 import { useRouter } from "next/router";
 import UserDetails from "@/components/UserManagement/UserDetails";
+import { UserData } from "@/types/user";
+import { useEffect, useState } from "react";
+import { UserService } from "@/services/userService";
 
 export default function UserDetailsPage() {
   const router = useRouter();
   const { userId } = router.query;
+  const [loading, setLoading] = useState<boolean>(false);
+  const [userData, setUserData] = useState<UserData>();
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "info",
+  });
 
-  // Mock data – you’ll replace this with API call
-  const users = [
-    {
-      userId: "u001",
-      userCode: "USR001",
-      name: "Harsh Kansal",
-      email: "harsh.kansal@example.com",
-      phone: "9876543210",
-      communicationPreference: "Email",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "Admin",
-      isTermsAndConditionsAccepted: true,
-      status: "active",
-      createdDate: new Date("2024-09-10T10:30:00Z"),
-      modifiedDate: new Date("2025-02-20T12:45:00Z"),
-      createdBy: "system",
-      modifiedBy: "admin",
-      isDeleted: false,
-    },
-    {
-      userId: "u002",
-      userCode: "USR002",
-      name: "Ritika Sharma",
-      email: "ritika.sharma@example.com",
-      phone: "9823012345",
-      communicationPreference: "SMS",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "User",
-      isTermsAndConditionsAccepted: true,
-      status: "active",
-      createdDate: new Date("2024-11-02T11:20:00Z"),
-      modifiedDate: new Date("2025-03-15T15:00:00Z"),
-      createdBy: "admin",
-      modifiedBy: "admin",
-      isDeleted: false,
-    },
-    {
-      userId: "u003",
-      userCode: "USR003",
-      name: "Rohit Mehta",
-      email: "rohit.mehta@example.com",
-      phone: "9811223344",
-      communicationPreference: "Email",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "User",
-      isTermsAndConditionsAccepted: true,
-      status: "inactive",
-      createdDate: new Date("2024-06-12T09:45:00Z"),
-      modifiedDate: new Date("2025-01-20T14:15:00Z"),
-      createdBy: "admin",
-      modifiedBy: "system",
-      isDeleted: false,
-    },
-    {
-      userId: "u004",
-      userCode: "USR004",
-      name: "Neha Verma",
-      email: "neha.verma@example.com",
-      phone: "9798787878",
-      communicationPreference: "Email",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "Manager",
-      isTermsAndConditionsAccepted: true,
-      status: "active",
-      createdDate: new Date("2024-12-15T10:00:00Z"),
-      modifiedDate: new Date("2025-04-05T09:50:00Z"),
-      createdBy: "system",
-      modifiedBy: "admin",
-      isDeleted: false,
-    },
-    {
-      userId: "u005",
-      userCode: "USR005",
-      name: "Arjun Patel",
-      email: "arjun.patel@example.com",
-      phone: "9900990099",
-      communicationPreference: "SMS",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "Admin",
-      isTermsAndConditionsAccepted: false,
-      status: "pending",
-      createdDate: new Date("2025-01-25T08:15:00Z"),
-      modifiedDate: new Date("2025-05-30T11:25:00Z"),
-      createdBy: "admin",
-      modifiedBy: null,
-      isDeleted: false,
-    },
-  ];
-
-  const user = users?.find((item) => item.userId === userId);
+  //Fetch user by id
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!userId) {
+          throw new Error("Invalid selection");
+        }
+        setLoading(true);
+        const data = await UserService.fetchById(userId as string);
+        setUserData(data);
+      } catch (err) {
+        console.error(err);
+        setToast({
+          open: true,
+          message: "Failed to fetch users",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   return (
     <>
-      {user && (
+      {userData && (
         <UserDetails
-          user={user}
+          user={userData}
           onEdit={(id) => router.push(`/userManagement/${id}/edit`)}
           onDelete={(id) => console.log("Delete user:", id)}
           onResetPassword={(id) => console.log("Reset password for:", id)}

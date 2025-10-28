@@ -13,9 +13,11 @@ import Cookies from "js-cookie";
 import UserHeader from "@/components/UserManagement/UserHeader";
 import UserTableHeader from "@/components/UserManagement/UserTableHeader";
 import UserList from "@/components/UserManagement/UserList";
+import { UserService } from "@/services/userService";
 
 export default function UserManagementContainer() {
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
@@ -39,69 +41,27 @@ export default function UserManagementContainer() {
   });
 
   // fetch list
-  // const loadList = useCallback(async () => {
-  //   try {
-  //     // When filtering by status, we need to fetch all data and do client-side pagination
-  //     // Otherwise, use server-side pagination
-  //     if (statusFilter && statusFilter !== "all") {
-  //       // Fetch all data for client-side filtering and pagination
-  //       const apiResponse = await getOrganizations(
-  //         0,
-  //         1000,
-  //         searchPattern,
-  //         sortField,
-  //         sortDirection.toUpperCase()
-  //       );
-  //       const transformedData = transformApiResponseToFrontend(apiResponse);
+  const loadList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await UserService.fetch();
+      setUsersData(data ?? []);
+      setTotalRows(data?.total ?? 0);
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to fetch users",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  //       // Apply client-side filtering for status
-  //       let filteredData = transformedData.organizations;
-  //       // Show organizations with specific status
-  //       filteredData = filteredData.filter(
-  //         (org) => org.status === statusFilter
-  //       );
-
-  //       // Apply client-side pagination
-  //       const startIndex = page * rowsPerPage;
-  //       const endIndex = startIndex + rowsPerPage;
-  //       const paginatedData = filteredData.slice(startIndex, endIndex);
-
-  //       setUsersData(paginatedData);
-  //       setTotalRows(filteredData.length);
-  //     } else {
-  //       // Use server-side pagination when no status filter is applied
-  //       const apiResponse = await getOrganizations(
-  //         page,
-  //         rowsPerPage,
-  //         searchPattern,
-  //         sortField,
-  //         sortDirection.toUpperCase()
-  //       );
-  //       const transformedData = transformApiResponseToFrontend(apiResponse);
-
-  //       setOrganizationsData(transformedData.organizations);
-  //       setTotalRows(transformedData.total);
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message: "Failed to fetch organizations",
-  //       severity: "error",
-  //     });
-  //   }
-  // }, [
-  //   page,
-  //   rowsPerPage,
-  //   searchPattern,
-  //   sortField,
-  //   sortDirection,
-  //   statusFilter,
-  // ]);
-
-  // useEffect(() => {
-  //   loadList();
-  // }, [loadList, refreshTrigger]);
+  useEffect(() => {
+    loadList();
+  }, [loadList, refreshTrigger]);
 
   // Org Delete function
   // const handleDelete = async () => {
@@ -177,100 +137,6 @@ export default function UserManagementContainer() {
   // const handleEditOrganization = (organization: Organization) => {
   //   router.push(`/orgManagement/${organization.orgId}/editOrgDetails`);
   // };
-
-  const users = [
-    {
-      userId: "u001",
-      userCode: "USR001",
-      name: "Harsh Kansal",
-      email: "harsh.kansal@example.com",
-      phone: "9876543210",
-      communicationPreference: "Email",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "Admin",
-      isTermsAndConditionsAccepted: true,
-      status: "active",
-      createdDate: new Date("2024-09-10T10:30:00Z"),
-      modifiedDate: new Date("2025-02-20T12:45:00Z"),
-      createdBy: "system",
-      modifiedBy: "admin",
-      isDeleted: false,
-    },
-    {
-      userId: "u002",
-      userCode: "USR002",
-      name: "Ritika Sharma",
-      email: "ritika.sharma@example.com",
-      phone: "9823012345",
-      communicationPreference: "SMS",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "User",
-      isTermsAndConditionsAccepted: true,
-      status: "active",
-      createdDate: new Date("2024-11-02T11:20:00Z"),
-      modifiedDate: new Date("2025-03-15T15:00:00Z"),
-      createdBy: "admin",
-      modifiedBy: "admin",
-      isDeleted: false,
-    },
-    {
-      userId: "u003",
-      userCode: "USR003",
-      name: "Rohit Mehta",
-      email: "rohit.mehta@example.com",
-      phone: "9811223344",
-      communicationPreference: "Email",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "User",
-      isTermsAndConditionsAccepted: true,
-      status: "inactive",
-      createdDate: new Date("2024-06-12T09:45:00Z"),
-      modifiedDate: new Date("2025-01-20T14:15:00Z"),
-      createdBy: "admin",
-      modifiedBy: "system",
-      isDeleted: false,
-    },
-    {
-      userId: "u004",
-      userCode: "USR004",
-      name: "Neha Verma",
-      email: "neha.verma@example.com",
-      phone: "9798787878",
-      communicationPreference: "Email",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "Manager",
-      isTermsAndConditionsAccepted: true,
-      status: "active",
-      createdDate: new Date("2024-12-15T10:00:00Z"),
-      modifiedDate: new Date("2025-04-05T09:50:00Z"),
-      createdBy: "system",
-      modifiedBy: "admin",
-      isDeleted: false,
-    },
-    {
-      userId: "u005",
-      userCode: "USR005",
-      name: "Arjun Patel",
-      email: "arjun.patel@example.com",
-      phone: "9900990099",
-      communicationPreference: "SMS",
-      company: "ABC",
-      organisation: "TechNova Solutions",
-      role: "Admin",
-      isTermsAndConditionsAccepted: false,
-      status: "pending",
-      createdDate: new Date("2025-01-25T08:15:00Z"),
-      modifiedDate: new Date("2025-05-30T11:25:00Z"),
-      createdBy: "admin",
-      modifiedBy: null,
-      isDeleted: false,
-    },
-  ];
-
   return (
     <>
       {/* Org Delete Confirm dialogs */}
@@ -306,7 +172,7 @@ export default function UserManagementContainer() {
 
         <Box sx={{ flex: 1, overflow: "hidden", mt: 3 }}>
           <UserList
-            data={users}
+            data={usersData}
             totalRows={totalRows}
             page={page}
             rowsPerPage={rowsPerPage}
