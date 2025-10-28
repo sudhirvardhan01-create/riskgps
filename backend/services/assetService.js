@@ -6,8 +6,9 @@ const {
   AssetAttribute,
   AssetProcessMappings,
   Sequelize,
+  MitreThreatControl,
 } = require("../models");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
@@ -61,7 +62,7 @@ class AssetService {
       sortOrder = "ASC";
     }
 
-    const whereClause =  await this.handleAssetFilters(
+    const whereClause = await this.handleAssetFilters(
       searchPattern,
       statusFilter,
       attrFilters
@@ -70,7 +71,7 @@ class AssetService {
     const total = await Asset.count({
       where: whereClause,
     });
-    
+
     const data = await Asset.findAll({
       ...(limit > 0 ? { limit, offset } : {}),
       offset,
@@ -116,6 +117,19 @@ class AssetService {
     const asset = await Asset.findByPk(id, {
       include: [
         {
+          model: Process,
+          as: "processes",
+          attributes: [
+            "id",
+            "processCode",
+            "processName",
+            "processDescription",
+            "status",
+          ],
+          include: [],
+          through: { attributes: [] },
+        },
+        {
           model: AssetAttribute,
           as: "attributes",
           include: [{ model: MetaData, as: "metaData" }],
@@ -127,8 +141,31 @@ class AssetService {
       console.log("Asset not found with id", id);
       throw new CustomError(Messages.ASSET.NOT_FOUND(id), HttpStatus.NOT_FOUND);
     }
+    const assetData = asset.toJSON();
+    const assetCategory = assetData.assetCategory;
+    if (assetCategory) {
+      const mitreThreatControls = await MitreThreatControl.findAll({
+        where: {
+          platforms: {
+            [Op.contains]: [assetCategory],
+          },
+        },
+        attributes: [
+          "id",
+          "platforms",
+          "mitreTechniqueId",
+          "mitreTechniqueName",
+          "subTechniqueId",
+          "subTechniqueName",
+          "mitreControlId",
+          "mitreControlName",
+          "controlPriority",
+        ],
+      });
+      assetData.mitreControls = mitreThreatControls;
+    }
 
-    return asset;
+    return assetData;
   }
 
   static async updateAsset(id, data) {
