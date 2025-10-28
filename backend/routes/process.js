@@ -54,7 +54,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const searchPattern = req.query.search || null;
-        const limit = parseInt(req.query?.limit) || 6;
+        const limit = parseInt(req.query?.limit) || -1;
         const page = parseInt(req.query?.page) || 0;
         const sortBy = req.query.sort_by || 'created_at'
         const sortOrder = req.query.sort_order?.toUpperCase() || 'DESC'

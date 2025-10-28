@@ -15,14 +15,14 @@ describe('RiskScenario Model', () => {
     await sequelize.close();
   });
 
-  it('should generate a risk_code after creation', async () => {
+  it('should generate a riskCode after creation', async () => {
     const scenario = await RiskScenario.create({
       risk_scenario: 'Test scenario',
       risk_description: 'Test description',
       risk_statement: 'Test statement',
       status: 'published',
     });
-    expect(scenario.risk_code).toMatch(/^#RS-\d{5}$/);
+    expect(scenario.riskCode).toMatch(/^#RS-\d{5}$/);
   });
 
   it('should have default status as published', async () => {

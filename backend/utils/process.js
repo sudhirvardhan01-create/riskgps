@@ -5,9 +5,9 @@ const CustomError = require("./CustomError");
 
 
 const validateProcessData = (data) => {
-    const { process_name, status } = data;
+    const { processName, status } = data;
 
-    if (!process_name) {
+    if (!processName) {
         throw new CustomError(Messages.PROCESS.PROCESS_NAME_REQUIRED, HttpStatus.BAD_REQUEST);
     }
 

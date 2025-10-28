@@ -9,82 +9,102 @@ module.exports = (sequelize) => {
         type: DataTypes.UUID,
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
+        field: "id"
       },
-      auto_increment_id: {
+      autoIncrementId: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         unique: true,
+        field: "auto_increment_id"
+
       },
-      asset_code: {
+      assetCode: {
         unique: true,
         type: DataTypes.STRING,
+        field: "asset_code"
       },
-      application_name: {
+      applicationName: {
         unique: true,
         type: DataTypes.STRING,
         allowNull: false,
+        field: "application_name"
       },
-      application_owner: {
+      applicationOwner: {
         type: DataTypes.STRING,
         allowNull: true,
+        field: "application_owner"
       },
-      application_it_owner: {
+      applicationItOwner: {
         type: DataTypes.STRING,
         allowNull: true,
+        field: "application_it_owner"
       },
-      is_third_party_management: {
+      isThirdPartyManagement: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
+        field: "is_third_party_management"
       },
-      third_party_name: {
+      thirdPartyName: {
         type: DataTypes.STRING,
         allowNull: true,
+        field: "third_party_name"
       },
-      third_party_location: {
+      thirdPartyLocation: {
         type: DataTypes.STRING,
         allowNull: true,
+        field: "third_party_location"
       },
       hosting: {
         type: DataTypes.ENUM(...ASSETS.HOSTING_SUPPORTED_VALUES),
         allowNull: true,
+        field: "hosting"
       },
-      hosting_facility: {
+      hostingFacility: {
         type: DataTypes.ENUM(...ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES),
         allowNull: true,
+        field: "hosting_facility"
       },
-      cloud_service_provider: {
+      cloudServiceProvider: {
         type: DataTypes.ARRAY(
           DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES)
         ),
         allowNull: true,
+        field: "cloud_service_provider"
       },
-      geographic_location: {
+      geographicLocation: {
         type: DataTypes.STRING,
         allowNull: true,
+        field: "geographic_location"
       },
-      has_redundancy: {
+      hasRedundancy: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
+        field: "has_redundancy"
       },
       databases: {
         type: DataTypes.STRING,
         allowNull: true,
+        field: "databases"
       },
-      has_network_segmentation: {
+      hasNetworkSegmentation: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
+        field: "has_network_segmentation"
       },
-      network_name: {
+      networkName: {
         type: DataTypes.STRING,
         allowNull: true,
+        field: "network_name"
       },
-      asset_category: {
+      assetCategory: {
         type: DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
         allowNull: false,
+        field: "asset_category"
       },
-      asset_description: {
+      assetDescription: {
         type: DataTypes.TEXT,
         allowNull: true,
+        field: "asset_description"
       },
 
       status: {
@@ -116,10 +136,10 @@ module.exports = (sequelize) => {
   };
 
   Asset.afterCreate(async (instance, options) => {
-    const paddedId = String(instance.auto_increment_id).padStart(5, "0");
+    const paddedId = String(instance.autoIncrementId).padStart(5, "0");
     const code = `AT${paddedId}`;
     await instance.update(
-      { asset_code: code },
+      { assetCode: code },
       { transaction: options.transaction }
     );
   });
