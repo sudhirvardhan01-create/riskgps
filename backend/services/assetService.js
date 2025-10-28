@@ -6,8 +6,9 @@ const {
   AssetAttribute,
   AssetProcessMappings,
   Sequelize,
+  MitreThreatControl
 } = require("../models");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const Messages = require("../constants/messages");
@@ -115,11 +116,20 @@ class AssetService {
   static async getAssetById(id) {
     const asset = await Asset.findByPk(id, {
       include: [
+          {
+          model: Process,
+          as: "processes",
+          attributes: ["id", "processCode", "processName", "processDescription", "status"],
+          include: [], 
+          through: { attributes: [] }         
+        }, 
         {
           model: AssetAttribute,
           as: "attributes",
           include: [{ model: MetaData, as: "metaData" }],
-        },
+          
+        }, 
+
       ],
     });
 
@@ -127,8 +137,18 @@ class AssetService {
       console.log("Asset not found with id", id);
       throw new CustomError(Messages.ASSET.NOT_FOUND(id), HttpStatus.NOT_FOUND);
     }
-
-    return asset;
+    const assetData = asset.toJSON();
+    const assetCategory = assetData.assetCategory;
+    const mitreThreatControls = await MitreThreatControl.findAll({
+        where: {
+          platforms: {
+            [Op.contains]: [assetCategory]
+          }
+        },
+        attributes: ['id', "platforms", "mitreTechniqueId", "mitreTechniqueName", "subTechniqueId", "subTechniqueName", "mitreControlId", "mitreControlName", "controlPriority"]
+      });
+    assetData.mitreControls = mitreThreatControls;
+    return assetData;
   }
 
   static async updateAsset(id, data) {
