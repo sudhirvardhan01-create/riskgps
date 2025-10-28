@@ -1,13 +1,13 @@
 const express = require("express");
 const HttpStatusCodes = require("../constants/httpStatusCodes");
 const router = express.Router();
-const DashboardService = require("../services/dashboard");
+const ReportsService = require("../services/reports_service");
 
-router.get("/org-dependency", async (req, res) => {
+router.get("/process-details", async (req, res) => {
     try {
         const organizationName = req.query.organizationName ?? null
         const businessUnit = req.query.businessUnit ?? null
-        const data = await DashboardService.getOrganizationalDependencyData(organizationName, businessUnit)
+        const data = await ReportsService.getOrganizationalDependencyData(organizationName, businessUnit)
         res.status(HttpStatusCodes.OK).json({
             data: data,
             msg: "fetched dashboard details"
