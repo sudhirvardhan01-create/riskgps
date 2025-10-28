@@ -6,7 +6,7 @@ const {
   AssetAttribute,
   AssetProcessMappings,
   Sequelize,
-  MitreThreatControl
+  MitreThreatControl,
 } = require("../models");
 const { Op, where } = require("sequelize");
 const CustomError = require("../utils/CustomError");
@@ -62,7 +62,7 @@ class AssetService {
       sortOrder = "ASC";
     }
 
-    const whereClause =  await this.handleAssetFilters(
+    const whereClause = await this.handleAssetFilters(
       searchPattern,
       statusFilter,
       attrFilters
@@ -71,7 +71,7 @@ class AssetService {
     const total = await Asset.count({
       where: whereClause,
     });
-    
+
     const data = await Asset.findAll({
       ...(limit > 0 ? { limit, offset } : {}),
       offset,
@@ -116,20 +116,24 @@ class AssetService {
   static async getAssetById(id) {
     const asset = await Asset.findByPk(id, {
       include: [
-          {
+        {
           model: Process,
           as: "processes",
-          attributes: ["id", "processCode", "processName", "processDescription", "status"],
-          include: [], 
-          through: { attributes: [] }         
-        }, 
+          attributes: [
+            "id",
+            "processCode",
+            "processName",
+            "processDescription",
+            "status",
+          ],
+          include: [],
+          through: { attributes: [] },
+        },
         {
           model: AssetAttribute,
           as: "attributes",
           include: [{ model: MetaData, as: "metaData" }],
-          
-        }, 
-
+        },
       ],
     });
 
@@ -139,15 +143,28 @@ class AssetService {
     }
     const assetData = asset.toJSON();
     const assetCategory = assetData.assetCategory;
-    const mitreThreatControls = await MitreThreatControl.findAll({
+    if (assetCategory) {
+      const mitreThreatControls = await MitreThreatControl.findAll({
         where: {
           platforms: {
-            [Op.contains]: [assetCategory]
-          }
+            [Op.contains]: [assetCategory],
+          },
         },
-        attributes: ['id', "platforms", "mitreTechniqueId", "mitreTechniqueName", "subTechniqueId", "subTechniqueName", "mitreControlId", "mitreControlName", "controlPriority"]
+        attributes: [
+          "id",
+          "platforms",
+          "mitreTechniqueId",
+          "mitreTechniqueName",
+          "subTechniqueId",
+          "subTechniqueName",
+          "mitreControlId",
+          "mitreControlName",
+          "controlPriority",
+        ],
       });
-    assetData.mitreControls = mitreThreatControls;
+      assetData.mitreControls = mitreThreatControls;
+    }
+
     return assetData;
   }
 
