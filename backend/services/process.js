@@ -30,7 +30,6 @@ class ProcessService {
 
       const newProcess = await Process.create(processData, { transaction: t });
 
-      console.log("aaasaa");
       if (
         Array.isArray(data.process_dependency) &&
         data.process_dependency.length > 0
@@ -163,7 +162,7 @@ class ProcessService {
   }
   static async getAllProcessForListing() {
     const data = await Process.findAll({
-      attributes: ["id", "process_code", "process_name"],
+      attributes: ["id", "processCode", "processName"],
     });
     let processes = data.map((s) => s.toJSON());
     return {
@@ -405,27 +404,27 @@ class ProcessService {
         .on("error", (error) => reject(error))
         .on("data", async (row) => {
           batch.push({
-            process_name: row["Process Name"],
-            process_description: row["Process Description"],
-            senior_executive__owner_name: row["Senior Executive Name"],
-            senior_executive__owner_email: row["Senior Executive Email"],
-            operations__owner_name: row["Operations Owner Name"],
-            operations__owner_email: row["Operations Owner Email"],
-            technology_owner_name: row["Technology Owner Name"],
-            technology_owner_email: row["Technology Owner Email"],
-            organizational_revenue_impact_percentage: parseFloat(
+            processName: row["Process Name"],
+            processDescription: row["Process Description"],
+            seniorExecutiveOwnerName: row["Senior Executive Name"],
+            seniorExecutiveOwnerEmail: row["Senior Executive Email"],
+            operationsOwnerName: row["Operations Owner Name"],
+            operationsOwnerEmail: row["Operations Owner Email"],
+            technologyOwnerName: row["Technology Owner Name"],
+            technologyOwnerEmail: row["Technology Owner Email"],
+            organizationalRevenueImpactPercentage: parseFloat(
               row["Oraganizational Revenue Impact Percentage"]
             ),
-            financial_materiality: parseBoolean(row["Financial Materiality"]),
-            third_party_involvement: parseBoolean(
+            financialMateriality: parseBoolean(row["Financial Materiality"]),
+            thirdPartyInvolvement: parseBoolean(
               row["Third Party Involvement"]
             ),
-            users_customers: row["Users"],
-            regulatory_and_compliance: parseRegulatoryAndCompliance(
+            usersCustomers: row["Users"],
+            regulatoryAndCompliance: parseRegulatoryAndCompliance(
               row["Regulatory and Compliance"]
             ),
-            criticality_of_data_processed: row["Criticality Of Data Processed"],
-            data_processed: parseDataProcessed(row["Data Processes"]),
+            criticalityOfDataProcessed: row["Criticality Of Data Processed"],
+            dataProcessed: parseDataProcessed(row["Data Processes"]),
             status: "published",
             industry: parseIndustry(row["Industry"]),
           });
@@ -443,7 +442,7 @@ class ProcessService {
               // Insert metadata
               const metaRows = inserted.map((process) => {
                 const match = batch.find(
-                  (b) => b.process_name === process.process_name
+                  (b) => b.processName === process.processName
                 );
 
                 return {
@@ -479,7 +478,7 @@ class ProcessService {
 
               const metaRows = inserted.map((process) => {
                 const match = batch.find(
-                  (b) => b.process_name === process.process_name
+                  (b) => b.processName === process.processName
                 );
 
                 return {
@@ -511,9 +510,9 @@ class ProcessService {
   }
 
   static validateProcessData = (data) => {
-    const { process_name, status } = data;
+    const { processName, status } = data;
 
-    if (!process_name) {
+    if (!processName) {
       throw new CustomError(
         Messages.PROCESS.PROCESS_NAME_REQUIRED,
         HttpStatus.BAD_REQUEST
@@ -533,21 +532,21 @@ class ProcessService {
 
   static handleProcessDataColumnMapping(data) {
     const fields = [
-      "process_name",
-      "process_description",
-      "senior_executive__owner_name",
-      "senior_executive__owner_email",
-      "operations__owner_name",
-      "operations__owner_email",
-      "technology_owner_name",
-      "technology_owner_email",
-      "organizational_revenue_impact_percentage",
-      "financial_materiality",
-      "third_party_involvement",
-      "users_customers",
-      "regulatory_and_compliance",
-      "criticality_of_data_processed",
-      "data_processed",
+      "processName",
+      "processDescription",
+      "seniorExecutiveOwnerName",
+      "seniorExecutiveOwnerEmail",
+      "operationsOwnerName",
+      "operationsOwnerEmail",
+      "technologyOwnerName",
+      "technologyOwnerEmail",
+      "organizationalRevenueImpactPercentage",
+      "financialMateriality",
+      "thirdPartyInvolvement",
+      "usersCustomers",
+      "regulatoryAndCompliance",
+      "criticalityOfDataProcessed",
+      "dataProcessed",
       "status",
     ];
 
@@ -682,8 +681,8 @@ class ProcessService {
     if (searchPattern) {
       conditions.push({
         [Op.or]: [
-          { process_name: { [Op.iLike]: `%${searchPattern}%` } },
-          { process_description: { [Op.iLike]: `%${searchPattern}%` } },
+          { processName: { [Op.iLike]: `%${searchPattern}%` } },
+          { processDescription: { [Op.iLike]: `%${searchPattern}%` } },
         ],
       });
     }

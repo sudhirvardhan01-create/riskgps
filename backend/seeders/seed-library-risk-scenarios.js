@@ -1,5 +1,7 @@
 "use strict";
 
+const riskScenario = require("../models/riskScenario");
+
 module.exports = {
   async up(queryInterface) {
     const {
@@ -524,24 +526,15 @@ module.exports = {
       const riskScenarioAttributes = [];
       const processRiskScenarioMappings = [];
       for (const risk of seedRiskScenarios) {
-        const allowedRiskScenarioFields = [
-          "risk_scenario",
-          "risk_description",
-          "risk_statement",
-          "cia_mapping",
-          "status",
-          "risk_field_1",
-          "risk_field_2",
-          "created_at",
-          "updated_at",
-        ];
-
         const riskData = {};
-        for (const key of allowedRiskScenarioFields) {
-          if (risk[key] !== undefined) riskData[key] = risk[key];
-        }
+        riskData["riskScenario"] = risk["risk_field_2"];
+        riskData["riskDescription"] = risk["risk_description"];
+        riskData["riskStatement"] = risk["risk_statement"];
+        riskData["ciaMapping"] = risk["cia_mapping"];
+        riskData["status"] = risk["status"];
+
         const [createdRisk, created] = await RiskScenario.findOrCreate({
-          where: { risk_scenario: riskData.risk_scenario },
+          where: { riskScenario: riskData.riskScenario },
           defaults: riskData,
           transaction: t,
         });
@@ -550,14 +543,14 @@ module.exports = {
           console.log(
             "created name, id",
             createdRisk.id,
-            createdRisk.risk_scenario
+            createdRisk.riskScenario
           );
           // Loop over all related process names
           if (risk.related_process && Array.isArray(risk.related_process)) {
             for (const processName of risk.related_process) {
               console.log("related process", processName);
               const process = await Process.findOne({
-                where: { process_name: processName },
+                where: { processName: processName },
                 transaction: t,
               });
 

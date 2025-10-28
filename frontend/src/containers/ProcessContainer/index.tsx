@@ -38,10 +38,10 @@ const sortItems = [
   { label: "Created (Oldest to Latest)", value: "created_at:asc" },
   { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },
   { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
-  { label: "Process ID (Ascending)", value: "process_code:asc" },
-  { label: "Process ID (Descending)", value: "process_code:desc" },
-  { label: "Process Name (Ascending)", value: "process_name:asc" },
-  { label: "Process Name (Descending)", value: "process_name:desc" },
+  { label: "Process ID (Ascending)", value: "processCode:asc" },
+  { label: "Process ID (Descending)", value: "processCode:desc" },
+  { label: "Process Name (Ascending)", value: "processName:asc" },
+  { label: "Process Name (Descending)", value: "processName:desc" },
 
 ];
 

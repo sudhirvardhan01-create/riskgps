@@ -290,28 +290,28 @@ class AssetService {
         .on("error", (error) => reject(error))
         .on("data", (row) => {
           rows.push({
-            application_name: row["Application Name"],
-            application_owner: row["Application Owner"],
-            application_it_owner: row["Application IT Owner"],
-            is_third_party_management: parseBoolean(
+            applicationName: row["Application Name"],
+            applicationOwner: row["Application Owner"],
+            applicationItOwner: row["Application IT Owner"],
+            isThirdPartyManagement: parseBoolean(
               row["Is Third Party Management"]
             ),
-            third_party_name: row["Third Party Name"],
-            third_party_location: row["Third Party Location"],
+            thirdPartyName: row["Third Party Name"],
+            thirdPartyLocation: row["Third Party Location"],
             hosting: parseHosting(row["Hosting"]),
-            hosting_facility: parseHostingFacility(row["Hosting Facility"]),
-            cloud_service_provider: parseCloudServiceProvider(
+            hostingFacility: parseHostingFacility(row["Hosting Facility"]),
+            cloudServiceProvider: parseCloudServiceProvider(
               row["Cloud Service Provider"]
             ),
-            geographic_location: row["Geographic Location"],
-            has_redundancy: parseBoolean(row["Has Redundancy"]),
+            geographicLocation: row["Geographic Location"],
+            hasRedundancy: parseBoolean(row["Has Redundancy"]),
             databases: row["Databases"],
-            has_network_segmentation: parseBoolean(
+            hasNetworkSegmentation: parseBoolean(
               row["Has Network Segmentations"]
             ),
-            network_name: row["Network Name"],
-            asset_category: parseAssetCategory(row["Asset Category"]),
-            asset_description: row["Asset Description"],
+            networkName: row["Network Name"],
+            assetCategory: parseAssetCategory(row["Asset Category"]),
+            assetDescription: row["Asset Description"],
             status: "published",
           });
         })
@@ -392,15 +392,15 @@ class AssetService {
 
   static validateAssetData(data) {
     const {
-      application_name,
+      applicationName,
       status,
       hosting,
-      hosting_facility,
-      cloud_service_provider,
-      asset_category,
+      hostingFacility,
+      cloudServiceProvider,
+      assetCategory,
     } = data;
 
-    if (!application_name) {
+    if (!applicationName) {
       throw new CustomError(
         Messages.ASSET.APPLICATION_NAME_REQUIRED,
         HttpStatus.BAD_REQUEST
@@ -425,8 +425,8 @@ class AssetService {
     }
 
     if (
-      hosting_facility &&
-      !ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.includes(hosting_facility)
+      hostingFacility &&
+      !ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES.includes(hostingFacility)
     ) {
       throw new CustomError(
         Messages.ASSET.INVALID_HOSTING_FACILITY_VALUE,
@@ -434,10 +434,10 @@ class AssetService {
       );
     }
 
-    if (cloud_service_provider) {
+    if (cloudServiceProvider) {
       if (
-        !Array.isArray(cloud_service_provider) ||
-        !cloud_service_provider.every((p) =>
+        !Array.isArray(cloudServiceProvider) ||
+        !cloudServiceProvider.every((p) =>
           ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES.includes(p)
         )
       ) {
@@ -448,7 +448,7 @@ class AssetService {
       }
     }
 
-    if (!asset_category || !ASSETS.ASSET_CATEGORY.includes(asset_category)) {
+    if (!assetCategory || !ASSETS.ASSET_CATEGORY.includes(assetCategory)) {
       throw new CustomError(
         Messages.ASSET.INVALID_ASSET_CATEGORY,
         HttpStatus.BAD_REQUEST
@@ -458,22 +458,22 @@ class AssetService {
 
   static handleAssetDataColumnMapping(data) {
     const fields = [
-      "application_name",
-      "application_owner",
-      "application_it_owner",
-      "is_third_party_management",
-      "third_party_name",
-      "third_party_location",
+      "applicationName",
+      "applicationOwner",
+      "applicationItOwner",
+      "isThirdPartyManagement",
+      "thirdPartyName",
+      "thirdPartyLocation",
       "hosting",
-      "hosting_facility",
-      "cloud_service_provider",
-      "geographic_location",
-      "has_redundancy",
+      "hostingFacility",
+      "cloudServiceProvider",
+      "geographicLocation",
+      "hasRedundancy",
       "databases",
-      "has_network_segmentation",
-      "network_name",
-      "asset_category",
-      "asset_description",
+      "hasNetworkSegmentation",
+      "networkName",
+      "assetCategory",
+      "assetDescription",
       "status",
     ];
 
@@ -572,9 +572,9 @@ class AssetService {
     if (searchPattern) {
       conditions.push({
         [Op.or]: [
-          { application_name: { [Op.iLike]: `%${searchPattern}%` } },
-          { third_party_name: { [Op.iLike]: `%${searchPattern}%` } },
-          { geographic_location: { [Op.iLike]: `%${searchPattern}%` } },
+          { applicationName: { [Op.iLike]: `%${searchPattern}%` } },
+          { thirdPartyName: { [Op.iLike]: `%${searchPattern}%` } },
+          { geographicLocation: { [Op.iLike]: `%${searchPattern}%` } },
         ],
       });
     }

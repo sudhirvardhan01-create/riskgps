@@ -9,45 +9,56 @@ module.exports = (sequelize) => {
         type: DataTypes.UUID,
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
+        field: "id"
       },
-      auto_increment_id: {
+      autoIncrementId: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
+      field: "auto_increment_id",
       unique: true,
       },
-      risk_code: {
+      riskCode: {
         type: DataTypes.STRING,
         unique: true,
+        field: "risk_code",
       },
-      risk_scenario: {
+      riskScenario: {
         allowNull: false,
         type: DataTypes.TEXT,
+        field: "risk_scenario",
         unique: true,
       },
-      risk_description: {
+      riskDescription: {
         allowNull: true,
         type: DataTypes.TEXT,
+        field: "risk_description"
       },
-      risk_statement: {
+      riskStatement: {
         allowNull: true,
         type: DataTypes.TEXT,
+        field: "risk_statement"
       },
-      cia_mapping: {
+      ciaMapping: {
         allowNull: true,
         type: DataTypes.ARRAY(DataTypes.ENUM(...GENERAL.CIA_MAPPING_VALUES)),
+        field: "cia_mapping"
       },
       status: {
         defaultValue: "published",
         allowNull: false,
         type: DataTypes.ENUM(GENERAL.STATUS_SUPPORTED_VALUES),
+        field: "status"
       },
-      risk_field_1: {
+      riskField1: {
         allowNull: true,
         type: DataTypes.TEXT,
+        field: "risk_field_1"
       },
-      risk_field_2: {
+      riskField2: {
         allowNull: true,
         type: DataTypes.TEXT,
+        field: "risk_field_2"
+
       },
     },
     {
@@ -74,7 +85,7 @@ module.exports = (sequelize) => {
   };
 
   RiskScenario.afterCreate(async (instance, options) => {
-    const paddedId = String(instance.auto_increment_id).padStart(5, "0");
+    const paddedId = String(instance.autoIncrementId).padStart(5, "0");
     const code = `RS${paddedId}`;
     await instance.update({ risk_code: code }, { transaction: options.transaction });
   });
