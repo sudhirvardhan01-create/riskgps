@@ -52,18 +52,18 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
   const transformRiskData = (data: any[]): RiskScenarioData[] => {
   return data.map((item) => ({
     id: item.id,
-    risk_code: item.risk_code,
-    riskScenario: item.risk_scenario,
-    riskStatement: item.risk_statement,
-    riskDescription: item.risk_description,
-    ciaMapping: item.cia_mapping,
+    riskCode: item.riskCode,
+    riskScenario: item.riskScenario,
+    riskStatement: item.riskStatement,
+    riskDescription: item.riskDescription,
+    ciaMapping: item.ciaMapping,
     industry: item.industry,
     tags: item.tags,
     related_processes: item.related_processes,
     assets: item.assets,
     threats: item.threats,
-    riskField1: item.risk_field_1,
-    riskField2: item.risk_field_2,
+    riskField1: item.riskField1,
+    riskField2: item.riskField2,
     attributes: item.attributes,
     lastUpdated: item.updated_at,
     createdAt: item.created_at,
@@ -89,16 +89,18 @@ export const fetchRiskScenarios = async (page: number, limit: number, searchPatt
 
 export const createRiskScenario = async (data: RiskScenarioData) => {
   const riskScenarioData = {
-    "risk_scenario": data.riskScenario,
-    "risk_description": data.riskDescription,
-    "risk_statement": data.riskStatement, 
-    "cia_mapping": data.ciaMapping,
-    "risk_field_1": data.riskField1?? null,
-    "risk_field_2": data.riskField2?? null,
+    "riskScenario": data.riskScenario,
+    "riskDescription": data.riskDescription,
+    "riskStatement": data.riskStatement, 
+    "ciaMapping": data.ciaMapping,
+    "riskField1": data.riskField1?? null,
+    "riskField2": data.riskField2?? null,
     "status": data.status,
     "related_processes": data.related_processes,
     "attributes": data.attributes
   };
+
+
   console.log(riskScenarioData);
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/risk-scenario`, {
     method: "POST",
@@ -120,12 +122,12 @@ export const createRiskScenario = async (data: RiskScenarioData) => {
 
 export const updateRiskScenario = async (id: number, data: any) => {
     const riskScenarioData = {
-    "risk_scenario": data.riskScenario,
-    "risk_description": data.riskDescription,
-    "risk_statement": data.riskStatement, 
-    "cia_mapping": data.ciaMapping,
-    "risk_field_1": data.riskField1?? null,
-    "risk_field_2": data.riskField2?? null,
+    "riskScenario": data.riskScenario,
+    "riskDescription": data.riskDescription,
+    "riskStatement": data.riskStatement, 
+    "ciaMapping": data.ciaMapping,
+    "riskField1": data.riskField1?? null,
+    "riskField2": data.riskField2?? null,
     "status": data.status,
     "related_processes": data.related_processes,
     "attributes": data.attributes

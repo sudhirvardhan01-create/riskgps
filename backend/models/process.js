@@ -9,85 +9,106 @@ module.exports = (sequelize) => {
         type: DataTypes.UUID,
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
+        field: "id"
       },
-      auto_increment_id: {
+      autoIncrementId: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       unique: true,
+      field: "auto_increment_id"
+
       },
-      process_code: {
+      processCode: {
         unique: true,
         type: DataTypes.STRING,
+        field: "process_code"
       },
-      process_name: { 
+      processName: { 
         type: DataTypes.STRING, 
         unique: true,
-        allowNull: false 
+        allowNull: false,
+        field: "process_name"
       },
-      process_description: { 
+      processDescription: { 
         type: DataTypes.TEXT,
-        allowNull: true 
+        allowNull: true,
+        field: "process_description" 
       },
-      senior_executive__owner_name: {
+      seniorExecutiveOwnerName: {
         type: DataTypes.STRING,
-        allowNull: true 
+        allowNull: true ,
+        field: "senior_executive__owner_name"
       },
-      senior_executive__owner_email: {
+      seniorExecutiveOwnerEmail: {
         type: DataTypes.STRING,
-        allowNull: true 
+        allowNull: true,
+        field: "senior_executive__owner_email"
+
       },
-      operations__owner_name: {
+      operationsOwnerName: {
         type: DataTypes.STRING,
-        allowNull: true 
+        allowNull: true,
+        field: "operations__owner_name" 
       },
-      operations__owner_email: {
+      operationsOwnerEmail: {
         type: DataTypes.STRING,
-        allowNull: true 
+        allowNull: true,
+        field: "operations__owner_email" 
       },
-      technology_owner_name: {
+      technologyOwnerName: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        field: "technology_owner_name"
       },
-      technology_owner_email: {
+      technologyOwnerEmail: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        field: "technology_owner_email"
       },
-      organizational_revenue_impact_percentage: {
+      organizationalRevenueImpactPercentage: {
         type: DataTypes.FLOAT,
-        allowNull: true
+        allowNull: true,
+        field: "organizational_revenue_impact_percentage"
       },
-      financial_materiality: {
+      financialMateriality: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        field: "financial_materiality"
       },
-      third_party_involvement: {
+      thirdPartyInvolvement: {
         type: DataTypes.BOOLEAN,
-        allowNull: true
+        allowNull: true,
+        field: "third_party_involvement"
       },
-      users_customers: {
+      usersCustomers: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        field: "users_customers"
       },
-      regulatory_and_compliance: {
+      regulatoryAndCompliance: {
         type: DataTypes.ARRAY(
           DataTypes.STRING
         ),
-        allowNull: true
+        allowNull: true,
+        field: "regulatory_and_compliance"
       },
-      criticality_of_data_processed: {
+      criticalityOfDataProcessed: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        field: "criticality_of_data_processed"
       },
-      data_processed: {
+      dataProcessed: {
         type: DataTypes.ARRAY(
           DataTypes.ENUM(...GENERAL.DATA_TYPES)
         ),
-        allowNull: true
+        allowNull: true,
+        field: "data_processed"
       },
       status: { 
         defaultValue: 'published',
         allowNull: false,
-        type: DataTypes.ENUM(...GENERAL.STATUS_SUPPORTED_VALUES) 
+        type: DataTypes.ENUM(...GENERAL.STATUS_SUPPORTED_VALUES), 
+        field: "status"
       },
     },
     {
@@ -119,6 +140,14 @@ module.exports = (sequelize) => {
       as: 'riskScenarios',
     });
 
+    // Many-to-many with RiskScenario
+    Process.belongsToMany(models.Asset, {
+      through: models.AssetProcessMappings,
+      foreignKey: 'process_id',
+      otherKey: 'asset_id',
+      as: 'assets',
+    });
+
     Process.hasMany(models.ProcessAttribute, {
       foreignKey: 'process_id',
       as: 'attributes',
@@ -126,9 +155,9 @@ module.exports = (sequelize) => {
   };
 
   Process.afterCreate(async (instance, options) => {
-    const paddedId = String(instance.auto_increment_id).padStart(5, "0");
+    const paddedId = String(instance.autoIncrementId).padStart(5, "0");
     const code = `BP${paddedId}`;
-    await instance.update({ process_code: code }, { transaction: options.transaction });
+    await instance.update({ processCode: code }, { transaction: options.transaction });
   });
   return Process;
 

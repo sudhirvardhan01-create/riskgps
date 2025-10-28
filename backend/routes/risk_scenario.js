@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
  */
 router.get('/', async (req, res) => {
     try {
-        const limit = parseInt(req.query?.limit) || 6;
+        const limit = parseInt(req.query?.limit) || -1;
         const page = parseInt(req.query?.page) || 0;
         const searchPattern = req.query.search || null;
         const sortBy = req.query.sort_by || 'created_at';

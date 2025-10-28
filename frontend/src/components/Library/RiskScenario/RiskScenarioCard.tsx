@@ -95,7 +95,7 @@ const RiskScenarioCard: React.FC<RiskScenarioCardProps> = ({
           flexWrap="wrap"
         >
           <Stack direction="row" spacing={1} alignItems="center">
-            <Typography fontWeight={600}>{riskScenarioData.risk_code}</Typography>
+            <Typography fontWeight={600}>{riskScenarioData.riskCode}</Typography>
             <Chip label={`Industry: ${riskScenarioData.industry && riskScenarioData.industry?.length > 0 ? riskScenarioData.industry.join(", ") : "Not Defined"}`} variant="outlined" size="small" sx={{ borderRadius: 0.5 }} />
           </Stack>
 

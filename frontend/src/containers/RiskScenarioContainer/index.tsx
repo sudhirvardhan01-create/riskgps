@@ -28,8 +28,8 @@ const initialRiskData: RiskScenarioData = {
 };
 
 const sortItems = [
-  { label: "Risk ID (Ascending)", value: "id:asc" },
-  { label: "Risk ID (Descending)", value: "id:desc" },
+  { label: "Risk ID (Ascending)", value: "riskCode:asc" },
+  { label: "Risk ID (Descending)", value: "riskCode:desc" },
   { label: "Risk Name (Ascending)", value: "risk_scenario:asc" },
   { label: "Risk Name (Descending)", value: "risk_scenario:desc" },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
@@ -54,7 +54,7 @@ export default function RiskScenarioContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>("id:asc");
+  const [sort, setSort] = useState<string>("riskCode:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
   const [riskScenarioData, setRiskScenarioData] = useState<RiskScenarioData[]>(
     []
@@ -467,7 +467,7 @@ export default function RiskScenarioContainer() {
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="Confirm Risk Scenario Deletion?"
-        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.risk_code}? All associated data will be removed from the system.`}
+        description={`Are you sure you want to delete Risk Scenario #${selectedRiskScenario?.riskCode}? All associated data will be removed from the system.`}
         onConfirm={handleDelete}
         cancelText="Cancel"
         confirmText="Yes, Delete"

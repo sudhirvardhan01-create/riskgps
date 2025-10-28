@@ -7,6 +7,7 @@ const {
   ProcessAttribute,
   RiskScenario,
   Sequelize,
+  Asset,
 } = require("../models");
 const { format } = require("@fast-csv/format");
 const QueryStream = require("pg-query-stream");
@@ -30,7 +31,6 @@ class ProcessService {
 
       const newProcess = await Process.create(processData, { transaction: t });
 
-      console.log("aaasaa");
       if (
         Array.isArray(data.process_dependency) &&
         data.process_dependency.length > 0
@@ -54,7 +54,7 @@ class ProcessService {
 
   static async getAllProcesses(
     page = 0,
-    limit = 6,
+    limit = -1,
     searchPattern = null,
     sortBy = "created_at",
     sortOrder = "ASC",
@@ -163,7 +163,7 @@ class ProcessService {
   }
   static async getAllProcessForListing() {
     const data = await Process.findAll({
-      attributes: ["id", "process_code", "process_name"],
+      attributes: ["id", "processCode", "processName"],
     });
     let processes = data.map((s) => s.toJSON());
     return {
@@ -172,14 +172,80 @@ class ProcessService {
   }
 
   static async getProcessById(id) {
-    const process = await Process.findByPk(id);
+    const includeRelations = [
+      {
+        model: ProcessAttribute,
+        as: "attributes",
+        include: [{ model: MetaData, as: "metaData" }],
+      },
+      {
+        model: RiskScenario,
+        as: "riskScenarios",
+        include: [],
+        through: { attributes: [] },
+      },
+      {
+        model: Asset,
+        as: "assets",
+        include: [],
+        through: { attributes: [] },
+      },
+      {
+        model: ProcessRelationship,
+        as: "sourceRelationships",
+      },
+      {
+        model: ProcessRelationship,
+        as: "targetRelationships",
+      },
+    ];
+    const process = await Process.findByPk(id, { include: includeRelations });
 
     if (!process) {
       console.log("Process not found:", id);
       throw new CustomError(Messages.PROCESS.NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
-    return process;
+    const p = process.toJSON();
+
+    p.industry = p.attributes
+      ?.filter((val) => val.metaData?.name?.toLowerCase() === "industry")
+      ?.flatMap((val) => val.values);
+    p.domain = p.attributes
+      ?.filter((val) => val.metaData?.name?.toLowerCase() === "domain")
+      ?.flatMap((val) => val.values);
+
+    p.attributes = p.attributes.map((val) => ({
+      meta_data_key_id: val.meta_data_key_id,
+      values: val.values,
+    }));
+
+    p.process_dependency = [];
+
+    if (p?.sourceRelationships?.length > 0) {
+      p.process_dependency.push(
+        ...p.sourceRelationships.map((val) => ({
+          source_process_id: val.source_process_id,
+          target_process_id: val.target_process_id,
+          relationship_type: val.relationship_type,
+        }))
+      );
+    }
+
+    if (p?.targetRelationships?.length > 0) {
+      p.process_dependency.push(
+        ...p.targetRelationships.map((val) => ({
+          source_process_id: val.source_process_id,
+          target_process_id: val.target_process_id,
+          relationship_type: val.relationship_type,
+        }))
+      );
+    }
+
+    delete p.sourceRelationships;
+    delete p.targetRelationships;
+
+    return p;
   }
 
   static async updateProcess(id, data) {
@@ -354,68 +420,6 @@ class ProcessService {
     }
   }
 
-  // static async importProcessesFromCSV(filePath) {
-  //     function parseBoolean(value) {
-  //         if (!value) return null; // catch empty string or undefined
-  //         const v = value.toString().trim().toLowerCase();
-  //         return ["yes", "true", "1"].includes(v)
-  //             ? true
-  //             : ["no", "false", "0"].includes(v)
-  //                 ? false
-  //                 : null; // invalid case
-  //     }
-
-  //     function parseDataProcessed(value) {
-  //         if (!value) return [];
-  //         return value
-  //             .split(",")
-  //             .map((v) => v.trim())
-  //             .filter((v) => GENERAL.DATA_TYPES.includes(v));
-  //     }
-
-  //     return new Promise((resolve, reject) => {
-  //         const rows = [];
-
-  //         fs.createReadStream(filePath)
-  //             .pipe(parse({ headers: true }))
-  //             .on("error", (error) => reject(error))
-  //             .on("data", (row) => {
-  //                 rows.push({
-  //                     process_name: row["Process Name"],
-  //                     process_description: row["Process Description"],
-  //                     senior_executive__owner_name: row["Senior Executive Name"],
-  //                     senior_executive__owner_email: row["Senior Executive Email"],
-  //                     operations__owner_name: row["Operations Owner Name"],
-  //                     operations__owner_email: row["Operations Owner Email"],
-  //                     technology_owner_name: row["Technology Owner Name"],
-  //                     technology_owner_email: row["Technology Owner Email"],
-  //                     organizational_revenue_impact_percentage: parseFloat(row["Oraganizational Revenue Impact Percentage"]),
-  //                     financial_materiality: parseBoolean(row["Financial Materiality"]),
-  //                     third_party_involvement: parseBoolean(row["Third Party Involvement"]),
-  //                     users_customers: row["Users"],
-  //                     regulatory_and_compliance: row["Regulatory and Compliance"],
-  //                     criticality_of_data_processed: row["Criticality Of Data Processed"],
-  //                     data_processed: parseDataProcessed(row["Data Processes"]),
-  //                     status: "published"
-  //                 });
-  //             })
-  //             .on("end", async () => {
-  //                 try {
-  //                     await Process.bulkCreate(rows, { ignoreDuplicates: true });
-  //                     await sequelize.query(`
-  //                     UPDATE "library_processes"
-  //                     SET process_code = '#BP-' || LPAD(id::text, 5, '0')
-  //                     WHERE process_code IS NULL;
-  //                     `);
-  //                     fs.unlinkSync(filePath);
-  //                     resolve(rows.length);
-  //                 } catch (err) {
-  //                     reject(err);
-  //                 }
-  //             });
-  //     });
-  // };
-
   static async importProcessesFromCSV(filePath) {
     const [rows, details] = await sequelize.query(
       `select * from library_meta_datas where name ILIKE 'industry'`
@@ -467,27 +471,25 @@ class ProcessService {
         .on("error", (error) => reject(error))
         .on("data", async (row) => {
           batch.push({
-            process_name: row["Process Name"],
-            process_description: row["Process Description"],
-            senior_executive__owner_name: row["Senior Executive Name"],
-            senior_executive__owner_email: row["Senior Executive Email"],
-            operations__owner_name: row["Operations Owner Name"],
-            operations__owner_email: row["Operations Owner Email"],
-            technology_owner_name: row["Technology Owner Name"],
-            technology_owner_email: row["Technology Owner Email"],
-            organizational_revenue_impact_percentage: parseFloat(
+            processName: row["Process Name"],
+            processDescription: row["Process Description"],
+            seniorExecutiveOwnerName: row["Senior Executive Name"],
+            seniorExecutiveOwnerEmail: row["Senior Executive Email"],
+            operationsOwnerName: row["Operations Owner Name"],
+            operationsOwnerEmail: row["Operations Owner Email"],
+            technologyOwnerName: row["Technology Owner Name"],
+            technologyOwnerEmail: row["Technology Owner Email"],
+            organizationalRevenueImpactPercentage: parseFloat(
               row["Oraganizational Revenue Impact Percentage"]
             ),
-            financial_materiality: parseBoolean(row["Financial Materiality"]),
-            third_party_involvement: parseBoolean(
-              row["Third Party Involvement"]
-            ),
-            users_customers: row["Users"],
-            regulatory_and_compliance: parseRegulatoryAndCompliance(
+            financialMateriality: parseBoolean(row["Financial Materiality"]),
+            thirdPartyInvolvement: parseBoolean(row["Third Party Involvement"]),
+            usersCustomers: row["Users"],
+            regulatoryAndCompliance: parseRegulatoryAndCompliance(
               row["Regulatory and Compliance"]
             ),
-            criticality_of_data_processed: row["Criticality Of Data Processed"],
-            data_processed: parseDataProcessed(row["Data Processes"]),
+            criticalityOfDataProcessed: row["Criticality Of Data Processed"],
+            dataProcessed: parseDataProcessed(row["Data Processes"]),
             status: "published",
             industry: parseIndustry(row["Industry"]),
           });
@@ -505,7 +507,7 @@ class ProcessService {
               // Insert metadata
               const metaRows = inserted.map((process) => {
                 const match = batch.find(
-                  (b) => b.process_name === process.process_name
+                  (b) => b.processName === process.processName
                 );
 
                 return {
@@ -541,7 +543,7 @@ class ProcessService {
 
               const metaRows = inserted.map((process) => {
                 const match = batch.find(
-                  (b) => b.process_name === process.process_name
+                  (b) => b.processName === process.processName
                 );
 
                 return {
@@ -573,9 +575,9 @@ class ProcessService {
   }
 
   static validateProcessData = (data) => {
-    const { process_name, status } = data;
+    const { processName, status } = data;
 
-    if (!process_name) {
+    if (!processName) {
       throw new CustomError(
         Messages.PROCESS.PROCESS_NAME_REQUIRED,
         HttpStatus.BAD_REQUEST
@@ -595,21 +597,21 @@ class ProcessService {
 
   static handleProcessDataColumnMapping(data) {
     const fields = [
-      "process_name",
-      "process_description",
-      "senior_executive__owner_name",
-      "senior_executive__owner_email",
-      "operations__owner_name",
-      "operations__owner_email",
-      "technology_owner_name",
-      "technology_owner_email",
-      "organizational_revenue_impact_percentage",
-      "financial_materiality",
-      "third_party_involvement",
-      "users_customers",
-      "regulatory_and_compliance",
-      "criticality_of_data_processed",
-      "data_processed",
+      "processName",
+      "processDescription",
+      "seniorExecutiveOwnerName",
+      "seniorExecutiveOwnerEmail",
+      "operationsOwnerName",
+      "operationsOwnerEmail",
+      "technologyOwnerName",
+      "technologyOwnerEmail",
+      "organizationalRevenueImpactPercentage",
+      "financialMateriality",
+      "thirdPartyInvolvement",
+      "usersCustomers",
+      "regulatoryAndCompliance",
+      "criticalityOfDataProcessed",
+      "dataProcessed",
       "status",
     ];
 
@@ -639,9 +641,7 @@ class ProcessService {
         );
       }
 
-      if (
-        !dependency.target_process_id 
-      ) {
+      if (!dependency.target_process_id) {
         console.log("Invalid or missing target_process_id:", dependency);
         throw new CustomError(
           Messages.PROCESS.MISSING_TARGET_ID,
@@ -744,8 +744,8 @@ class ProcessService {
     if (searchPattern) {
       conditions.push({
         [Op.or]: [
-          { process_name: { [Op.iLike]: `%${searchPattern}%` } },
-          { process_description: { [Op.iLike]: `%${searchPattern}%` } },
+          { processName: { [Op.iLike]: `%${searchPattern}%` } },
+          { processDescription: { [Op.iLike]: `%${searchPattern}%` } },
         ],
       });
     }
@@ -806,7 +806,7 @@ class ProcessService {
           subquery += `
           SELECT "process_id"
           FROM library_attributes_process_mapping
-          WHERE "meta_data_key_id" = ${metaDataKeyId}
+          WHERE "meta_data_key_id" = '${metaDataKeyId}'::uuid
           AND "values" && ARRAY[${valuesArray}]::varchar[]
         `;
         });
@@ -819,7 +819,6 @@ class ProcessService {
 
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
   }
-
 }
 
 module.exports = ProcessService;
