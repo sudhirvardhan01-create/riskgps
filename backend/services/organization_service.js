@@ -229,6 +229,7 @@ class OrganizationService {
                     "createdDate",
                     "modifiedDate",
                     "weightage",
+                    "order"
                 ],
                 include: [
                     {
@@ -247,6 +248,7 @@ class OrganizationService {
                             "createdDate",
                             "modifiedDate",
                             "color",
+                            "order"
                         ],
                     },
                 ],
@@ -694,6 +696,84 @@ class OrganizationService {
 
         return { message: "Business unit deleted successfully" };
     }
+
+    /**
+     * Save taxonomies with severity levels for an organization (insert-only, use UI-provided order)
+     */
+    static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
+        try {
+            if (!orgId) {
+                throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+            }
+
+            const savedTaxonomies = [];
+
+            // Iterate through all taxonomies from UI
+            for (const taxonomyData of taxonomies) {
+                const {
+                    name,
+                    weightage,
+                    createdBy,
+                    order, // 👈 order provided from UI
+                    severityLevels = [],
+                } = taxonomyData;
+
+                // Create taxonomy as-is (no updates)
+                const taxonomy = await Taxonomy.create({
+                    name,
+                    weightage,
+                    organizationId: orgId,
+                    createdBy,
+                    createdDate: new Date(),
+                    isDeleted: false,
+                    order: order ?? 0, // fallback if not provided
+                });
+
+                const savedSeverities = [];
+
+                // Save each severity level using provided order
+                for (const level of severityLevels) {
+                    const {
+                        name,
+                        minRange,
+                        maxRange,
+                        color,
+                        createdBy,
+                        order, // severity order from UI
+                    } = level;
+
+                    const severity = await SeverityLevel.create({
+                        taxonomyId: taxonomy.taxonomyId,
+                        name,
+                        minRange,
+                        maxRange,
+                        color,
+                        createdBy,
+                        createdDate: new Date(),
+                        isDeleted: false,
+                        order: order ?? 0, // fallback if not provided
+                    });
+
+                    savedSeverities.push(severity);
+                }
+
+                savedTaxonomies.push({
+                    ...taxonomy.get({ plain: true }),
+                    severityLevels: savedSeverities,
+                });
+            }
+
+            return savedTaxonomies;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to save taxonomies with severity levels",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+
+
 }
 
 module.exports = OrganizationService;
