@@ -143,12 +143,12 @@ module.exports = (sequelize, DataTypes) => {
 
     OrganizationAsset.belongsToMany(models.OrganizationProcess, {
       through: models.OrganizationAssetProcessMappings,
-      foreignKey: "asset_id",
-      otherKey: "process_id",
+      foreignKey: "assetId",
+      otherKey: "processId",
       as: "processes",
     });
     OrganizationAsset.hasMany(models.OrganizationAssetAttribute, {
-      foreignKey: "asset_id",
+      foreignKey: "assetId",
       as: "attributes",
     });
   };

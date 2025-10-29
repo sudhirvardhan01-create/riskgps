@@ -128,8 +128,8 @@ module.exports = {
               }
 
               assetProcessMappings.push({
-                process_id: process.id,
-                asset_id: createdAsset.id,
+                processId: process.id,
+                assetId: createdAsset.id,
               });
             }
           }

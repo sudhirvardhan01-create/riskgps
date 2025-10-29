@@ -156,34 +156,34 @@ module.exports = (sequelize, DataTypes) => {
     }
     // Self-referencing relationships - source relationships (where this process is the source)
     OrganizationProcess.hasMany(models.OrganizationProcessRelationship, {
-      foreignKey: "source_process_id",
+      foreignKey: "sourceProcessId",
       as: "sourceRelationships",
     });
 
     // Self-referencing relationships - target relationships (where this process is the target)
     OrganizationProcess.hasMany(models.OrganizationProcessRelationship, {
-      foreignKey: "target_process_id",
+      foreignKey: "targetProcessId",
       as: "targetRelationships",
     });
 
     // Many-to-many with RiskScenario
     OrganizationProcess.belongsToMany(models.OrganizationRiskScenario, {
       through: models.OrganizationProcessRiskScenarioMappings,
-      foreignKey: "process_id",
-      otherKey: "risk_scenario_id",
+      foreignKey: "processId",
+      otherKey: "riskScenarioId",
       as: "riskScenarios",
     });
 
     // Many-to-many with Asset
     OrganizationProcess.belongsToMany(models.OrganizationAsset, {
       through: models.OrganizationAssetProcessMappings,
-      foreignKey: "process_id",
-      otherKey: "asset_id",
+      foreignKey: "processId",
+      otherKey: "assetId",
       as: "assets",
     });
 
     OrganizationProcess.hasMany(models.OrganizationProcessAttribute, {
-      foreignKey: "process_id",
+      foreignKey: "processId",
       as: "attributes",
     });
   };

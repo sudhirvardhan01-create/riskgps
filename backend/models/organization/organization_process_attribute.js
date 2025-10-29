@@ -9,14 +9,16 @@ module.exports = (sequelize) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
       },
-      process_id: {
+      processId: {
         type: DataTypes.UUID,
+        feidl: "process_id",
         references: { model: "organization_process", key: "id" },
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      meta_data_key_id: {
+      metaDataKeyId: {
         type: DataTypes.UUID,
+        field: "meta_data_key_id",
         references: { model: "library_meta_datas", key: "id" },
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
@@ -34,10 +36,10 @@ module.exports = (sequelize) => {
   // Associations
   OrganizationProcessAttribute.associate = (models) => {
     OrganizationProcessAttribute.belongsTo(models.OrganizationProcess, {
-      foreignKey: "process_id",
+      foreignKey: "processId",
     });
     OrganizationProcessAttribute.belongsTo(models.MetaData, {
-      foreignKey: "meta_data_key_id",
+      foreignKey: "metaDataKeyId",
       as: "metaData",
     });
   };

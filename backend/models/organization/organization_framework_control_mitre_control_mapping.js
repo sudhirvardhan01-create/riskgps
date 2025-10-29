@@ -9,14 +9,16 @@ module.exports = (sequelize) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
       },
-      mitre_control_id: {
+      mitreControlId: {
         type: DataTypes.UUID,
+        field: "mitre_control_id",
         references: { model: "organization_threat", key: "id" },
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      framework_control_id: {
+      frameworkControlId: {
         type: DataTypes.UUID,
+        field: "framework_control_id",
         references: { model: "organization_framework_control", key: "id" },
         onDelete: "CASCADE",
         onUpdate: "CASCADE",

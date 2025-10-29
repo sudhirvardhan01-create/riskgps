@@ -91,14 +91,14 @@ module.exports = (sequelize, DataTypes) => {
 
     OrganizationRiskScenario.belongsToMany(models.OrganizationProcess, {
       through: models.OrganizationProcessRiskScenarioMappings,
-      foreignKey: "risk_scenario_id",
-      otherKey: "process_id",
+      foreignKey: "riskScenarioId",
+      otherKey: "processId",
       as: "processes",
     });
     OrganizationRiskScenario.hasMany(
       models.OrganizationRiskScenarioAttribute,
       {
-        foreignKey: "risk_scenario_id",
+        foreignKey: "riskScenarioId",
         as: "attributes",
       }
     );

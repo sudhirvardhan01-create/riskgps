@@ -9,14 +9,16 @@ module.exports = (sequelize) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
       },
-      risk_scenario_id: {
+      riskScenarioId: {
         type: DataTypes.UUID,
+        field: "risk_scenario_id",
         references: { model: "organization_risk_scenario", key: "id" },
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      process_id: {
+      processId: {
         type: DataTypes.UUID,
+        field: "process_id",
         references: { model: "organization_process", key: "id" },
         onDelete: "CASCADE",
         onUpdate: "CASCADE",

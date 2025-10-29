@@ -47,8 +47,8 @@ module.exports = (sequelize, DataTypes) => {
 
     OrganizationFrameworkControl.belongsToMany(models.OrganizationThreat, {
       through: models.OrganizationFrameworkControlMitreControlMapping,
-      foreignKey: "framework_control_id", // mapping table column
-      otherKey: "mitre_control_id", // mapping table column
+      foreignKey: "frameworkControlId", // mapping table column
+      otherKey: "mitreControlId", // mapping table column
       targetKey: "id", // business key in MitreThreatControl
       as: "mitre_controls",
     });

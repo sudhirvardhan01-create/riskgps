@@ -9,15 +9,17 @@ module.exports = (sequelize) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
       },
-      asset_id: {
+      assetId: {
         type: DataTypes.UUID,
         references: { model: "organization_asset", key: "id" },
+        feild: "asset_id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      meta_data_key_id: {
+      metaDataKeyId: {
         type: DataTypes.UUID,
         references: { model: "library_meta_datas", key: "id" },
+        field: "meta_data_key_id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
@@ -34,12 +36,12 @@ module.exports = (sequelize) => {
   // Associations
   OrganizationAssetAttribute.associate = (models) => {
     OrganizationAssetAttribute.belongsTo(models.OrganizationAsset, {
-      foreignKey: "asset_id",
+      foreignKey: "assetId",
     });
 
     
     OrganizationAssetAttribute.belongsTo(models.MetaData, {
-      foreignKey: "meta_data_key_id",
+      foreignKey: "metaDataKeyId",
       as: "metaData",
     });
   };

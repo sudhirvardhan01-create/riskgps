@@ -100,8 +100,8 @@ module.exports = (sequelize, DataTypes) => {
     if (models.FrameWorkControl) {
       OrganizationThreat.belongsToMany(models.OrganizationFrameworkControl, {
         through: models.OrganizationFrameworkControlMitreControlMapping,
-        foreignKey: "mitre_control_id", // mapping table column
-        otherKey: "framework_control_id", // mapping table column
+        foreignKey: "mitreControlId", // mapping table column
+        otherKey: "frameworkControlId", // mapping table column
         sourceKey: "id", // business key in this model
         as: "framework_controls",
       });

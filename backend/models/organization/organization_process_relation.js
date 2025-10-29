@@ -10,8 +10,9 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true,
       },
-      source_process_id: {
+      sourceProcessId: {
         type: DataTypes.UUID,
+        field: "source_process_id",
         allowNull: false,
         references: {
           model: "organization_process",
@@ -20,8 +21,9 @@ module.exports = (sequelize) => {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      target_process_id: {
+      targetProcessId: {
         type: DataTypes.UUID,
+        field: "target_process_id",
         allowNull: false,
         references: {
           model: "organization_process",
@@ -45,7 +47,7 @@ module.exports = (sequelize) => {
       validate: {
         // Prevent self-referencing relationships
         notSelfReferencing() {
-          if (this.source_process_id === this.target_process_id) {
+          if (this.sourceProcessId === this.targetProcessId) {
             throw new Error("A process cannot have a relationship with itself");
           }
         },
@@ -57,13 +59,13 @@ module.exports = (sequelize) => {
   OrganizationProcessRelationship.associate = (models) => {
     // Belongs to source process
     OrganizationProcessRelationship.belongsTo(models.OrganizationProcess, {
-      foreignKey: "source_process_id",
+      foreignKey: "sourceProcessId",
       as: "sourceProcess",
     });
 
     // Belongs to target process
     OrganizationProcessRelationship.belongsTo(models.OrganizationProcess, {
-      foreignKey: "target_process_id",
+      foreignKey: "targetProcessId",
       as: "targetProcess",
     });
   };

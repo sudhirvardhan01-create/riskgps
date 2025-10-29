@@ -572,8 +572,8 @@ module.exports = {
               }
 
               processRiskScenarioMappings.push({
-                process_id: process.id,
-                risk_scenario_id: createdRisk.id,
+                processId: process.id,
+                riskScenarioId: createdRisk.id,
               });
             }
           }
@@ -586,8 +586,8 @@ module.exports = {
 
             if (validIndustryValues.length > 0) {
               riskScenarioAttributes.push({
-                risk_scenario_id: createdRisk.id,
-                meta_data_key_id: industryMetadata.id,
+                riskScenarioId: createdRisk.id,
+                metaDataKeyId: industryMetadata.id,
                 values: validIndustryValues,
               });
             } else {

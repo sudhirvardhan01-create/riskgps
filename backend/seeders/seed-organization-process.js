@@ -309,8 +309,8 @@ module.exports = {
 
           if (validIndustryValues.length > 0) {
             processAttributes.push({
-              process_id: createdProcess.id,
-              meta_data_key_id: industryMetadata.id,
+              processId: createdProcess.id,
+              metaDataKeyId: industryMetadata.id,
               values: validIndustryValues,
             });
           } else {

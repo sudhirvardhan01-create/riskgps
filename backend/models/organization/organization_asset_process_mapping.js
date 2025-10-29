@@ -9,15 +9,17 @@ module.exports = (sequelize) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
       },
-      asset_id: {
+      assetId: {
         type: DataTypes.UUID,
         references: { model: "organization_asset", key: "id" },
+        field: "asset_id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      process_id: {
+      processId: {
         type: DataTypes.UUID,
         references: { model: "organization_process", key: "id" },
+        field: "process_id",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
