@@ -3,6 +3,7 @@ const { execSync } = require("child_process");
 const seeds = [
   "seed-roles.js",
   "seed-users.js",
+  "seed-metadata.js",
   "seed-organization.js",
   "seed-organization-business-units.js",
   "seed-organization-process.js",
@@ -10,7 +11,6 @@ const seeds = [
   "seed-organization-taxonomy.js",
   "seed-organization-severity.js",
   "seed-organization-assets.js",
-  "seed-metadata.js",
   "seed-library-process.js",
   "seed-library-assets.js",
   "seed-library-risk-scenarios.js",
