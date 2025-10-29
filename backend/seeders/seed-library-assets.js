@@ -4,14 +4,9 @@ module.exports = {
   async up(queryInterface) {
     const {
       Process,
-      MetaData,
-      ProcessAttribute,
       Asset,
       AssetAttribute,
       AssetProcessMappings,
-      RiskScenario,
-      RiskScenarioAttribute,
-      ProcessRiskScenarioMappings,
       sequelize,
     } = require("../models");
 

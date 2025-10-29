@@ -317,6 +317,5 @@ module.exports = {
       null,
       {}
     );
-    await queryInterface.bulkDelete("library_meta_datas", null, {});
   },
 };
