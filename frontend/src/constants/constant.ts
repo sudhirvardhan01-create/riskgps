@@ -25,3 +25,6 @@ export const COUNTRIES = [
 ];
 
 export const ORG_COLUMN_TEMPLATE = "240px 260px 120px 280px 120px 10px";
+
+export const tagKeys = ["Industry"];
+export const tagValue = ["Healthcare", "Banking", "Government"];

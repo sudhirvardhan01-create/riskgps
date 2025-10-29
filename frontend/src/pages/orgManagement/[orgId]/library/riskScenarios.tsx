@@ -1,24 +1,109 @@
 import { useRouter } from "next/router";
+import { useState } from "react";
 import {
   Box,
   Typography,
   Stack,
   IconButton,
   Button,
+  TextField,
+  InputAdornment,
+  Grid,
+  Snackbar,
+  Alert,
+  Checkbox,
+  FormControlLabel,
+  Chip,
 } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowBack, Search, Delete, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
+import { RiskScenarioData } from "@/types/risk-scenario";
+import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
+import { RiskScenarioLibraryService } from "@/services/orgLibraryService/riskScenarioLibraryService";
+
+interface RiskScenario {
+  id: string | number;
+  riskScenario: string;
+  riskStatement: string;
+}
 
 function RiskScenariosPage() {
   const router = useRouter();
   const { orgId } = router.query;
   const { organization, loading, error } = useOrganization(orgId);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [riskScenarios, setRiskScenarios] = useState<RiskScenario[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [selectedScenarios, setSelectedScenarios] = useState<(string | number)[]>([]);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
   };
+
+  const handleAddRiskScenarios = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsAddModalOpen(false);
+  };
+
+  const handleAddScenarios = (selectedScenarios: any[]) => {
+    // Convert library items to RiskScenario format for display
+    const newScenarios: RiskScenario[] = selectedScenarios.map(scenario => ({
+      id: scenario.id!,
+      riskScenario: scenario.name,
+      riskStatement: scenario.description
+    }));
+
+    setRiskScenarios(prev => [...prev, ...newScenarios]);
+    setShowSuccessMessage(true);
+    setIsAddModalOpen(false);
+  };
+
+  const handleEnterDeleteMode = () => {
+    setIsDeleteMode(true);
+    setSelectedScenarios([]);
+  };
+
+  const handleExitDeleteMode = () => {
+    setIsDeleteMode(false);
+    setSelectedScenarios([]);
+  };
+
+  const handleScenarioToggle = (scenarioId: string | number) => {
+    setSelectedScenarios(prev =>
+      prev.includes(scenarioId)
+        ? prev.filter(id => id !== scenarioId)
+        : [...prev, scenarioId]
+    );
+  };
+
+  const handleRemoveSelected = () => {
+    setRiskScenarios(prev => prev.filter(scenario => !selectedScenarios.includes(scenario.id)));
+    setSelectedScenarios([]);
+    setIsDeleteMode(false);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedScenarios([]);
+    setIsDeleteMode(false);
+  };
+
+
+  const handleCloseSuccessMessage = () => {
+    setShowSuccessMessage(false);
+  };
+
+  // Filter scenarios based on search term
+  const filteredScenarios = riskScenarios.filter(scenario =>
+    scenario.riskScenario.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    scenario.riskStatement.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -58,7 +143,6 @@ function RiskScenariosPage() {
         height: "calc(100vh - 95px)",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
         backgroundColor: "#F0F2FB",
       }}
     >
@@ -125,62 +209,386 @@ function RiskScenariosPage() {
         </Box>
       </Stack>
 
-      {/* Main Content */}
-      <Box sx={{ flex: 1, overflow: "auto", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <Box
+      {/* Success Toast */}
+      <Snackbar
+        open={showSuccessMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccessMessage}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSuccessMessage}
+          severity="success"
           sx={{
-            width: "100%",
-            maxWidth: "667px",
-            p: 4,
-            border: "1px solid #E7E7E8",
+            width: '100%',
+            backgroundColor: "#E8F5E8",
+            color: "#2E7D32",
+            border: "1px solid #4CAF50",
             borderRadius: "8px",
-            textAlign: "center",
-            backgroundColor: "#FFFFFF",
+            "& .MuiAlert-icon": {
+              color: "#4CAF50",
+            },
+            "& .MuiAlert-message": {
+              fontWeight: 500,
+            },
           }}
         >
-          {/* Empty state icon placeholder */}
-          <Box
-            sx={{
-              width: "120px",
-              height: "120px",
-              borderRadius: "8px",
-              margin: "0 auto 24px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Image
-              src={"/create.png"}
-              alt="org-image"
-              width={120}
-              height={120}
-            />
+          Success! Risk scenarios have been added.
+        </Alert>
+      </Snackbar>
+
+      {/* Main Content */}
+      <Box sx={{
+        flex: 1,
+        px: 3,
+        pb: 3,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 0, // Important for flex children to shrink
+      }}>
+        {riskScenarios.length === 0 ? (
+          // Empty state
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: "667px",
+                p: 4,
+                border: "1px solid #E7E7E8",
+                borderRadius: "8px",
+                textAlign: "center",
+                backgroundColor: "#FFFFFF",
+              }}
+            >
+              {/* Empty state icon placeholder */}
+              <Box
+                sx={{
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "8px",
+                  margin: "0 auto 24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Image
+                  src={"/create.png"}
+                  alt="org-image"
+                  width={120}
+                  height={120}
+                />
+              </Box>
+
+              <Typography variant="h6" sx={{ mb: 2, color: "#484848" }}>
+                Looks like there are no risk scenarios added yet. <br /> Click on &apos;Add Risk Scenarios&apos; to start adding risk scenarios.
+              </Typography>
+
+              <Button
+                variant="contained"
+                onClick={handleAddRiskScenarios}
+                sx={{
+                  backgroundColor: "#04139A",
+                  color: "#FFFFFF",
+                  p: "12px, 40px",
+                  height: "40px",
+                  borderRadius: "4px",
+                  textTransform: "none",
+                  fontWeight: 500,
+                  "&:hover": {
+                    backgroundColor: "#030d6b",
+                  },
+                }}
+              >
+                Add Risk Scenarios
+              </Button>
+            </Box>
           </Box>
+        ) : (
+          // Main content with scenarios
+          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px" }}>
+            {/* Fixed Header */}
+            <Box sx={{ mb: 1, flexShrink: 0 }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "20px",
+                  color: "#484848",
+                  mb: 3
+                }}
+              >
+                Risk Scenarios
+              </Typography>
 
-          <Typography variant="h6" sx={{ mb: 2, color: "#484848" }}>
-            Looks like there are no risk scenarios added yet. <br /> Click on &apos;Add Risk Scenarios&apos; to start adding risk scenarios.
-          </Typography>
+              {/* Search Bar and Action Buttons Row */}
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
+                <TextField
+                  placeholder="Search by keywords"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search sx={{ color: "#91939A" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    flex: 1,
+                    maxWidth: "480px",
+                    maxHeight: "40px",
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "4px",
+                      backgroundColor: "#FFFFFF",
+                      "& fieldset": {
+                        borderColor: "#E7E7E8",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#04139A",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#04139A",
+                      },
+                    },
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleAddRiskScenarios}
+                  sx={{
+                    backgroundColor: "#04139A",
+                    color: "#FFFFFF",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    p: "12px 40px",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      backgroundColor: "#030d6b",
+                    },
+                  }}
+                >
+                  Add Risk Scenarios
+                </Button>
+              </Box>
 
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#04139A",
-              color: "#FFFFFF",
-              p: "12px, 40px",
-              height: "40px",
-              borderRadius: "4px",
-              textTransform: "none",
-              fontWeight: 500,
-              "&:hover": {
-                backgroundColor: "#030d6b",
+              {/* Section Header */}
+              <Box sx={{ mb: 1 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "14px",
+                    color: "#04139A",
+                    mb: selectedScenarios.length > 0 ? 2 : 0,
+                  }}
+                >
+                  Select Risk Scenarios
+                </Typography>
+
+                {/* Selection Controls */}
+                {selectedScenarios.length > 0 && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Chip
+                      label={`${selectedScenarios.length} selected`}
+                      onDelete={handleClearSelection}
+                      deleteIcon={<Close />}
+                      sx={{
+                        backgroundColor: "#F3F8FF",
+                        color: "#04139A",
+                        fontWeight: 500,
+                        border: "1px solid #04139A",
+                        borderRadius: "4px",
+                        paddingTop: "7px",
+                        paddingRight: "16px",
+                        paddingBottom: "7px",
+                        paddingLeft: "16px",
+                        gap: "8px",
+                        opacity: 1,
+                        "& .MuiChip-deleteIcon": {
+                          color: "#04139A",
+                          "&:hover": {
+                            opacity: 0.8,
+                          },
+                        },
+                      }}
+                    />
+                    <Button
+                      variant="text"
+                      startIcon={<Delete />}
+                      onClick={handleRemoveSelected}
+                      sx={{
+                        color: "#F44336",
+                        textTransform: "none",
+                        fontWeight: 500,
+                        p: "8px 16px",
+                        paddingTop: "7px",
+                        paddingRight: "16px",
+                        paddingBottom: "7px",
+                        paddingLeft: "16px",
+                        borderRadius: "4px",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          backgroundColor: "rgba(244, 67, 54, 0.1)",
+                        },
+                        "& .MuiButton-startIcon": {
+                          marginRight: "8px",
+                        },
+                      }}
+                    >
+                      Remove Selected
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+
+            {/* Scrollable Risk Scenarios Grid */}
+            <Box sx={{
+              flex: 1,
+              overflow: "auto",
+              "&::-webkit-scrollbar": {
+                display: "none",
               },
-            }}
-          >
-            Add Risk Scenarios
-          </Button>
-        </Box>
+              scrollbarWidth: "none", // Firefox
+              msOverflowStyle: "none", // IE and Edge
+              mb: 4,
+            }}>
+              <Grid container spacing={2}>
+                {filteredScenarios.map((scenario) => (
+                  <Grid size={{ xs: 12, sm: 6 }} key={scenario.id}>
+                    <Box
+                      sx={{
+                        border: "1px solid #E7E7E8",
+                        borderLeft: "4px solid #04139A",
+                        borderRadius: "8px",
+                        p: 2,
+                        backgroundColor: "#FFFFFF",
+                        position: "relative",
+                        minHeight: "68px",
+                        display: "flex",
+                        alignItems: "center",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          borderColor: "#04139A",
+                          backgroundColor: "rgba(4, 19, 154, 0.02)",
+                        },
+                      }}
+                    >
+                      {isDeleteMode ? (
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={selectedScenarios.includes(scenario.id)}
+                              onChange={() => handleScenarioToggle(scenario.id)}
+                              sx={{
+                                color: "#04139A",
+                                "&.Mui-checked": {
+                                  color: "#04139A",
+                                },
+                                "& .MuiSvgIcon-root": {
+                                  fontSize: "20px",
+                                },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box sx={{ flex: 1, pr: 4 }}>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: "#484848",
+                                  fontSize: "14px",
+                                  lineHeight: "20px",
+                                  fontWeight: 600,
+                                  mb: 0.5,
+                                }}
+                              >
+                                {scenario.riskScenario}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: "#484848",
+                                  fontSize: "14px",
+                                  lineHeight: "20px",
+                                  fontWeight: 400,
+                                }}
+                              >
+                                Description: {scenario.riskStatement}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{
+                            alignItems: "flex-start",
+                            m: 0,
+                            flex: 1,
+                            "& .MuiFormControlLabel-label": {
+                              flex: 1,
+                            },
+                          }}
+                        />
+                      ) : (
+                        <Box sx={{ flex: 1, pr: 4 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#484848",
+                              fontSize: "14px",
+                              lineHeight: "20px",
+                              fontWeight: 600,
+                              mb: 0.5,
+                            }}
+                          >
+                            {scenario.riskScenario}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#484848",
+                              fontSize: "14px",
+                              lineHeight: "20px",
+                              fontWeight: 400,
+                            }}
+                          >
+                            Description: {scenario.riskStatement}
+                          </Typography>
+                        </Box>
+                      )}
+                      {!isDeleteMode && (
+                        <IconButton
+                          onClick={handleEnterDeleteMode}
+                          sx={{
+                            position: "absolute",
+                            right: 8,
+                            top: 8,
+                            color: "#F44336",
+                            "&:hover": {
+                              backgroundColor: "rgba(244, 67, 54, 0.1)",
+                            },
+                          }}
+                        >
+                          <Delete sx={{ fontSize: "20px" }} />
+                        </IconButton>
+                      )}
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </Box>
+        )}
       </Box>
+
+      {/* Add Risk Scenarios Modal */}
+      <AddLibraryItemsModal
+        open={isAddModalOpen}
+        onClose={handleCloseModal}
+        onAdd={handleAddScenarios}
+        title="Add Risk Scenarios"
+        service={RiskScenarioLibraryService}
+        itemType="risk-scenarios"
+      />
     </Box>
   );
 }

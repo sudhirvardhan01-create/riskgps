@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { ArrowBack, CameraAlt, Add, Check } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
-import BusinessContextForm from "@/components/orgManagement/BusinessContextForm";
+import BusinessContextForm from "@/components/OrgManagement/BusinessContextForm";
 import { createOrganization, CreateOrganizationRequest } from "@/services/organizationService";
 import ToastComponent from "@/components/ToastComponent";
 import Image from "next/image";
