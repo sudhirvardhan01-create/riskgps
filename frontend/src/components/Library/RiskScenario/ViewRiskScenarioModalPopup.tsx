@@ -111,7 +111,7 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
             gap={2}
           >
             <Typography variant="h5" color="#121212" fontWeight={550}>
-              Risk Scenario {riskScenarioData.risk_code}
+              Risk Scenario {riskScenarioData.riskCode}
             </Typography>
             {getStatusComponent()}
           </Stack>
