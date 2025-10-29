@@ -192,40 +192,34 @@ const UserDetails: React.FC<UserDetailsProps> = ({
         </CardContent>
       </Card>
 
-      {user.organization && (
-        <Box sx={{ mt: 4 }}>
-          <Typography
-            variant="h6"
-            fontWeight={600}
-            gutterBottom
-            color="text.primary"
-            marginBottom={2}
-          >
-            Organisation
-          </Typography>
-          <Card
-            variant="outlined"
-            sx={{ borderRadius: 2, border: "1px solid #D9D9D9" }}
-          >
-            <CardContent sx={{ p: "0 !important" }}>
-              <Grid container spacing={3} sx={{ p: 3 }}>
-                <Grid size={{ xs: 4 }}>
-                  <Typography variant="body1" color="#91939A" fontWeight={500}>
-                    Assigned Organisation
-                  </Typography>
-                  <Typography
-                    fontSize={18}
-                    fontWeight={550}
-                    color="text.primary"
-                  >
-                    {user.organization}
-                  </Typography>
-                </Grid>
+      <Box sx={{ mt: 4 }}>
+        <Typography
+          variant="h6"
+          fontWeight={600}
+          gutterBottom
+          color="text.primary"
+          marginBottom={2}
+        >
+          Organization
+        </Typography>
+        <Card
+          variant="outlined"
+          sx={{ borderRadius: 2, border: "1px solid #D9D9D9" }}
+        >
+          <CardContent sx={{ p: "0 !important" }}>
+            <Grid container spacing={3} sx={{ p: 3 }}>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="body1" color="#91939A" fontWeight={500}>
+                  Assigned Organization
+                </Typography>
+                <Typography fontSize={18} fontWeight={550} color="text.primary">
+                  {user.organization ? user.organization : "-"}
+                </Typography>
               </Grid>
-            </CardContent>
-          </Card>
-        </Box>
-      )}
+            </Grid>
+          </CardContent>
+        </Card>
+      </Box>
 
       {/* Activity Section */}
       <Box sx={{ mt: 4 }}>

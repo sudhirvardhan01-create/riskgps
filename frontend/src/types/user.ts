@@ -30,3 +30,14 @@ export interface UserFormData {
   password: string;
   confirmPassword: string;
 }
+
+export interface UserEditFormData {
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  communicationPreference: string;
+  company: string;
+  role: string;
+  organization: string;
+}

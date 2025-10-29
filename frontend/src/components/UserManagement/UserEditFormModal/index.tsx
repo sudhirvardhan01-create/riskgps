@@ -10,7 +10,6 @@ import {
   Stack,
   Avatar,
   Divider,
-  Checkbox,
   FormControl,
   FormLabel,
   RadioGroup,
@@ -25,32 +24,23 @@ import SelectStyled from "@/components/SelectStyled";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
 import { CameraAlt } from "@mui/icons-material";
-import { UserFormData } from "@/types/user";
+import { UserEditFormData } from "@/types/user";
 import TooltipComponent from "@/components/TooltipComponent";
 import { Organisation } from "@/types/assessment";
 import { getOrganization } from "@/pages/api/organization";
 import { UserService } from "@/services/userService";
 import ToastComponent from "@/components/ToastComponent";
 
-interface UserFormModalProps {
+interface UserEditFormModalProps {
   onClose: () => void;
+  userData: UserEditFormData;
 }
 
-const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
-  const initialUserFormData = {
-    name: "",
-    email: "",
-    phone: "",
-    communicationPreference: "Email",
-    company: "",
-    role: "",
-    organization: "",
-    isTermsAndConditionsAccepted: false,
-    isActive: true,
-    password: "",
-    confirmPassword: "",
-  };
-  const [formData, setFormData] = useState<UserFormData>(initialUserFormData);
+const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
+  onClose,
+  userData,
+}) => {
+  const [formData, setFormData] = useState<UserEditFormData>(userData);
   const [orgSearch, setOrgSearch] = useState("");
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
@@ -102,30 +92,13 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
   );
 
   const handleChange = useCallback(
-    (field: keyof UserFormData, value: any) => {
+    (field: keyof UserEditFormData, value: any) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
     [setFormData] // only depends on setter from props
   );
 
-  const handleSubmit = async () => {
-    try {
-      await UserService.create(formData);
-      onClose();
-      setToast({
-        open: true,
-        message: `User created successfully`,
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to create user",
-        severity: "error",
-      });
-    }
-  };
+  const handleSubmit = async () => {};
 
   console.log(formData);
 
@@ -216,32 +189,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
               placeholder="Enter Email"
               value={formData.email}
               onChange={(e) => handleChange("email", e.target.value)}
-            />
-          </Grid>
-          {/* Password */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              required
-              type="password"
-              label={labels.password}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.password}
-              placeholder="Enter Password"
-              value={formData.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-            />
-          </Grid>
-          {/* Confirm Password */}
-          <Grid mt={1} size={{ xs: 6 }}>
-            <TextFieldStyled
-              required
-              type="password"
-              label={labels.confirmPassword}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.confirmPassword}
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={(e) => handleChange("confirmPassword", e.target.value)}
             />
           </Grid>
           {/* Phone */}
@@ -492,51 +439,10 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
           mx={5}
           display={"flex"}
           flexDirection={"row"}
-          justifyContent={"space-between"}
+          justifyContent={"flex-end"}
           alignItems={"center"}
           mb={5}
         >
-          <FormControlLabel
-            control={
-              <Checkbox
-                onChange={(e) =>
-                  handleChange("isTermsAndConditionsAccepted", e.target.checked)
-                }
-              />
-            }
-            label={
-              <Stack direction={"row"} gap={0.4}>
-                <Typography
-                  variant="body2"
-                  fontWeight={300}
-                  color="text.primary"
-                >
-                  Agree to RiskGPS&apos;s
-                </Typography>
-                <Typography
-                  variant="body2"
-                  fontWeight={550}
-                  color="primary.main"
-                >
-                  Terms of Use
-                </Typography>
-                <Typography
-                  variant="body2"
-                  fontWeight={300}
-                  color="text.primary"
-                >
-                  and our
-                </Typography>
-                <Typography
-                  variant="body2"
-                  fontWeight={550}
-                  color="primary.main"
-                >
-                  Privacy Policy
-                </Typography>
-              </Stack>
-            }
-          />
           <Box display={"flex"} gap={3}>
             <Button
               sx={{
@@ -555,22 +461,19 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
             <Button
               sx={{ width: 110, height: 40, borderRadius: 1 }}
               variant="contained"
-              onClick={() => {
-                handleSubmit();
-              }}
+              // onClick={() => {
+              //   onSubmit("published");
+              // }}
               disabled={
                 formData.name === "" ||
                 formData.email === "" ||
-                formData.password === "" ||
-                formData.confirmPassword === "" ||
                 formData.company === "" ||
-                formData.role === "" ||
-                formData.isTermsAndConditionsAccepted === false
+                formData.role === ""
               }
               disableRipple
             >
               <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
-                {"Add"}
+                {"Save"}
               </Typography>
             </Button>
           </Box>
@@ -594,4 +497,4 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
   );
 };
 
-export default UserFormModal;
+export default UserEditFormModal;

@@ -152,9 +152,9 @@ const UserTableHeader: React.FC<UserTableHeaderProps> = ({
         </IconButton>
       </Box>
 
-      {/* Organisation Column */}
+      {/* Organization Column */}
       <Typography variant="body1" fontWeight={600} color="#FFFFFF">
-        Organisation
+        Organization
       </Typography>
 
       {/* Status Column */}

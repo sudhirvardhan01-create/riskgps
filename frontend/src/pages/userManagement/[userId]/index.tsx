@@ -29,7 +29,7 @@ export default function UserDetailsPage() {
         console.error(err);
         setToast({
           open: true,
-          message: "Failed to fetch users",
+          message: "Failed to fetch user",
           severity: "error",
         });
       } finally {

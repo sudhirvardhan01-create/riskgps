@@ -36,7 +36,7 @@ function UserCreatePage() {
           justifyContent: "center",
         }}
       >
-        <UserFormModal operation="create" />
+        <UserFormModal onClose={() => router.push("/userManagement")} />
       </Box>
     </Box>
   );

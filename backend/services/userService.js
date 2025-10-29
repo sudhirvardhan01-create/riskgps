@@ -165,7 +165,7 @@ class UserService {
 
   static async getAllRoles() {
     const roles = await Role.findAll({
-      attributes: ["roleId, name"],
+      attributes: ["roleId", "name"],
     });
     if (!roles || roles.length === 0) {
       throw new CustomError("No roles found", HttpStatus.NOT_FOUND);
