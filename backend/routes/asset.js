@@ -128,9 +128,9 @@ router.get("/export", async (req, res) => {
  */
 router.get('/:id', async (req, res) => {
     try {
-        const process = await AssetService.getAssetById(req.params.id);
+        const asset = await AssetService.getAssetById(req.params.id);
         res.status(HttpStatus.OK).json({
-            data: process,
+            data: asset,
             msg: Messages.ASSET.FETCHED_BY_ID
         });
     } catch (err) {
