@@ -1,0 +1,183 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { Box, Paper, useTheme } from "@mui/material";
+import type { LatLngExpression } from "leaflet";
+
+// ✅ Dynamic imports to avoid SSR errors
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((m) => m.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((m) => m.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), {
+  ssr: false,
+});
+const Tooltip = dynamic(() => import("react-leaflet").then((m) => m.Tooltip), {
+  ssr: false,
+});
+
+export interface LocationData {
+  name: string;
+  value: number;
+  coords: LatLngExpression;
+}
+
+interface GreyWorldMapProps {
+  data?: LocationData[];
+}
+
+const GreyWorldMap: React.FC<GreyWorldMapProps> = ({ data = [] }) => {
+  const theme = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [L, setL] = useState<typeof import("leaflet") | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  // ✅ Load Leaflet only on client
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      import("leaflet").then((leaflet) => {
+        setL(leaflet);
+        setMounted(true);
+      });
+    }
+  }, []);
+
+  // ✅ Default map data (used when no props provided)
+  const defaultData: LocationData[] = [
+    { name: "New York", value: 50, coords: [40.7128, -74.006] },
+    { name: "Texas", value: 70, coords: [31.9686, -99.9018] },
+    { name: "California", value: 85, coords: [36.7783, -119.4179] },
+    { name: "Florida", value: 60, coords: [27.9944, -81.7603] },
+    { name: "Virginia", value: 65, coords: [37.4316, -78.6569] },
+  ];
+
+  const mapData = data.length ? data : defaultData;
+
+  if (!mounted || !L)
+    return (
+      <Paper
+        sx={{
+          height: 500,
+          width: "100%",
+          borderRadius: 3,
+          bgcolor: "#f5f5f5",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "inset 0 0 10px rgba(0,0,0,0.1)",
+        }}
+      >
+        Loading map...
+      </Paper>
+    );
+
+  // ✅ Map bounds
+  const bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
+
+  // ✅ Calculate scaling & color
+  const minVal = Math.min(...mapData.map((d) => d.value));
+  const maxVal = Math.max(...mapData.map((d) => d.value));
+
+  const getSize = (v: number): number =>
+    12 + ((v - minVal) / (maxVal - minVal || 1)) * 18;
+
+  const getColor = (v: number): string => {
+    const intensity = (v - minVal) / (maxVal - minVal || 1);
+    const hue = 210 - intensity * 60; // bluish → cyan
+    return `hsl(${hue}, 70%, 55%)`;
+  };
+
+  return (
+    <Paper
+      sx={{
+        width: "100%",
+        height: 600,
+        borderRadius: 3,
+        overflow: "hidden",
+        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+        position: "relative",
+      }}
+    >
+      <MapContainer
+        center={[37.0902, -95.7129]}
+        zoom={4}
+        minZoom={3}
+        maxZoom={6}
+        scrollWheelZoom
+        zoomControl
+        maxBounds={bounds}
+        maxBoundsViscosity={1.0}
+        style={{
+          height: "100%",
+          width: "100%",
+          filter: "contrast(1.05)",
+        }}
+      >
+        {/* 🗺️ Theme-based tile */}
+        <TileLayer
+          url={
+            theme.palette.mode === "dark"
+              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          }
+          noWrap
+        />
+
+        {mapData.map((item, idx) => {
+          const size = getSize(item.value);
+          const color = getColor(item.value);
+          const isHovered = hoveredIndex === idx;
+          const markerSize = isHovered ? size * 1.25 : size;
+          const glow = isHovered ? `${color}` : `${color}99`;
+
+          const icon = L.divIcon({
+            className: "custom-marker",
+            html: `
+              <div 
+                style="
+                  width:${markerSize}px;
+                  height:${markerSize}px;
+                  background:${color};
+                  border-radius:50%;
+                  border:2px solid white;
+                  cursor:pointer;
+                  box-shadow:0 0 10px ${glow};
+                  transition: all 0.25s ease;
+                "
+              ></div>
+            `,
+            iconSize: [markerSize, markerSize],
+            iconAnchor: [markerSize / 2, markerSize / 2],
+          });
+
+          return (
+            <Marker
+              key={idx}
+              position={item.coords}
+              icon={icon}
+              eventHandlers={{
+                mouseover: () => setHoveredIndex(idx),
+                mouseout: () => setHoveredIndex(null),
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+                <Box textAlign="center">
+                  <strong>{item.name}</strong>
+                  <br />
+                  Value: {item.value}
+                </Box>
+              </Tooltip>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+    </Paper>
+  );
+};
+
+export default GreyWorldMap;
