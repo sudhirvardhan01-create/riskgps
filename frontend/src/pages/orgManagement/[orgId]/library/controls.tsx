@@ -38,6 +38,7 @@ function ControlsPage() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedControls, setSelectedControls] = useState<(string | number)[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -85,16 +86,31 @@ function ControlsPage() {
   const handleRemoveSelected = () => {
     setControls(prev => prev.filter(control => !selectedControls.includes(control.id)));
     setSelectedControls([]);
-    setIsDeleteMode(false);
   };
 
   const handleClearSelection = () => {
     setSelectedControls([]);
-    setIsDeleteMode(false);
+  };
+
+  const handleDeleteSingleControl = (controlId: string | number) => {
+    setControls(prev => prev.filter(control => control.id !== controlId));
   };
 
   const handleCloseSuccessMessage = () => {
     setShowSuccessMessage(false);
+  };
+
+  const toggleDescription = (controlId: string | number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(controlId)) {
+        newSet.delete(controlId);
+      } else {
+        newSet.add(controlId);
+      }
+      return newSet;
+    });
   };
 
   // Filter controls based on search term
@@ -372,21 +388,22 @@ function ControlsPage() {
               </Box>
 
               {/* Section Header */}
-              <Box sx={{ mb: 1 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    color: "#04139A",
-                    mb: selectedControls.length > 0 ? 2 : 0,
-                  }}
-                >
-                  Select Controls
-                </Typography>
+              {selectedControls.length > 0 && (
+                <Box sx={{ mb: 1 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      color: "#04139A",
+                      mb: selectedControls.length > 0 ? 2 : 0,
+                    }}
+                  >
+                    Select Controls
+                  </Typography>
 
-                {/* Selection Controls */}
-                {selectedControls.length > 0 && (
+                  {/* Selection Controls */}
+                  {selectedControls.length > 0 && (
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Chip
                       label={`${selectedControls.length} selected`}
@@ -438,8 +455,9 @@ function ControlsPage() {
                       Remove Selected
                     </Button>
                   </Box>
-                )}
-              </Box>
+                  )}
+                </Box>
+              )}
             </Box>
 
             {/* Scrollable Controls Grid */}
@@ -454,32 +472,37 @@ function ControlsPage() {
               mb: 4,
             }}>
               <Grid container spacing={2}>
-                {filteredControls.map((control) => (
-                  <Grid size={{ xs: 12, sm: 6 }} key={control.id}>
-                    <Box
-                      sx={{
-                        border: "1px solid #E7E7E8",
-                        borderLeft: "4px solid #04139A",
-                        borderRadius: "8px",
-                        p: 2,
-                        backgroundColor: "#FFFFFF",
-                        position: "relative",
-                        minHeight: "68px",
-                        display: "flex",
-                        alignItems: "center",
-                        transition: "all 0.2s ease",
-                        "&:hover": {
-                          borderColor: "#04139A",
-                          backgroundColor: "rgba(4, 19, 154, 0.02)",
-                        },
-                      }}
-                    >
-                      {isDeleteMode ? (
+                {filteredControls.map((control) => {
+                  const isExpanded = expandedDescriptions.has(control.id);
+                  const descriptionText = `Description: ${control.controlDescription}`;
+                  const actualDescription = control.controlDescription || "";
+                  const shouldShowToggle = actualDescription.trim().length > 80;
+                  
+                  return (
+                    <Grid size={{ xs: 12, sm: 6 }} key={control.id}>
+                      <Box
+                        sx={{
+                          border: "1px solid #E7E7E8",
+                          borderLeft: "4px solid #04139A",
+                          borderRadius: "8px",
+                          p: 2,
+                          backgroundColor: "#FFFFFF",
+                          position: "relative",
+                          display: "flex",
+                          flexDirection: "column",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            borderColor: "#04139A",
+                            backgroundColor: "rgba(4, 19, 154, 0.02)",
+                          },
+                        }}
+                      >
                         <FormControlLabel
                           control={
                             <Checkbox
                               checked={selectedControls.includes(control.id)}
                               onChange={() => handleControlToggle(control.id)}
+                              onClick={(e) => e.stopPropagation()}
                               sx={{
                                 color: "#04139A",
                                 "&.Mui-checked": {
@@ -492,7 +515,7 @@ function ControlsPage() {
                             />
                           }
                           label={
-                            <Box sx={{ flex: 1, pr: 4 }}>
+                            <Box sx={{ flex: 1, pr: 4, display: "flex", flexDirection: "column" }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -505,58 +528,63 @@ function ControlsPage() {
                               >
                                 {control.controlName}
                               </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  color: "#484848",
-                                  fontSize: "14px",
-                                  lineHeight: "20px",
-                                  fontWeight: 400,
-                                }}
-                              >
-                                Description: {control.controlDescription}
-                              </Typography>
+                              <Box sx={{ position: "relative" }}>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: "#484848",
+                                    fontSize: "14px",
+                                    lineHeight: "20px",
+                                    fontWeight: 400,
+                                    overflow: isExpanded ? "visible" : "hidden",
+                                    display: isExpanded ? "block" : "-webkit-box",
+                                    WebkitLineClamp: isExpanded ? undefined : 2,
+                                    WebkitBoxOrient: isExpanded ? undefined : "vertical",
+                                    textOverflow: isExpanded ? "clip" : "ellipsis",
+                                    maxHeight: isExpanded ? "none" : "40px",
+                                    wordBreak: "break-word",
+                                  }}
+                                >
+                                  {descriptionText}
+                                </Typography>
+                                {shouldShowToggle && (
+                                  <Button
+                                    onClick={(e) => toggleDescription(control.id, e)}
+                                    sx={{
+                                      textTransform: "none",
+                                      color: "#04139A",
+                                      fontSize: "12px",
+                                      fontWeight: 500,
+                                      p: 0,
+                                      minWidth: "auto",
+                                      mt: 0.5,
+                                      "&:hover": {
+                                        backgroundColor: "transparent",
+                                        textDecoration: "underline",
+                                      },
+                                    }}
+                                  >
+                                    {isExpanded ? "View less" : "View more"}
+                                  </Button>
+                                )}
+                              </Box>
                             </Box>
                           }
                           sx={{
                             alignItems: "flex-start",
                             m: 0,
                             flex: 1,
+                            width: "100%",
                             "& .MuiFormControlLabel-label": {
                               flex: 1,
                             },
                           }}
                         />
-                      ) : (
-                        <Box sx={{ flex: 1, pr: 4 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "#484848",
-                              fontSize: "14px",
-                              lineHeight: "20px",
-                              fontWeight: 600,
-                              mb: 0.5,
-                            }}
-                          >
-                            {control.controlName}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "#484848",
-                              fontSize: "14px",
-                              lineHeight: "20px",
-                              fontWeight: 400,
-                            }}
-                          >
-                            Description: {control.controlDescription}
-                          </Typography>
-                        </Box>
-                      )}
-                      {!isDeleteMode && (
                         <IconButton
-                          onClick={handleEnterDeleteMode}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSingleControl(control.id);
+                          }}
                           sx={{
                             position: "absolute",
                             right: 8,
@@ -569,10 +597,10 @@ function ControlsPage() {
                         >
                           <Delete sx={{ fontSize: "20px" }} />
                         </IconButton>
-                      )}
-                    </Box>
-                  </Grid>
-                ))}
+                      </Box>
+                    </Grid>
+                  );
+                })}
               </Grid>
             </Box>
           </Box>
@@ -587,6 +615,7 @@ function ControlsPage() {
         title="Add Controls"
         service={ControlLibraryService}
         itemType="controls"
+        alreadyAddedIds={controls.map(control => control.id)}
       />
     </Box>
   );

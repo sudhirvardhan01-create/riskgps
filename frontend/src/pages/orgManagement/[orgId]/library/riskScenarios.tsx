@@ -39,6 +39,7 @@ function RiskScenariosPage() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState<(string | number)[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -86,17 +87,32 @@ function RiskScenariosPage() {
   const handleRemoveSelected = () => {
     setRiskScenarios(prev => prev.filter(scenario => !selectedScenarios.includes(scenario.id)));
     setSelectedScenarios([]);
-    setIsDeleteMode(false);
   };
 
   const handleClearSelection = () => {
     setSelectedScenarios([]);
-    setIsDeleteMode(false);
+  };
+
+  const handleDeleteSingleScenario = (scenarioId: string | number) => {
+    setRiskScenarios(prev => prev.filter(scenario => scenario.id !== scenarioId));
   };
 
 
   const handleCloseSuccessMessage = () => {
     setShowSuccessMessage(false);
+  };
+
+  const toggleDescription = (scenarioId: string | number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(scenarioId)) {
+        newSet.delete(scenarioId);
+      } else {
+        newSet.add(scenarioId);
+      }
+      return newSet;
+    });
   };
 
   // Filter scenarios based on search term
@@ -373,21 +389,22 @@ function RiskScenariosPage() {
               </Box>
 
               {/* Section Header */}
-              <Box sx={{ mb: 1 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    color: "#04139A",
-                    mb: selectedScenarios.length > 0 ? 2 : 0,
-                  }}
-                >
-                  Select Risk Scenarios
-                </Typography>
+              {selectedScenarios.length > 0 && (
+                <Box sx={{ mb: 1 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      color: "#04139A",
+                      mb: selectedScenarios.length > 0 ? 2 : 0,
+                    }}
+                  >
+                    Select Risk Scenarios
+                  </Typography>
 
-                {/* Selection Controls */}
-                {selectedScenarios.length > 0 && (
+                  {/* Selection Controls */}
+                  {selectedScenarios.length > 0 && (
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Chip
                       label={`${selectedScenarios.length} selected`}
@@ -439,8 +456,9 @@ function RiskScenariosPage() {
                       Remove Selected
                     </Button>
                   </Box>
-                )}
-              </Box>
+                  )}
+                </Box>
+              )}
             </Box>
 
             {/* Scrollable Risk Scenarios Grid */}
@@ -455,32 +473,37 @@ function RiskScenariosPage() {
               mb: 4,
             }}>
               <Grid container spacing={2}>
-                {filteredScenarios.map((scenario) => (
-                  <Grid size={{ xs: 12, sm: 6 }} key={scenario.id}>
-                    <Box
-                      sx={{
-                        border: "1px solid #E7E7E8",
-                        borderLeft: "4px solid #04139A",
-                        borderRadius: "8px",
-                        p: 2,
-                        backgroundColor: "#FFFFFF",
-                        position: "relative",
-                        minHeight: "68px",
-                        display: "flex",
-                        alignItems: "center",
-                        transition: "all 0.2s ease",
-                        "&:hover": {
-                          borderColor: "#04139A",
-                          backgroundColor: "rgba(4, 19, 154, 0.02)",
-                        },
-                      }}
-                    >
-                      {isDeleteMode ? (
+                {filteredScenarios.map((scenario) => {
+                  const isExpanded = expandedDescriptions.has(scenario.id);
+                  const descriptionText = `Description: ${scenario.riskStatement}`;
+                  const actualDescription = scenario.riskStatement || "";
+                  const shouldShowToggle = actualDescription.trim().length > 80;
+                  
+                  return (
+                    <Grid size={{ xs: 12, sm: 6 }} key={scenario.id}>
+                      <Box
+                        sx={{
+                          border: "1px solid #E7E7E8",
+                          borderLeft: "4px solid #04139A",
+                          borderRadius: "8px",
+                          p: 2,
+                          backgroundColor: "#FFFFFF",
+                          position: "relative",
+                          display: "flex",
+                          flexDirection: "column",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            borderColor: "#04139A",
+                            backgroundColor: "rgba(4, 19, 154, 0.02)",
+                          },
+                        }}
+                      >
                         <FormControlLabel
                           control={
                             <Checkbox
                               checked={selectedScenarios.includes(scenario.id)}
                               onChange={() => handleScenarioToggle(scenario.id)}
+                              onClick={(e) => e.stopPropagation()}
                               sx={{
                                 color: "#04139A",
                                 "&.Mui-checked": {
@@ -493,7 +516,7 @@ function RiskScenariosPage() {
                             />
                           }
                           label={
-                            <Box sx={{ flex: 1, pr: 4 }}>
+                            <Box sx={{ flex: 1, pr: 4, display: "flex", flexDirection: "column" }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -506,58 +529,63 @@ function RiskScenariosPage() {
                               >
                                 {scenario.riskScenario}
                               </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  color: "#484848",
-                                  fontSize: "14px",
-                                  lineHeight: "20px",
-                                  fontWeight: 400,
-                                }}
-                              >
-                                Description: {scenario.riskStatement}
-                              </Typography>
+                              <Box sx={{ position: "relative" }}>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: "#484848",
+                                    fontSize: "14px",
+                                    lineHeight: "20px",
+                                    fontWeight: 400,
+                                    overflow: isExpanded ? "visible" : "hidden",
+                                    display: isExpanded ? "block" : "-webkit-box",
+                                    WebkitLineClamp: isExpanded ? undefined : 2,
+                                    WebkitBoxOrient: isExpanded ? undefined : "vertical",
+                                    textOverflow: isExpanded ? "clip" : "ellipsis",
+                                    maxHeight: isExpanded ? "none" : "40px",
+                                    wordBreak: "break-word",
+                                  }}
+                                >
+                                  {descriptionText}
+                                </Typography>
+                                {shouldShowToggle && (
+                                  <Button
+                                    onClick={(e) => toggleDescription(scenario.id, e)}
+                                    sx={{
+                                      textTransform: "none",
+                                      color: "#04139A",
+                                      fontSize: "12px",
+                                      fontWeight: 500,
+                                      p: 0,
+                                      minWidth: "auto",
+                                      mt: 0.5,
+                                      "&:hover": {
+                                        backgroundColor: "transparent",
+                                        textDecoration: "underline",
+                                      },
+                                    }}
+                                  >
+                                    {isExpanded ? "View less" : "View more"}
+                                  </Button>
+                                )}
+                              </Box>
                             </Box>
                           }
                           sx={{
                             alignItems: "flex-start",
                             m: 0,
                             flex: 1,
+                            width: "100%",
                             "& .MuiFormControlLabel-label": {
                               flex: 1,
                             },
                           }}
                         />
-                      ) : (
-                        <Box sx={{ flex: 1, pr: 4 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "#484848",
-                              fontSize: "14px",
-                              lineHeight: "20px",
-                              fontWeight: 600,
-                              mb: 0.5,
-                            }}
-                          >
-                            {scenario.riskScenario}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "#484848",
-                              fontSize: "14px",
-                              lineHeight: "20px",
-                              fontWeight: 400,
-                            }}
-                          >
-                            Description: {scenario.riskStatement}
-                          </Typography>
-                        </Box>
-                      )}
-                      {!isDeleteMode && (
                         <IconButton
-                          onClick={handleEnterDeleteMode}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSingleScenario(scenario.id);
+                          }}
                           sx={{
                             position: "absolute",
                             right: 8,
@@ -570,10 +598,10 @@ function RiskScenariosPage() {
                         >
                           <Delete sx={{ fontSize: "20px" }} />
                         </IconButton>
-                      )}
-                    </Box>
-                  </Grid>
-                ))}
+                      </Box>
+                    </Grid>
+                  );
+                })}
               </Grid>
             </Box>
           </Box>
@@ -588,6 +616,7 @@ function RiskScenariosPage() {
         title="Add Risk Scenarios"
         service={RiskScenarioLibraryService}
         itemType="risk-scenarios"
+        alreadyAddedIds={riskScenarios.map(scenario => scenario.id)}
       />
     </Box>
   );

@@ -478,7 +478,7 @@ function CreateNewOrgPage() {
             {currentStep === 0 ? (
               <>
                 {/* Org Logo Upload */}
-                <Box sx={{ position: "relative", mb: 4 }}>
+                <Box sx={{ position: "relative", mb: 4, opacity: 0.5, pointerEvents: "none" }}>
                   <Avatar
                     sx={{
                       width: 96,
@@ -508,6 +508,7 @@ function CreateNewOrgPage() {
                     </Box>
                   </Avatar>
                   <IconButton
+                    disabled
                     sx={{
                       position: "absolute",
                       bottom: 0,
@@ -519,6 +520,10 @@ function CreateNewOrgPage() {
                       "&:hover": {
                         backgroundColor: "#04139A",
                         opacity: 0.9
+                      },
+                      "&.Mui-disabled": {
+                        backgroundColor: "#E0E0E0",
+                        color: "#9E9E9E"
                       }
                     }}
                   >

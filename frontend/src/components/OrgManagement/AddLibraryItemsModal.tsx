@@ -40,6 +40,7 @@ interface AddLibraryItemsModalProps {
   title: string;
   service: LibraryService;
   itemType: 'risk-scenarios' | 'processes' | 'assets' | 'controls' | 'threats';
+  alreadyAddedIds?: (string | number)[];
 }
 
 const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
@@ -49,12 +50,14 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
   title,
   service,
   itemType,
+  alreadyAddedIds = [],
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
 
   const fetchItems = async () => {
     try {
@@ -70,6 +73,13 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     }
   };
 
+  // Reset selections when modal opens to prepare for pre-selection
+  useEffect(() => {
+    if (open) {
+      setSelectedItems([]);
+    }
+  }, [open]);
+
   // Handle search with debouncing and initial fetch when modal opens
   useEffect(() => {
     if (!open) return;
@@ -80,6 +90,21 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm, open]);
+
+  // Pre-select already added items when modal opens and items are loaded
+  useEffect(() => {
+    if (open && items.length > 0 && alreadyAddedIds.length > 0) {
+      // Filter alreadyAddedIds to only include those that exist in the current items list
+      const itemsToSelect = items
+        .filter(item => item.id && alreadyAddedIds.includes(item.id))
+        .map(item => item.id!)
+        .filter((id): id is string | number => id !== undefined);
+      
+      if (itemsToSelect.length > 0) {
+        setSelectedItems(itemsToSelect);
+      }
+    }
+  }, [open, items, alreadyAddedIds]);
 
   const handleItemToggle = (itemId: string | number) => {
     setSelectedItems(prev =>
@@ -94,15 +119,30 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       item.id && selectedItems.includes(item.id)
     );
     onAdd(selectedItemObjects);
-    setSelectedItems([]);
+    // Note: Don't clear selectedItems here - they will be reset when modal reopens
+    // This way, if the user opens the modal again, previously added items are pre-selected
     setSearchTerm("");
     onClose();
   };
 
   const handleClose = () => {
-    setSelectedItems([]);
     setSearchTerm("");
+    setExpandedDescriptions(new Set());
+    // Note: selectedItems will be reset when modal opens next time
     onClose();
+  };
+
+  const toggleDescription = (itemId: string | number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
   };
 
   const handleSelectAll = () => {
@@ -302,6 +342,13 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
             {filteredItems.map((item) => {
               const itemId = item.id!; // We know it's defined after filtering
               const displayFields = getDisplayFields(item);
+              const isExpanded = expandedDescriptions.has(itemId);
+              const descriptionText = displayFields.description;
+              // Remove "Description: " prefix if present to get actual description
+              const actualDescription = descriptionText.replace(/^Description:\s*/i, "");
+              // Show toggle if description is longer than approximately 80 characters (roughly 2 lines at 14px)
+              const shouldShowToggle = actualDescription.trim().length > 80;
+              
               return (
                 <Grid size={{ xs: 12, sm: 6 }} key={itemId}>
                   <Box
@@ -313,18 +360,33 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                       backgroundColor: "#FFFFFF",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
+                      display: "flex",
+                      flexDirection: "column",
                       "&:hover": {
                         borderColor: "#04139A",
                         backgroundColor: "rgba(4, 19, 154, 0.02)",
                       },
                     }}
-                    onClick={() => handleItemToggle(itemId)}
+                    onClick={(e) => {
+                      // Only handle card clicks that don't originate from interactive elements
+                      const isClickOnInteractiveElement = (e.target as HTMLElement).closest(
+                        'input, button, label, .MuiFormControlLabel-root'
+                      ) !== null;
+                      
+                      if (!isClickOnInteractiveElement) {
+                        handleItemToggle(itemId);
+                      }
+                    }}
                   >
                     <FormControlLabel
                       control={
                         <Checkbox
                           checked={selectedItems.includes(itemId)}
-                          onChange={() => handleItemToggle(itemId)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleItemToggle(itemId);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
                           sx={{
                             color: "#04139A",
                             "&.Mui-checked": {
@@ -337,7 +399,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                         />
                       }
                       label={
-                        <Box sx={{ ml: 1 }}>
+                        <Box sx={{ ml: 1, flex: 1, display: "flex", flexDirection: "column" }}>
                           <Typography
                             variant="body2"
                             sx={{
@@ -350,22 +412,52 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                           >
                             {displayFields.title}
                           </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "#484848",
-                              fontSize: "14px",
-                              lineHeight: "20px",
-                              fontWeight: 400,
-                            }}
-                          >
-                            {displayFields.description}
-                          </Typography>
+                          <Box sx={{ position: "relative" }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "#484848",
+                                fontSize: "14px",
+                                lineHeight: "20px",
+                                fontWeight: 400,
+                                overflow: isExpanded ? "visible" : "hidden",
+                                display: isExpanded ? "block" : "-webkit-box",
+                                WebkitLineClamp: isExpanded ? undefined : 2,
+                                WebkitBoxOrient: isExpanded ? undefined : "vertical",
+                                textOverflow: isExpanded ? "clip" : "ellipsis",
+                                maxHeight: isExpanded ? "none" : "40px", // 2 lines * 20px line-height
+                                wordBreak: "break-word",
+                              }}
+                            >
+                              {descriptionText}
+                            </Typography>
+                            {shouldShowToggle && (
+                              <Button
+                                onClick={(e) => toggleDescription(itemId, e)}
+                                sx={{
+                                  textTransform: "none",
+                                  color: "#04139A",
+                                  fontSize: "12px",
+                                  fontWeight: 500,
+                                  p: 0,
+                                  minWidth: "auto",
+                                  mt: 0.5,
+                                  "&:hover": {
+                                    backgroundColor: "transparent",
+                                    textDecoration: "underline",
+                                  },
+                                }}
+                              >
+                                {isExpanded ? "View less" : "View more"}
+                              </Button>
+                            )}
+                          </Box>
                         </Box>
                       }
                       sx={{
                         alignItems: "flex-start",
                         m: 0,
+                        width: "100%",
                         "& .MuiFormControlLabel-label": {
                           flex: 1,
                         },

@@ -168,8 +168,8 @@ export const transformApiOrganizationToFrontend = (apiOrg: ApiOrganization): Org
       ...tags
     },
     members: {
-      avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"], // Default avatars
-      additionalCount: 3
+      avatars: [], // Empty array - API doesn't return member data
+      additionalCount: 0
     },
     businessUnits,
     status,
