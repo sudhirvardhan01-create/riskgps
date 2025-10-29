@@ -41,6 +41,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/roles", async (req, res) => {
+  try {
+    const roles = await UserService.getAllRoles();
+    res.status(HttpStatus.OK).json({
+      data: roles,
+      message: "Roles fetched successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || Messages.GENERAL.SERVER_ERROR,
+    });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;

@@ -163,6 +163,16 @@ class UserService {
     return result;
   }
 
+  static async getAllRoles() {
+    const roles = await Role.findAll({
+      attributes: ["roleId, name"],
+    });
+    if (!roles || roles.length === 0) {
+      throw new CustomError("No roles found", HttpStatus.NOT_FOUND);
+    }
+    return roles;
+  }
+
   static validateUserData(data) {
     if (!data.name) {
       throw new CustomError("User name is required", HttpStatus.BAD_REQUEST);

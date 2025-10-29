@@ -80,4 +80,13 @@ export const labels = {
   questionText: "Question",
 
   //User Management
+  userName: "Name",
+  userEmail: "Email",
+  userPhone: "Phone",
+  userCommunicationPreference: "Communication Preference",
+  password: "Password",
+  confirmPassword: "Confirm Password",
+  userType: "User Type",
+  userCompany: "Company",
+  userOrganization: "Organization",
 };

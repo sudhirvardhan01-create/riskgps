@@ -1,80 +1,124 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
   Box,
   Grid,
   Button,
   MenuItem,
   IconButton,
   Typography,
-  DialogActions,
-  Divider,
   FormControlLabel,
   Stack,
   Avatar,
+  Divider,
+  Checkbox,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  Radio,
+  InputLabel,
+  Select,
+  ListSubheader,
+  TextField,
 } from "@mui/material";
-import { AssetForm } from "@/types/asset";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
 import Image from "next/image";
 import { CameraAlt } from "@mui/icons-material";
+import { UserFormData } from "@/types/user";
+import TooltipComponent from "@/components/TooltipComponent";
+import { Organisation } from "@/types/assessment";
+import { getOrganization } from "@/pages/api/organization";
 
 interface UserFormModalProps {
   operation: "create" | "edit";
-  open: boolean;
-  onClose: () => void;
-  assetFormData: AssetForm;
-  processes: any[];
-  metaDatas: any[];
-  setAssetFormData: React.Dispatch<React.SetStateAction<AssetForm>>;
-  onSubmit: (status: string) => void;
 }
 
-const UserFormModal: React.FC<UserFormModalProps> = ({
-  operation,
-  open,
-  onClose,
-  assetFormData,
-  setAssetFormData,
-  onSubmit,
-}) => {
-  const handleChange = useCallback(
-    (field: keyof AssetForm, value: any) => {
-      setAssetFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    [setAssetFormData] // only depends on setter from props
+const UserFormModal: React.FC<UserFormModalProps> = ({ operation }) => {
+  const initialUserFormData = {
+    name: "",
+    email: "",
+    phone: "",
+    communicationPreference: "Email",
+    company: "",
+    role: "",
+    organization: "",
+    isTermsAndConditionsAccepted: false,
+    isActive: true,
+    password: "",
+    confirmPassword: "",
+  };
+  const [formData, setFormData] = useState<UserFormData>(initialUserFormData);
+  const [orgSearch, setOrgSearch] = useState("");
+  const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      try {
+        setLoading(true);
+        const res = await getOrganization();
+        setOrganisations(res.data.organizations);
+      } catch (error) {
+        console.error("Error fetching organisations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrgs();
+  }, []);
+
+  const filteredOrgs = organisations.filter((o) =>
+    o.name.toLowerCase().includes(orgSearch.toLowerCase())
   );
 
+  const handleChange = useCallback(
+    (field: keyof UserFormData, value: any) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [setFormData] // only depends on setter from props
+  );
+
+  console.log(formData);
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="md"
-      slotProps={{ paper: { sx: { borderRadius: 2, padding: 5 } } }}
+    <Box
+      width={"944px"}
+      height={"744px"}
+      borderRadius={4}
+      border="1px solid #D9D9D9"
+      mt={6}
+      mb={2}
+      sx={{
+        overflow: "auto",
+        scrollbarWidth: "none",
+        backgroundColor: "white",
+      }}
     >
-      <DialogTitle
+      <Box
         sx={{
-          paddingY: 0,
-          paddingX: 0,
-          marginBottom: 5,
+          mb: 5,
+          mt: 5,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <Box sx={{ position: "relative", mb: 4 }}>
-          <Avatar
-            sx={{
-              width: 96,
-              height: 96,
-              backgroundColor: "#F2F0F0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+        <Box
+          sx={{
+            width: 96,
+            height: 96,
+            position: "relative",
+            backgroundColor: "#F2F0F0",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Avatar sx={{ backgroundColor: "#F2F0F0" }}>
             <Box
               sx={{
                 width: 32,
@@ -86,10 +130,11 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
               }}
             >
               <Image
-                src="/default-user.png"
-                alt="org-image"
+                src="/org-image-icon.png"
+                alt="user-image"
                 width={32}
                 height={32}
+                color="transparent"
               />
             </Box>
           </Avatar>
@@ -111,12 +156,157 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             <CameraAlt sx={{ fontSize: 14 }} />
           </IconButton>
         </Box>
-      </DialogTitle>
+      </Box>
 
-      <DialogContent sx={{ padding: 0 }}>
-        <Grid container spacing={4}>
-          {/* Asset Category */}
-          <Grid mt={1} size={{ xs: 6 }}>
+      <Grid container spacing={4} px={5}>
+        {/* Name */}
+        <Grid mt={1} size={{ xs: 6 }}>
+          <TextFieldStyled
+            required
+            label={labels.userName}
+            isTooltipRequired={true}
+            tooltipTitle={tooltips.userName}
+            placeholder="Enter User Name"
+            value={formData.name}
+            multiline
+            minRows={1}
+            onChange={(e) => handleChange("name", e.target.value)}
+          />
+        </Grid>
+
+        {/* Email */}
+        <Grid mt={1} size={{ xs: 6 }}>
+          <TextFieldStyled
+            required
+            label={labels.userEmail}
+            isTooltipRequired={true}
+            tooltipTitle={tooltips.userEmail}
+            placeholder="Enter Email"
+            value={formData.email}
+            multiline
+            minRows={1}
+            onChange={(e) => handleChange("email", e.target.value)}
+          />
+        </Grid>
+
+        {/* Password */}
+        <Grid mt={1} size={{ xs: 6 }}>
+          <TextFieldStyled
+            required
+            label={labels.password}
+            isTooltipRequired={true}
+            tooltipTitle={tooltips.password}
+            placeholder="Enter Password"
+            value={formData.password}
+            multiline
+            minRows={1}
+            onChange={(e) => handleChange("password", e.target.value)}
+          />
+        </Grid>
+
+        {/* Confirm Password */}
+        <Grid mt={1} size={{ xs: 6 }}>
+          <TextFieldStyled
+            required
+            label={labels.confirmPassword}
+            isTooltipRequired={true}
+            tooltipTitle={tooltips.confirmPassword}
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            multiline
+            minRows={1}
+            onChange={(e) => handleChange("confirmPassword", e.target.value)}
+          />
+        </Grid>
+
+        {/* Phone */}
+        <Grid mt={1} size={{ xs: 6 }}>
+          <TextFieldStyled
+            label={labels.userPhone}
+            isTooltipRequired={true}
+            tooltipTitle={tooltips.userPhone}
+            placeholder="Enter phone number"
+            value={formData.phone}
+            multiline
+            minRows={1}
+            onChange={(e) => handleChange("phone", e.target.value)}
+          />
+        </Grid>
+
+        {/* Communication Preference */}
+        <Grid pl={1.5} size={{ xs: 6 }}>
+          <FormControl component="fieldset" sx={{ width: "100%" }}>
+            <FormLabel
+              component="legend"
+              id="communication-preference-radio-buttons-group"
+            >
+              <Box display={"flex"} gap={0.5}>
+                <Typography variant="body2" color="#121212">
+                  {labels.userCommunicationPreference}
+                </Typography>
+                <TooltipComponent
+                  title={tooltips.userCommunicationPreference}
+                  width={"12px"}
+                  height={"12px"}
+                />
+              </Box>
+            </FormLabel>
+            <RadioGroup
+              aria-labelledby="communication-preference-radio-buttons-group"
+              name="communicationPreference"
+              row
+              value={formData.communicationPreference}
+              onChange={(e) => {
+                handleChange("communicationPreference", e.target.value);
+              }}
+            >
+              <FormControlLabel
+                value="Email"
+                control={<Radio />}
+                label={
+                  <Typography variant="body1" color="text.primary">
+                    Email
+                  </Typography>
+                }
+              />
+              <FormControlLabel
+                value="Phone"
+                control={<Radio />}
+                label={
+                  <Typography variant="body1" color="text.primary">
+                    Phone
+                  </Typography>
+                }
+              />
+              <FormControlLabel
+                value="Both"
+                control={<Radio />}
+                label={
+                  <Typography variant="body1" color="text.primary">
+                    Both
+                  </Typography>
+                }
+              />
+            </RadioGroup>
+          </FormControl>
+        </Grid>
+
+        {/* Company */}
+        <Grid mt={1} size={{ xs: 6 }}>
+          <TextFieldStyled
+            label={labels.userCompany}
+            isTooltipRequired={true}
+            tooltipTitle={tooltips.userCompany}
+            placeholder="Enter company name"
+            value={formData.company}
+            multiline
+            minRows={1}
+            onChange={(e) => handleChange("company", e.target.value)}
+          />
+        </Grid>
+
+        {/* Role */}
+        {/* <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled /// this is select
               required
               isTooltipRequired={true}
@@ -155,81 +345,145 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             >
               <MenuItem value={"A"}>A</MenuItem>
             </SelectStyled>
-          </Grid>
+          </Grid> */}
 
-          {/* Asset Description */}
-          <Grid mt={1} size={{ xs: 12 }}>
-            <TextFieldStyled
-              label={labels.assetDescription}
-              isTooltipRequired={true}
-              tooltipTitle={tooltips.assetDescription}
-              placeholder="Enter Asset Description"
-              value={assetFormData.assetDescription}
-              multiline
-              minRows={1}
-              onChange={(e) => handleChange("assetDescription", e.target.value)}
-            />
-          </Grid>
+        {/* Organisation */}
+        <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }} mt={1}>
+          <FormControl fullWidth size="medium">
+            <InputLabel id="org-label">
+              <Typography variant="body1" color="#121212">
+                Organization
+              </Typography>
+            </InputLabel>
+            <Select
+              labelId="org-label"
+              label={
+                <Typography variant="body1" color="#121212">
+                  Organization
+                </Typography>
+              }
+              value={selectedOrg}
+              onChange={(e) => {
+                handleChange("organization", e.target.value);
+                setSelectedOrg(e.target.value);
+              }}
+              sx={{
+                height: "56px",
+                bgcolor: "#fff",
+                borderRadius: "8px",
+                fontSize: "14px",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#cecfd2",
+                  borderWidth: "1px",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#cecfd2",
+                  borderWidth: "1.5px",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#cecfd2",
+                  borderWidth: "1.5px",
+                },
+                "& .MuiSelect-select": {
+                  padding: "14px 16px",
+                  fontSize: "14px",
+                },
+              }}
+              renderValue={(val) => {
+                if (!val) return "Select Organisation";
+                return (
+                  organisations.find((o) => o.organizationId === val)?.name ||
+                  ""
+                );
+              }}
+              required
+            >
+              <ListSubheader>
+                <TextField
+                  size="small"
+                  placeholder="Search Organization"
+                  value={orgSearch}
+                  onChange={(e) => setOrgSearch(e.target.value)}
+                  fullWidth
+                />
+              </ListSubheader>
+
+              {filteredOrgs.map((org) => (
+                <MenuItem key={org.organizationId} value={org.organizationId}>
+                  <Radio checked={selectedOrg === org.organizationId} />
+                  {org.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Grid>
-      </DialogContent>
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-        <Divider sx={{ width: "100%" }} />
+      </Grid>
+
+      <Box m={5}>
+        <Divider />
       </Box>
-      <DialogActions
-        sx={{
-          pt: 4,
-          display: "flex",
-          justifyContent: "space-between",
-          pb: 0,
-          px: 0,
-        }}
+
+      <Box
+        mx={5}
+        display={"flex"}
+        flexDirection={"row"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
       >
-        <Button
-          sx={{
-            width: 113,
-            height: 40,
-            border: "1px solid #CD0303",
-            borderRadius: 1,
-          }}
-          variant="outlined"
-          onClick={onClose}
-        >
-          <Typography variant="body1" color="#CD0303" fontWeight={500}>
-            Cancel
-          </Typography>
-        </Button>
+        <FormControlLabel
+          control={<Checkbox />}
+          label={
+            <Stack direction={"row"} gap={0.4}>
+              <Typography variant="body2" fontWeight={300} color="text.primary">
+                Agree to RiskGPS&apos;s
+              </Typography>
+              <Typography variant="body2" fontWeight={550} color="primary.main">
+                Terms of Use
+              </Typography>
+              <Typography variant="body2" fontWeight={300} color="text.primary">
+                and our
+              </Typography>
+              <Typography variant="body2" fontWeight={550} color="primary.main">
+                Privacy Policy
+              </Typography>
+            </Stack>
+          }
+        />
         <Box display={"flex"} gap={3}>
           <Button
-            onClick={() => {
-              onSubmit("draft");
+            sx={{
+              width: 113,
+              height: 40,
+              border: "1px solid primary.main",
+              borderRadius: 1,
             }}
-            sx={{ width: 161, height: 40, borderRadius: 1 }}
             variant="outlined"
+            // onClick={onClose}
           >
-            <Typography variant="body1" color="#04139A" fontWeight={500}>
-              Save as Draft
+            <Typography variant="body1" color="primary.main" fontWeight={500}>
+              Cancel
             </Typography>
           </Button>
           <Button
-            sx={{ width: 132, height: 40, borderRadius: 1 }}
+            sx={{ width: 110, height: 40, borderRadius: 1 }}
             variant="contained"
-            onClick={() => {
-              onSubmit("published");
-            }}
-            disabled={
-              assetFormData.applicationName === "" ||
-              assetFormData.assetCategory?.length === 0
-            }
+            // onClick={() => {
+            //   onSubmit("published");
+            // }}
+            // disabled={
+            //   assetFormData.applicationName === "" ||
+            //   assetFormData.assetCategory?.length === 0
+            // }
             disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>
-              Publish
+              Add
             </Typography>
           </Button>
         </Box>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </Box>
   );
 };
 
-export default UserFormModalProps;
+export default UserFormModal;
