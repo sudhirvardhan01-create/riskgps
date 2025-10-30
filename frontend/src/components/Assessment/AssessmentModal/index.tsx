@@ -1,33 +1,30 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useAssessment } from "@/context/AssessmentContext";
+import { saveAssessment } from "@/pages/api/assessment";
+import { getOrganization } from "@/pages/api/organization";
+import { BusinessUnit, Organisation } from "@/types/assessment";
 import {
+  Box,
   Button,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField,
-  Typography,
-  Autocomplete,
-  Box,
+  DialogContent,
+  DialogTitle,
+  FormControl,
   Grid,
-  Radio,
-  AutocompleteRenderInputParams,
-  Paper,
-  Select,
+  InputLabel,
   ListSubheader,
   MenuItem,
-  FormControl,
-  InputLabel,
+  Radio,
+  Select,
+  TextField,
+  Typography,
 } from "@mui/material";
-import TextFieldStyled from "../../TextFieldStyled";
-import { useAssessment } from "@/context/AssessmentContext";
-import { useRouter } from "next/router";
-import { getOrganization } from "@/pages/api/organization";
-import { saveAssessment } from "@/pages/api/assessment";
-import { BusinessUnit, Organisation } from "@/types/assessment";
 import Cookies from "js-cookie";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
+import TextFieldStyled from "../../TextFieldStyled";
 
 interface StartAssessmentModalProps {
   open: boolean;
@@ -38,17 +35,7 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
   open,
   onClose,
 }) => {
-  const {
-    setAssessmentId,
-    assessmentName,
-    setAssessmentName,
-    assessmentDescription,
-    setAssessmentDescription,
-    selectedOrg,
-    setSelectedOrg,
-    selectedBU,
-    setSelectedBU,
-  } = useAssessment();
+  const { assessment, setAssessment, updateAssessment } = useAssessment();
 
   const router = useRouter();
 
@@ -75,40 +62,41 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
     fetchOrgs();
   }, []);
 
-  // Update businessUnits whenever selectedOrg changes
+  // Update businessUnits whenever assessment?.orgId changes
   useEffect(() => {
-    if (!selectedOrg) {
+    if (!assessment?.orgId) {
       setBusinessUnits([]);
       return;
     }
 
-    const org = organisations.find((o) => o.organizationId === selectedOrg);
+    const org = organisations.find(
+      (o) => o.organizationId === assessment.orgId
+    );
     setBusinessUnits(org?.businessUnits || []);
-  }, [selectedOrg, organisations]);
+  }, [assessment?.orgId, organisations]);
 
   const handleSubmit = async () => {
-    if (selectedOrg && selectedBU) {
+    if (assessment?.orgId && assessment?.businessUnitId) {
       const selectedOrganization = organisations.find(
-        (item) => item.organizationId === selectedOrg
+        (item) => item.organizationId === assessment?.orgId
       );
       const selectedBussinessUnit = selectedOrganization?.businessUnits.find(
-        (item) => item.orgBusinessUnitId === selectedBU
+        (item) => item.orgBusinessUnitId === assessment?.businessUnitId
       );
 
       const res = await saveAssessment({
-        assessmentName: assessmentName,
-        assessmentDesc: assessmentDescription,
+        assessmentName: assessment.assessmentName,
+        assessmentDesc: assessment.assessmentDesc,
         orgId: selectedOrganization?.organizationId,
         orgName: selectedOrganization?.name,
         orgDesc: selectedOrganization?.desc,
         businessUnitId: selectedBussinessUnit?.orgBusinessUnitId,
         businessUnitName: selectedBussinessUnit?.name,
         businessUnitDesc: selectedBussinessUnit?.desc,
-        runId: "1004",
         userId: JSON.parse(Cookies.get("user") ?? "")?.id,
       });
 
-      setAssessmentId(res.data.assessmentId);
+      setAssessment(res.data);
 
       router.push("/assessment/assessmentProcess");
       onClose();
@@ -144,15 +132,19 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
             required
             size="small"
             sx={{ mb: 4 }}
-            value={assessmentName}
-            onChange={(e) => setAssessmentName(e.target.value)}
+            value={assessment?.assessmentName}
+            onChange={(e) =>
+              updateAssessment({ assessmentName: e.target.value })
+            }
           />
           <TextFieldStyled
             label="Assessment Description"
             size="small"
             sx={{ mb: 4 }}
-            value={assessmentDescription}
-            onChange={(e) => setAssessmentDescription(e.target.value)}
+            value={assessment?.assessmentDesc}
+            onChange={(e) =>
+              updateAssessment({ assessmentDesc: e.target.value })
+            }
           />
 
           <Grid
@@ -175,10 +167,12 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                       Organisations
                     </Typography>
                   }
-                  value={selectedOrg}
+                  value={assessment?.orgId}
                   onChange={(e) => {
-                    setSelectedOrg(e.target.value);
-                    setSelectedBU("");
+                    updateAssessment({
+                      orgId: e.target.value,
+                      businessUnitId: "",
+                    });
                   }}
                   sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                   renderValue={(val) => {
@@ -205,7 +199,9 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                       key={org.organizationId}
                       value={org.organizationId}
                     >
-                      <Radio checked={selectedOrg === org.organizationId} />
+                      <Radio
+                        checked={assessment?.orgId === org.organizationId}
+                      />
                       {org.name}
                     </MenuItem>
                   ))}
@@ -215,7 +211,11 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
 
             <Grid size={{ xs: 12, sm: 6 }} sx={{ height: "100%" }}>
               {/* Business Unit Dropdown */}
-              <FormControl fullWidth size="medium" disabled={!selectedOrg}>
+              <FormControl
+                fullWidth
+                size="medium"
+                disabled={!assessment?.orgId}
+              >
                 <InputLabel id="bu-label">
                   <Typography variant="body1" color="#121212">
                     Business Unit
@@ -228,8 +228,12 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                       Business Unit
                     </Typography>
                   }
-                  value={selectedBU}
-                  onChange={(e) => setSelectedBU(e.target.value)}
+                  value={assessment?.businessUnitId}
+                  onChange={(e) =>
+                    updateAssessment({
+                      businessUnitId: e.target.value,
+                    })
+                  }
                   sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                   renderValue={(val) => {
                     if (!val) return "Select Business Unit";
@@ -255,7 +259,11 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
                       key={bu.orgBusinessUnitId}
                       value={bu.orgBusinessUnitId}
                     >
-                      <Radio checked={selectedBU === bu.orgBusinessUnitId} />
+                      <Radio
+                        checked={
+                          assessment?.businessUnitId === bu.orgBusinessUnitId
+                        }
+                      />
                       {bu.name}
                     </MenuItem>
                   ))}
@@ -278,7 +286,11 @@ const AssessmentModal: React.FC<StartAssessmentModalProps> = ({
             onClick={handleSubmit}
             variant="contained"
             color="primary"
-            disabled={!selectedOrg || !selectedBU || !assessmentName}
+            disabled={
+              !assessment?.orgId ||
+              !assessment.businessUnitId ||
+              !assessment.assessmentName
+            }
             sx={{ borderRadius: 1 }}
           >
             Start Assessment

@@ -1,642 +1,637 @@
 ﻿const {
-    Assessment,
-    AssessmentProcess,
-    AssessmentProcessRiskScenario,
-    AssessmentRiskScenarioBusinessImpact,
-    AssessmentRiskTaxonomy,
-    Organization,
-    OrganizationBusinessUnit,
-    AssessmentProcessAsset,
-    SeverityLevel,
-    AssessmentQuestionaire,
-    sequelize,
+  Assessment,
+  AssessmentProcess,
+  AssessmentProcessRiskScenario,
+  AssessmentRiskScenarioBusinessImpact,
+  AssessmentRiskTaxonomy,
+  Organization,
+  OrganizationBusinessUnit,
+  AssessmentProcessAsset,
+  SeverityLevel,
+  AssessmentQuestionaire,
+  sequelize,
 } = require("../models");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
 const { v4: uuidv4 } = require("uuid");
 
 class AssessmentService {
+  /**
+   * Generate next runId based on the last RunId in the database
+   */
+  static async generateRunId() {
+    const lastAssessment = await Assessment.findOne({
+      order: [["created_date", "DESC"]],
+      attributes: ["runId"],
+    });
 
-    /**
-     * Generate next runId based on the last RunId in the database
-     */
-    static async generateRunId() {
-        const lastAssessment = await Assessment.findOne({
-            order: [["created_date", "DESC"]],
-            attributes: ["runId"],
+    let newRunId = "1001";
+
+    if (lastAssessment && lastAssessment.runId) {
+      const lastRunId = parseInt(lastAssessment.runId, 10);
+      newRunId = (lastRunId + 1).toString();
+    }
+
+    return newRunId;
+  }
+
+  /**
+   * Create a new assessment
+   * @param {Object} assessmentData - Assessment payload
+   * @param {string} userId - Current user creating the assessment
+   */
+  static async createAssessment(assessmentData, userId) {
+    try {
+      // Basic validation
+      if (!assessmentData.assessmentName) {
+        throw new CustomError(
+          "Assessment name is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      if (!assessmentData.orgId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // Generate the new RunId
+      assessmentData.runId = await this.generateRunId();
+
+      // Prepare payload
+      const newAssessment = {
+        assessmentId: uuidv4(),
+        assessmentName: assessmentData.assessmentName,
+        assessmentDesc: assessmentData.assessmentDesc,
+        runId: assessmentData.runId,
+        orgId: assessmentData.orgId,
+        orgName: assessmentData.orgName || null,
+        orgDesc: assessmentData.orgDesc || null,
+        businessUnitId: assessmentData.businessUnitId || null,
+        businessUnitName: assessmentData.businessUnitName || null,
+        businessUnitDesc: assessmentData.businessUnitDesc || null,
+        status: assessmentData.status || "pending",
+        startDate: new Date(),
+        endDate: assessmentData.status === "closed" ? new Date() : null,
+        lastActivity: assessmentData.lastActivity || null,
+        userId: assessmentData.userId || null,
+        createdBy: userId,
+        modifiedBy: userId,
+        createdDate: new Date(),
+        modifiedDate: new Date(),
+        isDeleted: false,
+      };
+
+      // Save to DB
+      const assessment = await Assessment.create(newAssessment);
+      return assessment;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create assessment",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Add processes and update status in one transaction
+   */
+  static async addProcessesAndUpdateStatus(
+    assessmentId,
+    processes,
+    status,
+    userId
+  ) {
+    const transaction = await Assessment.sequelize.transaction();
+
+    try {
+      if (!assessmentId) {
+        throw new CustomError(
+          "Assessment ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      if (!processes || !Array.isArray(processes) || processes.length === 0) {
+        throw new CustomError(
+          "At least one process is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      if (!status) {
+        throw new CustomError("Status is required", HttpStatus.BAD_REQUEST);
+      }
+
+      // Check assessment
+      const assessment = await Assessment.findByPk(assessmentId, {
+        transaction,
+      });
+      if (!assessment) {
+        throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
+      }
+
+      // Prepare and insert processes
+      const processRecords = processes.map((proc, index) => ({
+        assessmentProcessId: uuidv4(),
+        assessmentId,
+        id: proc.id,
+        processName: proc.processName,
+        processDescription: proc.processDescription || null,
+        order: proc.order || index + 1,
+        createdBy: userId,
+        modifiedBy: userId,
+        createdDate: new Date(),
+        modifiedDate: new Date(),
+        isDeleted: false,
+      }));
+      await AssessmentProcess.bulkCreate(processRecords, { transaction });
+
+      // Update assessment status
+      assessment.status = status;
+      assessment.lastActivity = new Date();
+      assessment.modifiedBy = userId;
+      assessment.modifiedDate = new Date();
+      await assessment.save({ transaction });
+
+      await transaction.commit();
+
+      return {
+        message: "Processes added and status updated successfully",
+        processes: processRecords,
+      };
+    } catch (err) {
+      await transaction.rollback();
+      throw new CustomError(
+        err.message || "Failed to add processes and update status",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Save risk scenarios for an assessment process and update assessment status
+   * @param {Object} payload
+   * @param {string} payload.assessmentId
+   * @param {string} payload.assessmentProcessId
+   * @param {Array} payload.riskScenarios
+   * @param {string} payload.status
+   * @param {string} userId
+   */
+  static async addRiskScenariosAndUpdateStatus(payload, userId) {
+    const transaction = await sequelize.transaction();
+    try {
+      const { assessmentId, riskScenarios, status } = payload;
+
+      if (!assessmentId) {
+        throw new CustomError(
+          "assessmentId is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      if (
+        !riskScenarios ||
+        !Array.isArray(riskScenarios) ||
+        riskScenarios.length === 0
+      ) {
+        throw new CustomError(
+          "At least one risk scenario must be provided",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // Prepare scenarios
+      const scenariosToInsert = riskScenarios.map((rs) => ({
+        assessmentProcessRiskId: uuidv4(),
+        assessmentProcessId: rs.assessmentProcessId,
+        assessmentId,
+        riskScenario: rs.riskScenario,
+        riskDescription: rs.riskDescription || null,
+        createdBy: userId,
+        modifiedBy: userId,
+        createdDate: new Date(),
+        modifiedDate: new Date(),
+        isDeleted: false,
+      }));
+
+      // Insert scenarios
+      await AssessmentProcessRiskScenario.bulkCreate(scenariosToInsert, {
+        transaction,
+      });
+
+      // Update assessment status
+      if (status) {
+        await Assessment.update(
+          {
+            status,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          },
+          { where: { assessmentId }, transaction }
+        );
+      }
+
+      await transaction.commit();
+      return {
+        message:
+          "Risk scenarios saved and assessment status updated successfully",
+        riskScenarios: scenariosToInsert,
+      };
+    } catch (err) {
+      await transaction.rollback();
+      throw new CustomError(
+        err.message ||
+          "Failed to save risk scenarios and update assessment status",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Get all assessments with pagination, search, and sorting
+   */
+  static async getAllAssessments(page = 1, limit = 10) {
+    try {
+      const offset = (page - 1) * limit;
+
+      const { count, rows } = await Assessment.findAndCountAll({
+        limit,
+        offset,
+      });
+
+      return {
+        total: count,
+        page,
+        limit,
+        data: rows,
+      };
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch assessments",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Get assessment by ID (new JSON structure)
+   */
+  static async getAssessmentById(assessmentId) {
+    try {
+      if (!assessmentId) {
+        throw new CustomError(
+          "Assessment ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      const assessment = await Assessment.findOne({
+        where: { assessmentId },
+        include: [
+          {
+            model: AssessmentProcess,
+            as: "processes",
+            required: false,
+            include: [
+              {
+                model: AssessmentProcessAsset,
+                as: "assets",
+                required: false,
+                include: [
+                  {
+                    model: AssessmentQuestionaire,
+                    as: "questionaires",
+                    required: false,
+                  },
+                ],
+              },
+              {
+                model: AssessmentProcessRiskScenario,
+                as: "risks",
+                required: false,
+                include: [
+                  {
+                    model: AssessmentRiskTaxonomy,
+                    as: "taxonomy",
+                    required: false,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      if (!assessment) {
+        throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
+      }
+
+      // 🔹 Convert to plain JSON immediately to remove Sequelize circular refs
+      const plainAssessment = assessment.toJSON();
+
+      // 🔹 Transform output
+      const formattedAssessment = {
+        ...plainAssessment,
+        processes: (plainAssessment.processes || []).map((process) => ({
+          ...process,
+          risks: (process.risks || []).map((risk) => ({
+            ...risk,
+            taxonomy: (risk.taxonomy || []).map((t) => ({
+              taxonomyId: t.assessmentRiskTaxonomyId,
+              name: t.taxonomyName,
+              orgId: plainAssessment.orgId,
+              weightage: t.weightage,
+              severityDetails: {
+                name: t.severityName,
+                minRange: t.severityMinRange,
+                maxRange: t.severityMaxRange,
+                color: t.color,
+              },
+            })),
+          })),
+        })),
+      };
+
+      return formattedAssessment;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch assessment",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Save business impacts & taxonomies for an assessment process risk
+   * @param {Object} payload
+   * @param {string} payload.assessmentId
+   * @param {string} payload.assessmentProcessRiskId
+   * @param {Array} payload.businessImpacts
+   * @param {Array} payload.taxonomies
+   * @param {string} userId
+   */
+  static async saveRiskDetails(payload, userId) {
+    const transaction = await sequelize.transaction();
+    try {
+      const { assessmentId, riskScenarios } = payload;
+
+      if (!assessmentId || !riskScenarios) {
+        throw new CustomError(
+          "assessmentId and riskScenarios are required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // Insert Business Impacts
+      if (riskScenarios && riskScenarios.length > 0) {
+        const biRecords = riskScenarios.map((bi) => ({
+          assessmentRiskBIId: uuidv4(),
+          assessmentId,
+          assessmentProcessRiskId: bi.assessmentProcessRiskId,
+          riskThresholdValue: bi.thresholdCost,
+          createdBy: userId,
+          modifiedBy: userId,
+          createdDate: new Date(),
+          modifiedDate: new Date(),
+          isDeleted: false,
+        }));
+
+        const taxonomyRecords = riskScenarios.flatMap((risk) =>
+          risk.taxonomy?.map((tx) => ({
+            assessmentRiskTaxonomyId: uuidv4(),
+            assessmentId,
+            assessmentProcessRiskId: risk.assessmentProcessRiskId,
+            taxonomyName: tx.name,
+            severityName: tx.severityDetails.name,
+            severityMinRange: tx.severityDetails.minRange || null,
+            severityMaxRange: tx.severityDetails.maxRange || null,
+            severityColor: tx.severityDetails.color || null,
+            createdBy: userId,
+            modifiedBy: userId,
+            createdDate: new Date(),
+            modifiedDate: new Date(),
+            isDeleted: false,
+          }))
+        );
+
+        await AssessmentRiskScenarioBusinessImpact.bulkCreate(biRecords, {
+          transaction,
         });
 
-        let newRunId = "1001";
+        await AssessmentRiskTaxonomy.bulkCreate(taxonomyRecords, {
+          transaction,
+        });
+      }
 
-        if (lastAssessment && lastAssessment.runId) {
-            const lastRunId = parseInt(lastAssessment.runId, 10);
-            newRunId = (lastRunId + 1).toString();
-        }
-
-        return newRunId;
+      await transaction.commit();
+      return {
+        message: "Business impacts & taxonomies saved successfully",
+      };
+    } catch (err) {
+      await transaction.rollback();
+      throw new CustomError(
+        err.message || "Failed to save business impacts & taxonomies",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
+  }
 
-    /**
-     * Create a new assessment
-     * @param {Object} assessmentData - Assessment payload
-     * @param {string} userId - Current user creating the assessment
-     */
-    static async createAssessment(assessmentData, userId) {
-        try {
-            // Basic validation
-            if (!assessmentData.assessmentName) {
-                throw new CustomError(
-                    "Assessment name is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-            if (!assessmentData.orgId) {
-                throw new CustomError(
-                    "Organization ID is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
+  /**
+   * Save assets for an assessment process and update assessment status
+   * @param {Object} payload
+   * @param {string} payload.assessmentId
+   * @param {Array} payload.assets
+   * @param {string} payload.status
+   * @param {string} userId
+   */
+  static async addAssetsAndUpdateStatus(payload, userId) {
+    const transaction = await sequelize.transaction();
+    try {
+      const { assessmentId, assets, status } = payload;
 
-            // Generate the new RunId
-            assessmentData.runId = await this.generateRunId();
+      if (!assessmentId) {
+        throw new CustomError(
+          "assessmentId is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
 
-            // Prepare payload
-            const newAssessment = {
-                assessmentId: uuidv4(),
-                assessmentName: assessmentData.assessmentName,
-                assessmentDesc: assessmentData.assessmentDesc,
-                runId: assessmentData.runId,
-                orgId: assessmentData.orgId,
-                orgName: assessmentData.orgName || null,
-                orgDesc: assessmentData.orgDesc || null,
-                businessUnitId: assessmentData.businessUnitId || null,
-                businessUnitName: assessmentData.businessUnitName || null,
-                businessUnitDesc: assessmentData.businessUnitDesc || null,
-                status: assessmentData.status || "pending",
-                startDate: new Date(),
-                endDate: assessmentData.status === "closed" ? new Date() : null,
-                lastActivity: assessmentData.lastActivity || null,
-                userId: assessmentData.userId || null,
-                createdBy: userId,
-                modifiedBy: userId,
-                createdDate: new Date(),
-                modifiedDate: new Date(),
-                isDeleted: false,
-            };
+      if (!assets || !Array.isArray(assets) || assets.length === 0) {
+        throw new CustomError(
+          "At least one asset must be provided",
+          HttpStatus.BAD_REQUEST
+        );
+      }
 
-            // Save to DB
-            const assessment = await Assessment.create(newAssessment);
-            return assessment;
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to create assessment",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
-    /**
-     * Add processes and update status in one transaction
-     */
-    static async addProcessesAndUpdateStatus(
+      // Prepare assets
+      const assetsToInsert = assets.map((a) => ({
+        assessmentProcessAssetId: uuidv4(),
+        assessmentProcessId: a.assessmentProcessId,
         assessmentId,
-        processes,
-        status,
-        userId
-    ) {
-        const transaction = await Assessment.sequelize.transaction();
+        id: a.id,
+        applicationName: a.applicationName,
+        assetCategory: a.assetCategory,
+        createdBy: userId,
+        createdDate: new Date(),
+      }));
 
-        try {
-            if (!assessmentId) {
-                throw new CustomError(
-                    "Assessment ID is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-            if (!processes || !Array.isArray(processes) || processes.length === 0) {
-                throw new CustomError(
-                    "At least one process is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-            if (!status) {
-                throw new CustomError("Status is required", HttpStatus.BAD_REQUEST);
-            }
+      console.log(assetsToInsert);
+      // Insert assets
+      await AssessmentProcessAsset.bulkCreate(assetsToInsert, { transaction });
 
-            // Check assessment
-            const assessment = await Assessment.findByPk(assessmentId, {
-                transaction,
-            });
-            if (!assessment) {
-                throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
-            }
+      //// Update assessment status if provided
+      //if (status) {
+      //    await Assessment.update(
+      //        {
+      //            status,
+      //            modifiedBy: userId,
+      //            modifiedDate: new Date(),
+      //        },
+      //        { where: { assessmentId }, transaction }
+      //    );
+      //}
 
-            // Prepare and insert processes
-            const processRecords = processes.map((proc, index) => ({
-                assessmentProcessId: uuidv4(),
-                assessmentId,
-                processName: proc.processName,
-                processDescription: proc.processDescription || null,
-                order: proc.order || index + 1,
-                createdBy: userId,
-                modifiedBy: userId,
-                createdDate: new Date(),
-                modifiedDate: new Date(),
-                isDeleted: false,
-            }));
-            await AssessmentProcess.bulkCreate(processRecords, { transaction });
+      await transaction.commit();
 
-            // Update assessment status
-            assessment.status = status;
-            assessment.lastActivity = new Date();
-            assessment.modifiedBy = userId;
-            assessment.modifiedDate = new Date();
-            await assessment.save({ transaction });
-
-            await transaction.commit();
-
-            return {
-                message: "Processes added and status updated successfully",
-                processes: processRecords,
-            };
-        } catch (err) {
-            await transaction.rollback();
-            throw new CustomError(
-                err.message || "Failed to add processes and update status",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
+      return {
+        message: "Assets saved and assessment status updated successfully",
+        assets: assetsToInsert,
+      };
+    } catch (err) {
+      await transaction.rollback();
+      throw new CustomError(
+        err.message || "Failed to save assets and update assessment status",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
+  }
 
-    /**
-     * Save risk scenarios for an assessment process and update assessment status
-     * @param {Object} payload
-     * @param {string} payload.assessmentId
-     * @param {string} payload.assessmentProcessId
-     * @param {Array} payload.riskScenarios
-     * @param {string} payload.status
-     * @param {string} userId
-     */
-    static async addRiskScenariosAndUpdateStatus(payload, userId) {
-        const transaction = await sequelize.transaction();
-        try {
-            const { assessmentId, riskScenarios, status } = payload;
+  /**
+   * Fetch all assessments with full nested details (organization, processes, assets, risks, impacts, taxonomies)
+   */
+  static async getAllAssessmentsWithDetails({
+    page = 1,
+    limit = 10,
+    sortBy = "createdDate",
+    sortOrder = "DESC",
+  }) {
+    try {
+      const offset = (page - 1) * limit;
+      const order = [
+        [sortBy, sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC"],
+      ];
 
-            if (!assessmentId) {
-                throw new CustomError(
-                    "assessmentId is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-
-            if (
-                !riskScenarios ||
-                !Array.isArray(riskScenarios) ||
-                riskScenarios.length === 0
-            ) {
-                throw new CustomError(
-                    "At least one risk scenario must be provided",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-
-            // Prepare scenarios
-            const scenariosToInsert = riskScenarios.map((rs) => ({
-                assessmentProcessRiskId: uuidv4(),
-                assessmentProcessId: rs.assessmentProcessId,
-                assessmentId,
-                riskScenarioName: rs.riskScenarioName,
-                riskScenarioDesc: rs.riskScenarioDesc || null,
-                createdBy: userId,
-                modifiedBy: userId,
-                createdDate: new Date(),
-                modifiedDate: new Date(),
-                isDeleted: false,
-            }));
-
-            // Insert scenarios
-            await AssessmentProcessRiskScenario.bulkCreate(scenariosToInsert, {
-                transaction,
-            });
-
-            // Update assessment status
-            if (status) {
-                await Assessment.update(
-                    {
-                        status,
-                        modifiedBy: userId,
-                        modifiedDate: new Date(),
-                    },
-                    { where: { assessmentId }, transaction }
-                );
-            }
-
-            await transaction.commit();
-            return {
-                message:
-                    "Risk scenarios saved and assessment status updated successfully",
-                riskScenarios: scenariosToInsert,
-            };
-        } catch (err) {
-            await transaction.rollback();
-            throw new CustomError(
-                err.message ||
-                "Failed to save risk scenarios and update assessment status",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
-    /**
-     * Get all assessments with pagination, search, and sorting
-     */
-    static async getAllAssessments(page = 1, limit = 10) {
-        try {
-            const offset = (page - 1) * limit;
-
-            const { count, rows } = await Assessment.findAndCountAll({
-                limit,
-                offset,
-            });
-
-            return {
-                total: count,
-                page,
-                limit,
-                data: rows,
-            };
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to fetch assessments",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
-    /**
-     * Get assessment by ID (new JSON structure)
-     */
-    static async getAssessmentById(assessmentId) {
-        try {
-            if (!assessmentId) {
-                throw new CustomError(
-                    "Assessment ID is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-
-            const assessment = await Assessment.findOne({
-                where: { assessmentId },
+      const { count, rows } = await Assessment.findAndCountAll({
+        order,
+        limit,
+        offset,
+        include: [
+          {
+            model: Organization,
+            as: "organization",
+          },
+          {
+            model: OrganizationBusinessUnit,
+            as: "businessUnit",
+          },
+          {
+            model: AssessmentProcess,
+            as: "processes",
+            include: [
+              {
+                model: AssessmentProcessAsset,
+                as: "assets",
+              },
+              {
+                model: AssessmentProcessRiskScenario,
+                as: "risks",
                 include: [
-                    {
-                        model: AssessmentProcess,
-                        as: "processes",
-                        required: false,
-                        include: [
-                            {
-                                model: AssessmentProcessAsset,
-                                as: "assets",
-                                required: false,
-                                include: [
-                                    {
-                                        model: AssessmentQuestionaire,
-                                        as: "questionaires",
-                                        required: false,
-                                    }
-                                ]
-                            },
-                            {
-                                model: AssessmentProcessRiskScenario,
-                                as: "risks",
-                                required: false,
-                                include: [
-                                    {
-                                        model: AssessmentRiskTaxonomy,
-                                        as: "taxonomy",
-                                        required: false,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
+                  {
+                    model: AssessmentRiskScenarioBusinessImpact,
+                    as: "riskScenarioBusinessImpacts",
+                  },
+                  {
+                    model: AssessmentRiskTaxonomy,
+                    as: "taxonomy",
+                  },
                 ],
-            });
+              },
+            ],
+          },
+        ],
+      });
 
-            if (!assessment) {
-                throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
-            }
-
-            // 🔹 Convert to plain JSON immediately to remove Sequelize circular refs
-            const plainAssessment = assessment.toJSON();
-
-            // 🔹 Transform output
-            const formattedAssessment = {
-                ...plainAssessment,
-                processes: (plainAssessment.processes || []).map((process) => ({
-                    ...process,
-                    risks: (process.risks || []).map((risk) => ({
-                        ...risk,
-                        taxonomy: (risk.taxonomy || []).map((t) => ({
-                            taxonomyId: t.assessmentRiskTaxonomyId,
-                            name: t.taxonomyName,
-                            orgId: plainAssessment.orgId,
-                            weightage: t.weightage,
-                            severityDetails: {
-                                name: t.severityName,
-                                minRange: t.severityMinRange,
-                                maxRange: t.severityMaxRange,
-                                color: t.color,
-                            },
-                        })),
-                    })),
-                })),
-            };
-
-            return formattedAssessment;
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to fetch assessment",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
+      return {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+        data: rows,
+      };
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch assessments with details",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
+  }
 
-    /**
-     * Save business impacts & taxonomies for an assessment process risk
-     * @param {Object} payload
-     * @param {string} payload.assessmentId
-     * @param {string} payload.assessmentProcessRiskId
-     * @param {Array} payload.businessImpacts
-     * @param {Array} payload.taxonomies
-     * @param {string} userId
-     */
-    static async saveRiskDetails(payload, userId) {
-        const transaction = await sequelize.transaction();
-        try {
-            const { assessmentId, riskScenarios } = payload;
+  /**
+   * Get assessments by organization ID or business unit ID (only assessment table)
+   * @param {Object} params
+   * @param {string} [params.orgId]
+   * @param {string} [params.businessUnitId]
+   */
+  static async getAssessmentsByOrgOrBU({ orgId, businessUnitId }) {
+    try {
+      const whereClause = {};
 
-            if (!assessmentId || !riskScenarios) {
-                throw new CustomError(
-                    "assessmentId and riskScenarios are required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
+      if (orgId) whereClause.orgId = orgId;
+      if (businessUnitId) whereClause.businessUnitId = businessUnitId;
 
-            // Insert Business Impacts
-            if (riskScenarios && riskScenarios.length > 0) {
-                const biRecords = riskScenarios.map((bi) => ({
-                    assessmentRiskBIId: uuidv4(),
-                    assessmentId,
-                    assessmentProcessRiskId: bi.assessmentProcessRiskId,
-                    riskThreshold: bi.thresholdHours,
-                    riskThresholdValue: bi.thresholdCost,
-                    createdBy: userId,
-                    modifiedBy: userId,
-                    createdDate: new Date(),
-                    modifiedDate: new Date(),
-                    isDeleted: false,
-                }));
+      const assessments = await Assessment.findAll({
+        where: whereClause,
+        order: [["createdDate", "DESC"]],
+      });
 
-                const taxonomyRecords = riskScenarios.flatMap((risk) =>
-                    risk.taxonomy?.map((tx) => ({
-                        assessmentRiskTaxonomyId: uuidv4(),
-                        assessmentId,
-                        assessmentProcessRiskId: risk.assessmentProcessRiskId,
-                        taxonomyName: tx.name,
-                        severityName: tx.severityDetails.name,
-                        severityMinRange: tx.severityDetails.minRange || null,
-                        severityMaxRange: tx.severityDetails.maxRange || null,
-                        severityColor: tx.severityDetails.color || null,
-                        createdBy: userId,
-                        modifiedBy: userId,
-                        createdDate: new Date(),
-                        modifiedDate: new Date(),
-                        isDeleted: false,
-                    }))
-                );
-
-                console.log("BI Records:", biRecords);
-                console.log("Taxonomy Records:", taxonomyRecords);
-
-                await AssessmentRiskScenarioBusinessImpact.bulkCreate(biRecords, {
-                    transaction,
-                });
-
-                await AssessmentRiskTaxonomy.bulkCreate(taxonomyRecords, {
-                    transaction,
-                });
-            }
-
-            await transaction.commit();
-            return {
-                message: "Business impacts & taxonomies saved successfully",
-            };
-        } catch (err) {
-            await transaction.rollback();
-            throw new CustomError(
-                err.message || "Failed to save business impacts & taxonomies",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
+      return assessments;
+    } catch (err) {
+      throw new CustomError(
+        err.message ||
+          "Failed to fetch assessments by organization or business unit",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
+  }
 
-    /**
-     * Save assets for an assessment process and update assessment status
-     * @param {Object} payload
-     * @param {string} payload.assessmentId
-     * @param {Array} payload.assets
-     * @param {string} payload.status
-     * @param {string} userId
-     */
-    static async addAssetsAndUpdateStatus(payload, userId) {
-        const transaction = await sequelize.transaction();
-        try {
-            const { assessmentId, assets, status } = payload;
+  /**
+   * Create one or multiple assessment questionaire entries
+   * @param {Array} questionaires
+   * @param {string} userId
+   */
+  static async createQuestionaires(questionaires, userId) {
+    try {
+      const recordsToInsert = questionaires.map((q) => ({
+        assessmentQuestionaireId: uuidv4(),
+        assessmentId: q.assessmentId,
+        assessmentProcessAssetId: q.assessmentProcessAssetId,
+        questionaireId: q.questionaireId,
+        questionaireName: q.questionaireName,
+        responseValue: q.responseValue || null,
+        createdBy: userId,
+        createdDate: new Date(),
+        isDeleted: false,
+      }));
 
-            if (!assessmentId) {
-                throw new CustomError(
-                    "assessmentId is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-
-            if (!assets || !Array.isArray(assets) || assets.length === 0) {
-                throw new CustomError(
-                    "At least one asset must be provided",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-
-            // Prepare assets
-            const assetsToInsert = assets.map((a) => ({
-                assessmentProcessAssetId: uuidv4(),
-                assessmentProcessId: a.assessmentProcessId,
-                assessmentId,
-                assetName: a.assetName,
-                assetDesc: a.assetDesc || null,
-                assetCategory: a.assetCategory,
-                createdBy: userId,
-                createdDate: new Date(),
-            }));
-
-            console.log(assetsToInsert);
-            // Insert assets
-            await AssessmentProcessAsset.bulkCreate(assetsToInsert, { transaction });
-
-            //// Update assessment status if provided
-            //if (status) {
-            //    await Assessment.update(
-            //        {
-            //            status,
-            //            modifiedBy: userId,
-            //            modifiedDate: new Date(),
-            //        },
-            //        { where: { assessmentId }, transaction }
-            //    );
-            //}
-
-            await transaction.commit();
-
-            return {
-                message: "Assets saved and assessment status updated successfully",
-                assets: assetsToInsert,
-            };
-        } catch (err) {
-            await transaction.rollback();
-            throw new CustomError(
-                err.message || "Failed to save assets and update assessment status",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
+      await AssessmentQuestionaire.bulkCreate(recordsToInsert);
+      return recordsToInsert;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create assessment questionaire",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
-
-    /**
-     * Fetch all assessments with full nested details (organization, processes, assets, risks, impacts, taxonomies)
-     */
-    static async getAllAssessmentsWithDetails({
-        page = 1,
-        limit = 10,
-        sortBy = "createdDate",
-        sortOrder = "DESC",
-    }) {
-        try {
-            const offset = (page - 1) * limit;
-            const order = [
-                [sortBy, sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC"],
-            ];
-
-            const { count, rows } = await Assessment.findAndCountAll({
-                order,
-                limit,
-                offset,
-                include: [
-                    {
-                        model: Organization,
-                        as: "organization",
-                    },
-                    {
-                        model: OrganizationBusinessUnit,
-                        as: "businessUnit",
-                    },
-                    {
-                        model: AssessmentProcess,
-                        as: "processes",
-                        include: [
-                            {
-                                model: AssessmentProcessAsset,
-                                as: "assets",
-                            },
-                            {
-                                model: AssessmentProcessRiskScenario,
-                                as: "risks",
-                                include: [
-                                    {
-                                        model: AssessmentRiskScenarioBusinessImpact,
-                                        as: "riskScenarioBusinessImpacts",
-                                    },
-                                    {
-                                        model: AssessmentRiskTaxonomy,
-                                        as: "taxonomy",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            });
-
-            return {
-                total: count,
-                page,
-                limit,
-                totalPages: Math.ceil(count / limit),
-                data: rows,
-            };
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to fetch assessments with details",
-                HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
-
-    /**
-     * Get assessments by organization ID or business unit ID (only assessment table)
-     * @param {Object} params
-     * @param {string} [params.orgId]
-     * @param {string} [params.businessUnitId]
-     */
-    static async getAssessmentsByOrgOrBU({ orgId, businessUnitId }) {
-        try {
-            const whereClause = {};
-
-            if (orgId) whereClause.orgId = orgId;
-            if (businessUnitId) whereClause.businessUnitId = businessUnitId;
-
-            const assessments = await Assessment.findAll({
-                where: whereClause,
-                order: [["createdDate", "DESC"]],
-            });
-
-            return assessments;
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to fetch assessments by organization or business unit",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
-    /**
-     * Create one or multiple assessment questionaire entries
-     * @param {Array} questionaires
-     * @param {string} userId
-     */
-    static async createQuestionaires(questionaires, userId) {
-        try {
-            const recordsToInsert = questionaires.map((q) => ({
-                assessmentQuestionaireId: uuidv4(),
-                assessmentId: q.assessmentId,
-                assessmentProcessAssetId: q.assessmentProcessAssetId,
-                questionaireId: q.questionaireId,
-                questionaireName: q.questionaireName,
-                responseValue: q.responseValue || null,
-                createdBy: userId,
-                createdDate: new Date(),
-                isDeleted: false
-            }));
-
-            await AssessmentQuestionaire.bulkCreate(recordsToInsert);
-            return recordsToInsert;
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to create assessment questionaire",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
+  }
 }
 
 module.exports = AssessmentService;

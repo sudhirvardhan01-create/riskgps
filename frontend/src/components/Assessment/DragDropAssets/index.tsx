@@ -12,12 +12,13 @@ import { getOrganizationAssets } from "@/pages/api/organization";
 import { ProcessUnit, Asset } from "@/types/assessment";
 
 const DragDropAssets = () => {
-  const { selectedOrg, selectedProcesses, setSelectedProcesses } =
-    useAssessment();
+  const { assessment, updateAssessment } = useAssessment();
 
   const [assetPool, setAssetPool] = useState<Asset[]>([]);
 
-  const [processes, setProcesses] = useState<ProcessUnit[]>(selectedProcesses);
+  const [processes, setProcesses] = useState<ProcessUnit[] | undefined>(
+    assessment?.processes
+  );
 
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
@@ -28,7 +29,7 @@ const DragDropAssets = () => {
 
   useEffect(() => {
     const getOrg = async () => {
-      const res = await getOrganizationAssets(selectedOrg);
+      const res = await getOrganizationAssets(assessment?.orgId);
       setAssetPool(res.data);
     };
 
@@ -36,18 +37,16 @@ const DragDropAssets = () => {
   }, []);
 
   useEffect(() => {
-    setSelectedProcesses(processes);
+    updateAssessment({ processes });
   }, [processes]);
 
   const handleDeleteBulk = (processId: string) => {
     setProcesses((prev) =>
-      prev.map((p) =>
-        p.orgProcessId === processId
+      prev?.map((p) =>
+        p.id === processId
           ? {
               ...p,
-              assets: p.assets.filter(
-                (r) => !selectedAssets.includes(r.orgAssetId)
-              ),
+              assets: p.assets.filter((r) => !selectedAssets.includes(r.id)),
             }
           : p
       )
@@ -57,8 +56,8 @@ const DragDropAssets = () => {
 
     const deletedAssets =
       processes
-        .find((p) => p.orgProcessId === processId)
-        ?.assets.filter((r) => selectedAssets.includes(r.orgAssetId)) || [];
+        ?.find((p) => p.id === processId)
+        ?.assets.filter((r) => selectedAssets.includes(r.id)) || [];
 
     if (deletedAssets.length > 0) {
       setAssetPool((prev) => [...prev, ...deletedAssets]);
@@ -67,18 +66,18 @@ const DragDropAssets = () => {
 
   const handleDelete = (processId: string, assetId: string) => {
     setProcesses((prev) =>
-      prev.map((p) =>
-        p.orgProcessId === processId
+      prev?.map((p) =>
+        p.id === processId
           ? {
               ...p,
-              assets: p.assets.filter((r) => r.orgAssetId !== assetId),
+              assets: p.assets.filter((r) => r.id !== assetId),
             }
           : p
       )
     );
     const deletedAsset = processes
-      .find((p) => p.orgProcessId === processId)
-      ?.assets.find((r) => r.orgAssetId === assetId);
+      ?.find((p) => p.id === processId)
+      ?.assets.find((r) => r.id === assetId);
     if (deletedAsset) {
       setAssetPool((prev) => [...prev, deletedAsset]);
     }
@@ -96,23 +95,21 @@ const DragDropAssets = () => {
   const confirmMove = (fromProcessId: string | null, toProcessId: string) => {
     if (!activeProcessId) return;
     setProcesses((prev) => {
-      const fromProcess = prev.find((p) => p.orgProcessId === fromProcessId);
+      const fromProcess = prev?.find((p) => p.id === fromProcessId);
       if (!fromProcess) return prev;
 
-      const movingAssets = fromProcess.assets.filter(
-        (r: { orgAssetId: string }) => selectedAssets.includes(r.orgAssetId)
+      const movingAssets = fromProcess.assets.filter((r: { id: string }) =>
+        selectedAssets.includes(r.id)
       );
 
-      return prev.map((p) => {
-        if (p.orgProcessId === fromProcessId) {
+      return prev?.map((p) => {
+        if (p.id === fromProcessId) {
           return {
             ...p,
-            assets: p.assets.filter(
-              (r) => !selectedAssets.includes(r.orgAssetId)
-            ),
+            assets: p.assets.filter((r) => !selectedAssets.includes(r.id)),
           };
         }
-        if (p.orgProcessId === toProcessId) {
+        if (p.id === toProcessId) {
           return {
             ...p,
             assets: [...(p.assets ?? []), ...(movingAssets ?? [])],
@@ -130,15 +127,15 @@ const DragDropAssets = () => {
     const { active, over } = event;
     if (!over) return;
 
-    const draggedAsset = assetPool.find((r) => r.orgAssetId === active.id);
+    const draggedAsset = assetPool.find((r) => r.id === active.id);
     if (!draggedAsset) return;
 
     if (over.id !== "asset-pool") {
-      setAssetPool((prev) => prev.filter((r) => r.orgAssetId !== active.id));
+      setAssetPool((prev) => prev.filter((r) => r.id !== active.id));
 
       setProcesses((prev) =>
-        prev.map((p) =>
-          p.orgProcessId === over.id
+        prev?.map((p) =>
+          p.id === over.id
             ? { ...p, assets: [...(p.assets ?? []), draggedAsset] }
             : p
         )
@@ -153,9 +150,9 @@ const DragDropAssets = () => {
           <AssetPool assetPool={assetPool} />
         </Grid>
         <Grid size={{ xs: 12, md: 8 }}>
-          {processes.map((process) => (
+          {processes?.map((process) => (
             <ProcessCardAsset
-              key={process.orgProcessId}
+              key={process.id}
               process={process}
               selectedAssets={selectedAssets}
               setSelectedAssets={setSelectedAssets}

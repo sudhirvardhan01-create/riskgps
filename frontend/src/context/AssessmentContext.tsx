@@ -1,23 +1,36 @@
 "use client";
 
-import { ProcessUnit } from "@/types/assessment";
 import React, { createContext, useContext, useState } from "react";
+import { ProcessUnit } from "@/types/assessment";
+
+// ✅ Define Assessment Type (based on your API structure)
+interface Assessment {
+  assessmentId: string;
+  assessmentName: string;
+  assessmentDesc: string;
+  runId?: string;
+  orgId?: string;
+  orgName?: string;
+  orgDesc?: string;
+  businessUnitId?: string;
+  businessUnitName?: string;
+  businessUnitDesc?: string | null;
+  status?: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  lastActivity?: string | null;
+  createdBy?: string;
+  modifiedBy?: string;
+  createdDate?: string;
+  modifiedDate?: string;
+  isDeleted?: boolean;
+  processes: ProcessUnit[];
+}
 
 interface AssessmentContextType {
-  assessmentId: string;
-  setAssessmentId: (name: string) => void;
-  assessmentName: string;
-  setAssessmentName: (name: string) => void;
-  assessmentDescription: string;
-  setAssessmentDescription: (desc: string) => void;
-  selectedOrg: string;
-  setSelectedOrg: (org: string) => void;
-  selectedBU: string;
-  setSelectedBU: (bu: string) => void;
-  selectedProcesses: ProcessUnit[];
-  setSelectedProcesses: (processes: ProcessUnit[]) => void;
-  orderedProcesses: { [key: string]: number };
-  setOrderedProcesses: (order: { [key: string]: number }) => void;
+  assessment: Assessment | null;
+  setAssessment: (assessment: Assessment) => void;
+  updateAssessment: (updates: Partial<Assessment>) => void;
 }
 
 const AssessmentContext = createContext<AssessmentContextType | undefined>(
@@ -27,33 +40,21 @@ const AssessmentContext = createContext<AssessmentContextType | undefined>(
 export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [assessmentId, setAssessmentId] = useState("");
-  const [assessmentName, setAssessmentName] = useState("");
-  const [assessmentDescription, setAssessmentDescription] = useState("");
-  const [selectedOrg, setSelectedOrg] = useState("");
-  const [selectedBU, setSelectedBU] = useState("");
-  const [selectedProcesses, setSelectedProcesses] = useState<ProcessUnit[]>([]);
-  const [orderedProcesses, setOrderedProcesses] = useState<{
-    [key: string]: number;
-  }>({});
+  const [assessment, setAssessment] = useState<Assessment | null>(null);
+
+  // ✅ Handy function to update parts of assessment without overwriting whole object
+  const updateAssessment = (updates: Partial<Assessment>) => {
+    setAssessment((prev) =>
+      prev ? { ...prev, ...updates } : (updates as Assessment)
+    );
+  };
 
   return (
     <AssessmentContext.Provider
       value={{
-        assessmentId,
-        setAssessmentId,
-        assessmentName,
-        setAssessmentName,
-        assessmentDescription,
-        setAssessmentDescription,
-        selectedOrg,
-        setSelectedOrg,
-        selectedBU,
-        setSelectedBU,
-        selectedProcesses,
-        setSelectedProcesses,
-        orderedProcesses,
-        setOrderedProcesses,
+        assessment,
+        setAssessment,
+        updateAssessment,
       }}
     >
       {children}

@@ -18,7 +18,7 @@ const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {
   const filteredRisks = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return riskPool;
-    return riskPool.filter((r) => r.name.toLowerCase().includes(q));
+    return riskPool.filter((r) => r.riskScenario.toLowerCase().includes(q));
   }, [riskPool, search]);
 
   return (
@@ -69,7 +69,7 @@ const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {
       >
         {filteredRisks.length > 0 ? (
           filteredRisks.map((risk) => (
-            <DraggableRiskItem key={risk.orgRiskId} risk={risk} />
+            <DraggableRiskItem key={risk.id} risk={risk} />
           ))
         ) : (
           <Typography

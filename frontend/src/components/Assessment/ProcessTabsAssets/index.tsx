@@ -9,7 +9,7 @@ import QuestionnaireForAsset from "../QuestionnaireForAsset";
 import { getAssetQuestionnaire } from "@/pages/api/assessment";
 
 export default function ProcessTabsAssets() {
-  const { selectedProcesses, setSelectedProcesses } = useAssessment();
+  const { assessment, updateAssessment } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
   const [selectedAsset, setSelectedAsset] = useState<Asset>();
@@ -17,7 +17,7 @@ export default function ProcessTabsAssets() {
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedAsset(selectedProcesses[newValue].assets[0]); // reset selection when switching process
+    setSelectedAsset(assessment?.processes[newValue].assets[0]); // reset selection when switching process
   };
 
   useEffect(() => {
@@ -35,26 +35,26 @@ export default function ProcessTabsAssets() {
 
   const handleUpdateScenario = (updatedAsset: Asset) => {
     // update inside context
-    const updatedProcesses = selectedProcesses.map((p, idx) => {
+    const updatedProcesses = assessment?.processes.map((p, idx) => {
       if (idx !== currentTab) return p;
 
       return {
         ...p,
         assets: p.assets.map((a: Asset) =>
-          a.orgAssetId === updatedAsset.orgAssetId ? updatedAsset : a
+          a.id === updatedAsset.id ? updatedAsset : a
         ),
       };
     });
 
-    setSelectedProcesses(updatedProcesses); // push back to context
+    updateAssessment({ processes: updatedProcesses }); // push back to context
     setSelectedAsset(updatedAsset);
   };
 
-  const activeProcess = selectedProcesses[currentTab];
+  const activeProcess = assessment?.processes[currentTab];
 
   useEffect(() => {
-    if (selectedProcesses.length > 0) {
-      setSelectedAsset(selectedProcesses[0].assets[0]);
+    if (assessment?.processes && assessment?.processes.length > 0) {
+      setSelectedAsset(assessment?.processes[0].assets[0]);
     }
   }, []);
 
@@ -84,14 +84,14 @@ export default function ProcessTabsAssets() {
         variant="scrollable"
         scrollButtons
       >
-        {selectedProcesses.map((p, idx) => (
+        {assessment?.processes.map((p, idx) => (
           <Tab
             key={idx}
             label={
               <Typography
                 variant="body2"
                 fontWeight={550}
-              >{`${p.name} (${p.assets.length})`}</Typography>
+              >{`${p.processName} (${p.assets.length})`}</Typography>
             }
             sx={{
               border:
@@ -113,7 +113,7 @@ export default function ProcessTabsAssets() {
       <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
         {/* Left Panel: Asset Scenarios */}
         <AssetStrength
-          assets={activeProcess.assets}
+          assets={activeProcess?.assets}
           onSelect={setSelectedAsset}
           selectedAsset={selectedAsset}
         />

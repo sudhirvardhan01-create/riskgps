@@ -28,7 +28,7 @@ const AssessmentDashboard = () => {
     Assessment[]
   >([]);
   const [open, setOpen] = useState(false);
-  // const { setAssessment } = useAssessment();
+  const { setAssessment } = useAssessment();
 
   useEffect(() => {
     const getAssessments = async () => {
@@ -48,8 +48,8 @@ const AssessmentDashboard = () => {
   };
 
   const handleCardClick = async (assessmentId: string) => {
-    // const response = await getAssessmentById(assessmentId);
-    // setAssessment(response.data);
+    const response = await getAssessmentById(assessmentId);
+    setAssessment(response.data);
 
     router.push("/assessment/assessmentProcess");
   };
