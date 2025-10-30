@@ -53,7 +53,7 @@ class RiskScenarioService {
 
   static async getAllRiskScenarios(
     page = 0,
-    limit = 6,
+    limit = -1,
     searchPattern = null,
     sortBy = "created_at",
     sortOrder = "ASC",
@@ -81,7 +81,7 @@ class RiskScenarioService {
     });
 
     const data = await RiskScenario.findAll({
-      limit,
+      ...(limit > 0 ? { limit, offset } : {}),
       offset,
       order: [[sortBy, sortOrder]],
       where: whereClause,
@@ -116,8 +116,8 @@ class RiskScenarioService {
       data: scenarios,
       total,
       page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      limit: limit > 0 ? limit : total,
+      totalPages: limit> 0 ? Math.ceil(total / limit) : 1,
     };
   }
 
@@ -252,46 +252,6 @@ class RiskScenarioService {
     csvStream.end();
   }
 
-  // static async importRiskScenariosFromCSV(filePath) {
-  //   function parseCIAMapping(value) {
-  //     if (!value) return [];
-  //     return value
-  //       .split(",") // split by comma
-  //       .map((v) => v.trim())
-  //       .filter((v) => GENERAL.CIA_MAPPING_VALUES.includes(v));
-  //   }
-  //   return new Promise((resolve, reject) => {
-  //     const rows = [];
-
-  //     fs.createReadStream(filePath)
-  //       .pipe(parse({ headers: true }))
-  //       .on("error", (error) => reject(error))
-  //       .on("data", (row) => {
-  //         rows.push({
-  //           risk_scenario: row["Risk Scenario"],
-  //           risk_description: row["Risk Description"] ?? null,
-  //           risk_statement: row["Risk Statement"] ?? null,
-  //           cia_mapping: parseCIAMapping(row["CIA Mapping"]),
-  //           status: "published",
-  //         });
-  //       })
-  //       .on("end", async () => {
-  //         try {
-  //           await RiskScenario.bulkCreate(rows, { ignoreDuplicates: true });
-  //           await sequelize.query(`
-  //                       UPDATE "library_risk_scenarios"
-  //                       SET risk_code = '#RS-' || LPAD(id::text, 5, '0')
-  //                       WHERE risk_code IS NULL;
-  //                       `);
-  //           fs.unlinkSync(filePath);
-  //           resolve(rows.length);
-  //         } catch (err) {
-  //           reject(err);
-  //         }
-  //       });
-  //   });
-  // }
-
   static async importRiskScenariosFromCSV(filePath) {
     const [rows, details] = await sequelize.query(
       `select * from library_meta_datas where name ILIKE 'industry'`
@@ -329,10 +289,10 @@ class RiskScenarioService {
         .on("error", (error) => reject(error))
         .on("data", async (row) => {
           batch.push({
-            risk_scenario: row["Risk Scenario"],
-            risk_description: row["Risk Description"] ?? null,
-            risk_statement: row["Risk Statement"] ?? null,
-            cia_mapping: parseCIAMapping(row["CIA Mapping"]),
+            riskScenario: row["Risk Scenario"],
+            riskDescription: row["Risk Description"] ?? null,
+            riskStatement: row["Risk Statement"] ?? null,
+            ciaMapping: parseCIAMapping(row["CIA Mapping"]),
             industry: parseIndustry(row["Industry"]),
             status: "published",
           });
@@ -349,10 +309,9 @@ class RiskScenarioService {
 
               // Insert metadata
               const metaRows = inserted.map((scenario) => {
-                console.log(scenario, "SCENARIO");
                 // find the matching item in batch by risk_scenario
                 const match = batch.find(
-                  (b) => b.risk_scenario === scenario.risk_scenario
+                  (b) => b.riskScenario === scenario.riskScenario
                 );
 
                 return {
@@ -389,9 +348,8 @@ class RiskScenarioService {
                 // find the matching item in batch by risk_scenario
 
                 const match = batch.find(
-                  (b) => b.risk_scenario == scenario.risk_scenario
+                  (b) => b.riskScenario == scenario.riskScenario
                 );
-                console.log(match.industry);
 
                 return {
                   risk_scenario_id: scenario.id,
@@ -466,9 +424,9 @@ class RiskScenarioService {
   }
 
   static validateRiskScenarioData(data) {
-    const { risk_scenario, status } = data;
+    const { riskScenario, status } = data;
 
-    if (!risk_scenario) {
+    if (!riskScenario) {
       console.log("[createRiskScenario] Missing risk_scenario");
       throw new CustomError(
         Messages.RISK_SCENARIO.REQUIRED,
@@ -490,13 +448,13 @@ class RiskScenarioService {
 
   static handleRiskScenarioColumnMapping(data) {
     const fields = [
-      "risk_scenario",
-      "risk_description",
-      "risk_statement",
-      "cia_mapping",
+      "riskScenario",
+      "riskDescription",
+      "riskStatement",
+      "ciaMapping",
       "status",
-      "risk_field_1",
-      "risk_field_2",
+      "riskField1",
+      "riskField2",
     ];
 
     return Object.fromEntries(
@@ -600,9 +558,9 @@ class RiskScenarioService {
     if (searchPattern) {
       conditions.push({
         [Op.or]: [
-          { risk_scenario: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_description: { [Op.iLike]: `%${searchPattern}%` } },
-          { risk_statement: { [Op.iLike]: `%${searchPattern}%` } },
+          { riskScenario: { [Op.iLike]: `%${searchPattern}%` } },
+          { riskDescription: { [Op.iLike]: `%${searchPattern}%` } },
+          { riskStatement: { [Op.iLike]: `%${searchPattern}%` } },
 
         ],
       });
@@ -624,7 +582,9 @@ class RiskScenarioService {
           // Direct column filter
           const columnType = RiskScenario.rawAttributes[f.filterName].type.key;
           if (columnType === "ARRAY") {
-            riskScenarioWhere.push({ [f.filterName]: { [Op.overlap]: f.values } });
+            riskScenarioWhere.push({
+              [f.filterName]: { [Op.overlap]: f.values },
+            });
           } else {
             riskScenarioWhere.push({ [f.filterName]: { [Op.in]: f.values } });
           }
@@ -659,14 +619,16 @@ class RiskScenarioService {
 
           const valuesArray = filter.values
             .map((v) => sequelize.escape(v))
-            .join(",");
+            .join(","); 
+
           if (idx > 0) subquery += " INTERSECT ";
-          subquery += `
-          SELECT "risk_scenario_id"
-          FROM library_attributes_risk_scenario_mapping
-          WHERE "meta_data_key_id" = ${metaDataKeyId}
-          AND "values" && ARRAY[${valuesArray}]::varchar[]
-        `;
+
+              subquery += `
+        SELECT "risk_scenario_id"
+        FROM library_attributes_risk_scenario_mapping
+        WHERE "meta_data_key_id" = '${metaDataKeyId}'::uuid
+        AND "values" && ARRAY[${valuesArray}]::varchar[]
+      `;
         });
 
         conditions.push({

@@ -244,35 +244,38 @@ module.exports = {
     /* Application logic to seed Library Process and Process Attributes  */
     await sequelize.transaction(async (t) => {
       const processAttributes = [];
+      const fieldMap = {
+        process_name: "processName",
+        process_description: "processDescription",
+        senior_executive__owner_name: "seniorExecutiveOwnerName",
+        senior_executive__owner_email: "seniorExecutiveOwnerEmail",
+        operations__owner_name: "operationsOwnerName",
+        operations__owner_email: "operationsOwnerEmail",
+        technology_owner_name: "technologyOwnerName",
+        technology_owner_email: "technologyOwnerEmail",
+        organizational_revenue_impact_percentage:
+          "organizationalRevenueImpactPercentage",
+        financial_materiality: "financialMateriality",
+        third_party_involvement: "thirdPartyInvolvement",
+        users_customers: "usersCustomers",
+        regulatory_and_compliance: "regulatoryAndCompliance",
+        criticality_of_data_processed: "criticalityOfDataProcessed",
+        data_processed: "dataProcessed",
+        status: "status",
+        created_at: "created_at",
+        updated_at: "created_at",
+      };
       for (const process of seeedProcesses) {
-        const allowedProcessFields = [
-          "process_name",
-          "process_description",
-          "senior_executive__owner_name",
-          "senior_executive__owner_email",
-          "operations__owner_name",
-          "operations__owner_email",
-          "technology_owner_name",
-          "technology_owner_email",
-          "organizational_revenue_impact_percentage",
-          "financial_materiality",
-          "third_party_involvement",
-          "users_customers",
-          "regulatory_and_compliance",
-          "criticality_of_data_processed",
-          "data_processed",
-          "status",
-          "created_at",
-          "updated_at",
-        ];
-
+        // Map process snake_case keys → camelCase keys
         const processData = {};
-        for (const key of allowedProcessFields) {
-          if (process[key] !== undefined) processData[key] = process[key];
+        for (const [snakeKey, camelKey] of Object.entries(fieldMap)) {
+          if (process[snakeKey] !== undefined) {
+            processData[camelKey] = process[snakeKey];
+          }
         }
         // Insert the process
         const [createdProcess, created] = await Process.findOrCreate({
-          where: { process_name: processData.process_name },
+          where: { processName: processData.processName },
           defaults: processData,
           transaction: t,
         });
@@ -298,7 +301,9 @@ module.exports = {
         }
       }
       if (processAttributes?.length > 0) {
-        await ProcessAttribute.bulkCreate(processAttributes, { transaction: t });
+        await ProcessAttribute.bulkCreate(processAttributes, {
+          transaction: t,
+        });
       }
 
       console.log("seeded process data");
@@ -312,6 +317,5 @@ module.exports = {
       null,
       {}
     );
-    await queryInterface.bulkDelete("library_meta_datas", null, {});
   },
 };

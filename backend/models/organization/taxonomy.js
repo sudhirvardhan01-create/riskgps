@@ -25,6 +25,12 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 field: "weightage",
             },
+            order: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                field: "order_no",
+            },
+
             ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {

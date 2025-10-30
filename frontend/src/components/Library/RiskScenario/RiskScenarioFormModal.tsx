@@ -198,7 +198,7 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
             <Typography variant="h5" fontWeight={550} color="#121212">
               {operation === "create"
                 ? "Add Risk Scenario"
-                : `Edit Risk Scenario ${riskData.risk_code}`}
+                : `Edit Risk Scenario ${riskData.riskCode}`}
             </Typography>
             {operation === "edit" ? getStatusComponent() : null}
           </Stack>

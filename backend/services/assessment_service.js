@@ -8,6 +8,7 @@
     OrganizationBusinessUnit,
     AssessmentProcessAsset,
     SeverityLevel,
+    AssessmentQuestionaire,
     sequelize,
 } = require("../models");
 const CustomError = require("../utils/CustomError");
@@ -296,6 +297,13 @@ class AssessmentService {
                                 model: AssessmentProcessAsset,
                                 as: "assets",
                                 required: false,
+                                include: [
+                                    {
+                                        model: AssessmentQuestionaire,
+                                        as: "questionaires",
+                                        required: false,
+                                    }
+                                ]
                             },
                             {
                                 model: AssessmentProcessRiskScenario,
@@ -600,6 +608,34 @@ class AssessmentService {
         }
     }
 
+    /**
+     * Create one or multiple assessment questionaire entries
+     * @param {Array} questionaires
+     * @param {string} userId
+     */
+    static async createQuestionaires(questionaires, userId) {
+        try {
+            const recordsToInsert = questionaires.map((q) => ({
+                assessmentQuestionaireId: uuidv4(),
+                assessmentId: q.assessmentId,
+                assessmentProcessAssetId: q.assessmentProcessAssetId,
+                questionaireId: q.questionaireId,
+                questionaireName: q.questionaireName,
+                responseValue: q.responseValue || null,
+                createdBy: userId,
+                createdDate: new Date(),
+                isDeleted: false
+            }));
+
+            await AssessmentQuestionaire.bulkCreate(recordsToInsert);
+            return recordsToInsert;
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to create assessment questionaire",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 
 }
 

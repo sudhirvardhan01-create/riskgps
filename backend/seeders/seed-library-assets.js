@@ -4,14 +4,9 @@ module.exports = {
   async up(queryInterface) {
     const {
       Process,
-      MetaData,
-      ProcessAttribute,
       Asset,
       AssetAttribute,
       AssetProcessMappings,
-      RiskScenario,
-      RiskScenarioAttribute,
-      ProcessRiskScenarioMappings,
       sequelize,
     } = require("../models");
 
@@ -79,7 +74,6 @@ module.exports = {
       },
     ];
 
-    
     /* Application logic to seed Library Assets and 
     the related process to that asset
      */
@@ -87,21 +81,23 @@ module.exports = {
     await sequelize.transaction(async (t) => {
       const assetProcessMappings = [];
       for (const asset of seedAssets) {
-        const allowedAssetFields = [
-          "application_name",
-          "asset_category",
-          "asset_description",
-          "status",
-          "created_at",
-          "updated_at",
-        ];
+        const assetFieldMap = {
+          application_name: "applicationName",
+          asset_category: "assetCategory",
+          asset_description: "assetDescription",
+          status: "status",
+          created_at: "created_at",
+          updated_at: "updated_at",
+        };
 
         const assetData = {};
-        for (const key of allowedAssetFields) {
-          if (asset[key] !== undefined) assetData[key] = asset[key];
+        for (const [snakeKey, camelKey] of Object.entries(assetFieldMap)) {
+          if (asset[snakeKey] !== undefined) {
+            assetData[camelKey] = asset[snakeKey];
+          }
         }
         const [createdAsset, created] = await Asset.findOrCreate({
-          where: { application_name: assetData.application_name },
+          where: { applicationName: assetData.applicationName },
           defaults: assetData,
           transaction: t,
         });
@@ -111,7 +107,7 @@ module.exports = {
           if (asset.related_process && Array.isArray(asset.related_process)) {
             for (const processName of asset.related_process) {
               const process = await Process.findOne({
-                where: { process_name: processName },
+                where: { processName: processName },
                 transaction: t,
               });
 
