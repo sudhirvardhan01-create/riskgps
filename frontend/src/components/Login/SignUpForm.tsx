@@ -271,8 +271,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
               <TextField
                 fullWidth
                 name="organisation"
-                label="Organisation"
-                placeholder="Enter organisation"
+                label="Company"
+                placeholder="Enter Company"
                 size="small"
                 required
                 value={formData.organisation}

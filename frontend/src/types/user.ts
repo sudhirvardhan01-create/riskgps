@@ -7,7 +7,9 @@ export interface UserData {
   communicationPreference: string;
   company: string;
   organization: string;
+  organizationId?: string;
   role: string;
+  roleId?: string;
   isTermsAndConditionsAccepted: boolean;
   isActive: boolean;
   createdDate: Date;

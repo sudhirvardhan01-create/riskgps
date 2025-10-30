@@ -40,7 +40,7 @@ class UserService {
       organisation: data.company,
       communicationPreference: data.communicationPreference,
       roleId: data.role,
-      organizationId: data.organization,
+      organizationId: data.organization ? data.organization : null,
       isTermsAndConditionsAccepted: data.isTermsAndConditionsAccepted,
       isActive: data.isActive,
       createdDate: new Date(),
@@ -53,7 +53,9 @@ class UserService {
   static async getAllUsers(orgId = null) {
     console.log("Fetching all users");
 
-    const whereClause = {};
+    const whereClause = {
+      isDeleted: false,
+    };
     if (orgId) {
       whereClause.organizationId = orgId;
     }
@@ -129,12 +131,12 @@ class UserService {
         {
           model: Role,
           as: "role",
-          attributes: ["name"],
+          attributes: ["roleId", "name"],
         },
         {
           model: Organization,
           as: "organization",
-          attributes: ["name"],
+          attributes: ["organizationId", "name"],
         },
       ],
     });
@@ -151,7 +153,11 @@ class UserService {
       communicationPreference: user.communicationPreference,
       company: user.organisation,
       organization: user.organization ? user.organization.name : null,
+      organizationId: user.organization
+        ? user.organization.organizationId
+        : null,
       role: user.role ? user.role.name : null,
+      roleId: user.role ? user.role.roleId : null,
       isTermsAndConditionsAccepted: user.isTermsAndConditionsAccepted,
       isActive: user.isActive,
       createdDate: user.createdDate,
@@ -161,6 +167,103 @@ class UserService {
       isDeleted: user.isDeleted,
     };
     return result;
+  }
+
+  static async updateUserById(id, data) {
+    if (!id) {
+      throw new CustomError(
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new CustomError(
+        "No user found with the provided id",
+        HttpStatus.NOT_FOUND
+      );
+    }
+    if (!data.name) {
+      throw new CustomError("User name is required", HttpStatus.BAD_REQUEST);
+    }
+    if (!data.email) {
+      throw new CustomError("User Email is required", HttpStatus.BAD_REQUEST);
+    }
+    if (!data.company) {
+      throw new CustomError("Company is required", HttpStatus.BAD_REQUEST);
+    }
+
+    //If role exists or not
+    const role = await Role.findOne({ where: { roleId: data.role } });
+    if (!role) {
+      throw new CustomError(Messages.AUTH.INVALID_ROLE, HttpStatus.BAD_REQUEST);
+    }
+
+    if (data.organization) {
+      const org = await Organization.findOne({
+        where: { organizationId: data.organization },
+      });
+      if (!org) {
+        throw new CustomError(
+          "Invalid organization specified",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+    }
+
+    const updatedUser = await user.update({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      organisation: data.company,
+      communicationPreference: data.communicationPreference,
+      roleId: data.role,
+      organizationId: data.organization,
+      modifiedDate: new Date(),
+    });
+    return updatedUser;
+  }
+
+  static async deleteUserById(id) {
+    if (!id) {
+      throw new CustomError(
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new CustomError(
+        "No user found with the provided id",
+        HttpStatus.NOT_FOUND
+      );
+    }
+    const deletedUser = await user.update({
+      isDeleted: true,
+      modifiedDate: new Date(),
+    });
+    return deletedUser;
+  }
+
+  static async updateStatus(id, status) {
+    if (!id) {
+      throw new CustomError(
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new CustomError(
+        "No user found with the provided id",
+        HttpStatus.NOT_FOUND
+      );
+    }
+    const updatedUser = await user.update({
+      isActive: status,
+      modifiedDate: new Date(),
+    });
+    return updatedUser;
   }
 
   static async getAllRoles() {

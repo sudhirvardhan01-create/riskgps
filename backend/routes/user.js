@@ -72,4 +72,60 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.patch("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const reqBody = req.body;
+    const user = await UserService.updateUserById(id, reqBody);
+    res.status(HttpStatus.OK).json({
+      data: user,
+      message: Messages.USER.UPDATED,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message,
+    });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await UserService.deleteUserById(id);
+    res.status(HttpStatus.OK).json({
+      data: {
+        name: user.name,
+        email: user.email,
+      },
+      message: Messages.USER.DELETED,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message,
+    });
+  }
+});
+
+router.patch("/update-status/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const status = req.body.isActive;
+    const user = await UserService.updateStatus(id, status);
+    res.status(HttpStatus.OK).json({
+      data: {
+        name: user.name,
+        email: user.email,
+      },
+      message: "User status updated successfully",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message,
+    });
+  }
+});
+
 module.exports = router;

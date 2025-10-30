@@ -102,6 +102,26 @@ export default function UserManagementContainer() {
   //   }
   // };
 
+  //Update Status Only
+  const handleUpdateStatus = async (id: string, isActive: boolean) => {
+    try {
+      await UserService.updateStatus(id, isActive);
+      setRefreshTrigger((p) => p + 1);
+      setToast({
+        open: true,
+        message: "User status updated",
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to update status",
+        severity: "error",
+      });
+    }
+  };
+
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
   };
@@ -134,9 +154,6 @@ export default function UserManagementContainer() {
     setSearchPattern(val);
   };
 
-  // const handleEditOrganization = (organization: Organization) => {
-  //   router.push(`/orgManagement/${organization.orgId}/editOrgDetails`);
-  // };
   return (
     <>
       {/* Org Delete Confirm dialogs */}
@@ -179,6 +196,7 @@ export default function UserManagementContainer() {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             setSelectedRecord={setSelectedUser}
+            handleUpdateStatus={handleUpdateStatus}
           />
         </Box>
       </Box>

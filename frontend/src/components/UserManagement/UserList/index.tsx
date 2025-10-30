@@ -12,6 +12,7 @@ interface Props {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
   setSelectedRecord: React.Dispatch<React.SetStateAction<UserData | null>>;
+  handleUpdateStatus: (id: string, isActive: boolean) => void;
 }
 
 const UserList: React.FC<Props> = ({
@@ -22,6 +23,7 @@ const UserList: React.FC<Props> = ({
   onPageChange,
   onRowsPerPageChange,
   setSelectedRecord,
+  handleUpdateStatus,
 }) => {
   return (
     <>
@@ -38,7 +40,11 @@ const UserList: React.FC<Props> = ({
           {data && data.length > 0 ? (
             data.map((row) => (
               <div key={row.userId}>
-                <UserCard record={row} setSelectedRecord={setSelectedRecord} />
+                <UserCard
+                  record={row}
+                  setSelectedRecord={setSelectedRecord}
+                  handleUpdateStatus={handleUpdateStatus}
+                />
               </div>
             ))
           ) : (

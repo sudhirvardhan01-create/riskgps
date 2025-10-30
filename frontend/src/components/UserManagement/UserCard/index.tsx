@@ -1,7 +1,6 @@
 import { Box, Typography, Avatar, Paper } from "@mui/material";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 import { UserData } from "@/types/user";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { USER_TABLE_HEADER_COLUMN_TEMPLATE } from "@/constants/constant";
 import { formatDate } from "@/utils/utility";
@@ -9,14 +8,24 @@ import { formatDate } from "@/utils/utility";
 interface UserCardProps {
   record: UserData;
   setSelectedRecord: React.Dispatch<React.SetStateAction<UserData | null>>;
+  handleUpdateStatus: (id: string, isActive: boolean) => void;
 }
 
-const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
+const UserCard: React.FC<UserCardProps> = ({
+  record,
+  setSelectedRecord,
+  handleUpdateStatus,
+}) => {
   const router = useRouter();
 
   const handleCardClick = () => {
     // Navigate to user details page
     router.push(`/userManagement/${record.userId}`);
+  };
+
+  const handleInteractiveClick = (e: React.MouseEvent) => {
+    // Stop event from bubbling up to the card
+    e.stopPropagation();
   };
 
   return (
@@ -127,7 +136,8 @@ const UserCard: React.FC<UserCardProps> = ({ record, setSelectedRecord }) => {
         <ToggleSwitch
           sx={{ m: 0 }}
           checked={record.isActive}
-          //   onClick={handleInteractiveClick}
+          onClick={handleInteractiveClick}
+          onChange={(e) => handleUpdateStatus(record.userId, e.target.checked)}
         />
         <Typography
           variant="body2"

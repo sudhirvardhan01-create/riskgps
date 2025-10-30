@@ -3,8 +3,9 @@ import UserDetails from "@/components/UserManagement/UserDetails";
 import { UserData } from "@/types/user";
 import { useEffect, useState } from "react";
 import { UserService } from "@/services/userService";
+import withAuth from "@/hoc/withAuth";
 
-export default function UserDetailsPage() {
+function UserDetailsPage() {
   const router = useRouter();
   const { userId } = router.query;
   const [loading, setLoading] = useState<boolean>(false);
@@ -51,3 +52,5 @@ export default function UserDetailsPage() {
     </>
   );
 }
+
+export default withAuth(UserDetailsPage);

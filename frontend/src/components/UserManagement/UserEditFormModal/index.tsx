@@ -29,33 +29,39 @@ import TooltipComponent from "@/components/TooltipComponent";
 import { Organisation } from "@/types/assessment";
 import { getOrganization } from "@/pages/api/organization";
 import { UserService } from "@/services/userService";
-import ToastComponent from "@/components/ToastComponent";
 
 interface UserEditFormModalProps {
   onClose: () => void;
   userData: UserEditFormData;
+  setIsEditConfirmOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setToast: React.Dispatch<
+    React.SetStateAction<{
+      open: boolean;
+      message: string;
+      severity: "success" | "error" | "info";
+    }>
+  >;
 }
 
 const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
   onClose,
   userData,
+  setIsEditConfirmOpen,
+  setToast,
 }) => {
-  const [formData, setFormData] = useState<UserEditFormData>(userData);
   const [orgSearch, setOrgSearch] = useState("");
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(
+    userData.organization
+  );
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<UserEditFormData>(userData);
   const [roles, setRoles] = useState<
     {
       roleId: string;
       name: string;
     }[]
   >([]);
-  const [toast, setToast] = useState({
-    open: false,
-    message: "",
-    severity: "success" as "success" | "error" | "info",
-  });
 
   useEffect(() => {
     const fetchOrgs = async () => {
@@ -98,7 +104,26 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
     [setFormData] // only depends on setter from props
   );
 
-  const handleSubmit = async () => {};
+  const handleUpdate = async () => {
+    try {
+      await UserService.update(formData.userId, formData);
+      setTimeout(() => {
+        setToast({
+          open: true,
+          message: "Updated user successfully",
+          severity: "success",
+        });
+      }, 2000);
+      onClose();
+    } catch (err) {
+      console.log(err);
+      setToast({
+        open: true,
+        message: "Failed to update user",
+        severity: "error",
+      });
+    }
+  };
 
   console.log(formData);
 
@@ -452,7 +477,7 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
                 borderRadius: 1,
               }}
               variant="outlined"
-              onClick={onClose}
+              onClick={() => setIsEditConfirmOpen(true)}
             >
               <Typography variant="body1" color="primary.main" fontWeight={500}>
                 Cancel
@@ -461,9 +486,9 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
             <Button
               sx={{ width: 110, height: 40, borderRadius: 1 }}
               variant="contained"
-              // onClick={() => {
-              //   onSubmit("published");
-              // }}
+              onClick={() => {
+                handleUpdate();
+              }}
               disabled={
                 formData.name === "" ||
                 formData.email === "" ||
@@ -479,20 +504,6 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
           </Box>
         </Box>
       </Box>
-
-      <ToastComponent
-        open={toast.open}
-        onClose={() => setToast((t) => ({ ...t, open: false }))}
-        message={toast.message}
-        toastBorder={
-          toast.severity === "success" ? "1px solid #147A50" : undefined
-        }
-        toastColor={toast.severity === "success" ? "#147A50" : undefined}
-        toastBackgroundColor={
-          toast.severity === "success" ? "#DDF5EB" : undefined
-        }
-        toastSeverity={toast.severity}
-      />
     </>
   );
 };

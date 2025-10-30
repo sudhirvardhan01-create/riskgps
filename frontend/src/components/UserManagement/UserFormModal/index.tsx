@@ -30,27 +30,20 @@ import TooltipComponent from "@/components/TooltipComponent";
 import { Organisation } from "@/types/assessment";
 import { getOrganization } from "@/pages/api/organization";
 import { UserService } from "@/services/userService";
-import ToastComponent from "@/components/ToastComponent";
 
 interface UserFormModalProps {
   onClose: () => void;
+  formData: UserFormData;
+  setFormData: React.Dispatch<React.SetStateAction<UserFormData>>;
+  onSubmit: () => void;
 }
 
-const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
-  const initialUserFormData = {
-    name: "",
-    email: "",
-    phone: "",
-    communicationPreference: "Email",
-    company: "",
-    role: "",
-    organization: "",
-    isTermsAndConditionsAccepted: false,
-    isActive: true,
-    password: "",
-    confirmPassword: "",
-  };
-  const [formData, setFormData] = useState<UserFormData>(initialUserFormData);
+const UserFormModal: React.FC<UserFormModalProps> = ({
+  onClose,
+  formData,
+  setFormData,
+  onSubmit,
+}) => {
   const [orgSearch, setOrgSearch] = useState("");
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
@@ -61,11 +54,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
       name: string;
     }[]
   >([]);
-  const [toast, setToast] = useState({
-    open: false,
-    message: "",
-    severity: "success" as "success" | "error" | "info",
-  });
 
   useEffect(() => {
     const fetchOrgs = async () => {
@@ -107,27 +95,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
     },
     [setFormData] // only depends on setter from props
   );
-
-  const handleSubmit = async () => {
-    try {
-      await UserService.create(formData);
-      onClose();
-      setToast({
-        open: true,
-        message: `User created successfully`,
-        severity: "success",
-      });
-    } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Failed to create user",
-        severity: "error",
-      });
-    }
-  };
-
-  console.log(formData);
 
   return (
     <>
@@ -556,7 +523,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
               sx={{ width: 110, height: 40, borderRadius: 1 }}
               variant="contained"
               onClick={() => {
-                handleSubmit();
+                onSubmit();
               }}
               disabled={
                 formData.name === "" ||
@@ -576,20 +543,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ onClose }) => {
           </Box>
         </Box>
       </Box>
-
-      <ToastComponent
-        open={toast.open}
-        onClose={() => setToast((t) => ({ ...t, open: false }))}
-        message={toast.message}
-        toastBorder={
-          toast.severity === "success" ? "1px solid #147A50" : undefined
-        }
-        toastColor={toast.severity === "success" ? "#147A50" : undefined}
-        toastBackgroundColor={
-          toast.severity === "success" ? "#DDF5EB" : undefined
-        }
-        toastSeverity={toast.severity}
-      />
     </>
   );
 };
