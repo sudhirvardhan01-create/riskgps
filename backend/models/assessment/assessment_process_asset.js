@@ -47,11 +47,10 @@ module.exports = (sequelize, DataTypes) => {
             as: "assessmentProcess",
         });
 
-        //// Relation to Assessment
-        //AssessmentProcessAsset.belongsTo(models.Assessment, {
-        //    foreignKey: "assessmentId",
-        //    as: "assessment",
-        //});
+        AssessmentProcessAsset.hasMany(models.AssessmentQuestionaire, {
+            foreignKey: "assessmentProcessAssetId",
+            as: "questionaires",
+        });
     };
 
     return AssessmentProcessAsset;

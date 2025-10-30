@@ -205,4 +205,41 @@ router.get("/all/details", async (req, res) => {
     }
 });
 
+/**
+ * @route POST /assessment-questionaire
+ * @desc Create or bulk insert Assessment Questionaire entries
+ */
+router.post("/assessment-questionaire", async (req, res) => {
+    try {
+        const { userId, questionaires } = req.body;
+
+        if (!userId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "userId is required in the request body",
+            });
+        }
+
+        if (!questionaires || !Array.isArray(questionaires) || questionaires.length === 0) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "At least one questionaire entry is required",
+            });
+        }
+
+        const result = await AssessmentService.createQuestionaires(
+            questionaires,
+            userId
+        );
+
+        res.status(HttpStatus.CREATED).json({
+            message: "Assessment Questionaire(s) created successfully",
+            data: result,
+        });
+    } catch (error) {
+        console.error("Error creating assessment questionaire:", error);
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Failed to create assessment questionaire",
+        });
+    }
+});
+
 module.exports = router;
