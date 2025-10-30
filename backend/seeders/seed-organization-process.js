@@ -281,8 +281,8 @@ module.exports = {
         criticality_of_data_processed: "criticalityOfDataProcessed",
         data_processed: "dataProcessed",
         status: "status",
-        created_at: "created_at",
-        updated_at: "created_at",
+        created_at: "createdDate",
+        updated_at: "modifiedDate",
       };
       for (const process of seeedProcesses) {
         // Map process snake_case keys → camelCase keys

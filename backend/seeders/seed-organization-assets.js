@@ -95,8 +95,8 @@ module.exports = {
           asset_category: "assetCategory",
           asset_description: "assetDescription",
           status: "status",
-          created_at: "created_at",
-          updated_at: "updated_at",
+          created_at: "createdDate",
+          updated_at: "modifiedDate",
         };
 
         const assetData = {};

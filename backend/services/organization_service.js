@@ -6,11 +6,22 @@
   Sequelize,
   Taxonomy,
   SeverityLevel,
+  MetaData,
   OrganizationAsset,
+  OrganizationRiskScenarioAttribute,
+  OrganizationAssetAttribute,
+  OrganizationProcessAttribute,
+  OrganizationProcessRelationship,
+  OrganizationThreat,
+  sequelize,
 } = require("../models");
 const { Op } = Sequelize;
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
+const Messages = require("../constants/messages");
+const OrganizationRiskScenarioService = require("./organization_risk_scenario_service");
+const OrganizationProcessService = require("./organization_process_service");
+const OrganizationAssetService = require("./organization_asset_service");
 
 class OrganizationService {
   /**
@@ -131,8 +142,8 @@ class OrganizationService {
           isDeleted: false,
         },
         attributes: [
-          "id",
-          "processName",
+          "orgProcessId",
+          "name",
           "orgBusinessUnitId",
           "organizationId",
           "createdBy",
@@ -160,6 +171,95 @@ class OrganizationService {
   }
 
   /**
+   * Get processes for an organization + business unit (both mandatory)
+   */
+  static async getOrganizationProcessesV2(orgId, businessUnitId) {
+    try {
+      if (!orgId || !businessUnitId) {
+        throw new CustomError(
+          "Organization ID and Business Unit ID are required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      const processes =
+        await OrganizationProcessService.fetchOrganizationProcess(
+          orgId,
+          businessUnitId
+        );
+
+      if (!processes || processes.length === 0) {
+        throw new CustomError(
+          "No processes found for given organization and business unit",
+          HttpStatus.NOT_FOUND
+        );
+      }
+
+      return processes;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch organization processes",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  static async createProcessByOrgIdAndBuId(orgId, buId, data) {
+    if (!orgId || !buId) {
+      throw new Error("OrgID and BuID required");
+    }
+    return await sequelize.transaction(async (t) => {
+      OrganizationProcessService.validateProcessData(data);
+
+      const processData =
+        OrganizationProcessService.handleProcessDataColumnMapping(data);
+      processData.organizationId = orgId;
+      processData.orgBusinessUnitId = buId;
+      console.log("Creating process with data:", processData);
+
+      const [process, created] = await OrganizationProcess.upsert(processData, {
+        returning: true,
+        transaction: t,
+      });
+      console.log(process, "creted");
+
+      await OrganizationProcessAttribute.destroy({
+        where: { processId: process.id },
+        transaction: t,
+      });
+      await OrganizationProcessRelationship.destroy({
+        where: {
+          [Op.or]: [
+            { sourceProcessId: process.id },
+            { targetProcessId: process.id },
+          ],
+        },
+        transaction: t,
+      });
+      if (
+        Array.isArray(data.processDependency) &&
+        data.processDependency.length > 0
+      ) {
+        await OrganizationProcessService.handleProcessDependencies(
+          process.id,
+          data.processDependency,
+          t
+        );
+      }
+
+      if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+        console.log(data.attributes);
+        await OrganizationProcessService.handleProcessAttributes(
+          process.id,
+          data.attributes,
+          t
+        );
+      }
+
+      return process;
+    });
+  }
+  /**
    * Get all risk scenarios by organizationId
    */
   static async getRiskScenariosByOrgId(organizationId) {
@@ -177,17 +277,15 @@ class OrganizationService {
           isDeleted: false,
         },
         attributes: [
-          "id",
+          "orgRiskId",
           "organizationId",
-          "autoIncrementId",
           "riskCode",
-          "riskScenario",
-          "riskDescription",
-          "riskStatement",
-          "ciaMapping",
+          "name",
+          "description",
+          "statement",
           "status",
-          "riskField1",
-          "riskField2",
+          "field1",
+          "field2",
           "createdBy",
           "modifiedBy",
           "createdDate",
@@ -200,6 +298,196 @@ class OrganizationService {
     } catch (err) {
       throw new CustomError(
         err.message || "Failed to fetch organization risk scenarios",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+  static async getRiskScenariosByOrgIdV2(organizationId) {
+    try {
+      if (!organizationId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      const scenarios = await OrganizationRiskScenario.findAll({
+        where: {
+          organizationId,
+          isDeleted: false,
+        },
+        include: [
+          {
+            model: OrganizationRiskScenarioAttribute,
+            as: "attributes",
+            include: [{ model: MetaData, as: "metaData" }],
+          },
+          { model: OrganizationProcess, as: "processes" },
+        ],
+        order: [["createdDate", "DESC"]],
+      });
+
+      return scenarios;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch organization risk scenarios",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  static async createRiskScenariosByOrgId(organizationId, data) {
+    try {
+      if (!organizationId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      return await sequelize.transaction(async (t) => {
+        console.log("[createRiskScenariosByOrgId] request received", data);
+
+        OrganizationRiskScenarioService.validateRiskScenarioData(data);
+
+        const riskScenarioData =
+          OrganizationRiskScenarioService.handleRiskScenarioColumnMapping(data);
+        riskScenarioData.organizationId = organizationId;
+        console.log(
+          "[createRiskScenariosByOrgId], risk scenario mapped values",
+          riskScenarioData
+        );
+        const [scenario, created] = await OrganizationRiskScenario.upsert(
+          riskScenarioData,
+          {
+            returning: true,
+            transaction: t,
+          }
+        );
+
+        await OrganizationRiskScenarioService.handleRiskScenarioProcessMapping(
+          scenario.id,
+          data.relatedProcesses ?? [],
+          t
+        );
+
+        await OrganizationRiskScenarioService.handleRiskScenarioAttributes(
+          scenario.id,
+          data.attributes ?? [],
+          t
+        );
+
+        return scenario;
+      });
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create createRiskScenariosByOrgId",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  static async getOrganizationMitreThreatsByOrgId(organizationId) {
+    try {
+      if (!organizationId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      const data = await OrganizationThreat.findAll({
+        where: {
+          organizationId,
+          isDeleted: false,
+        },
+        order: [["createdDate", "DESC"]],
+      });
+      const grouped = Object.values(
+        data.reduce((acc, row) => {
+          const key =
+            row.mitreTechniqueId +
+            (row.subTechniqueId ? "." + row.subTechniqueId : "");
+          if (!acc[key]) {
+            acc[key] = {
+              id: row.id,
+              platforms: row.platforms,
+              mitreTechniqueId: row.mitreTechniqueId,
+              mitreTechniqueName: row.mitreTechniqueName,
+              ciaMapping: row.ciaMapping,
+              subTechniqueId: row.subTechniqueId,
+              subTechniqueName: row.subTechniqueName,
+              controls: [],
+              status: row.status,
+              created_at: row.created_at,
+              updated_at: row.updated_at,
+            };
+          }
+          acc[key].controls.push({
+            id: row.id,
+            mitreControlId: row.mitreControlId,
+            mitreControlName: row.mitreControlName,
+            mitreControlType: row.mitreControlType,
+            controlPriority: row.controlPriority,
+            mitreControlDescription: row.mitreControlDescription,
+            bluOceanControlDescription: row.bluOceanControlDescription,
+          });
+          return acc;
+        }, {})
+      );
+
+      return grouped;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch organization mitre threat",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  static async createMitreThreatByOrgId(organizationId, data) {
+    try {
+      if (!organizationId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      return await sequelize.transaction(async (t) => {
+        console.log(
+          "[createMitreThreatControlByOrgId] Creating mitre threat control",
+          data
+        );
+        this.validateMitreThreatControlData(data);
+        const controls = data.controls ?? [];
+        const payloads = controls.map((control) => ({
+          organizationId: organizationId,
+          platforms: data.platforms,
+          mitreTechniqueId: data.mitreTechniqueId,
+          mitreTechniqueName: data.mitreTechniqueName,
+          ciaMapping: data.ciaMapping,
+          subTechniqueId: data.subTechniqueId ?? null,
+          subTechniqueName: data.subTechniqueName ?? null,
+          mitreControlId: control.mitreControlId,
+          mitreControlName: control.mitreControlName,
+          mitreControlType: control.mitreControlType,
+          mitreControlDescription: control.mitreControlDescription,
+          controlPriority: control.controlPriority,
+          bluOceanControlDescription: control.bluOceanControlDescription,
+          status: data.status ?? "published",
+        }));
+        const mitreThreatControlRecord = await OrganizationThreat.bulkCreate(
+          payloads,
+          {
+            transaction: t,
+          }
+        );
+        return mitreThreatControlRecord.length;
+      });
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create createRiskScenariosByOrgId",
         err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -231,7 +519,6 @@ class OrganizationService {
           "createdDate",
           "modifiedDate",
           "weightage",
-          "order",
         ],
         include: [
           {
@@ -250,7 +537,6 @@ class OrganizationService {
               "createdDate",
               "modifiedDate",
               "color",
-              "order",
             ],
           },
         ],
@@ -285,15 +571,10 @@ class OrganizationService {
           isDeleted: false,
         },
         attributes: [
-          "id",
+          "orgAssetId",
           "organizationId",
-          "autoIncrementId",
-          "assetCode",
-          "applicationName",
-          "applicationOwner",
-          "applicationItOwner",
-          "isThirdPartyManagement",
-          "thirdPartyName",
+          "name",
+          "description",
           "assetCategory",
           "createdBy",
           "modifiedBy",
@@ -307,6 +588,89 @@ class OrganizationService {
     } catch (err) {
       throw new CustomError(
         err.message || "Failed to fetch organization assets",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Get all assets for a given organization
+   */
+  static async getAssetsByOrgIdV2(orgId) {
+    try {
+      if (!orgId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      const assets = await OrganizationAsset.findAll({
+        where: {
+          organizationId: orgId,
+          isDeleted: false,
+        },
+        order: [["createdDate", "DESC"]],
+        include: [
+          {
+            model: OrganizationAssetAttribute,
+            as: "attributes",
+            include: [{ model: MetaData, as: "metaData" }],
+          },
+          { model: OrganizationProcess, as: "processes" },
+        ],
+      });
+
+      return assets;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch organization assets",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  static async createAssetByOrgId(organizationId, data) {
+    try {
+      if (!organizationId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      return await sequelize.transaction(async (t) => {
+        console.log("[createAssetByOrgId] request received", data);
+
+        OrganizationAssetService.validateAssetData(data);
+
+        const assetData =
+          OrganizationAssetService.handleAssetDataColumnMapping(data);
+        assetData.organizationId = organizationId;
+
+        console.log("[createAssetByOrgId], asset mapped values", assetData);
+        const [asset, created] = await OrganizationAsset.upsert(assetData, {
+          returning: true,
+          transaction: t,
+        });
+
+        await OrganizationAssetService.handleAssetProcessMapping(
+          asset.id,
+          data.relatedProcesses ?? [],
+          t
+        );
+
+        await OrganizationAssetService.handleAssetAttributes(
+          asset.id,
+          data.attributes ?? [],
+          t
+        );
+
+        return asset;
+      });
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create createAssetByOrgId",
         err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -703,7 +1067,6 @@ class OrganizationService {
 
     return { message: "Business unit deleted successfully" };
   }
-
   /**
    * Save taxonomies with severity levels for an organization (insert-only, use UI-provided order)
    */
