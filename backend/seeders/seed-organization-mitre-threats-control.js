@@ -1821,10 +1821,16 @@ module.exports = {
     }
     const orgId = organization.organizationId;
 
-    const updatedMitreThreatControlArray = mitreThreatsControls.map((item) => ({
-      ...item,
-      organizationId: orgId,
-    }));
+    const updatedMitreThreatControlArray = mitreThreatsControls.map((item) => {
+      const { created_at, updated_at, ...rest } = item;
+
+      return {
+        ...rest,
+        createdDate: created_at,
+        modifiedDate: updated_at, 
+        organizationId: orgId, 
+      };
+    });
 
     await safeSeed(
       OrganizationThreat,
