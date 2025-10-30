@@ -18,7 +18,7 @@ const AssetPool: React.FC<AssetPoolProps> = ({ assetPool }) => {
   const filteredAssets = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return assetPool;
-    return assetPool.filter((r) => r.name.toLowerCase().includes(q));
+    return assetPool.filter((r) => r.applicationName.toLowerCase().includes(q));
   }, [assetPool, search]);
 
   return (

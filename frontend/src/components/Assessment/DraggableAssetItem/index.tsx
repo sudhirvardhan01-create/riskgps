@@ -7,7 +7,7 @@ import { useDraggable } from "@dnd-kit/core";
 const DraggableAssetItem = ({
   asset,
 }: {
-  asset: { id: string; name: string; description: string };
+  asset: { id: string; applicationName: string };
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -40,12 +40,7 @@ const DraggableAssetItem = ({
       }}
       style={style}
     >
-      <Typography variant="body2">
-        {/* {asset?.description?.length > 60
-          ? asset.description.substring(0, 60) + " read more"
-          : asset?.description} */}
-        {asset?.name}
-      </Typography>
+      <Typography variant="body2">{asset?.applicationName}</Typography>
     </Paper>
   );
 };
