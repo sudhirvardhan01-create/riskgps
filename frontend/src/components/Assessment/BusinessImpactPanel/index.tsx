@@ -14,10 +14,10 @@ export default function BusinessImpactPanel({
   selectedScenario,
   onUpdateScenario,
 }: {
-  selectedScenario: Risk | null;
+  selectedScenario: Risk | null | undefined;
   onUpdateScenario: (risk: Risk) => void;
 }) {
-  const { assessment?.orgId } = useAssessment();
+  const { assessment } = useAssessment();
 
   const [thresholdHours, setThresholdHours] = useState<number | undefined>();
   const [thresholdCost, setThresholdCost] = useState<number | undefined>();
@@ -48,7 +48,6 @@ export default function BusinessImpactPanel({
   // Reset form when selectedScenario changes
   useEffect(() => {
     if (selectedScenario) {
-      setThresholdHours(selectedScenario.thresholdHours ?? undefined);
       setThresholdCost(selectedScenario.thresholdCost ?? undefined);
 
       if (selectedScenario.taxonomy && selectedScenario.taxonomy.length > 0) {
@@ -79,13 +78,11 @@ export default function BusinessImpactPanel({
 
     const updatedScenario: Risk = {
       ...selectedScenario,
-      thresholdHours,
       thresholdCost,
       taxonomy: taxonomyValue,
     };
 
     const isDifferent =
-      updatedScenario.thresholdHours !== selectedScenario.thresholdHours ||
       updatedScenario.thresholdCost !== selectedScenario.thresholdCost ||
       JSON.stringify(updatedScenario.taxonomy) !==
         JSON.stringify(selectedScenario.taxonomy);
@@ -188,7 +185,7 @@ export default function BusinessImpactPanel({
         fontWeight={550}
         sx={{ pb: 2 }}
       >
-        {selectedScenario.description}
+        {selectedScenario.riskScenario}
       </Typography>
 
       <TabContext value={value}>

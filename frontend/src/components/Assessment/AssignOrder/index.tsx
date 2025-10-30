@@ -26,15 +26,15 @@ export default function AssignOrder({ processes }: AssignOrderProps) {
   const handleOrderChange = (processId: string, value: number) => {
     setOrderedProcesses((prev) => {
       const updated = prev?.map((p) =>
-        p.orgProcessId === processId ? { ...p, order: value } : p
+        p.id === processId ? { ...p, order: value } : p
       );
 
       // Swap conflicts → ensure uniqueness
       const conflictIndex = updated?.findIndex(
-        (p) => p.orgProcessId !== processId && p.order === value
+        (p) => p.id !== processId && p.order === value
       );
       if (conflictIndex != undefined && conflictIndex >= 0) {
-        const oldOrder = prev?.find((p) => p.orgProcessId === processId)?.order;
+        const oldOrder = prev?.find((p) => p.id === processId)?.order;
         if (updated)
           updated[conflictIndex] = {
             ...updated[conflictIndex],
@@ -53,16 +53,13 @@ export default function AssignOrder({ processes }: AssignOrderProps) {
         {orderedProcesses
           ?.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) // always render sorted
           .map((process) => (
-            <Grid size={12} key={process.orgProcessId}>
+            <Grid size={12} key={process.id}>
               <Box display="flex" gap={2} alignItems="center">
                 {/* Order Dropdown */}
                 <Select
                   value={process.order ?? ""}
                   onChange={(e) =>
-                    handleOrderChange(
-                      process.orgProcessId,
-                      Number(e.target.value)
-                    )
+                    handleOrderChange(process.id, Number(e.target.value))
                   }
                   displayEmpty
                   size="small"

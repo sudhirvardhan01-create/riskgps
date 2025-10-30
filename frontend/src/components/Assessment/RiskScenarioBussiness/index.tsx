@@ -13,9 +13,9 @@ import { WatchLater, CheckCircle } from "@mui/icons-material";
 import { Risk } from "@/types/assessment";
 
 interface RiskScenarioListProps {
-  scenarios: Risk[];
+  scenarios: Risk[] | undefined;
   onSelect: (scenario: Risk) => void;
-  selectedScenario: Risk | null;
+  selectedScenario: Risk | null | undefined;
 }
 
 export default function RiskScenarioBussiness({
@@ -26,8 +26,8 @@ export default function RiskScenarioBussiness({
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({});
 
-  const filtered = scenarios.filter((s) =>
-    s.description.toLowerCase().includes(search.toLowerCase())
+  const filtered = scenarios?.filter((s) =>
+    s.riskScenario.toLowerCase().includes(search.toLowerCase())
   );
 
   const toggleExpand = (idx: number) => {
@@ -35,11 +35,7 @@ export default function RiskScenarioBussiness({
   };
 
   const isScenarioComplete = (s: Risk) => {
-    return (
-      s.thresholdHours !== undefined &&
-      s.thresholdCost !== undefined &&
-      s.taxonomy?.length == 4
-    );
+    return s.thresholdCost !== undefined && s.taxonomy?.length == 4;
   };
 
   return (
@@ -51,7 +47,7 @@ export default function RiskScenarioBussiness({
       }}
     >
       <Typography variant="body1" fontWeight={550} sx={{ m: 2 }}>
-        Risk Scenarios ({filtered.length}/{scenarios.length})
+        Risk Scenarios ({filtered?.length}/{scenarios?.length})
       </Typography>
 
       <Box
@@ -83,14 +79,14 @@ export default function RiskScenarioBussiness({
       </Box>
 
       <List>
-        {filtered.map((s, idx) => {
+        {filtered?.map((s, idx) => {
           const isExpanded = expanded[idx];
           const displayText =
-            s.description.length > 90 && !isExpanded
-              ? s.description.slice(0, 90) + "..."
-              : s.description;
+            s.riskScenario.length > 90 && !isExpanded
+              ? s.riskScenario.slice(0, 90) + "..."
+              : s.riskScenario;
 
-          const isSelected = selectedScenario?.orgRiskId === s.orgRiskId;
+          const isSelected = selectedScenario?.id === s.id;
           const isComplete = isScenarioComplete(s);
 
           return (
@@ -115,7 +111,7 @@ export default function RiskScenarioBussiness({
                     sx={{ color: isSelected ? "text.primary" : "#91939A" }}
                   >
                     {displayText}{" "}
-                    {s.description.length > 90 && (
+                    {s.riskScenario.length > 90 && (
                       <Typography
                         component="span"
                         variant="body2"

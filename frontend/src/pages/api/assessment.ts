@@ -20,7 +20,9 @@ interface AssessmentProcess {
 }
 
 interface Process {
+  id: string;
   processName: string;
+  processDescription: string;
   order: number | undefined;
 }
 
@@ -32,9 +34,9 @@ interface AssessmentRisk {
 
 interface RiskScenarios {
   assessmentProcessId: string;
-  riskScenarioName: string;
-  riskScenarioDesc: string;
-  thresholdHours?: number;
+  id: string;
+  riskScenario: string;
+  riskDescription: string;
   thresholdCost?: number;
   taxonomy?: Taxonomy[];
 }

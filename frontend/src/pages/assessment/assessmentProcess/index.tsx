@@ -106,8 +106,9 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
-        riskScenarioName: risk.name,
-        riskScenarioDesc: risk.description,
+        id: risk.id,
+        riskScenario: risk.riskScenario,
+        riskDescription: risk.riskDescription,
       }))
     );
     return obj;
@@ -118,9 +119,9 @@ function BUProcessMappingPage() {
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
         assessmentProcessRiskId: risk.assessmentProcessRiskId ?? "",
-        riskScenarioName: risk.name,
-        riskScenarioDesc: risk.description,
-        thresholdHours: risk.thresholdHours,
+        id: risk.id,
+        riskScenario: risk.riskScenario,
+        riskDescription: risk.riskDescription,
         thresholdCost: risk.thresholdCost,
         taxonomy: risk.taxonomy,
       }))
@@ -132,8 +133,8 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.assets.map((asset) => ({
         assessmentProcessId: process.assessmentProcessId,
-        assetName: asset.name,
-        assetDesc: asset.description,
+        id: asset.id,
+        applicationName: asset.applicationName,
         assetCategory: asset.assetCategory,
       }))
     );
@@ -160,7 +161,9 @@ function BUProcessMappingPage() {
             id: assessment?.assessmentId,
             processes: assessment?.processes.map((item) => {
               return {
-                processName: item.name,
+                id: item.id,
+                processName: item.processName,
+                processDescription: item.processDescription,
                 order: item.order,
               };
             }),
@@ -169,9 +172,7 @@ function BUProcessMappingPage() {
           });
 
           const updatedProcesses = assessment?.processes.map((item) => {
-            const match = res.processes.find(
-              (obj: any) => obj.processName === item.name
-            );
+            const match = res.processes.find((obj: any) => obj.id === item.id);
             return {
               ...item,
               assessmentProcessId: match?.assessmentProcessId ?? null, // add safely
@@ -193,7 +194,7 @@ function BUProcessMappingPage() {
             ...process,
             risks: process.risks.map((risk) => {
               const match = response.riskScenarios.find(
-                (obj: any) => obj.riskScenarioName === risk.name
+                (obj: any) => obj.id === risk.id
               );
 
               return {
@@ -228,7 +229,7 @@ function BUProcessMappingPage() {
               ...process,
               assets: process.assets.map((asset) => {
                 const match = result.assets.find(
-                  (obj: any) => obj.assetName === asset.name
+                  (obj: any) => obj.id === asset.id
                 );
 
                 return {
@@ -313,10 +314,10 @@ function BUProcessMappingPage() {
                 <AssignOrder processes={assessment?.processes || []} />
               )}
 
-              {/* {activeStep === 1 && <DragDropRiskScenarios />}
+              {activeStep === 1 && <DragDropRiskScenarios />}
               {activeStep === 2 && <ProcessTabs />}
               {activeStep === 3 && <DragDropAssets />}
-              {activeStep === 4 && <ProcessTabsAssets />} */}
+              {activeStep === 4 && <ProcessTabsAssets />}
             </Box>
           </Box>
 

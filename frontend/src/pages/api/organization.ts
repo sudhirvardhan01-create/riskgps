@@ -33,7 +33,7 @@ export const getOrganizationProcess = async (
   return response.json();
 };
 
-export const getOrganizationAssets = async (orgId: string) => {
+export const getOrganizationAssets = async (orgId: string | undefined) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets`,
     {
@@ -49,7 +49,7 @@ export const getOrganizationAssets = async (orgId: string) => {
   return response.json();
 };
 
-export const getOrganizationRisks = async (orgId: string) => {
+export const getOrganizationRisks = async (orgId: string | undefined) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios`,
     {
@@ -65,7 +65,7 @@ export const getOrganizationRisks = async (orgId: string) => {
   return response.json();
 };
 
-export const getOrganizationTaxonomy = async (orgId: string) => {
+export const getOrganizationTaxonomy = async (orgId: string | undefined) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/taxonomies`,
     {

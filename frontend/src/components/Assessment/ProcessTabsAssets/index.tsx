@@ -9,7 +9,7 @@ import QuestionnaireForAsset from "../QuestionnaireForAsset";
 import { getAssetQuestionnaire } from "@/pages/api/assessment";
 
 export default function ProcessTabsAssets() {
-  const { assessment?.processes, setSelectedProcesses } = useAssessment();
+  const { assessment, updateAssessment } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
   const [selectedAsset, setSelectedAsset] = useState<Asset>();
@@ -41,19 +41,19 @@ export default function ProcessTabsAssets() {
       return {
         ...p,
         assets: p.assets.map((a: Asset) =>
-          a.orgAssetId === updatedAsset.orgAssetId ? updatedAsset : a
+          a.id === updatedAsset.id ? updatedAsset : a
         ),
       };
     });
 
-    setSelectedProcesses(updatedProcesses); // push back to context
+    updateAssessment({ processes: updatedProcesses }); // push back to context
     setSelectedAsset(updatedAsset);
   };
 
   const activeProcess = assessment?.processes[currentTab];
 
   useEffect(() => {
-    if (assessment?.processes.length > 0) {
+    if (assessment?.processes && assessment?.processes.length > 0) {
       setSelectedAsset(assessment?.processes[0].assets[0]);
     }
   }, []);
@@ -91,7 +91,7 @@ export default function ProcessTabsAssets() {
               <Typography
                 variant="body2"
                 fontWeight={550}
-              >{`${p.name} (${p.assets.length})`}</Typography>
+              >{`${p.processName} (${p.assets.length})`}</Typography>
             }
             sx={{
               border:
@@ -113,7 +113,7 @@ export default function ProcessTabsAssets() {
       <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
         {/* Left Panel: Asset Scenarios */}
         <AssetStrength
-          assets={activeProcess.assets}
+          assets={activeProcess?.assets}
           onSelect={setSelectedAsset}
           selectedAsset={selectedAsset}
         />

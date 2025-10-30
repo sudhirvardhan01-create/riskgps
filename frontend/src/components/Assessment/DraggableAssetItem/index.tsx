@@ -7,11 +7,11 @@ import { useDraggable } from "@dnd-kit/core";
 const DraggableAssetItem = ({
   asset,
 }: {
-  asset: { orgAssetId: string; name: string; description: string };
+  asset: { id: string; name: string; description: string };
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
-      id: asset.orgAssetId,
+      id: asset.id,
       data: { type: "asset", asset },
     });
 

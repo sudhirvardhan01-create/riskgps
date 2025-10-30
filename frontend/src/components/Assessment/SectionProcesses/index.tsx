@@ -19,18 +19,18 @@ export default function SectionProcesses({
   const [search, setSearch] = useState("");
 
   const isSelected = (process: ProcessUnit) =>
-    selected?.some((p) => p.processName === process.name);
+    selected?.some((p) => p.id === process.id);
 
   const toggleSelection = (process: ProcessUnit) => {
     const updated = isSelected(process)
-      ? selected?.filter((p) => p.orgProcessId !== process.orgProcessId)
+      ? selected?.filter((p) => p.id !== process.id)
       : selected && [...selected, process];
 
     updateAssessment({ processes: updated });
   };
 
   const filteredProcesses = processes.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
+    p.processName.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -67,9 +67,9 @@ export default function SectionProcesses({
       {/* ✅ Process grid */}
       <Grid container spacing={2}>
         {filteredProcesses.map((process) => (
-          <Grid size={{ xs: 12, md: 6 }} key={process.orgProcessId}>
+          <Grid size={{ xs: 12, md: 6 }} key={process.id}>
             <ProcessCard
-              label={process.name}
+              label={process.processName}
               checked={isSelected(process)}
               onChange={() => toggleSelection(process)}
             />

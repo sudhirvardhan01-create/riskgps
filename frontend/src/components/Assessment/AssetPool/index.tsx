@@ -69,7 +69,7 @@ const AssetPool: React.FC<AssetPoolProps> = ({ assetPool }) => {
       >
         {filteredAssets.length > 0 ? (
           filteredAssets.map((asset) => (
-            <DraggableAssetItem key={asset.orgAssetId} asset={asset} />
+            <DraggableAssetItem key={asset.id} asset={asset} />
           ))
         ) : (
           <Typography
