@@ -221,59 +221,70 @@ class OrganizationService {
     }
   }
 
-  static async createProcessByOrgIdAndBuId(orgId, buId, data) {
+  static async createProcessByOrgIdAndBuId(orgId, buId, createBody) {
     if (!orgId || !buId) {
       throw new Error("OrgID and BuID required");
     }
+    if (!createBody || !Array.isArray(createBody)) {
+      throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+    }
     return await sequelize.transaction(async (t) => {
-      OrganizationProcessService.validateProcessData(data);
+      let insertedCount = 0;
+      for (let i = 0; i < createBody.length; i++) {
+        const data = createBody[i];
+        OrganizationProcessService.validateProcessData(data);
 
-      const processData =
-        OrganizationProcessService.handleProcessDataColumnMapping(data);
-      processData.organizationId = orgId;
-      processData.orgBusinessUnitId = buId;
-      console.log("Creating process with data:", processData);
+        const processData =
+          OrganizationProcessService.handleProcessDataColumnMapping(data);
+        processData.organizationId = orgId;
+        processData.orgBusinessUnitId = buId;
+        console.log("Creating process with data:", processData);
 
-      const [process, created] = await OrganizationProcess.upsert(processData, {
-        returning: true,
-        transaction: t,
-      });
-      console.log(process, "creted");
-
-      await OrganizationProcessAttribute.destroy({
-        where: { processId: process.id },
-        transaction: t,
-      });
-      await OrganizationProcessRelationship.destroy({
-        where: {
-          [Op.or]: [
-            { sourceProcessId: process.id },
-            { targetProcessId: process.id },
-          ],
-        },
-        transaction: t,
-      });
-      if (
-        Array.isArray(data.processDependency) &&
-        data.processDependency.length > 0
-      ) {
-        await OrganizationProcessService.handleProcessDependencies(
-          process.id,
-          data.processDependency,
-          t
+        const [process, created] = await OrganizationProcess.upsert(
+          processData,
+          {
+            returning: true,
+            transaction: t,
+          }
         );
+        console.log(process, "creted");
+        insertedCount++;
+
+        await OrganizationProcessAttribute.destroy({
+          where: { processId: process.id },
+          transaction: t,
+        });
+        await OrganizationProcessRelationship.destroy({
+          where: {
+            [Op.or]: [
+              { sourceProcessId: process.id },
+              { targetProcessId: process.id },
+            ],
+          },
+          transaction: t,
+        });
+        if (
+          Array.isArray(data.processDependency) &&
+          data.processDependency.length > 0
+        ) {
+          await OrganizationProcessService.handleProcessDependencies(
+            process.id,
+            data.processDependency,
+            t
+          );
+        }
+
+        if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+          console.log(data.attributes);
+          await OrganizationProcessService.handleProcessAttributes(
+            process.id,
+            data.attributes,
+            t
+          );
+        }
       }
 
-      if (Array.isArray(data.attributes) && data.attributes.length > 0) {
-        console.log(data.attributes);
-        await OrganizationProcessService.handleProcessAttributes(
-          process.id,
-          data.attributes,
-          t
-        );
-      }
-
-      return process;
+      return insertedCount;
     });
   }
   /**
@@ -355,7 +366,7 @@ class OrganizationService {
     }
   }
 
-  static async createRiskScenariosByOrgId(organizationId, data) {
+  static async createRiskScenariosByOrgId(organizationId, createBody) {
     try {
       if (!organizationId) {
         throw new CustomError(
@@ -363,40 +374,49 @@ class OrganizationService {
           HttpStatus.BAD_REQUEST
         );
       }
-
+      if (!createBody || !Array.isArray(createBody)) {
+        throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+      }
       return await sequelize.transaction(async (t) => {
-        console.log("[createRiskScenariosByOrgId] request received", data);
+        let insertedCount = 0;
+        for (let i = 0; i < createBody.length; i++) {
+          const data = createBody[i];
+          console.log("[createRiskScenariosByOrgId] request received", data);
 
-        OrganizationRiskScenarioService.validateRiskScenarioData(data);
+          OrganizationRiskScenarioService.validateRiskScenarioData(data);
 
-        const riskScenarioData =
-          OrganizationRiskScenarioService.handleRiskScenarioColumnMapping(data);
-        riskScenarioData.organizationId = organizationId;
-        console.log(
-          "[createRiskScenariosByOrgId], risk scenario mapped values",
-          riskScenarioData
-        );
-        const [scenario, created] = await OrganizationRiskScenario.upsert(
-          riskScenarioData,
-          {
-            returning: true,
-            transaction: t,
-          }
-        );
+          const riskScenarioData =
+            OrganizationRiskScenarioService.handleRiskScenarioColumnMapping(
+              data
+            );
+          riskScenarioData.organizationId = organizationId;
+          console.log(
+            "[createRiskScenariosByOrgId], risk scenario mapped values",
+            riskScenarioData
+          );
+          const [scenario, created] = await OrganizationRiskScenario.upsert(
+            riskScenarioData,
+            {
+              returning: true,
+              transaction: t,
+            }
+          );
+          insertedCount++;
 
-        await OrganizationRiskScenarioService.handleRiskScenarioProcessMapping(
-          scenario.id,
-          data.relatedProcesses ?? [],
-          t
-        );
+          await OrganizationRiskScenarioService.handleRiskScenarioProcessMapping(
+            scenario.id,
+            data.relatedProcesses ?? [],
+            t
+          );
 
-        await OrganizationRiskScenarioService.handleRiskScenarioAttributes(
-          scenario.id,
-          data.attributes ?? [],
-          t
-        );
+          await OrganizationRiskScenarioService.handleRiskScenarioAttributes(
+            scenario.id,
+            data.attributes ?? [],
+            t
+          );
+        }
 
-        return scenario;
+        return insertedCount;
       });
     } catch (err) {
       throw new CustomError(
@@ -464,7 +484,7 @@ class OrganizationService {
     }
   }
 
-  static async createMitreThreatByOrgId(organizationId, data) {
+  static async createMitreThreatByOrgId(organizationId, createBody) {
     try {
       if (!organizationId) {
         throw new CustomError(
@@ -472,37 +492,45 @@ class OrganizationService {
           HttpStatus.BAD_REQUEST
         );
       }
+      if (!createBody || !Array.isArray(createBody)) {
+        throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+      }
 
       return await sequelize.transaction(async (t) => {
-        console.log(
-          "[createMitreThreatControlByOrgId] Creating mitre threat control",
-          data
-        );
-        this.validateMitreThreatControlData(data);
-        const controls = data.controls ?? [];
-        const payloads = controls.map((control) => ({
-          organizationId: organizationId,
-          platforms: data.platforms,
-          mitreTechniqueId: data.mitreTechniqueId,
-          mitreTechniqueName: data.mitreTechniqueName,
-          ciaMapping: data.ciaMapping,
-          subTechniqueId: data.subTechniqueId ?? null,
-          subTechniqueName: data.subTechniqueName ?? null,
-          mitreControlId: control.mitreControlId,
-          mitreControlName: control.mitreControlName,
-          mitreControlType: control.mitreControlType,
-          mitreControlDescription: control.mitreControlDescription,
-          controlPriority: control.controlPriority,
-          bluOceanControlDescription: control.bluOceanControlDescription,
-          status: data.status ?? "published",
-        }));
-        const mitreThreatControlRecord = await OrganizationThreat.bulkCreate(
-          payloads,
-          {
-            transaction: t,
-          }
-        );
-        return mitreThreatControlRecord.length;
+        let insertedCount = 0;
+        for (let i = 0; i < createBody.length; i++) {
+          const data = createBody[i];
+          console.log(
+            "[createMitreThreatControlByOrgId] Creating mitre threat control",
+            data
+          );
+          this.validateMitreThreatControlData(data);
+          const controls = data.controls ?? [];
+          const payloads = controls.map((control) => ({
+            organizationId: organizationId,
+            platforms: data.platforms,
+            mitreTechniqueId: data.mitreTechniqueId,
+            mitreTechniqueName: data.mitreTechniqueName,
+            ciaMapping: data.ciaMapping,
+            subTechniqueId: data.subTechniqueId ?? null,
+            subTechniqueName: data.subTechniqueName ?? null,
+            mitreControlId: control.mitreControlId,
+            mitreControlName: control.mitreControlName,
+            mitreControlType: control.mitreControlType,
+            mitreControlDescription: control.mitreControlDescription,
+            controlPriority: control.controlPriority,
+            bluOceanControlDescription: control.bluOceanControlDescription,
+            status: data.status ?? "published",
+          }));
+          const mitreThreatControlRecord = await OrganizationThreat.bulkCreate(
+            payloads,
+            {
+              transaction: t,
+            }
+          );
+          insertedCount = insertedCount + payloads.length ?? 0;
+        }
+        return insertedCount;
       });
     } catch (err) {
       throw new CustomError(
@@ -665,7 +693,7 @@ class OrganizationService {
     }
   }
 
-  static async createAssetByOrgId(organizationId, data) {
+  static async createAssetByOrgId(organizationId, createBody) {
     try {
       if (!organizationId) {
         throw new CustomError(
@@ -674,34 +702,43 @@ class OrganizationService {
         );
       }
 
+      if (!createBody || !Array.isArray(createBody)) {
+        throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+      }
       return await sequelize.transaction(async (t) => {
-        console.log("[createAssetByOrgId] request received", data);
+        let insertedCount = 0;
+        for (let i = 0; i < createBody.length; i++) {
+          const data = createBody[i];
+          console.log("[createAssetByOrgId] request received", data);
 
-        OrganizationAssetService.validateAssetData(data);
+          OrganizationAssetService.validateAssetData(data);
 
-        const assetData =
-          OrganizationAssetService.handleAssetDataColumnMapping(data);
-        assetData.organizationId = organizationId;
+          const assetData =
+            OrganizationAssetService.handleAssetDataColumnMapping(data);
+          assetData.organizationId = organizationId;
 
-        console.log("[createAssetByOrgId], asset mapped values", assetData);
-        const [asset, created] = await OrganizationAsset.upsert(assetData, {
-          returning: true,
-          transaction: t,
-        });
+          console.log("[createAssetByOrgId], asset mapped values", assetData);
+          const [asset, created] = await OrganizationAsset.upsert(assetData, {
+            returning: true,
+            transaction: t,
+          });
+          insertedCount+=1;
 
-        await OrganizationAssetService.handleAssetProcessMapping(
-          asset.id,
-          data.relatedProcesses ?? [],
-          t
-        );
+          await OrganizationAssetService.handleAssetProcessMapping(
+            asset.id,
+            data.relatedProcesses ?? [],
+            t
+          );
 
-        await OrganizationAssetService.handleAssetAttributes(
-          asset.id,
-          data.attributes ?? [],
-          t
-        );
+          await OrganizationAssetService.handleAssetAttributes(
+            asset.id,
+            data.attributes ?? [],
+            t
+          );
+        }
 
-        return asset;
+        return insertedCount;
+;
       });
     } catch (err) {
       throw new CustomError(

@@ -8,6 +8,7 @@ const {
   OrganizationRiskScenario,
   OrganizationProcessAttribute,
 } = require("../models");
+const CustomError = require("../utils/CustomError");
 
 class OrganizationProcessService {
   static fetchOrganizationProcess = async (orgId, businessUnitId) => {

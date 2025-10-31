@@ -7,6 +7,7 @@ const {
   OrganizationAssetAttribute,
   OrganizationAssetProcessMappings,
 } = require("../models");
+const CustomError = require("../utils/CustomError");
 
 class OrganizationAssetService {
   static validateAssetData(data) {
