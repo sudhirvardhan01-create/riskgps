@@ -44,27 +44,26 @@ export interface Taxonomy {
 }
 
 export interface Risk {
-  orgRiskId: string;
+  id: string;
   assessmentProcessRiskId?: string;
-  name: string;
-  description: string;
-  thresholdHours?: number;
+  riskScenario: string;
+  riskDescription: string;
   thresholdCost?: number;
   taxonomy?: Taxonomy[];
 }
 
 export interface Asset {
-  orgAssetId: string;
+  id: string;
   assessmentProcessAssetId?: string;
-  name: string;
-  description: string;
+  applicationName: string;
   assetCategory: string;
 }
 
 export interface ProcessUnit {
   assessmentProcessId: string;
-  orgProcessId: string;
-  name: string;
+  id: string;
+  processName: string;
+  processDescription: string;
   order?: number;
   risks: Risk[];
   assets: Asset[];

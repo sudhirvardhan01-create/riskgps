@@ -5,16 +5,12 @@ import {
   Container,
   Typography,
   Button,
+  Grid,
   Card,
   CardContent,
   useTheme,
   useMediaQuery,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Avatar,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -26,7 +22,7 @@ const HeroSection = styled(Box)(({ theme }) => ({
   position: 'relative',
   width: '100%',
   height: '600px',
-  backgroundImage: 'url("/4.jpg")',
+  backgroundImage: 'url(/hero-image.jpg)', // Replace with your image path
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
@@ -108,9 +104,9 @@ const IconWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
-
-export default function LandingPage() {
+export default function Home() {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const features = [
     {
@@ -138,7 +134,8 @@ export default function LandingPage() {
   };
 
   const handleRequestDemo = () => {
-    window.open('https://bluoceancyber.com/contact/', '_blank');
+    // Redirect to login or coming soon page
+    window.location.href = '/login'; // Change to your desired route
   };
 
   return (
@@ -233,7 +230,7 @@ export default function LandingPage() {
           </SectionTitle>
           <Grid container spacing={4}>
             {features.map((feature, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+              <Grid size={{xs: 12, sm: 6, md: 4,}} key={index}>
                 <FeatureCard elevation={2}>
                   <CardContent>
                     <IconWrapper>{feature.icon}</IconWrapper>
@@ -291,163 +288,12 @@ export default function LandingPage() {
             No process outages from cyber. Not once. Not ever.
           </Typography>
         </Box>
-      </Container>
 
-      {/* How It Works Section */}
-      <Box
-        sx={{
-          backgroundColor:
-            theme.palette.mode === 'light' ? '#f9f9f9' : '#1a1a1a',
-          py: { xs: 6, md: 10 },
-        }}
-      >
-        <Container maxWidth="lg">
-          <SectionTitle variant="h3" align="center">
-            How RiskGPS Works
-          </SectionTitle>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    backgroundColor: 'primary.main',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '2rem',
-                    fontWeight: 700,
-                    mx: 'auto',
-                    mb: 2,
-                  }}
-                >
-                  1
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                  Map Processes
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  We map your critical business processes and identify dependencies
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    backgroundColor: 'primary.main',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '2rem',
-                    fontWeight: 700,
-                    mx: 'auto',
-                    mb: 2,
-                  }}
-                >
-                  2
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                  Identify Risks
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  Detect vulnerabilities that could disrupt operations
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    backgroundColor: 'primary.main',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '2rem',
-                    fontWeight: 700,
-                    mx: 'auto',
-                    mb: 2,
-                  }}
-                >
-                  3
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                  Quantify Impact
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  Translate risks into financial and operational terms
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    backgroundColor: 'primary.main',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '2rem',
-                    fontWeight: 700,
-                    mx: 'auto',
-                    mb: 2,
-                  }}
-                >
-                  4
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                  Prevent Disruption
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  Take action before outages impact your business
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-
-      {/* Final CTA Section */}
-      <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 }, textAlign: 'center' }}>
-        <Typography
-          variant="h3"
-          sx={{
-            fontWeight: 700,
-            mb: 3,
-            fontSize: { xs: '1.75rem', md: '2.5rem' },
-          }}
-        >
-          Ready to Prevent Business Disruption?
-        </Typography>
-        <Typography
-          variant="body1"
-          sx={{
-            mb: 4,
-            color: 'text.secondary',
-            fontSize: { xs: '1rem', md: '1.1rem' },
-            lineHeight: 1.8,
-          }}
-        >
-          Join RiskGPS. Discover how we can protect your critical business processes.
-        </Typography>
+        {/* CTA Section */}
         <Box
           sx={{
+            textAlign: 'center',
+            mt: 8,
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             gap: 3,
@@ -460,17 +306,17 @@ export default function LandingPage() {
             color="primary"
             size="large"
             endIcon={<ArrowForwardIcon />}
-            onClick={handleRequestDemo}
+            onClick={handleLearnMore}
           >
-            Request a Demo
+            Learn More About RiskGPS
           </CTAButton>
           <CTAButton
             variant="outlined"
             color="primary"
             size="large"
-            onClick={handleLearnMore}
+            onClick={handleRequestDemo}
           >
-            Learn More
+            Request a Demo
           </CTAButton>
         </Box>
       </Container>

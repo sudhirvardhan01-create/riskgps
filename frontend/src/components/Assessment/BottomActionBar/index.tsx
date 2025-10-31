@@ -6,7 +6,7 @@ interface BottomActionBarProps {
   onCancel?: () => void;
   onSaveDraft?: (e: any) => void;
   onSaveContinue?: (e: any) => void;
-  activeStep?: number;
+  disableButton?: boolean;
 }
 
 export default function BottomActionBar({
@@ -14,7 +14,7 @@ export default function BottomActionBar({
   onCancel,
   onSaveDraft,
   onSaveContinue,
-  activeStep,
+  disableButton,
 }: BottomActionBarProps) {
   return (
     <Box
@@ -78,7 +78,7 @@ export default function BottomActionBar({
             borderRadius: "4px",
             "&:hover": { bgcolor: "#02106f" },
           }}
-          disabled={activeStep == 4}
+          disabled={disableButton}
         >
           Save & Continue
         </Button>

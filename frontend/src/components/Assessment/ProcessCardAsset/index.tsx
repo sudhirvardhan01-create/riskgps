@@ -37,23 +37,23 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
   onDeleteBulk,
   onMoveSelected,
 }) => {
-  const { setNodeRef } = useDroppable({ id: process.orgProcessId });
+  const { setNodeRef } = useDroppable({ id: process.id });
 
   const allSelected =
     process.assets.length > 0 &&
     process.assets.every(
-      (r) => selectedAssets.length > 0 && selectedAssets.includes(r.orgAssetId)
+      (r) => selectedAssets.length > 0 && selectedAssets.includes(r.id)
     );
 
   const toggleSelectAll = () => {
     if (allSelected) {
       setSelectedAssets((prev) =>
-        prev.filter((id) => !process.assets.find((r) => r.orgAssetId === id))
+        prev.filter((id) => !process.assets.find((r) => r.id === id))
       );
     } else {
       setSelectedAssets((prev) => [
         ...prev,
-        ...process.assets.map((r) => r.orgAssetId),
+        ...process.assets.map((r) => r.id),
       ]);
     }
   };
@@ -89,7 +89,7 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
           fontWeight={600}
           sx={{ flexGrow: 1 }}
         >
-          {process.name} ({process.assets.length})
+          {process.processName} ({process.assets.length})
         </Typography>
       </AccordionSummary>
       <AccordionDetails ref={setNodeRef} sx={{ p: 2 }}>
@@ -122,7 +122,7 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
                   startIcon={<FileMoveIcon height={20} width={20} />}
                   sx={{ textTransform: "none" }}
                   onClick={() =>
-                    onMoveSelected(process.orgProcessId, process.name)
+                    onMoveSelected(process.id, process.processName)
                   }
                 >
                   Move Selected to Another Process
@@ -137,7 +137,7 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
                   }
                   color="error"
                   sx={{ textTransform: "none" }}
-                  onClick={() => onDeleteBulk(process.orgProcessId)}
+                  onClick={() => onDeleteBulk(process.id)}
                 >
                   Remove selected items
                 </Button>
@@ -165,7 +165,7 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
         >
           {process.assets.map((asset) => (
             <Paper
-              key={asset.orgAssetId}
+              key={asset.id}
               sx={{
                 bgcolor: "#fff",
                 borderRadius: "8px",
@@ -197,8 +197,8 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
                       pt: 1.5,
                       pb: 1,
                     }}
-                    checked={selectedAssets.includes(asset.orgAssetId)}
-                    onChange={() => toggleSelect(asset.orgAssetId)}
+                    checked={selectedAssets.includes(asset.id)}
+                    onChange={() => toggleSelect(asset.id)}
                   />
                   <Box
                     sx={{
@@ -210,8 +210,8 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => {
-                        toggleSelect(asset.orgAssetId);
-                        onMoveSelected(process.orgProcessId, process.name);
+                        toggleSelect(asset.id);
+                        onMoveSelected(process.id, process.processName);
                       }}
                     >
                       <FileMoveIcon height={16} width={16} />
@@ -219,7 +219,7 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => {
-                        onDelete(process.orgProcessId, asset.orgAssetId);
+                        onDelete(process.id, asset.id);
                       }}
                     >
                       <DeleteOutlineIcon
@@ -240,7 +240,7 @@ const ProcessCardAsset: React.FC<ProcessCardAssetProps> = ({
                   {/* {asset?.description?.length > 60
                     ? asset.description.substring(0, 60) + " read more"
                     : asset.description} */}
-                  {asset?.name}
+                  {asset?.applicationName}
                 </Box>
               </Stack>
             </Paper>

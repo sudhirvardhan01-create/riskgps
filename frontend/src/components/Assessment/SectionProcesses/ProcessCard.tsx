@@ -2,11 +2,15 @@ import { Box, Checkbox, Typography } from "@mui/material";
 
 interface ProcessCardProps {
   label: string;
-  checked: boolean;
+  checked: boolean | undefined;
   onChange: () => void;
 }
 
-export default function ProcessCard({ label, checked, onChange }: ProcessCardProps) {
+export default function ProcessCard({
+  label,
+  checked,
+  onChange,
+}: ProcessCardProps) {
   return (
     <Box
       display="flex"

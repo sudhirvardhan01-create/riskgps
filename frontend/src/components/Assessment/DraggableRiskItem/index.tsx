@@ -7,11 +7,11 @@ import { useDraggable } from "@dnd-kit/core";
 const DraggableRiskItem = ({
   risk,
 }: {
-  risk: { orgRiskId: string; name: string; description: string };
+  risk: { id: string; riskScenario: string };
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
-      id: risk.orgRiskId,
+      id: risk.id,
       data: { type: "risk", risk },
     });
 
@@ -41,9 +41,9 @@ const DraggableRiskItem = ({
       style={style}
     >
       <Typography variant="body2">
-        {risk?.description?.length > 60
-          ? risk.description.substring(0, 60) + " read more"
-          : risk?.description}
+        {risk?.riskScenario?.length > 60
+          ? risk.riskScenario.substring(0, 60) + " read more"
+          : risk?.riskScenario}
       </Typography>
     </Paper>
   );
