@@ -63,7 +63,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const response = await service.fetch(0, 6, searchTerm, "id:asc");
+      const response = await service.fetch(0, -1, searchTerm, "id:asc");
       setItems(response.data);
     } catch (err) {
       setError(`Failed to fetch ${itemType}. Please try again.`);
@@ -412,8 +412,9 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                           >
                             {displayFields.title}
                           </Typography>
-                          <Box sx={{ position: "relative" }}>
+                          <Box sx={{ position: "relative", display: "inline", width: "100%" }}>
                             <Typography
+                              component="span"
                               variant="body2"
                               sx={{
                                 color: "#484848",
@@ -421,18 +422,20 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                                 lineHeight: "20px",
                                 fontWeight: 400,
                                 overflow: isExpanded ? "visible" : "hidden",
-                                display: isExpanded ? "block" : "-webkit-box",
+                                display: isExpanded ? "inline" : "-webkit-box",
                                 WebkitLineClamp: isExpanded ? undefined : 2,
                                 WebkitBoxOrient: isExpanded ? undefined : "vertical",
                                 textOverflow: isExpanded ? "clip" : "ellipsis",
                                 maxHeight: isExpanded ? "none" : "40px", // 2 lines * 20px line-height
                                 wordBreak: "break-word",
+                                verticalAlign: "baseline",
                               }}
                             >
                               {descriptionText}
                             </Typography>
                             {shouldShowToggle && (
                               <Button
+                                component="span"
                                 onClick={(e) => toggleDescription(itemId, e)}
                                 sx={{
                                   textTransform: "none",
@@ -440,8 +443,10 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                                   fontSize: "12px",
                                   fontWeight: 500,
                                   p: 0,
-                                  minWidth: "auto",
-                                  mt: 0.5,
+                                  minWidth: 0,
+                                  ml: 0.5,
+                                  whiteSpace: "nowrap",
+                                  verticalAlign: "baseline",
                                   "&:hover": {
                                     backgroundColor: "transparent",
                                     textDecoration: "underline",
