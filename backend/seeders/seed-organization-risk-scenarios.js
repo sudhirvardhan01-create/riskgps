@@ -1,247 +1,629 @@
 "use strict";
-const { Organization, OrganizationRiskScenario } = require("../models");
-const { safeSeed } = require("../utils/seedHelper");
+
+const riskScenario = require("../models/riskScenario");
 
 module.exports = {
-  async up() {
-    const org = await Organization.findOne({
-      where: { name: "CDW" },
-    });
+  async up(queryInterface) {
+    const {
+      OrganizationProcess,
+      Organization,
+      MetaData,
+      OrganizationRiskScenario,
+      OrganizationRiskScenarioAttribute,
+      OrganizationProcessRiskScenarioMappings,
+      sequelize,
+    } = require("../models");
 
-    const risk_scenarios = [
-      {
-        organizationId: org.organizationId,
-        name: "Customer account data is exposed",
-        riskCode: "1001",
-        description:
-          "Confidential customer account details, such as PII or financial information, are accessed by unauthorized parties.",
-        statement: "Unauthorized access to customer account data occurs.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Customer account data is corrupted and no longer accurate",
-        riskCode: "1002",
-        description:
-          "Customer records are altered or damaged, leading to incorrect balances, history, or personal details.",
-        statement:
-          "Integrity of customer account data is compromised, leading to data corruption.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Customer accounts cannot be managed for 1 week",
-        riskCode: "1003",
-        description:
-          "Core systems for viewing, updating, or servicing customer accounts are unavailable for an extended period.",
-        statement:
-          "Loss of operational capability to manage customer accounts for an extended period (1 week).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Electronic banking accounts are exposed",
-        riskCode: "1004",
-        description:
-          "Sensitive data related to electronic banking user accounts (logins, transaction history) is made public or accessed illegally.",
-        statement:
-          "Exposure of electronic banking account credentials and data.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Electronic banking accounts are corrupted and no longer accurate",
-        riskCode: "1005",
-        description:
-          "Electronic banking system data, such as transaction logs or user settings, is damaged or inaccurate.",
-        statement:
-          "Corruption or inaccuracy of electronic banking account data.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Electronic banking application cannot be accessed for 4 hours",
-        riskCode: "1006",
-        description:
-          "The primary electronic banking platform (web/mobile) is unavailable to users for a short, but critical, duration.",
-        statement:
-          "Short-term denial of access to the electronic banking application (4 hours).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Electronic banking application cannot be accessed for 1 day",
-        riskCode: "1007",
-        description:
-          "The primary electronic banking platform (web/mobile) is unavailable to users for an entire business day.",
-        statement:
-          "Medium-term denial of access to the electronic banking application (1 day).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Electronic banking application cannot be accessed for 1 week",
-        riskCode: "1008",
-        description:
-          "The primary electronic banking platform (web/mobile) is unavailable to users for a prolonged period.",
-        statement:
-          "Long-term denial of access to the electronic banking application (1 week).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Payments data is exposed",
-        riskCode: "1009",
-        description:
-          "Sensitive payment-related information (e.g., source/destination accounts, amounts) is illegally accessed.",
-        statement: "Unauthorized disclosure of sensitive payments data.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Payment data is corrupted and no longer accurate",
-        riskCode: "1010",
-        description:
-          "Data records for completed or pending payments are altered or inaccurate, leading to reconciliation issues.",
-        statement:
-          "Integrity failure in payment data, leading to corruption or inaccuracy.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "ACH payments cannot be completed for 4 hours",
-        riskCode: "1011",
-        description:
-          "ACH processing systems fail or are interrupted, preventing the completion of automated clearing house payments for 4 hours.",
-        statement:
-          "Short-term failure of ACH payment processing capability (4 hours).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "ACH payments cannot be completed for 1 day",
-        riskCode: "1012",
-        description:
-          "ACH processing systems fail or are interrupted, preventing the completion of payments for a full business day.",
-        statement:
-          "Medium-term failure of ACH payment processing capability (1 day).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "ACH payments cannot be completed for 1 week",
-        riskCode: "1013",
-        description:
-          "ACH processing systems fail or are interrupted, preventing the completion of payments for a prolonged period.",
-        statement:
-          "Long-term failure of ACH payment processing capability (1 week).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Wire transfer data is exposed",
-        riskCode: "1014",
-        description:
-          "Confidential data associated with wire transfers (e.g., beneficiary details, instructions) is accessed by unauthorized parties.",
-        statement: "Unauthorized disclosure of wire transfer data.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Wire transfer is corrupted and no longer accurate",
-        riskCode: "1015",
-        description:
-          "Wire transfer records are modified, leading to incorrect amounts or destinations.",
-        statement: "Integrity failure in wire transfer data.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Wire transfers cannot be completed for 4 hours",
-        riskCode: "1016",
-        description:
-          "The system for initiating and executing wire transfers is unavailable for a short duration.",
-        statement: "Short-term inability to complete wire transfers (4 hours).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Wire transfers cannot be completed for 1 day",
-        riskCode: "1017",
-        description:
-          "The system for initiating and executing wire transfers is unavailable for a full business day.",
-        statement: "Medium-term inability to complete wire transfers (1 day).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Wire transfers cannot be completed for 1 week",
-        riskCode: "1018",
-        description:
-          "The system for initiating and executing wire transfers is unavailable for a prolonged period.",
-        statement: "Long-term inability to complete wire transfers (1 week).",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "ATM data is exposed",
-        riskCode: "1019",
-        description:
-          "Sensitive data processed or stored by ATM systems (e.g., transaction logs, card details) is compromised.",
-        statement: "Unauthorized disclosure of sensitive ATM system data.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "ATM data is corrupted and no longer accurate",
-        riskCode: "1020",
-        description:
-          "ATM transaction records or system logs are damaged or inaccurate.",
-        statement: "Integrity failure in ATM data, leading to corruption.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "ATMs are not available for 1 day",
-        riskCode: "1021",
-        description:
-          "A significant portion of the ATM network is out of service for 24 hours.",
-        statement: "Denial of service for ATMs for 1 day.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "ATMs are not available for 1 week",
-        riskCode: "1022",
-        description:
-          "A significant portion of the ATM network is out of service for seven days.",
-        statement: "Extended denial of service for ATMs for 1 week.",
-      },
-      {
-        organizationId: org.organizationId,
-        name: "Fraud monitoring is data exposed",
+    const now = new Date();
 
-        description:
-          "Confidential fraud intelligence, alert rules, or case data from the monitoring system is illegally accessed.",
-        statement: "Exposure of sensitive fraud monitoring system data.",
+    const seedRiskScenarios = [
+      {
+        risk_scenario: "Customer account data is exposed",
+        risk_description: "",
+        risk_statement:
+          "Unauthorized disclosure of customer account data could compromise confidentiality.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Account Management Process"],
+        industry: ["Banking"],
       },
       {
-        organizationId: org.organizationId,
-        name: "Fraud monitoring is not available for 1 week",
-        description:
-          "The core system responsible for monitoring and alerting on fraudulent activities is non-operational for an extended period.",
-        statement: "Loss of capability to perform fraud monitoring for 1 week.",
+        risk_scenario:
+          "Customer account data is corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement: "Integrity of customer account data is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Account Management Process"],
+        industry: ["Healthcare", "Banking"],
       },
       {
-        organizationId: org.organizationId,
-        name: "KYC data is exposed",
-
-        description:
-          "Confidential Know Your Customer (KYC) documentation, such as identity proofs and verification records, is accessed by unauthorized parties.",
-        statement: "Unauthorized disclosure of sensitive KYC data.",
+        risk_scenario: "Customer accounts cannot be managed for 1 week.",
+        risk_description: "",
+        risk_statement:
+          "Prolonged unavailability of customer account management services.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Account Management Process"],
+        industry: ["Government"],
       },
       {
-        organizationId: org.organizationId,
-        name: "KYC data is corrupted and no longer accurate",
-
-        description:
-          "KYC records are damaged or inaccurately reflect a customer's verified identity.",
-        statement:
-          "Integrity failure in KYC data, leading to corruption or inaccuracy.",
+        risk_scenario: "Electronic banking accounts are exposed.",
+        risk_description: "",
+        risk_statement:
+          "Unauthorized disclosure of electronic banking account data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Banking", "Government"],
       },
       {
-        organizationId: org.organizationId,
-        name: "KYC is not able to process new applications for 1 week",
-        description:
-          "The system used to verify and onboard new customers via KYC processes is unavailable for one week, halting new business.",
-        statement:
-          "Inability to process new customer applications due to KYC system unavailability for 1 week.",
+        risk_scenario:
+          "Electronic banking accounts are corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement:
+          "Integrity of electronic banking accounts is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Healthcare"],
+      },
+      {
+        risk_scenario:
+          "Electronic banking applicaton cannot be accessed for 4 hours.",
+        risk_description: "",
+        risk_statement: "Short-term unavailability of online banking services.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Healthcare", "Banking", "Government"],
+      },
+      {
+        risk_scenario:
+          "Electronic banking applicaton cannot be accessed for 1 day.",
+        risk_description: "",
+        risk_statement: "One-day outage of online banking platform.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Government"],
+      },
+      {
+        risk_scenario:
+          "Electronic banking applicaton cannot be accessed for 1 week.",
+        risk_description: "",
+        risk_statement: "Prolonged outage of online banking platform.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Electronic Banking"],
+        industry: ["Banking"],
+      },
+      {
+        risk_scenario: "Payments data is exposed.",
+        risk_description: "",
+        risk_statement: "Unauthorized disclosure of payments data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Healthcare", "Banking"],
+      },
+      {
+        risk_scenario: "Payment data is corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement: "Integrity of payment transaction data is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Banking"],
+      },
+      {
+        risk_scenario: "ACH payments cannot be completed for 4 hours.",
+        risk_description: "",
+        risk_statement: "Temporary outage of ACH payment processing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Government", "Banking"],
+      },
+      {
+        risk_scenario: "ACH payments cannot be completed for 1 day.",
+        risk_description: "",
+        risk_statement: "One-day outage of ACH payment processing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Healthcare"],
+      },
+      {
+        risk_scenario: "ACH payments cannot be completed for 1 week.",
+        risk_description: "",
+        risk_statement: "Prolonged outage of ACH payment processing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ACH"],
+        industry: ["Healthcare", "Government"],
+      },
+      {
+        risk_scenario: "Wire transfer data is exposed.",
+        risk_description: "",
+        risk_statement: "Unauthorized disclosure of wire transfer data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Banking"],
+      },
+      {
+        risk_scenario: "Wire transfer is corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement: "Integrity of wire transfer data is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Healthcare", "Banking"],
+      },
+      {
+        risk_scenario: "Wire transfers cannot be completed for 4 hours.",
+        risk_description: "",
+        risk_statement: "Temporary outage of wire transfer processing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Government"],
+      },
+      {
+        risk_scenario: "Wire transfers cannot be completed for 1 day.",
+        risk_description: "",
+        risk_statement: "One-day outage of wire transfer processing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Healthcare", "Government"],
+      },
+      {
+        risk_scenario: "Wire transfers cannot be completed for 1 week.",
+        risk_description: "",
+        risk_statement: "Extended outage of wire transfer processing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Wire Transfer"],
+        industry: ["Banking"],
+      },
+      {
+        risk_scenario: "ATM data is exposed",
+        risk_description: "",
+        risk_statement: "Unauthorized disclosure of ATM transaction data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Healthcare", "Banking", "Government"],
+      },
+      {
+        risk_scenario: "ATM data is corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement: "Integrity of ATM transaction data is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Healthcare"],
+      },
+      {
+        risk_scenario: "ATMs are not available for 1 day.",
+        risk_description: "",
+        risk_statement: "Outage of ATM services for 24 hours.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Banking", "Government"],
+      },
+      {
+        risk_scenario: "ATMs are not available for 1 week.",
+        risk_description: "",
+        risk_statement: "Prolonged outage of ATM services.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["ATM Management"],
+        industry: ["Government"],
+      },
+      {
+        risk_scenario: "Fraud monitoring data is exposed.",
+        risk_description: "",
+        risk_statement: "Unauthorized disclosure of fraud monitoring data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Fraud Monitoring"],
+        industry: ["Banking"],
+      },
+      {
+        risk_scenario: "Fraud monitoring is not available for 1 week.",
+        risk_description: "",
+        risk_statement: "Extended unavailability of fraud monitoring systems.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Fraud Monitoring"],
+        industry: ["Healthcare", "Government"],
+      },
+      {
+        risk_scenario: "KYC data is exposed.",
+        risk_description: "",
+        risk_statement: "Unauthorized disclosure of customer KYC data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["KYC"],
+        industry: ["Banking", "Government"],
+      },
+      {
+        risk_scenario: "KYC data is corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement: "Integrity of KYC records is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["KYC"],
+        industry: ["Healthcare"],
+      },
+      {
+        risk_scenario:
+          "KYC is not able to process new applications for 1 week.",
+        risk_description: "",
+        risk_statement: "KYC services unavailable for one week.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["KYC"],
+        industry: ["Healthcare", "Banking"],
+      },
+      {
+        risk_scenario: "Customer loan data is exposed.",
+        risk_description: "",
+        risk_statement: "Unauthorized disclosure of customer loan data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Banking"],
+      },
+      {
+        risk_scenario: "Loans cannot be originated for 4 hours.",
+        risk_description: "",
+        risk_statement: "Temporary disruption in loan origination.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Healthcare"],
+      },
+      {
+        risk_scenario: "Loans cannot be originated for 1 day.",
+        risk_description: "",
+        risk_statement: "One-day outage in loan origination.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Healthcare", "Government"],
+      },
+      {
+        risk_scenario: "Loans cannot be originated for 1 week.",
+        risk_description: "",
+        risk_statement: "Prolonged disruption in loan origination.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Origination"],
+        industry: ["Banking"],
+      },
+      {
+        risk_scenario: "Customer underwriting data is exposed.",
+        risk_description: "",
+        risk_statement: "Unauthorized disclosure of underwriting data.",
+        cia_mapping: ["C"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Underwriting"],
+        industry: ["Healthcare", "Banking"],
+      },
+      {
+        risk_scenario:
+          "Underwriting models are corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement: "Integrity of underwriting data is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Underwriting"],
+        industry: ["Government"],
+      },
+      {
+        risk_scenario: "Underwriting cannot take place for 1 week.",
+        risk_description: "",
+        risk_statement: "Prolonged disruption of underwriting processes.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Underwriting"],
+        industry: ["Healthcare", "Banking"],
+      },
+      {
+        risk_scenario:
+          "Customer loan data is corrupted and no longer accurate.",
+        risk_description: "",
+        risk_statement: "Integrity of customer loan records is compromised.",
+        cia_mapping: ["I"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Servicing"],
+        industry: ["Government"],
+      },
+      {
+        risk_scenario: "Loans cannot be serviced for 1 day.",
+        risk_description: "",
+        risk_statement: "One-day disruption in loan servicing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Servicing"],
+        industry: ["Healthcare", "Banking"],
+      },
+      {
+        risk_scenario: "Loans cannot be serviced for 1 week.",
+        risk_description: "",
+        risk_statement: "Prolonged disruption in loan servicing.",
+        cia_mapping: ["A"],
+        status: "published",
+        risk_field_1: "",
+        risk_field_2: "",
+        created_at: now,
+        updated_at: now,
+        related_process: ["Loan Servicing"],
+        industry: ["Banking", "Government"],
       },
     ];
 
-    await safeSeed(OrganizationRiskScenario, risk_scenarios, "name");
+    const industryMetadata = await MetaData.findOne({
+      where: { name: "Industry" },
+    });
+
+    if (!industryMetadata) throw new Error("Industry metadata not found");
+    const supportedValues = industryMetadata.supported_values;
+
+    const organization = await Organization.findOne({
+      where: { name: "CDW" },
+    });
+    if (!organization || !organization.organizationId) {
+      throw new Error("Organization not found");
+    }
+    const orgId = organization.organizationId;
+
+    /* Application logic to seed Library Risk Scenarios, 
+    risk Scenarios Related processes and 
+    risk scenario attributes */
+
+    await sequelize.transaction(async (t) => {
+      const riskScenarioAttributes = [];
+      const processRiskScenarioMappings = [];
+      for (const risk of seedRiskScenarios) {
+        const riskData = {};
+        riskData["riskScenario"] = risk["risk_scenario"];
+        riskData["riskDescription"] = risk["risk_description"];
+        riskData["riskStatement"] = risk["risk_statement"];
+        riskData["ciaMapping"] = risk["cia_mapping"];
+        riskData["status"] = risk["status"];
+        riskData["riskField1"] = risk["risk_field_1"];
+        riskData["riskField2"] = risk["risk_field_2"];
+        riskData["organizationId"] = orgId;
+
+        const [createdRisk, created] = await OrganizationRiskScenario.findOrCreate({
+          where: { riskScenario: riskData.riskScenario },
+          defaults: riskData,
+          transaction: t,
+        });
+
+        if (created) {
+          console.log(
+            "created name, id",
+            createdRisk.id,
+            createdRisk.riskScenario
+          );
+          // Loop over all related process names
+          if (risk.related_process && Array.isArray(risk.related_process)) {
+            for (const processName of risk.related_process) {
+              console.log("related process", processName);
+              const process = await OrganizationProcess.findOne({
+                where: { processName: processName },
+                transaction: t,
+              });
+
+              if (!process) {
+                console.log(`Process not found: ${processName}`);
+                continue;
+              }
+
+              processRiskScenarioMappings.push({
+                processId: process.id,
+                riskScenarioId: createdRisk.id,
+              });
+            }
+          }
+
+          if (risk.industry && Array.isArray(risk.industry)) {
+            const value = risk.industry ?? [];
+            const validIndustryValues = value.filter((v) =>
+              supportedValues.includes(v)
+            );
+
+            if (validIndustryValues.length > 0) {
+              riskScenarioAttributes.push({
+                riskScenarioId: createdRisk.id,
+                metaDataKeyId: industryMetadata.id,
+                values: validIndustryValues,
+              });
+            } else {
+              console.log(
+                "invalid value for industry for risk scenario:",
+                risk.risk_scenario
+              );
+            }
+          }
+        }
+      }
+      // Insert all process-risk mappings at once
+      await OrganizationProcessRiskScenarioMappings.bulkCreate(
+        processRiskScenarioMappings,
+        { transaction: t }
+      );
+
+      // Insert all risk scenario attributes at once
+      await OrganizationRiskScenarioAttribute.bulkCreate(riskScenarioAttributes, {
+        transaction: t,
+      });
+      console.log("seeded risk scenario data");
+    });
   },
 
-  async down() {
-    await OrganizationRiskScenario.destroy({ truncate: true, cascade: true });
+  async down(queryInterface) {
+    await queryInterface.bulkDelete("organization_risk_scenario", null, {});
+    await queryInterface.bulkDelete(
+      "organization_process_risk_scenario_mapping",
+      null,
+      {}
+    );
+    await queryInterface.bulkDelete(
+      "organization_risk_scenario_attribute_mapping",
+      null,
+      {}
+    );
   },
 };

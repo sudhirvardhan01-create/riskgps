@@ -116,8 +116,8 @@ class RiskScenarioService {
       data: scenarios,
       total,
       page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      limit: limit > 0 ? limit : total,
+      totalPages: limit> 0 ? Math.ceil(total / limit) : 1,
     };
   }
 

@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "color",
             },
+            order: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                field: "order_no",
+            },
             ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
         {

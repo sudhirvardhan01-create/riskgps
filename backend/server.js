@@ -26,7 +26,7 @@ app.use(
 );
 
 app.get("/api/health", (req, res) => {
-  res.send("Site is healthy");
+  res.send("RiskGPS powered by BluOcean");
 });
 
 /**

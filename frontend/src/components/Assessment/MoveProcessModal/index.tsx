@@ -13,11 +13,12 @@ import {
   Typography,
   Divider,
 } from "@mui/material";
+import { ProcessUnit } from "@/types/assessment";
 
 interface MoveProcessModalProps {
   open: boolean;
   onClose: () => void;
-  processes: { orgProcessId: string; name: string }[];
+  processes: ProcessUnit[] | undefined;
   fromProcessId: string | null;
   fromProcessName: string | null;
   onMove: (fromProcessId: string | null, toProcessId: string) => void;
@@ -79,11 +80,11 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
           onChange={(e) => setSelected(e.target.value)}
         >
           {processes
-            .filter((p) => p.orgProcessId !== fromProcessId)
+            ?.filter((p) => p.id !== fromProcessId)
             .map((process) => (
               <FormControlLabel
-                key={process.orgProcessId}
-                value={process.orgProcessId}
+                key={process.id}
+                value={process.id}
                 control={
                   <Radio
                     size="medium"
@@ -101,7 +102,7 @@ const MoveProcessModal: React.FC<MoveProcessModalProps> = ({
                     color="text.primary"
                     fontWeight={600}
                   >
-                    {process.name}
+                    {process.processName}
                   </Typography>
                 }
                 sx={{
