@@ -210,13 +210,6 @@ export default function BusinessImpactPanel({
             {/* Thresholds */}
             <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
               <TextFieldStyled
-                label="Risk Threshold (hours)"
-                type="number"
-                size="small"
-                value={thresholdHours ?? ""}
-                onChange={handleThresholdHoursChange}
-              />
-              <TextFieldStyled
                 label="Risk Threshold ($)"
                 type="number"
                 size="small"

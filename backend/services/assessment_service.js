@@ -205,6 +205,7 @@ class AssessmentService {
         assessmentProcessRiskId: uuidv4(),
         assessmentProcessId: rs.assessmentProcessId,
         assessmentId,
+        id: rs.id,
         riskScenario: rs.riskScenario,
         riskDescription: rs.riskDescription || null,
         createdBy: userId,

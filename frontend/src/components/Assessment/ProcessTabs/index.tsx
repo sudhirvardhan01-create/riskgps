@@ -15,6 +15,10 @@ export default function ProcessTabs() {
     Risk | null | undefined
   >(null);
 
+  useEffect(() => {
+    setSelectedScenario(assessment?.processes[0].risks[0]);
+  }, []);
+
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
     setSelectedScenario(assessment?.processes[newValue].risks[0]); // reset selection when switching process
