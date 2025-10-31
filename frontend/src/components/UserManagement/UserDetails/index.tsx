@@ -21,8 +21,8 @@ import { formatDate } from "@/utils/utility";
 
 export interface UserDetailsProps {
   user: UserData;
-  onEdit?: (id: string | undefined) => void;
-  onDelete?: (id: string | undefined) => void;
+  onEdit: (id: string | undefined) => void;
+  onDelete: () => void;
   onResetPassword?: (id: string | undefined) => void;
 }
 
@@ -118,10 +118,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete">
-                <IconButton
-                  onClick={() => onDelete?.(user.userId)}
-                  color="error"
-                >
+                <IconButton onClick={() => onDelete()} color="error">
                   <Delete />
                 </IconButton>
               </Tooltip>

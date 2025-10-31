@@ -107,14 +107,15 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
   const handleUpdate = async () => {
     try {
       await UserService.update(formData.userId, formData);
+      setToast({
+        open: true,
+        message: "Updated user successfully",
+        severity: "success",
+      });
+
       setTimeout(() => {
-        setToast({
-          open: true,
-          message: "Updated user successfully",
-          severity: "success",
-        });
+        onClose();
       }, 2000);
-      onClose();
     } catch (err) {
       console.log(err);
       setToast({

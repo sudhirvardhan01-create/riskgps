@@ -33,12 +33,14 @@ function UserCreatePage() {
   const handleSubmit = async () => {
     try {
       await UserService.create(formData);
-      router.push("/userManagement");
       setToast({
         open: true,
         message: `User created successfully`,
         severity: "success",
       });
+      setTimeout(() => {
+        router.push("/userManagement");
+      }, 2000);
     } catch (err) {
       console.error(err);
       setToast({
