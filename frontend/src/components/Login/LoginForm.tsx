@@ -87,7 +87,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
             color="primary.main"
             sx={{ fontSize: 32, fontWeight: 600, mb: 8 }}
           >
-            Log in to SeaHorse
+            Log in to RiskGPS
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
@@ -198,7 +198,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
 
             <Box sx={{ textAlign: "center", mt: 2.5 }}>
               <Typography variant="body2" sx={{ color: "#475467" }}>
-                Want to know more about SeaHorse?{" "}
+                Want to know more about RiskGPS?{" "}
                 <Typography
                   component="span"
                   sx={{
