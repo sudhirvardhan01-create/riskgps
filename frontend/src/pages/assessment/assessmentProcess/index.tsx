@@ -33,14 +33,7 @@ import DragDropAssets from "@/components/Assessment/DragDropAssets";
 import ProcessTabsAssets from "@/components/Assessment/ProcessTabsAssets";
 
 function BUProcessMappingPage() {
-  const {
-    assessmentId,
-    assessmentName,
-    selectedOrg,
-    selectedBU,
-    selectedProcesses,
-    setSelectedProcesses,
-  } = useAssessment();
+  const { assessment, updateAssessment } = useAssessment();
   const router = useRouter();
 
   // Stepper State
@@ -77,7 +70,10 @@ function BUProcessMappingPage() {
         const res = await getOrganization();
         setOrganisations(res.data.organizations);
 
-        const response = await getOrganizationProcess(selectedOrg, selectedBU);
+        const response = await getOrganizationProcess(
+          assessment?.orgId,
+          assessment?.businessUnitId
+        );
         response.data.forEach((item: any) => {
           item["risks"] = [];
           item["assets"] = [];
@@ -93,36 +89,39 @@ function BUProcessMappingPage() {
     fetchOrgs();
   }, []);
 
-  // Update businessUnits whenever selectedOrg changes
+  // Update businessUnits whenever assessment?.orgId changes
   useEffect(() => {
-    if (!selectedOrg) {
+    if (!assessment?.orgId) {
       setBusinessUnits([]);
       return;
     }
 
-    const org = organisations.find((o) => o.organizationId === selectedOrg);
+    const org = organisations.find(
+      (o) => o.organizationId === assessment?.orgId
+    );
     setBusinessUnits(org?.businessUnits || []);
-  }, [selectedOrg, organisations]);
+  }, [assessment?.orgId, organisations]);
 
   const prepareRiskPayload = () => {
-    const obj = selectedProcesses.flatMap((process) =>
+    const obj = assessment?.processes.flatMap((process) =>
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
-        riskScenarioName: risk.name,
-        riskScenarioDesc: risk.description,
+        id: risk.id,
+        riskScenario: risk.riskScenario,
+        riskDescription: risk.riskDescription,
       }))
     );
     return obj;
   };
 
   const prepareRiskTaxonomyPayload = () => {
-    const obj = selectedProcesses.flatMap((process) =>
+    const obj = assessment?.processes.flatMap((process) =>
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
         assessmentProcessRiskId: risk.assessmentProcessRiskId ?? "",
-        riskScenarioName: risk.name,
-        riskScenarioDesc: risk.description,
-        thresholdHours: risk.thresholdHours,
+        id: risk.id,
+        riskScenario: risk.riskScenario,
+        riskDescription: risk.riskDescription,
         thresholdCost: risk.thresholdCost,
         taxonomy: risk.taxonomy,
       }))
@@ -131,11 +130,11 @@ function BUProcessMappingPage() {
   };
 
   const prepareAssetPayload = () => {
-    const obj = selectedProcesses.flatMap((process) =>
+    const obj = assessment?.processes.flatMap((process) =>
       process.assets.map((asset) => ({
         assessmentProcessId: process.assessmentProcessId,
-        assetName: asset.name,
-        assetDesc: asset.description,
+        id: asset.id,
+        applicationName: asset.applicationName,
         assetCategory: asset.assetCategory,
       }))
     );
@@ -159,10 +158,12 @@ function BUProcessMappingPage() {
       switch (activeStep) {
         case 0:
           const res = await saveAssessmentProcess({
-            id: assessmentId,
-            processes: selectedProcesses.map((item) => {
+            id: assessment?.assessmentId,
+            processes: assessment?.processes.map((item) => {
               return {
-                processName: item.name,
+                id: item.id,
+                processName: item.processName,
+                processDescription: item.processDescription,
                 order: item.order,
               };
             }),
@@ -170,32 +171,30 @@ function BUProcessMappingPage() {
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
           });
 
-          const updatedProcesses = selectedProcesses.map((item) => {
-            const match = res.processes.find(
-              (obj: any) => obj.processName === item.name
-            );
+          const updatedProcesses = assessment?.processes.map((item) => {
+            const match = res.processes.find((obj: any) => obj.id === item.id);
             return {
               ...item,
               assessmentProcessId: match?.assessmentProcessId ?? null, // add safely
             };
           });
 
-          setSelectedProcesses(updatedProcesses);
+          updateAssessment({ processes: updatedProcesses });
           break;
 
         case 1:
           const riskScenarios = prepareRiskPayload();
           const response = await saveAssessmentRisk({
-            assessmentId,
+            assessmentId: assessment?.assessmentId,
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios,
           });
 
-          const updatedProcessesRisk = selectedProcesses.map((process) => ({
+          const updatedProcessesRisk = assessment?.processes.map((process) => ({
             ...process,
             risks: process.risks.map((risk) => {
               const match = response.riskScenarios.find(
-                (obj: any) => obj.riskScenarioName === risk.name
+                (obj: any) => obj.id === risk.id
               );
 
               return {
@@ -205,50 +204,58 @@ function BUProcessMappingPage() {
             }),
           }));
 
-          setSelectedProcesses(updatedProcessesRisk);
+          updateAssessment({ processes: updatedProcessesRisk });
           break;
 
         case 2:
           const riskTaxonomies = prepareRiskTaxonomyPayload();
           saveAssessmentRiskTaxonomy({
-            assessmentId,
+            assessmentId: assessment?.assessmentId,
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
-
-          console.log(selectedProcesses);
           break;
 
         case 3:
           const assets = prepareAssetPayload();
           const result = await saveAssessmentAssets({
-            assessmentId,
+            assessmentId: assessment?.assessmentId,
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             assets,
           });
 
-          const updatedProcessesAsset = selectedProcesses.map((process) => ({
-            ...process,
-            assets: process.assets.map((asset) => {
-              const match = result.assets.find(
-                (obj: any) => obj.assetName === asset.name
-              );
+          const updatedProcessesAsset = assessment?.processes.map(
+            (process) => ({
+              ...process,
+              assets: process.assets.map((asset) => {
+                const match = result.assets.find(
+                  (obj: any) => obj.id === asset.id
+                );
 
-              return {
-                ...asset,
-                assessmentProcessAssetId:
-                  match?.assessmentProcessAssetId ?? null,
-              };
-            }),
-          }));
+                return {
+                  ...asset,
+                  assessmentProcessAssetId:
+                    match?.assessmentProcessAssetId ?? null,
+                };
+              }),
+            })
+          );
 
-          setSelectedProcesses(updatedProcessesAsset);
+          updateAssessment({ processes: updatedProcessesAsset });
           break;
       }
 
       setActiveStep((prev) => prev + 1);
       setActiveTab(0);
     }
+  };
+
+  const getDisableCondition = (activeStep: number) => {
+    switch (activeStep) {
+      case 0:
+        return assessment?.processes && assessment?.processes.length <= 0;
+    }
+    return false;
   };
 
   return (
@@ -267,16 +274,17 @@ function BUProcessMappingPage() {
           >
             {/* Top Navigation Bar */}
             <TopBar
-              title={assessmentName}
-              runId="1004"
+              title={assessment?.assessmentName}
+              runId={assessment?.runId}
               org={
                 organisations.find(
-                  (item) => item.organizationId === selectedOrg
+                  (item) => item.organizationId === assessment?.orgId
                 )?.name || ""
               }
               bu={
                 businessUnits.find(
-                  (item) => item.orgBusinessUnitId === selectedBU
+                  (item) =>
+                    item.orgBusinessUnitId === assessment?.businessUnitId
                 )?.name || ""
               }
               onBack={() => router.push("/assessment")}
@@ -298,16 +306,12 @@ function BUProcessMappingPage() {
               {activeStep === 0 && activeTab === 0 && (
                 <SectionProcesses
                   processes={processes}
-                  selected={selectedProcesses}
-                  onSelectionChange={setSelectedProcesses}
+                  selected={assessment?.processes || []}
                 />
               )}
 
               {activeStep === 0 && activeTab === 1 && (
-                <AssignOrder
-                  processes={selectedProcesses}
-                  onOrderChange={setSelectedProcesses}
-                />
+                <AssignOrder processes={assessment?.processes || []} />
               )}
 
               {activeStep === 1 && <DragDropRiskScenarios />}
@@ -332,7 +336,7 @@ function BUProcessMappingPage() {
               e.stopPropagation();
               handleSaveContinue("in_progress");
             }}
-            activeStep={activeStep}
+            disableButton={getDisableCondition(activeStep)}
           />
         </Box>
       )}

@@ -12,7 +12,7 @@ import {
 import { Asset } from "@/types/assessment";
 
 interface AssetListProps {
-  assets: Asset[];
+  assets: Asset[] | undefined;
   onSelect: (asset: Asset) => void;
   selectedAsset: Asset | undefined;
 }
@@ -25,8 +25,8 @@ export default function AssetStrength({
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({});
 
-  const filtered = assets.filter((s) =>
-    s.description.toLowerCase().includes(search.toLowerCase())
+  const filtered = assets?.filter((s) =>
+    s.applicationName.toLowerCase().includes(search.toLowerCase())
   );
 
   const toggleExpand = (idx: number) => {
@@ -42,7 +42,7 @@ export default function AssetStrength({
       }}
     >
       <Typography variant="body1" fontWeight={550} sx={{ m: 2 }}>
-        Assets ({filtered.length}/{assets.length})
+        Assets ({filtered?.length}/{assets?.length})
       </Typography>
 
       <Box
@@ -74,14 +74,14 @@ export default function AssetStrength({
       </Box>
 
       <List>
-        {filtered.map((s, idx) => {
+        {filtered?.map((s, idx) => {
           const isExpanded = expanded[idx];
           const displayText =
-            s.description.length > 90 && !isExpanded
-              ? s.description.slice(0, 90) + "..."
-              : s.description;
+            s.applicationName.length > 90 && !isExpanded
+              ? s.applicationName.slice(0, 90) + "..."
+              : s.applicationName;
 
-          const isSelected = selectedAsset?.orgAssetId === s.orgAssetId;
+          const isSelected = selectedAsset?.id === s.id;
 
           return (
             <ListItemButton
@@ -105,7 +105,7 @@ export default function AssetStrength({
                     sx={{ color: isSelected ? "text.primary" : "#91939A" }}
                   >
                     {displayText}{" "}
-                    {s.description.length > 90 && (
+                    {s.applicationName.length > 90 && (
                       <Typography
                         component="span"
                         variant="body2"

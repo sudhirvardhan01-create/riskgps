@@ -14,10 +14,10 @@ export default function BusinessImpactPanel({
   selectedScenario,
   onUpdateScenario,
 }: {
-  selectedScenario: Risk | null;
+  selectedScenario: Risk | null | undefined;
   onUpdateScenario: (risk: Risk) => void;
 }) {
-  const { selectedOrg } = useAssessment();
+  const { assessment } = useAssessment();
 
   const [thresholdHours, setThresholdHours] = useState<number | undefined>();
   const [thresholdCost, setThresholdCost] = useState<number | undefined>();
@@ -29,7 +29,7 @@ export default function BusinessImpactPanel({
   // fetch taxonomies
   useEffect(() => {
     const getTaxonomies = async () => {
-      const res = await getOrganizationTaxonomy(selectedOrg);
+      const res = await getOrganizationTaxonomy(assessment?.orgId);
       setTaxonomies(res.data);
 
       // initialize taxonomyValue
@@ -43,12 +43,11 @@ export default function BusinessImpactPanel({
       );
     };
     getTaxonomies();
-  }, [selectedOrg]);
+  }, [assessment?.orgId]);
 
   // Reset form when selectedScenario changes
   useEffect(() => {
     if (selectedScenario) {
-      setThresholdHours(selectedScenario.thresholdHours ?? undefined);
       setThresholdCost(selectedScenario.thresholdCost ?? undefined);
 
       if (selectedScenario.taxonomy && selectedScenario.taxonomy.length > 0) {
@@ -57,7 +56,7 @@ export default function BusinessImpactPanel({
           selectedScenario.taxonomy.map((t: any) => ({
             taxonomyId: t.taxonomyId,
             name: t.name ?? "",
-            orgId: t.orgId ?? selectedOrg,
+            orgId: t.orgId ?? assessment?.orgId,
             severityDetails: t.severityDetails ?? {},
           }))
         );
@@ -71,7 +70,7 @@ export default function BusinessImpactPanel({
     }
 
     setIsInternalChange(false);
-  }, [selectedScenario, selectedOrg]);
+  }, [selectedScenario, assessment?.orgId]);
 
   // Push updates back into parent
   useEffect(() => {
@@ -79,13 +78,11 @@ export default function BusinessImpactPanel({
 
     const updatedScenario: Risk = {
       ...selectedScenario,
-      thresholdHours,
       thresholdCost,
       taxonomy: taxonomyValue,
     };
 
     const isDifferent =
-      updatedScenario.thresholdHours !== selectedScenario.thresholdHours ||
       updatedScenario.thresholdCost !== selectedScenario.thresholdCost ||
       JSON.stringify(updatedScenario.taxonomy) !==
         JSON.stringify(selectedScenario.taxonomy);
@@ -188,7 +185,7 @@ export default function BusinessImpactPanel({
         fontWeight={550}
         sx={{ pb: 2 }}
       >
-        {selectedScenario.description}
+        {selectedScenario.riskScenario}
       </Typography>
 
       <TabContext value={value}>

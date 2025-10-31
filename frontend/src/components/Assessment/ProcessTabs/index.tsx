@@ -8,38 +8,40 @@ import { useAssessment } from "@/context/AssessmentContext";
 import { Risk } from "@/types/assessment";
 
 export default function ProcessTabs() {
-  const { selectedProcesses, setSelectedProcesses } = useAssessment();
+  const { assessment, updateAssessment } = useAssessment();
 
   const [currentTab, setCurrentTab] = useState(0);
-  const [selectedScenario, setSelectedScenario] = useState<Risk | null>(null);
+  const [selectedScenario, setSelectedScenario] = useState<
+    Risk | null | undefined
+  >(null);
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedScenario(selectedProcesses[newValue].risks[0]); // reset selection when switching process
+    setSelectedScenario(assessment?.processes[newValue].risks[0]); // reset selection when switching process
   };
 
   const handleUpdateScenario = (updatedScenario: Risk) => {
     // update inside context
-    const updatedProcesses = selectedProcesses.map((p, idx) => {
+    const updatedProcesses = assessment?.processes.map((p, idx) => {
       if (idx !== currentTab) return p;
 
       return {
         ...p,
         risks: p.risks.map((r: Risk) =>
-          r.orgRiskId === updatedScenario.orgRiskId ? updatedScenario : r
+          r.id === updatedScenario.id ? updatedScenario : r
         ),
       };
     });
 
-    setSelectedProcesses(updatedProcesses); // push back to context
+    updateAssessment({ processes: updatedProcesses }); // push back to context
     setSelectedScenario(updatedScenario);
   };
 
-  const activeProcess = selectedProcesses[currentTab];
+  const activeProcess = assessment?.processes[currentTab];
 
   useEffect(() => {
-    if (selectedProcesses.length > 0) {
-      setSelectedScenario(selectedProcesses[0].risks[0]);
+    if (assessment?.processes && assessment?.processes.length > 0) {
+      setSelectedScenario(assessment?.processes[0].risks[0]);
     }
   }, []);
 
@@ -69,14 +71,14 @@ export default function ProcessTabs() {
         variant="scrollable"
         scrollButtons
       >
-        {selectedProcesses.map((p, idx) => (
+        {assessment?.processes.map((p, idx) => (
           <Tab
             key={idx}
             label={
               <Typography
                 variant="body2"
                 fontWeight={550}
-              >{`${p.name} (${p.risks.length})`}</Typography>
+              >{`${p.processName} (${p.risks.length})`}</Typography>
             }
             sx={{
               border:
@@ -98,7 +100,7 @@ export default function ProcessTabs() {
       <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
         {/* Left Panel: Risk Scenarios */}
         <RiskScenarioList
-          scenarios={activeProcess.risks}
+          scenarios={activeProcess?.risks}
           onSelect={setSelectedScenario}
           selectedScenario={selectedScenario}
         />

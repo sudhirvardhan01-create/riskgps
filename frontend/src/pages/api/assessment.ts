@@ -9,33 +9,34 @@ interface AssessmentData {
   businessUnitId?: string;
   businessUnitName?: string;
   businessUnitDesc?: string;
-  runId: string;
   userId: string;
 }
 
 interface AssessmentProcess {
-  id: string;
-  processes: Process[];
+  id: string | undefined;
+  processes: Process[] | undefined;
   status: string;
   userId: string;
 }
 
 interface Process {
+  id: string;
   processName: string;
+  processDescription: string;
   order: number | undefined;
 }
 
 interface AssessmentRisk {
-  assessmentId: string;
+  assessmentId: string | undefined;
   userId: string;
-  riskScenarios: RiskScenarios[];
+  riskScenarios: RiskScenarios[] | undefined;
 }
 
 interface RiskScenarios {
   assessmentProcessId: string;
-  riskScenarioName: string;
-  riskScenarioDesc: string;
-  thresholdHours?: number;
+  id: string;
+  riskScenario: string;
+  riskDescription: string;
   thresholdCost?: number;
   taxonomy?: Taxonomy[];
 }

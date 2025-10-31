@@ -37,24 +37,21 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
   onDeleteBulk,
   onMoveSelected,
 }) => {
-  const { setNodeRef } = useDroppable({ id: process.orgProcessId });
+  const { setNodeRef } = useDroppable({ id: process.id });
 
   const allSelected =
     process.risks.length > 0 &&
     process.risks.every(
-      (r) => selectedRisks.length > 0 && selectedRisks.includes(r.orgRiskId)
+      (r) => selectedRisks.length > 0 && selectedRisks.includes(r.id)
     );
 
   const toggleSelectAll = () => {
     if (allSelected) {
       setSelectedRisks((prev) =>
-        prev.filter((id) => !process.risks.find((r) => r.orgRiskId === id))
+        prev.filter((id) => !process.risks.find((r) => r.id === id))
       );
     } else {
-      setSelectedRisks((prev) => [
-        ...prev,
-        ...process.risks.map((r) => r.orgRiskId),
-      ]);
+      setSelectedRisks((prev) => [...prev, ...process.risks.map((r) => r.id)]);
     }
   };
 
@@ -89,7 +86,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
           fontWeight={600}
           sx={{ flexGrow: 1 }}
         >
-          {process.name} ({process.risks.length})
+          {process.processName} ({process.risks.length})
         </Typography>
       </AccordionSummary>
       <AccordionDetails ref={setNodeRef} sx={{ p: 2 }}>
@@ -122,7 +119,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                   startIcon={<FileMoveIcon height={20} width={20} />}
                   sx={{ textTransform: "none" }}
                   onClick={() =>
-                    onMoveSelected(process.orgProcessId, process.name)
+                    onMoveSelected(process.id, process.processName)
                   }
                 >
                   Move Selected to Another Process
@@ -137,7 +134,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                   }
                   color="error"
                   sx={{ textTransform: "none" }}
-                  onClick={() => onDeleteBulk(process.orgProcessId)}
+                  onClick={() => onDeleteBulk(process.id)}
                 >
                   Remove selected items
                 </Button>
@@ -165,7 +162,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
         >
           {process.risks.map((risk) => (
             <Paper
-              key={risk.orgRiskId}
+              key={risk.id}
               sx={{
                 bgcolor: "#fff",
                 borderRadius: "8px",
@@ -197,8 +194,8 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                       pt: 1.5,
                       pb: 1,
                     }}
-                    checked={selectedRisks.includes(risk.orgRiskId)}
-                    onChange={() => toggleSelect(risk.orgRiskId)}
+                    checked={selectedRisks.includes(risk.id)}
+                    onChange={() => toggleSelect(risk.id)}
                   />
                   <Box
                     sx={{
@@ -210,8 +207,8 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => {
-                        toggleSelect(risk.orgRiskId);
-                        onMoveSelected(process.orgProcessId, process.name);
+                        toggleSelect(risk.id);
+                        onMoveSelected(process.id, process.processName);
                       }}
                     >
                       <FileMoveIcon height={16} width={16} />
@@ -219,7 +216,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => {
-                        onDelete(process.orgProcessId, risk.orgRiskId);
+                        onDelete(process.id, risk.id);
                       }}
                     >
                       <DeleteOutlineIcon
@@ -237,9 +234,9 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
                     pb: 1.5,
                   }}
                 >
-                  {risk?.description?.length > 60
-                    ? risk.description.substring(0, 60) + " read more"
-                    : risk.description}
+                  {risk?.riskScenario?.length > 60
+                    ? risk.riskScenario.substring(0, 60) + " read more"
+                    : risk.riskScenario}
                 </Box>
               </Stack>
             </Paper>
