@@ -2,14 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Box } from "@mui/material";
 import { useRouter } from "next/router";
 import ToastComponent from "@/components/ToastComponent";
-import ConfirmDialog from "@/components/ConfirmDialog";
 import { UserData } from "@/types/user";
-import {
-  getOrganizations,
-  transformApiResponseToFrontend,
-  deleteOrganization,
-} from "@/services/organizationService";
-import Cookies from "js-cookie";
 import UserHeader from "@/components/UserManagement/UserHeader";
 import UserTableHeader from "@/components/UserManagement/UserTableHeader";
 import UserList from "@/components/UserManagement/UserList";
@@ -26,14 +19,10 @@ export default function UserManagementContainer() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchPattern, setSearchPattern] = useState<string>("");
   const [usersData, setUsersData] = useState<UserData[]>([]);
-
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
-
-  // modals / confirm / toast
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  //toast
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -62,45 +51,6 @@ export default function UserManagementContainer() {
   useEffect(() => {
     loadList();
   }, [loadList, refreshTrigger]);
-
-  // Org Delete function
-  // const handleDelete = async () => {
-  //   try {
-  //     if (!selectedOrganization?.id) throw new Error("Invalid selection");
-
-  //     // Get current user ID from cookies
-  //     const userCookie = Cookies.get("user");
-  //     if (!userCookie) {
-  //       throw new Error("User not found. Please login again.");
-  //     }
-
-  //     const user = JSON.parse(userCookie);
-  //     const userId = user.id;
-  //     if (!userId) {
-  //       throw new Error("User ID not found. Please login again.");
-  //     }
-
-  //     // Call the soft delete API
-  //     await deleteOrganization(selectedOrganization.id, userId);
-
-  //     setIsDeleteConfirmOpen(false);
-  //     setSelectedOrganization(null);
-  //     setRefreshTrigger((p) => p + 1);
-  //     setToast({
-  //       open: true,
-  //       message: `Organization ${selectedOrganization?.name} deleted successfully`,
-  //       severity: "success",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     setToast({
-  //       open: true,
-  //       message:
-  //         err instanceof Error ? err.message : "Failed to delete organization",
-  //       severity: "error",
-  //     });
-  //   }
-  // };
 
   //Update Status Only
   const handleUpdateStatus = async (id: string, isActive: boolean) => {
@@ -156,17 +106,6 @@ export default function UserManagementContainer() {
 
   return (
     <>
-      {/* Org Delete Confirm dialogs */}
-      {/* <ConfirmDialog
-        open={isDeleteConfirmOpen}
-        onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Confirm Organization Deletion?"
-        description={`Are you sure you want to delete ${selectedOrganization?.name}? All associated data will be removed from the system.`}
-        onConfirm={handleDelete}
-        cancelText="Cancel"
-        confirmText="Yes, Delete"
-      /> */}
-
       {/* Page content */}
       <Box
         sx={{
