@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -23,6 +23,7 @@ import { constants } from "@/utils/constants";
 import RiskTaxonomy from './RiskTaxonomy';
 import Scales from './Scales';
 import { tooltips } from "@/utils/tooltips";
+import { getOrganizationRisks, getOrganizationAssets } from "@/pages/api/organization";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -103,11 +104,57 @@ function RepositoryCard({ name, description, icon, href, count }: RepositoryCard
 }
 
 function Repository() {
+  const router = useRouter();
+  const { orgId } = router.query;
   const [repositoryTabValue, setRepositoryTabValue] = useState(0);
+  const [riskScenarioCount, setRiskScenarioCount] = useState(0);
+  const [assetCount, setAssetCount] = useState(0);
 
   const handleRepositoryTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setRepositoryTabValue(newValue);
   };
+
+  // Fetch risk scenarios count from organization API
+  useEffect(() => {
+    const fetchRiskScenarioCount = async () => {
+      if (!orgId || typeof orgId !== 'string') return;
+      
+      try {
+        const response = await getOrganizationRisks(orgId);
+        if (response?.data && Array.isArray(response.data)) {
+          setRiskScenarioCount(response.data.length);
+        } else {
+          setRiskScenarioCount(0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch risk scenarios count:", err);
+        setRiskScenarioCount(0);
+      }
+    };
+
+    fetchRiskScenarioCount();
+  }, [orgId]);
+
+  // Fetch assets count from organization API
+  useEffect(() => {
+    const fetchAssetCount = async () => {
+      if (!orgId || typeof orgId !== 'string') return;
+      
+      try {
+        const response = await getOrganizationAssets(orgId);
+        if (response?.data && Array.isArray(response.data)) {
+          setAssetCount(response.data.length);
+        } else {
+          setAssetCount(0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch assets count:", err);
+        setAssetCount(0);
+      }
+    };
+
+    fetchAssetCount();
+  }, [orgId]);
 
   const repositoryCards = [
     {
@@ -115,7 +162,7 @@ function Repository() {
       description: constants.libRiskScenarioDescription,
       icon: <LibraryCardIcon height={24} width={24} />,
       href: "/riskScenarios",
-      count: 0
+      count: riskScenarioCount
     },
     {
       name: constants.libThreatTitle,
@@ -129,7 +176,7 @@ function Repository() {
       description: constants.libAssetDescription,
       icon: <AssetCardIcon height={24} width={24} />,
       href: "/assets",
-      count: 0
+      count: assetCount
     },
     {
       name: constants.libControlTitle,

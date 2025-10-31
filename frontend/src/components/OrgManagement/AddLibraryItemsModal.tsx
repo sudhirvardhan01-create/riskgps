@@ -15,11 +15,20 @@ import {
   FormControlLabel,
   CircularProgress,
   Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Tooltip,
 } from "@mui/material";
 import {
   Close,
   Search,
 } from "@mui/icons-material";
+import { useRouter } from "next/router";
+import { getBusinessUnits } from "@/services/businessUnitService";
+import { BusinessUnitData } from "@/types/business-unit";
+import { getOrganizationProcess } from "@/pages/api/organization";
 
 // Generic interfaces for library items
 interface LibraryItem {
@@ -41,6 +50,9 @@ interface AddLibraryItemsModalProps {
   service: LibraryService;
   itemType: 'risk-scenarios' | 'processes' | 'assets' | 'controls' | 'threats';
   alreadyAddedIds?: (string | number)[];
+  orgItems?: any[]; // Organization items for matching (for risk-scenarios)
+  orgId?: string | string[]; // Organization ID for fetching business units
+  initialBusinessUnitId?: string | string[]; // Initial business unit ID to pre-select (for processes)
 }
 
 const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
@@ -51,6 +63,9 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
   service,
   itemType,
   alreadyAddedIds = [],
+  orgItems = [],
+  orgId,
+  initialBusinessUnitId,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
@@ -58,6 +73,12 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([]);
+  const [selectedBusinessUnitId, setSelectedBusinessUnitId] = useState<string>("");
+  const [loadingBusinessUnits, setLoadingBusinessUnits] = useState(false);
+  const [cachedOrgProcesses, setCachedOrgProcesses] = useState<any[]>([]);
+  const router = useRouter();
 
   const fetchItems = async () => {
     try {
@@ -73,12 +94,55 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     }
   };
 
-  // Reset selections when modal opens to prepare for pre-selection
+  // Fetch business units when modal opens and itemType is 'processes'
+  useEffect(() => {
+    if (!open || itemType !== 'processes' || !orgId || typeof orgId !== 'string') {
+      setBusinessUnits([]);
+      setSelectedBusinessUnitId("");
+      return;
+    }
+
+    const fetchBusinessUnits = async () => {
+      try {
+        setLoadingBusinessUnits(true);
+        const data = await getBusinessUnits(orgId);
+        setBusinessUnits(data);
+        
+        // Pre-select initial business unit if provided
+        if (initialBusinessUnitId && typeof initialBusinessUnitId === 'string') {
+          setSelectedBusinessUnitId(initialBusinessUnitId);
+        } else if (data.length > 0 && !initialBusinessUnitId) {
+          // If no initial business unit provided, don't auto-select
+          // User must select manually
+          setSelectedBusinessUnitId("");
+        }
+      } catch (err) {
+        console.error("Error fetching business units:", err);
+        setBusinessUnits([]);
+      } finally {
+        setLoadingBusinessUnits(false);
+      }
+    };
+
+    fetchBusinessUnits();
+  }, [open, itemType, orgId, initialBusinessUnitId]);
+
+  // Reset selections and initialization flag when modal opens/closes
   useEffect(() => {
     if (open) {
       setSelectedItems([]);
+      setHasInitialized(false);
+      setCachedOrgProcesses([]);
+      if (itemType !== 'processes') {
+        setSelectedBusinessUnitId("");
+      }
+    } else {
+      // Reset when modal closes
+      setHasInitialized(false);
+      setSelectedBusinessUnitId("");
+      setCachedOrgProcesses([]);
     }
-  }, [open]);
+  }, [open, itemType]);
 
   // Handle search with debouncing and initial fetch when modal opens
   useEffect(() => {
@@ -91,20 +155,136 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     return () => clearTimeout(timeoutId);
   }, [searchTerm, open]);
 
-  // Pre-select already added items when modal opens and items are loaded
+  // Fetch processes for selected business unit when it changes (for processes type)
   useEffect(() => {
-    if (open && items.length > 0 && alreadyAddedIds.length > 0) {
-      // Filter alreadyAddedIds to only include those that exist in the current items list
-      const itemsToSelect = items
+    if (
+      itemType !== 'processes' ||
+      !open ||
+      !selectedBusinessUnitId ||
+      !orgId ||
+      typeof orgId !== 'string' ||
+      typeof selectedBusinessUnitId !== 'string'
+    ) {
+      setCachedOrgProcesses([]);
+      return;
+    }
+
+    const fetchProcessesForBusinessUnit = async () => {
+      try {
+        const response = await getOrganizationProcess(orgId, selectedBusinessUnitId, 0, -1);
+        const processesData = response?.data?.data || response?.data || [];
+
+        if (Array.isArray(processesData)) {
+          setCachedOrgProcesses(processesData);
+        } else {
+          setCachedOrgProcesses([]);
+        }
+      } catch (err: any) {
+        // If error is "No processes found", treat it as empty state
+        if (err.message?.toLowerCase().includes('no processes found')) {
+          setCachedOrgProcesses([]);
+        } else {
+          console.error("Error fetching processes for business unit:", err);
+          setCachedOrgProcesses([]);
+        }
+      }
+    };
+
+    fetchProcessesForBusinessUnit();
+  }, [selectedBusinessUnitId, itemType, open, orgId]);
+
+  // Match cached processes with library items whenever items change
+  useEffect(() => {
+    if (
+      itemType !== 'processes' ||
+      !open ||
+      items.length === 0 ||
+      cachedOrgProcesses.length === 0
+    ) {
+      if (itemType === 'processes' && open && items.length > 0 && cachedOrgProcesses.length === 0) {
+        // Clear selection if no processes found for business unit
+        setSelectedItems([]);
+      }
+      return;
+    }
+
+    // Create a Set of org process names for quick lookup
+    const orgProcessNames = new Set(
+      cachedOrgProcesses.map((process: any) => (process.processName || '').toLowerCase().trim())
+    );
+
+    // Match library items with org processes by processName
+    const itemsToSelect = items
+      .filter(item => {
+        const libraryProcessName = (item.name || '').toLowerCase().trim();
+        return libraryProcessName && orgProcessNames.has(libraryProcessName);
+      })
+      .map(item => item.id!)
+      .filter((id): id is string | number => id !== undefined);
+
+    if (itemsToSelect.length > 0) {
+      setSelectedItems(itemsToSelect);
+    } else {
+      setSelectedItems([]);
+    }
+  }, [cachedOrgProcesses, items, itemType, open]);
+
+  // Pre-select already added items when modal opens and items are loaded (only once)
+  useEffect(() => {
+    if (!open || items.length === 0 || hasInitialized) return;
+
+    // Skip pre-selection for processes - it's handled by the business unit selection effect above
+    if (itemType === 'processes') {
+      setHasInitialized(true);
+      return;
+    }
+
+    let itemsToSelect: (string | number)[] = [];
+
+    // For risk-scenarios, match with org items by riskScenario text
+    if (itemType === 'risk-scenarios' && orgItems.length > 0) {
+      // Create a Set of org risk scenario texts for quick lookup
+      const orgRiskScenarioTexts = new Set(
+        orgItems.map((orgItem: any) => (orgItem.riskScenario || '').toLowerCase().trim())
+      );
+
+      // Match library items with org items by riskScenario text
+      itemsToSelect = items
+        .filter(item => {
+          const libraryRiskScenarioText = (item.name || '').toLowerCase().trim();
+          return libraryRiskScenarioText && orgRiskScenarioTexts.has(libraryRiskScenarioText);
+        })
+        .map(item => item.id!)
+        .filter((id): id is string | number => id !== undefined);
+    } else if (itemType === 'assets' && orgItems.length > 0) {
+      // For assets, match with org items by applicationName text
+      const orgAssetNames = new Set(
+        orgItems.map((orgItem: any) => (orgItem.applicationName || '').toLowerCase().trim())
+      );
+
+      // Match library items with org items by applicationName text
+      itemsToSelect = items
+        .filter(item => {
+          const libraryAssetName = (item.name || '').toLowerCase().trim();
+          return libraryAssetName && orgAssetNames.has(libraryAssetName);
+        })
+        .map(item => item.id!)
+        .filter((id): id is string | number => id !== undefined);
+    } else if (alreadyAddedIds.length > 0) {
+      // For other item types or if alreadyAddedIds is provided, use direct ID matching
+      itemsToSelect = items
         .filter(item => item.id && alreadyAddedIds.includes(item.id))
         .map(item => item.id!)
         .filter((id): id is string | number => id !== undefined);
-      
-      if (itemsToSelect.length > 0) {
-        setSelectedItems(itemsToSelect);
-      }
     }
-  }, [open, items, alreadyAddedIds]);
+    
+    if (itemsToSelect.length > 0) {
+      setSelectedItems(itemsToSelect);
+    }
+    
+    // Mark as initialized so we don't run this again
+    setHasInitialized(true);
+  }, [open, items, alreadyAddedIds, orgItems, itemType, hasInitialized]);
 
   const handleItemToggle = (itemId: string | number) => {
     setSelectedItems(prev =>
@@ -118,7 +298,14 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     const selectedItemObjects = items.filter(item => 
       item.id && selectedItems.includes(item.id)
     );
-    onAdd(selectedItemObjects);
+    
+    // For processes, pass businessUnitId along with selected items
+    if (itemType === 'processes') {
+      onAdd({ items: selectedItemObjects, businessUnitId: selectedBusinessUnitId } as any);
+    } else {
+      onAdd(selectedItemObjects);
+    }
+    
     // Note: Don't clear selectedItems here - they will be reset when modal reopens
     // This way, if the user opens the modal again, previously added items are pre-selected
     setSearchTerm("");
@@ -246,6 +433,119 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
           {title}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {itemType === 'processes' && (
+            <>
+              {loadingBusinessUnits ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 180 }}>
+                  <CircularProgress size={16} sx={{ color: "#04139A" }} />
+                  <Typography variant="body2" sx={{ fontSize: "12px", color: "#484848" }}>
+                    Loading...
+                  </Typography>
+                </Box>
+              ) 
+              // : businessUnits.length === 0 ? (
+              //   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              //     <Typography variant="body2" sx={{ fontSize: "12px", color: "#484848" }}>
+              //       Create business unit to select process
+              //     </Typography>
+              //     <Button
+              //       onClick={() => {
+              //         if (orgId && typeof orgId === 'string') {
+              //           onClose();
+              //           router.push(`/orgManagement/${orgId}?tab=2`);
+              //         }
+              //       }}
+              //       variant="contained"
+              //       size="small"
+              //       sx={{
+              //         borderRadius: "4px",
+              //         backgroundColor: "#04139A",
+              //         color: "#FFFFFF",
+              //         textTransform: "none",
+              //         fontWeight: 500,
+              //         fontSize: "12px",
+              //         px: 2,
+              //         py: 0.5,
+              //         "&:hover": {
+              //           backgroundColor: "#030d6b",
+              //         },
+              //       }}
+              //     >
+              //       Go to Business Units
+              //     </Button>
+              //   </Box>
+              // ) 
+              : (
+                <FormControl
+                  size="small"
+                  sx={{
+                    minWidth: 180,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "4px",
+                      backgroundColor: "#FFFFFF",
+                      fontSize: "12px",
+                      height: "32px",
+                      "& fieldset": {
+                        borderColor: "#E7E7E8",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#04139A",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#04139A",
+                      },
+                    },
+                  }}
+                >
+                  <InputLabel
+                    id="business-unit-label"
+                    sx={{
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      color: "#484848",
+                      "&.Mui-focused": {
+                        color: "#04139A",
+                      },
+                    }}
+                  >
+                    Business Unit
+                  </InputLabel>
+                  <Select
+                    labelId="business-unit-label"
+                    value={selectedBusinessUnitId}
+                    onChange={(e) => setSelectedBusinessUnitId(e.target.value as string)}
+                    label="Business Unit"
+                    disabled={loadingBusinessUnits}
+                    sx={{
+                      fontSize: "12px",
+                      "& .MuiSelect-select": {
+                        py: 0.5,
+                        px: 1.5,
+                      },
+                    }}
+                    renderValue={(val) => {
+                      if (!val) return "Select Business Unit";
+                      const bu = businessUnits.find((b) => b.id === val);
+                      return bu?.businessUnitName || "Select Business Unit";
+                    }}
+                  >
+                    <MenuItem value="">
+                      <Typography variant="body2" sx={{ fontSize: "12px", color: "#9E9FA5" }}>
+                        Select Business Unit
+                      </Typography>
+                    </MenuItem>
+                    {businessUnits.map((bu) => (
+                      <MenuItem key={bu.id} value={bu.id}>
+                        <Typography variant="body2" sx={{ fontSize: "12px" }}>
+                          {bu.businessUnitName}
+                        </Typography>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            </>
+          )}
           <Button
             onClick={handleSelectAll}
             variant="outlined"
@@ -329,7 +629,39 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
         </Box>
 
         {/* Items Grid */}
-        {loading ? (
+        {
+        // itemType === 'processes' && !loadingBusinessUnits && businessUnits.length === 0 ? (
+        //   <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", p: 4, gap: 2 }}>
+        //     <Typography variant="body1" sx={{ fontSize: "14px", color: "#484848", textAlign: "center" }}>
+        //       No business units available. Please create a business unit to select processes.
+        //     </Typography>
+        //     <Button
+        //       onClick={() => {
+        //         if (orgId && typeof orgId === 'string') {
+        //           onClose();
+        //           router.push(`/orgManagement/${orgId}?tab=2`);
+        //         }
+        //       }}
+        //       variant="contained"
+        //       sx={{
+        //         borderRadius: "4px",
+        //         backgroundColor: "#04139A",
+        //         color: "#FFFFFF",
+        //         textTransform: "none",
+        //         fontWeight: 500,
+        //         fontSize: "14px",
+        //         px: 3,
+        //         py: 1,
+        //         "&:hover": {
+        //           backgroundColor: "#030d6b",
+        //         },
+        //       }}
+        //     >
+        //       Go to Business Units
+        //     </Button>
+        //   </Box>
+        // ) : 
+        loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
             <CircularProgress sx={{ color: "#04139A" }} />
           </Box>
@@ -502,28 +834,51 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
         >
           Cancel
         </Button>
-        <Button
-          onClick={handleAdd}
-          variant="contained"
-          disabled={selectedItems.length === 0}
-          sx={{
-            borderRadius: "4px",
-            backgroundColor: "#04139A",
-            color: "#FFFFFF",
-            textTransform: "none",
-            fontWeight: 500,
-            p: "12px 40px",
-            "&:hover": {
-              backgroundColor: "#030d6b",
-            },
-            "&:disabled": {
-              backgroundColor: "#E7E7E8",
-              color: "#91939A",
+        <Tooltip
+          title={itemType === 'processes' && !selectedBusinessUnitId ? "Business unit not selected" : ""}
+          arrow
+          placement="top"
+          slotProps={{
+            tooltip: {
+              sx: {
+                backgroundColor: "#E7E7E8",
+                color: "#04139A",
+                fontSize: "12px",
+                fontWeight: 500,
+                padding: "8px 12px",
+                borderRadius: "4px",
+                "& .MuiTooltip-arrow": {
+                  color: "#E7E7E8",
+                },
+              },
             },
           }}
         >
-          Add
-        </Button>
+          <span>
+            <Button
+              onClick={handleAdd}
+              variant="contained"
+              disabled={selectedItems.length === 0 || (itemType === 'processes' && !selectedBusinessUnitId)}
+              sx={{
+                borderRadius: "4px",
+                backgroundColor: "#04139A",
+                color: "#FFFFFF",
+                textTransform: "none",
+                fontWeight: 500,
+                p: "12px 40px",
+                "&:hover": {
+                  backgroundColor: "#030d6b",
+                },
+                "&:disabled": {
+                  backgroundColor: "#E7E7E8",
+                  color: "#91939A",
+                },
+              }}
+            >
+              Add
+            </Button>
+          </span>
+        </Tooltip>
       </DialogActions>
     </Dialog>
   );

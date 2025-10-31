@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
   Checkbox,
   FormControlLabel,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { ArrowBack, Search, Delete, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
@@ -21,6 +22,8 @@ import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { AssetLibraryService } from "@/services/orgLibraryService/assetLibraryService";
+import { createOrganizationAssets, getOrganizationAssets } from "@/pages/api/organization";
+import { fetchAssetById } from "@/pages/api/asset";
 
 interface Asset {
   id: string | number;
@@ -34,11 +37,15 @@ function AssetsPage() {
   const { organization, loading, error } = useOrganization(orgId);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [orgAssets, setOrgAssets] = useState<any[]>([]); // Full org assets for matching
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedAssets, setSelectedAssets] = useState<(string | number)[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -52,17 +59,144 @@ function AssetsPage() {
     setIsAddModalOpen(false);
   };
 
-  const handleAddAssetsFromModal = (selectedAssets: any[]) => {
-    // Convert library items to Asset format for display
-    const newAssets: Asset[] = selectedAssets.map(asset => ({
-      id: asset.id!,
-      applicationName: asset.name,
-      assetDescription: asset.description
-    }));
+  const fetchOrganizationAssets = async () => {
+    if (!orgId || typeof orgId !== 'string') return;
+    
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      const response = await getOrganizationAssets(orgId);
+      
+      // Backend returns { message: "...", data: [assets array] }
+      if (response?.data && Array.isArray(response.data)) {
+        // Store full org assets for matching with library items
+        setOrgAssets(response.data);
+        
+        // Map to display format
+        const assetsList: Asset[] = response.data.map((asset: any) => ({
+          id: asset.id,
+          applicationName: asset.applicationName || '',
+          assetDescription: asset.assetDescription || '',
+        }));
+        setAssets(assetsList);
+      } else {
+        // If data is empty or not in expected format, set empty array
+        setOrgAssets([]);
+        setAssets([]);
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch organization assets:", err);
+      setErrorMessage(err.message || "Failed to fetch assets. Please try again.");
+      setOrgAssets([]);
+      setAssets([]);
+    } finally {
+      setIsLoading(false);
+      setIsInitialLoad(false);
+    }
+  };
 
-    setAssets(prev => [...prev, ...newAssets]);
-    setShowSuccessMessage(true);
-    setIsAddModalOpen(false);
+  useEffect(() => {
+    if (orgId && typeof orgId === 'string' && isInitialLoad) {
+      fetchOrganizationAssets();
+    }
+  }, [orgId, isInitialLoad]);
+
+  const handleAddAssetsFromModal = async (selectedAssets: any[]) => {
+    if (!orgId || typeof orgId !== 'string' || selectedAssets.length === 0) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // Fetch full asset data from library using the IDs
+      const fullAssetData: any[] = await Promise.all(
+        selectedAssets.map(async (asset) => {
+          const fullData = await fetchAssetById(asset.id!);
+          return fullData;
+        })
+      );
+
+      // Format the data to match the GET response structure exactly (same format as library GET API)
+      const formattedData = fullAssetData.map((data: any) => {
+        // Transform attributes to match the expected format (same as GET response)
+        const attributes = data.attributes?.map((attr: any) => {
+          let metaDataKeyId: string | undefined;
+          
+          if (attr.metaData?.id) {
+            // When metaData association is included
+            metaDataKeyId = attr.metaData.id;
+          } else if (attr.meta_data_key_id) {
+            // When using snake_case field name
+            metaDataKeyId = attr.meta_data_key_id;
+          } else if (attr.metaDataKeyId) {
+            // When using camelCase field name
+            metaDataKeyId = attr.metaDataKeyId;
+          }
+          
+          return {
+            meta_data_key_id: metaDataKeyId || "",
+            values: attr.values || [],
+          };
+        }) || [];
+
+        // Transform related_processes - handle both array of IDs and array of objects
+        let relatedProcesses: string[] = [];
+        if (data.related_processes && Array.isArray(data.related_processes)) {
+          relatedProcesses = data.related_processes.map((processId: any) => {
+            if (typeof processId === 'object' && processId?.id) {
+              return processId.id;
+            }
+            return String(processId);
+          });
+        } else if (data.processes && Array.isArray(data.processes)) {
+          // When processes association is included
+          relatedProcesses = data.processes.map((p: any) => String(p.id));
+        }
+
+        // Return data in exact same format as GET response
+        return {
+          id: data.id,
+          autoIncrementId: data.autoIncrementId,
+          assetCode: data.assetCode,
+          applicationName: data.applicationName,
+          applicationOwner: data.applicationOwner || null,
+          applicationItOwner: data.applicationITOwner || data.applicationItOwner || null,
+          isThirdPartyManagement: data.isThirdPartyManagement || null,
+          thirdPartyName: data.thirdPartyName || null,
+          thirdPartyLocation: data.thirdPartyLocation || null,
+          hosting: data.hosting || null,
+          hostingFacility: data.hostingFacility || null,
+          cloudServiceProvider: data.cloudServiceProvider || null,
+          geographicLocation: data.geographicLocation || null,
+          hasRedundancy: data.hasRedundancy || null,
+          databases: data.databases || null,
+          hasNetworkSegmentation: data.hasNetworkSegmentation || null,
+          networkName: data.networkName || null,
+          assetCategory: data.assetCategory || "",
+          assetDescription: data.assetDescription || "",
+          status: data.status || "published",
+          attributes: attributes,
+          related_processes: relatedProcesses,
+        };
+      });
+
+      // Call the POST API to save to organization
+      await createOrganizationAssets(orgId, formattedData);
+
+      // Refresh the list
+      await fetchOrganizationAssets();
+
+      setShowSuccessMessage(true);
+      setIsAddModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to add assets:", err);
+      setErrorMessage(err.message || "Failed to add assets. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEnterDeleteMode = () => {
@@ -119,7 +253,7 @@ function AssetsPage() {
     asset.assetDescription.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (loading || (isInitialLoad && isLoading)) {
     return (
       <Box
         sx={{
@@ -130,7 +264,7 @@ function AssetsPage() {
           height: "200px",
         }}
       >
-        <Typography>Loading...</Typography>
+        <CircularProgress sx={{ color: "#04139A" }} />
       </Box>
     );
   }
@@ -252,6 +386,34 @@ function AssetsPage() {
         </Alert>
       </Snackbar>
 
+      {/* Error Toast */}
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setErrorMessage(null)}
+          severity="error"
+          sx={{
+            width: '100%',
+            backgroundColor: "#FFEBEE",
+            color: "#C62828",
+            border: "1px solid #EF5350",
+            borderRadius: "8px",
+            "& .MuiAlert-icon": {
+              color: "#EF5350",
+            },
+            "& .MuiAlert-message": {
+              fontWeight: 500,
+            },
+          }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+
       {/* Main Content */}
       <Box sx={{
         flex: 1,
@@ -321,7 +483,27 @@ function AssetsPage() {
           </Box>
         ) : (
           // Main content with assets
-          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px" }}>
+          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px", position: "relative" }}>
+            {/* Loading Overlay */}
+            {isLoading && !isInitialLoad && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: "rgba(255, 255, 255, 0.7)",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 1000,
+                  borderRadius: "8px",
+                }}
+              >
+                <CircularProgress sx={{ color: "#04139A" }} />
+              </Box>
+            )}
             {/* Fixed Header */}
             <Box sx={{ mb: 1, flexShrink: 0 }}>
               <Typography
@@ -615,7 +797,7 @@ function AssetsPage() {
         title="Add Assets"
         service={AssetLibraryService}
         itemType="assets"
-        alreadyAddedIds={assets.map(asset => asset.id)}
+        orgItems={orgAssets}
       />
     </Box>
   );

@@ -267,6 +267,26 @@ export const deleteProcess = async (id: number) => {
   return res.data;
 };
 
+export const fetchProcessById = async (id: string | number) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/process/${id}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to fetch process");
+  }
+
+  const res = await response.json();
+  return res.data;
+};
+
 export const downloadProcessTemplateFile = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/process/download-template-file`,

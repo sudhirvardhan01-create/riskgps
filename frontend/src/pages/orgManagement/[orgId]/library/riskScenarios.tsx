@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
   Checkbox,
   FormControlLabel,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { ArrowBack, Search, Delete, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
@@ -22,6 +23,8 @@ import Image from "next/image";
 import { RiskScenarioData } from "@/types/risk-scenario";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { RiskScenarioLibraryService } from "@/services/orgLibraryService/riskScenarioLibraryService";
+import { createOrganizationRiskScenarios, getOrganizationRisks } from "@/pages/api/organization";
+import { fetchRiskScenarioById } from "@/pages/api/risk-scenario";
 
 interface RiskScenario {
   id: string | number;
@@ -35,11 +38,15 @@ function RiskScenariosPage() {
   const { organization, loading, error } = useOrganization(orgId);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [riskScenarios, setRiskScenarios] = useState<RiskScenario[]>([]);
+  const [orgRiskScenarios, setOrgRiskScenarios] = useState<any[]>([]); // Full org risk scenarios for matching
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedScenarios, setSelectedScenarios] = useState<(string | number)[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -53,17 +60,136 @@ function RiskScenariosPage() {
     setIsAddModalOpen(false);
   };
 
-  const handleAddScenarios = (selectedScenarios: any[]) => {
-    // Convert library items to RiskScenario format for display
-    const newScenarios: RiskScenario[] = selectedScenarios.map(scenario => ({
-      id: scenario.id!,
-      riskScenario: scenario.name,
-      riskStatement: scenario.description
-    }));
+  const fetchOrganizationRiskScenarios = async () => {
+    if (!orgId || typeof orgId !== 'string') return;
+    
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      const response = await getOrganizationRisks(orgId);
+      
+      // Backend returns { message: "...", data: [scenarios array] }
+      if (response?.data && Array.isArray(response.data)) {
+        // Store full org risk scenarios for matching with library items
+        setOrgRiskScenarios(response.data);
+        
+        // Map to display format
+        const scenarios: RiskScenario[] = response.data.map((scenario: any) => ({
+          id: scenario.id,
+          riskScenario: scenario.riskScenario || '',
+          riskStatement: scenario.riskStatement || '',
+        }));
+        setRiskScenarios(scenarios);
+      } else {
+        // If data is empty or not in expected format, set empty array
+        setOrgRiskScenarios([]);
+        setRiskScenarios([]);
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch organization risk scenarios:", err);
+      setErrorMessage(err.message || "Failed to fetch risk scenarios. Please try again.");
+      setOrgRiskScenarios([]);
+      setRiskScenarios([]);
+    } finally {
+      setIsLoading(false);
+      setIsInitialLoad(false);
+    }
+  };
 
-    setRiskScenarios(prev => [...prev, ...newScenarios]);
-    setShowSuccessMessage(true);
-    setIsAddModalOpen(false);
+  useEffect(() => {
+    if (orgId && typeof orgId === 'string' && isInitialLoad) {
+      fetchOrganizationRiskScenarios();
+    }
+  }, [orgId, isInitialLoad]);
+
+  const handleAddScenarios = async (selectedScenarios: any[]) => {
+    if (!orgId || typeof orgId !== 'string' || selectedScenarios.length === 0) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // Fetch full risk scenario data from library using the IDs
+      const fullRiskScenarioData: any[] = await Promise.all(
+        selectedScenarios.map(async (scenario) => {
+          const fullData = await fetchRiskScenarioById(scenario.id!);
+          return fullData;
+        })
+      );
+
+      // Format the data to match the GET response structure (same format as library GET API)
+      const formattedData = fullRiskScenarioData.map((data: any) => {
+        // Transform attributes to match the expected format (as returned by library GET API)
+        const attributes = data.attributes?.map((attr: any) => {
+          // Handle different possible attribute structures from backend
+          let metaDataKeyId: string | undefined;
+          
+          if (attr.metaData?.id) {
+            // When metaData association is included
+            metaDataKeyId = attr.metaData.id;
+          } else if (attr.meta_data_key_id) {
+            // When using snake_case field name
+            metaDataKeyId = attr.meta_data_key_id;
+          } else if (attr.metaDataKeyId) {
+            // When using camelCase field name
+            metaDataKeyId = attr.metaDataKeyId;
+          }
+          
+          return {
+            meta_data_key_id: metaDataKeyId || "",
+            values: attr.values || [],
+          };
+        }) || [];
+
+        // Transform related_processes - handle both array of IDs and array of objects
+        // Note: getRiskScenarioById doesn't include processes, so related_processes might be missing
+        // We'll default to empty array if not present
+        let relatedProcesses: string[] = [];
+        if (data.related_processes && Array.isArray(data.related_processes)) {
+          relatedProcesses = data.related_processes.map((processId: any) => {
+            if (typeof processId === 'object' && processId?.id) {
+              return processId.id;
+            }
+            return String(processId);
+          });
+        } else if (data.processes && Array.isArray(data.processes)) {
+          // When processes association is included (from getAllRiskScenarios)
+          relatedProcesses = data.processes.map((p: any) => String(p.id));
+        }
+
+        return {
+          id: data.id,
+          autoIncrementId: data.autoIncrementId,
+          riskCode: data.riskCode,
+          riskScenario: data.riskScenario,
+          riskDescription: data.riskDescription || "",
+          riskStatement: data.riskStatement || "",
+          ciaMapping: data.ciaMapping || [],
+          status: data.status || "published",
+          riskField1: data.riskField1 || "",
+          riskField2: data.riskField2 || "",
+          attributes: attributes,
+          related_processes: relatedProcesses,
+        };
+      });
+
+      // Call the POST API to save to organization
+      await createOrganizationRiskScenarios(orgId, formattedData);
+
+      // Refresh the list
+      await fetchOrganizationRiskScenarios();
+
+      setShowSuccessMessage(true);
+      setIsAddModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to add risk scenarios:", err);
+      setErrorMessage(err.message || "Failed to add risk scenarios. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEnterDeleteMode = () => {
@@ -121,7 +247,7 @@ function RiskScenariosPage() {
     scenario.riskStatement.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (loading || (isInitialLoad && isLoading)) {
     return (
       <Box
         sx={{
@@ -132,7 +258,7 @@ function RiskScenariosPage() {
           height: "200px",
         }}
       >
-        <Typography>Loading...</Typography>
+        <CircularProgress sx={{ color: "#04139A" }} />
       </Box>
     );
   }
@@ -253,6 +379,34 @@ function RiskScenariosPage() {
         </Alert>
       </Snackbar>
 
+      {/* Error Toast */}
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setErrorMessage(null)}
+          severity="error"
+          sx={{
+            width: '100%',
+            backgroundColor: "#FFEBEE",
+            color: "#C62828",
+            border: "1px solid #EF5350",
+            borderRadius: "8px",
+            "& .MuiAlert-icon": {
+              color: "#EF5350",
+            },
+            "& .MuiAlert-message": {
+              fontWeight: 500,
+            },
+          }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+
       {/* Main Content */}
       <Box sx={{
         flex: 1,
@@ -322,7 +476,27 @@ function RiskScenariosPage() {
           </Box>
         ) : (
           // Main content with scenarios
-          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px" }}>
+          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px", position: "relative" }}>
+            {/* Loading Overlay */}
+            {isLoading && !isInitialLoad && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: "rgba(255, 255, 255, 0.7)",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 1000,
+                  borderRadius: "8px",
+                }}
+              >
+                <CircularProgress sx={{ color: "#04139A" }} />
+              </Box>
+            )}
             {/* Fixed Header */}
             <Box sx={{ mb: 1, flexShrink: 0 }}>
               <Typography
@@ -616,7 +790,7 @@ function RiskScenariosPage() {
         title="Add Risk Scenarios"
         service={RiskScenarioLibraryService}
         itemType="risk-scenarios"
-        alreadyAddedIds={riskScenarios.map(scenario => scenario.id)}
+        orgItems={orgRiskScenarios}
       />
     </Box>
   );

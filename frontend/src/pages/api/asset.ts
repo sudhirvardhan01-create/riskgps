@@ -81,6 +81,20 @@ export const fetchAssets = async (
   return res.data;
 };
 
+export const fetchAssetById = async (id: number) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/asset/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch asset data");
+  }
+  const res = await response.json();
+  return res.data;
+};
+
 //Function to create an asset
 export const createAsset = async (data: AssetForm) => {
   const assetData = {
