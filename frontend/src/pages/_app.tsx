@@ -11,10 +11,12 @@ import SideBar from "@/components/SideBar";
 import { AuthProvider } from "@/context/AuthContext";
 import { AssessmentProvider } from "@/context/AssessmentContext";
 import { ConfigProvider } from "@/context/ConfigContext";
+import LandingPage from ".";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isLoginPage = router.pathname === "/login";
+  const isLandingPage = router.pathname === "/";
   const isAssessmentProcess =
     router.pathname === "/assessment/assessmentProcess";
 
@@ -22,17 +24,25 @@ export default function App({ Component, pageProps }: AppProps) {
     <AuthProvider>
       <ConfigProvider>
         <AssessmentProvider>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Grid container sx={{ height: "100vh" }}>
-              <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-              <Grid size={11}>
-                {!isLoginPage && <Header />}
-                <Component {...pageProps} />
-                {!isLoginPage && !isAssessmentProcess && <Footer />}
+          {isLandingPage ? (
+            <>
+            <CssBaseline/>
+            <LandingPage />
+            </>
+          ) : (
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+
+              <Grid container sx={{ height: "100vh" }}>
+                <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+                <Grid size={11}>
+                  {!isLoginPage && <Header />}
+                  <Component {...pageProps} />
+                  {!isLoginPage && !isAssessmentProcess && <Footer />}
+                </Grid>
               </Grid>
-            </Grid>
-          </ThemeProvider>
+            </ThemeProvider>
+          )}
         </AssessmentProvider>
       </ConfigProvider>
     </AuthProvider>

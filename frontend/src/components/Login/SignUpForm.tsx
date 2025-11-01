@@ -123,7 +123,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
             color="primary.main"
             sx={{ fontSize: 32, fontWeight: 600, mb: 4 }}
           >
-            Sign up for SeaHorse
+            Sign up for RiskGPS
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
@@ -360,7 +360,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ setCurrentForm }) => {
             <Box sx={{ mt: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 <strong style={{ color: "#000" }}>Please note:</strong> Signing
-                up is not registration into the portal. Our dedicated SeaHorse
+                up is not registration into the portal. Our dedicated RiskGPS
                 team will reach out to you shortly for further communication.
               </Typography>
             </Box>
