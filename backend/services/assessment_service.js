@@ -233,6 +233,7 @@ class AssessmentService {
             assessmentProcessRiskId: uuidv4(),
             assessmentProcessId: rs.assessmentProcessId,
             assessmentId,
+            id: rs.id,
             riskScenario: rs.riskScenario,
             riskDescription: rs.riskDescription || null,
             createdBy: userId,
@@ -643,11 +644,11 @@ class AssessmentService {
    * @param {Array} questionaires
    * @param {string} userId
    */
-  static async createQuestionaires(questionaires, userId) {
+  static async createQuestionaires(assessmentId, questionaires, userId) {
     try {
       const recordsToInsert = questionaires.map((q) => ({
         assessmentQuestionaireId: uuidv4(),
-        assessmentId: q.assessmentId,
+        assessmentId: assessmentId,
         assessmentProcessAssetId: q.assessmentProcessAssetId,
         questionaireId: q.questionaireId,
         questionaireName: q.questionaireName,

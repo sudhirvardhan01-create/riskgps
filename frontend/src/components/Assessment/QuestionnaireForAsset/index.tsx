@@ -11,6 +11,7 @@ import {
   Select,
   Typography,
 } from "@mui/material";
+import { Asset } from "@/types/assessment";
 
 interface Questionnaire {
   assetCategories: string[];
@@ -21,39 +22,34 @@ interface Questionnaire {
 }
 
 interface QuestionnaireProps {
-  assetCategory: string | undefined; // coming from props
+  asset: Asset | undefined; // coming from props
   questionnaires: Questionnaire[];
   onSubmit: (val: any) => void;
 }
 
 const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
-  assetCategory,
+  asset,
   questionnaires,
   onSubmit,
 }) => {
   const [filteredQuestions, setFilteredQuestions] = useState<Questionnaire[]>(
     []
   );
-  const [responses, setResponses] = useState<any>({});
 
   useEffect(() => {
     const filterQuestions = questionnaires.filter(
-      (q) => assetCategory && q.assetCategories.includes(assetCategory)
+      (q) =>
+        asset?.assetCategory && q.assetCategories.includes(asset?.assetCategory)
     );
 
     setFilteredQuestions(filterQuestions);
-  }, [assetCategory, questionnaires]);
+  }, [asset?.assetCategory, questionnaires]);
 
   const handleResponseChange = (
     questionCode: string,
     question: string,
     value: number
   ) => {
-    setResponses((prev: any) => ({
-      ...prev,
-      [questionCode]: value,
-    }));
-
     onSubmit({
       questionaireId: questionCode,
       questionaireName: question,
@@ -64,8 +60,8 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
   return (
     <Box sx={{ width: "70%", p: 3, mb: 5 }}>
       <Typography variant="h5" gutterBottom fontWeight="bold">
-        {assetCategory
-          ? `${assetCategory} Security Questionnaire`
+        {asset?.assetCategory
+          ? `${asset?.assetCategory} Security Questionnaire`
           : "Select an asset category"}
       </Typography>
 
@@ -107,9 +103,14 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
                       >
                         <InputLabel>Response</InputLabel>
                         <Select
-                          value={responses[q.questionnaireId] ?? ""}
+                          value={
+                            asset?.questionnaire.find(
+                              (item) =>
+                                item.questionaireId === q.questionnaireId
+                            )?.responseValue ?? 0
+                          }
                           label="Response"
-                          onChange={(e) =>
+                          onChange={(e: any) =>
                             handleResponseChange(
                               q.questionnaireId,
                               q.question,
@@ -130,9 +131,6 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
           ))}
         </Grid>
       )}
-
-      {/* You can view current state below for debugging */}
-      {/* <pre>{JSON.stringify(responses, null, 2)}</pre> */}
     </Box>
   );
 };

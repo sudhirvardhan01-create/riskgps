@@ -19,6 +19,7 @@ import {
   saveAssessmentProcess,
   saveAssessmentRisk,
   saveAssessmentRiskTaxonomy,
+  saveAssetQuestionnaire,
 } from "@/pages/api/assessment";
 import ProcessTabs from "@/components/Assessment/ProcessTabs";
 import {
@@ -143,6 +144,22 @@ function BUProcessMappingPage() {
     return obj;
   };
 
+  const prepareQuestionnairePayload = () => {
+    const obj = assessment?.processes.flatMap((process) =>
+      process.assets.flatMap((asset) =>
+        asset.questionnaire.map((question) => ({
+          assessmentProcessId: process.assessmentProcessId ?? "",
+          assessmentProcessAssetId: asset.assessmentProcessAssetId ?? "",
+          id: asset.id,
+          questionaireId: question.questionaireId,
+          questionaireName: question.questionaireName,
+          responseValue: question.responseValue,
+        }))
+      )
+    );
+    return obj;
+  };
+
   // Navigation
   const handlePrev = () => {
     if (activeTab > 0) {
@@ -249,7 +266,39 @@ function BUProcessMappingPage() {
           break;
 
         case 4:
-          console.log(assessment?.processes);
+          const questionnaires = prepareQuestionnairePayload();
+          const resultQues = await saveAssetQuestionnaire({
+            assessmentId: assessment?.assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            questionaires: questionnaires,
+          });
+
+          const updatedProcessesAssetQuestionnaire = assessment?.processes.map(
+            (process) => ({
+              ...process,
+              assets: process.assets.map((asset) => ({
+                ...asset,
+                questionnaire: asset.questionnaire.map((question) => {
+                  // Find a matching question entry from resultQues.questionnaire
+                  const match = resultQues.data.find(
+                    (obj: any) => obj.questionaireId === question.questionaireId
+                  );
+
+                  // Return updated question
+                  return {
+                    ...question,
+                    assessmentQuestionaireId:
+                      match?.assessmentQuestionaireId ?? null,
+                    responseValue:
+                      match?.responseValue ?? question.responseValue ?? null,
+                  };
+                }),
+              })),
+            })
+          );
+
+          updateAssessment({ processes: updatedProcessesAssetQuestionnaire });
+          router.push("/assessment");
           break;
       }
 

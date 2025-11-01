@@ -10,6 +10,7 @@ import {
   TextField,
 } from "@mui/material";
 import { Asset } from "@/types/assessment";
+import { CheckCircle, WatchLater } from "@mui/icons-material";
 
 interface AssetListProps {
   assets: Asset[] | undefined;
@@ -31,6 +32,10 @@ export default function AssetStrength({
 
   const toggleExpand = (idx: number) => {
     setExpanded((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const isQuestionnaireComplete = (s: Asset) => {
+    return true;
   };
 
   return (
@@ -82,6 +87,7 @@ export default function AssetStrength({
               : s.applicationName;
 
           const isSelected = selectedAsset?.id === s.id;
+          const isComplete = isQuestionnaireComplete(s);
 
           return (
             <ListItemButton
@@ -124,6 +130,11 @@ export default function AssetStrength({
                   </Typography>
                 }
               />
+              {isComplete ? (
+                <CheckCircle fontSize="small" color="success" sx={{ ml: 1 }} />
+              ) : (
+                <WatchLater fontSize="small" sx={{ ml: 1, color: "#91939A" }} />
+              )}
             </ListItemButton>
           );
         })}

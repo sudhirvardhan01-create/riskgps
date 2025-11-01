@@ -33,23 +33,6 @@ export default function ProcessTabsAssets() {
     fetchOrgs();
   }, []);
 
-  // const handleUpdateAsset = (questionaireObj: any) => {
-  //   // update inside context
-  //   const updatedProcesses = assessment?.processes.map((p, idx) => {
-  //     if (idx !== currentTab) return p;
-
-  //     return {
-  //       ...p,
-  //       assets: p.assets.map((a: Asset) =>
-  //         a.id === updatedAsset.id ? updatedAsset : a
-  //       ),
-  //     };
-  //   });
-
-  //   updateAssessment({ processes: updatedProcesses }); // push back to context
-  //   setSelectedAsset(updatedAsset);
-  // };
-
   const handleUpdateAsset = (questionaireObj: any) => {
     if (!assessment || selectedAsset == null) return;
 
@@ -91,13 +74,12 @@ export default function ProcessTabsAssets() {
     });
 
     // Find the newly updated asset to keep UI in sync
-    // const updatedAsset =
-    //   updatedProcesses[currentTab].assets.find(
-    //     (a: Asset) => a.id === selectedAsset.id
-    //   ) || null;
+    const updatedAsset = updatedProcesses[currentTab].assets.find(
+      (a: Asset) => a.id === selectedAsset.id
+    );
 
     updateAssessment({ processes: updatedProcesses }); // push back to context
-    // setSelectedAsset(updatedAsset);
+    setSelectedAsset(updatedAsset);
   };
 
   const activeProcess = assessment?.processes[currentTab];
@@ -171,7 +153,7 @@ export default function ProcessTabsAssets() {
         {/* Right Panel: Questionnaire*/}
         <QuestionnaireForAsset
           questionnaires={questionnaire}
-          assetCategory={selectedAsset?.assetCategory}
+          asset={selectedAsset}
           onSubmit={handleUpdateAsset}
         />
       </Box>

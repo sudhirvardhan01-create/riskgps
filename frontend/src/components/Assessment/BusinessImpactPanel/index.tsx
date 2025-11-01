@@ -46,6 +46,7 @@ export default function BusinessImpactPanel({
 
   // Reset form when selectedScenario changes
   useEffect(() => {
+    console.log("selected scenario", selectedScenario);
     if (selectedScenario) {
       setThresholdCost(selectedScenario.thresholdCost ?? undefined);
 
@@ -68,7 +69,7 @@ export default function BusinessImpactPanel({
     }
 
     setIsInternalChange(false);
-  }, [selectedScenario, assessment?.orgId]);
+  }, [JSON.stringify(selectedScenario), assessment?.orgId]);
 
   // Push updates back into parent
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function BusinessImpactPanel({
   }, [
     thresholdCost,
     taxonomyValue,
-    selectedScenario,
+    JSON.stringify(selectedScenario),
     isInternalChange,
     onUpdateScenario,
   ]);
@@ -232,7 +233,7 @@ export default function BusinessImpactPanel({
                 key={item.taxonomyId}
                 label={item.name}
                 severityLevels={item.severityLevels}
-                value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
+                value={taxonomyValue[ind]?.severityDetails?.name ?? ""}
                 onChange={(val) =>
                   setTaxonomy(item.taxonomyId, item.name, ind, val)
                 }

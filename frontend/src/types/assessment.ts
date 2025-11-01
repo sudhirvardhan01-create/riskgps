@@ -67,7 +67,7 @@ export interface Asset {
 }
 
 export interface Questionnaire {
-  assessmentProcessAssetId?: string;
+  assessmentQuestionaireId?: string;
   questionaireId: string;
   questionaireName: string;
   responseValue: string;
