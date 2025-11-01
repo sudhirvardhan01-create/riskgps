@@ -111,7 +111,7 @@ class QuestionnaireService {
   static async updateQuestionnaire(id, data) {
     if (!id) {
       throw new CustomError(
-        `${MESSAGES.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: id`,
         HttpStatus.BAD_REQUEST
       );
     }
@@ -136,13 +136,13 @@ class QuestionnaireService {
   static async deleteQuestionnaire(id, assetCategory) {
     if (!id) {
       throw new CustomError(
-        `${MESSAGES.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: id`,
         HttpStatus.BAD_REQUEST
       );
     }
     if (!assetCategory) {
       throw new CustomError(
-        `${MESSAGES.GENERAL.REQUIRED_FIELD_MISSING}: Asset Category`,
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: Asset Category`,
         HttpStatus.BAD_REQUEST
       );
     }
@@ -178,13 +178,13 @@ class QuestionnaireService {
   static async updateQuestionnaireStatus(id, status) {
     if (!id) {
       throw new CustomError(
-        `${MESSAGES.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: id`,
         HttpStatus.BAD_REQUEST
       );
     }
     if (!status) {
       throw new CustomError(
-        `${MESSAGES.GENERAL.REQUIRED_FIELD_MISSING}: status`,
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: status`,
         HttpStatus.BAD_REQUEST
       );
     }
@@ -377,84 +377,6 @@ class QuestionnaireService {
     }
 
     return conditions.length > 0 ? { [Op.and]: conditions } : {};
-  }
-
-  static async importQuestionnaireFromCSV(filePath) {
-    function parseQuestion(value) {
-      if (!value) throw new Error("no question provided");
-      return value?.trim();
-    }
-
-    function parseAssetCategory(value) {
-      if (!value) throw new Error("no assset category provided");
-      return value.split(",").map((v) => v.trim());
-    }
-
-    function parseMitreControlId(value) {
-      if (!value) throw new Error("no mitre control id provided");
-      return value.split(",").map((v) => v.trim());
-    }
-
-    return new Promise((resolve, reject) => {
-      let totalInserted = 0;
-      fs.createReadStream(filePath)
-        .pipe(parse({ headers: true }))
-        .on("error", (error) => reject(error))
-        .on("data", async (row) => {
-          try {
-            const question = parseQuestion(row["Question"]);
-            const assetCategory = parseAssetCategory(row["Asset Category"]);
-            const mitreControlId = parseMitreControlId(row["MITRE Control ID"]);
-
-            const existing = await LibraryQuestionnaire.findOne({
-              where: { question },
-            });
-
-            if (existing) {
-              const mergedAssetCategory = Array.from(
-                new Set([...(existing.assetCategory || []), ...assetCategory])
-              );
-              const mergedMitreControlId = Array.from(
-                new Set([...(existing.mitreControlId || []), ...mitreControlId])
-              );
-
-              await existing.update({
-                assetCategory: mergedAssetCategory,
-                mitreControlId: mergedMitreControlId,
-              });
-
-              totalUpdated++;
-            } else {
-              await LibraryQuestionnaire.create({
-                question,
-                assetCategory,
-                mitreControlId,
-                status: "published",
-              });
-
-              totalInserted++;
-            }
-          } catch (err) {
-            console.error(`Error processing row: ${err.message}`);
-          }
-        })
-        .on("end", async () => {
-          try {
-            
-            fs.unlink(filePath, (err) => {
-              if (err) {
-                console.log(
-                  `Failed to delete file ${filePath}:`,
-                  err.message
-                );
-              } 
-            });
-            resolve({ totalInserted, totalUpdated });
-          } catch (err) {
-            reject(err);
-          }
-        });
-    });
   }
 }
 
