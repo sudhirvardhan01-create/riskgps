@@ -13,7 +13,7 @@ module.exports = {
     const adminUser = [
       {
         name: "admin",
-        email: "admin@example.com",
+        email: "admin@bluoceancyber.com",
         password: hashedPassword,
         phone: "1234567890",
         organisation: "Admin Org",
