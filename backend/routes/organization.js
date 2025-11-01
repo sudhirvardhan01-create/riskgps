@@ -399,7 +399,7 @@ router.post("/:orgId/asset", async (req, res) => {
     );
 
     res.status(HttpStatus.OK).json({
-      message: "Organization created created successfully",
+      message: "Organization asset created successfully",
       data: scenarios,
     });
   } catch (err) {
