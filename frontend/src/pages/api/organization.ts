@@ -19,7 +19,7 @@ export const getOrganizationProcess = async (
   buId: string | undefined
 ) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/processes`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/processes-v2`,
     {
       method: "GET",
       headers: {
@@ -35,7 +35,7 @@ export const getOrganizationProcess = async (
 
 export const getOrganizationAssets = async (orgId: string | undefined) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets-v2`,
     {
       method: "GET",
       headers: {
@@ -51,7 +51,7 @@ export const getOrganizationAssets = async (orgId: string | undefined) => {
 
 export const getOrganizationRisks = async (orgId: string | undefined) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios-v2`,
     {
       method: "GET",
       headers: {

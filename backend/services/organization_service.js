@@ -566,6 +566,7 @@ class OrganizationService {
           "createdDate",
           "modifiedDate",
           "weightage",
+          "order",
         ],
         include: [
           {
@@ -584,10 +585,12 @@ class OrganizationService {
               "createdDate",
               "modifiedDate",
               "color",
+              "order",
             ],
+            order: [["order"]],
           },
         ],
-        order: [["createdDate", "DESC"]],
+        order: [["order"]],
       });
 
       return taxonomies;
@@ -722,7 +725,7 @@ class OrganizationService {
             returning: true,
             transaction: t,
           });
-          insertedCount+=1;
+          insertedCount += 1;
 
           await OrganizationAssetService.handleAssetProcessMapping(
             asset.id,
@@ -738,7 +741,6 @@ class OrganizationService {
         }
 
         return insertedCount;
-;
       });
     } catch (err) {
       throw new CustomError(
