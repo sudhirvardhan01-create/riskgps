@@ -33,21 +33,71 @@ export default function ProcessTabsAssets() {
     fetchOrgs();
   }, []);
 
-  const handleUpdateScenario = (updatedAsset: Asset) => {
-    // update inside context
-    const updatedProcesses = assessment?.processes.map((p, idx) => {
+  // const handleUpdateAsset = (questionaireObj: any) => {
+  //   // update inside context
+  //   const updatedProcesses = assessment?.processes.map((p, idx) => {
+  //     if (idx !== currentTab) return p;
+
+  //     return {
+  //       ...p,
+  //       assets: p.assets.map((a: Asset) =>
+  //         a.id === updatedAsset.id ? updatedAsset : a
+  //       ),
+  //     };
+  //   });
+
+  //   updateAssessment({ processes: updatedProcesses }); // push back to context
+  //   setSelectedAsset(updatedAsset);
+  // };
+
+  const handleUpdateAsset = (questionaireObj: any) => {
+    if (!assessment || selectedAsset == null) return;
+
+    const updatedProcesses = assessment.processes.map((p, idx) => {
       if (idx !== currentTab) return p;
+
+      const updatedAssets = p.assets.map((a: Asset) => {
+        if (a.id !== selectedAsset.id) return a;
+
+        const updatedQuestionnaire = (() => {
+          const existingQuestionnaire = a.questionnaire || [];
+
+          // Try to find an existing entry
+          const index = existingQuestionnaire.findIndex(
+            (q: any) => q.questionaireId === questionaireObj.questionaireId
+          );
+
+          if (index === -1) {
+            // Not found → add new entry
+            return [...existingQuestionnaire, questionaireObj];
+          } else {
+            // Found → update existing one
+            return existingQuestionnaire.map((q: any, i: number) =>
+              i === index ? { ...q, ...questionaireObj } : q
+            );
+          }
+        })();
+
+        return {
+          ...a,
+          questionnaire: updatedQuestionnaire,
+        };
+      });
 
       return {
         ...p,
-        assets: p.assets.map((a: Asset) =>
-          a.id === updatedAsset.id ? updatedAsset : a
-        ),
+        assets: updatedAssets,
       };
     });
 
+    // Find the newly updated asset to keep UI in sync
+    // const updatedAsset =
+    //   updatedProcesses[currentTab].assets.find(
+    //     (a: Asset) => a.id === selectedAsset.id
+    //   ) || null;
+
     updateAssessment({ processes: updatedProcesses }); // push back to context
-    setSelectedAsset(updatedAsset);
+    // setSelectedAsset(updatedAsset);
   };
 
   const activeProcess = assessment?.processes[currentTab];
@@ -122,9 +172,7 @@ export default function ProcessTabsAssets() {
         <QuestionnaireForAsset
           questionnaires={questionnaire}
           assetCategory={selectedAsset?.assetCategory}
-          // onSubmit={() => {
-          //   console.log("questionnaire");
-          // }}
+          onSubmit={handleUpdateAsset}
         />
       </Box>
     </Box>

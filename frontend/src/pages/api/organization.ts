@@ -35,7 +35,7 @@ export const getOrganizationProcess = async (
 
 export const getOrganizationAssets = async (orgId: string | undefined) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets-v2`,
     {
       method: "GET",
       headers: {

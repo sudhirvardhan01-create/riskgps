@@ -106,6 +106,7 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
+        assessmentProcessRiskId: risk.assessmentProcessRiskId,
         id: risk.id,
         riskScenario: risk.riskScenario,
         riskDescription: risk.riskDescription,
@@ -133,6 +134,7 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.assets.map((asset) => ({
         assessmentProcessId: process.assessmentProcessId,
+        assessmentProcessAssetId: asset.assessmentProcessAssetId,
         id: asset.id,
         applicationName: asset.applicationName,
         assetCategory: asset.assetCategory,
@@ -162,6 +164,7 @@ function BUProcessMappingPage() {
             processes: assessment?.processes.map((item) => {
               return {
                 id: item.id,
+                assessmentProcessId: item.assessmentProcessId,
                 processName: item.processName,
                 processDescription: item.processDescription,
                 order: item.order,
@@ -236,12 +239,17 @@ function BUProcessMappingPage() {
                   ...asset,
                   assessmentProcessAssetId:
                     match?.assessmentProcessAssetId ?? null,
+                  questionnaire: match?.questionnaire ?? [],
                 };
               }),
             })
           );
 
           updateAssessment({ processes: updatedProcessesAsset });
+          break;
+
+        case 4:
+          console.log(assessment?.processes);
           break;
       }
 

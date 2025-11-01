@@ -15,6 +15,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import dagre from "dagre";
 import { Card, CardContent, Typography, Box, Divider } from "@mui/material";
+import { fetchAssetsById } from "@/pages/api/asset";
 
 // ---- Types ----
 type Risk = {
@@ -83,6 +84,7 @@ const getLayoutedElements = (
 // ---- Component ----
 const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   const initialNodes: Node[] = [];
   const initialEdges: Edge[] = [];
@@ -110,7 +112,7 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
       const assetId = `${process.id}-${asset.id}`;
       initialNodes.push({
         id: assetId,
-        data: { label: asset.name, type: "asset" },
+        data: { id: asset.id, label: asset.name, type: "asset" },
         position: { x: 0, y: 0 },
         type: "default",
         draggable: false,
@@ -119,6 +121,7 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
           padding: 6,
           background: "#f8f8f8",
           border: "1px solid #ddd",
+          cursor: "pointer",
         },
       });
 
@@ -127,7 +130,7 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
         source: process.id,
         target: assetId,
         type: "smoothstep",
-        markerEnd: { type: MarkerType.ArrowClosed, color: "#517ca0" },
+        //markerEnd: { type: MarkerType.ArrowClosed, color: "#517ca0" },
         style: { strokeWidth: 1.5, stroke: "#517ca0" },
       });
     });
@@ -157,10 +160,15 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
   const [edges, , onEdgesChange] = useEdgesState(layoutedEdges);
 
   // ---- Node Click ----
-  const handleNodeClick = (_: any, node: Node) => {
+  const handleNodeClick = async (_: any, node: Node) => {
     if (node.data?.type === "process") {
       const clickedProcess = processes.find((p) => p.id === node.id);
       setSelectedProcess(clickedProcess || null);
+      setSelectedAsset(null);
+    } else if (node.data?.type === "asset") {
+      const data = await fetchAssetsById(node.data?.id);
+      setSelectedAsset(data.data);
+      setSelectedProcess(null);
     } else {
       setSelectedProcess(null);
     }
@@ -189,61 +197,123 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
       </Box>
 
       {/* Right: Risk panel */}
-      <Box
-        sx={{
-          flex: 1,
-          borderLeft: "1px solid #ddd",
-          p: 2,
-          background: "#fff",
-          overflowY: "auto",
-        }}
-      >
-        {selectedProcess ? (
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold">
-                {selectedProcess.name}
-              </Typography>
-              <Divider sx={{ my: 1 }} />
-              <Typography variant="subtitle1" gutterBottom>
-                Risk Scenarios:
-              </Typography>
-              {selectedProcess.risks && selectedProcess.risks.length > 0 ? (
-                selectedProcess.risks.map((r) => (
-                  <Box
-                    key={r.id}
-                    sx={{
-                      p: 1,
-                      mb: 1,
-                      border: "1px solid #eee",
-                      borderRadius: 2,
-                      background: "#fafafa",
-                    }}
-                  >
-                    <Typography variant="body1">{r.name}</Typography>
-                    {r.severity && (
-                      <Typography variant="caption" color="text.secondary">
-                        Severity: {r.severity}
-                      </Typography>
-                    )}
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No risks defined for this process.
+      {selectedProcess && (
+        <Box
+          sx={{
+            flex: 1,
+            borderLeft: "1px solid #ddd",
+            p: 2,
+            background: "#fff",
+            overflowY: "auto",
+          }}
+        >
+          {selectedProcess ? (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold">
+                  {selectedProcess.name}
                 </Typography>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <Typography
-            color="text.secondary"
-            sx={{ mt: 5, textAlign: "center" }}
-          >
-            Click a process node to view its risk scenarios
-          </Typography>
-        )}
-      </Box>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle1" gutterBottom>
+                  Risk Scenarios:
+                </Typography>
+                {selectedProcess.risks && selectedProcess.risks.length > 0 ? (
+                  selectedProcess.risks.map((r) => (
+                    <Box
+                      key={r.id}
+                      sx={{
+                        p: 1,
+                        mb: 1,
+                        border: "1px solid #eee",
+                        borderRadius: 2,
+                        background: "#fafafa",
+                      }}
+                    >
+                      <Typography variant="body1">{r.name}</Typography>
+                      {r.severity && (
+                        <Typography variant="caption" color="text.secondary">
+                          Severity: {r.severity}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No risks defined for this process.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Typography
+              color="text.secondary"
+              sx={{ mt: 5, textAlign: "center" }}
+            >
+              Click a process node to view its risk scenarios
+            </Typography>
+          )}
+        </Box>
+      )}
+
+      {/* Right: Risk panel */}
+      {selectedAsset && (
+        <Box
+          sx={{
+            flex: 1,
+            borderLeft: "1px solid #ddd",
+            p: 2,
+            background: "#fff",
+            overflowY: "auto",
+          }}
+        >
+          {selectedAsset ? (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold">
+                  {selectedAsset.name}
+                </Typography>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle1" gutterBottom>
+                  Controls:
+                </Typography>
+                {/* {selectedProcess.controls &&
+                selectedProcess.controls.length > 0 ? (
+                  selectedProcess.controls.map((r) => (
+                    <Box
+                      key={r.id}
+                      sx={{
+                        p: 1,
+                        mb: 1,
+                        border: "1px solid #eee",
+                        borderRadius: 2,
+                        background: "#fafafa",
+                      }}
+                    >
+                      <Typography variant="body1">{r.name}</Typography>
+                      {r.severity && (
+                        <Typography variant="caption" color="text.secondary">
+                          Severity: {r.severity}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No controls defined for this asset.
+                  </Typography>
+                )} */}
+              </CardContent>
+            </Card>
+          ) : (
+            <Typography
+              color="text.secondary"
+              sx={{ mt: 5, textAlign: "center" }}
+            >
+              Click a asset node to view its controls
+            </Typography>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

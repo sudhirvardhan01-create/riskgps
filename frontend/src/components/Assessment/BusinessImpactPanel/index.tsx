@@ -19,7 +19,6 @@ export default function BusinessImpactPanel({
 }) {
   const { assessment } = useAssessment();
 
-  const [thresholdHours, setThresholdHours] = useState<number | undefined>();
   const [thresholdCost, setThresholdCost] = useState<number | undefined>();
   const [taxonomies, setTaxonomies] = useState<any[]>([]);
   const [taxonomyValue, setTaxonomyValue] = useState<Taxonomy[]>([]);
@@ -64,7 +63,6 @@ export default function BusinessImpactPanel({
         setTaxonomyValue([]);
       }
     } else {
-      setThresholdHours(undefined);
       setThresholdCost(undefined);
       setTaxonomyValue([]);
     }
@@ -91,7 +89,6 @@ export default function BusinessImpactPanel({
       onUpdateScenario(updatedScenario);
     }
   }, [
-    thresholdHours,
     thresholdCost,
     taxonomyValue,
     selectedScenario,
@@ -101,15 +98,6 @@ export default function BusinessImpactPanel({
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-  };
-
-  const handleThresholdHoursChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsInternalChange(true);
-    setThresholdHours(
-      e.target.value === "" ? undefined : Number(e.target.value)
-    );
   };
 
   const handleThresholdCostChange = (

@@ -23,11 +23,13 @@ interface Questionnaire {
 interface QuestionnaireProps {
   assetCategory: string | undefined; // coming from props
   questionnaires: Questionnaire[];
+  onSubmit: (val: any) => void;
 }
 
 const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
   assetCategory,
   questionnaires,
+  onSubmit,
 }) => {
   const [filteredQuestions, setFilteredQuestions] = useState<Questionnaire[]>(
     []
@@ -42,11 +44,21 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
     setFilteredQuestions(filterQuestions);
   }, [assetCategory, questionnaires]);
 
-  const handleResponseChange = (questionCode: string, value: number) => {
+  const handleResponseChange = (
+    questionCode: string,
+    question: string,
+    value: number
+  ) => {
     setResponses((prev: any) => ({
       ...prev,
       [questionCode]: value,
     }));
+
+    onSubmit({
+      questionaireId: questionCode,
+      questionaireName: question,
+      responseValue: value,
+    });
   };
 
   return (
@@ -100,6 +112,7 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
                           onChange={(e) =>
                             handleResponseChange(
                               q.questionnaireId,
+                              q.question,
                               e.target.value
                             )
                           }

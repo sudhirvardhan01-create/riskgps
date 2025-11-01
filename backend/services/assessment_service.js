@@ -178,7 +178,14 @@ class AssessmentService {
         assessment.modifiedDate = new Date();
         await assessment.save();
       }
-      return { message: "Processes saved and status updated successfully" };
+      return {
+        message: "Processes saved and status updated successfully",
+        processes: await AssessmentProcess.findAll({
+          where: {
+            assessmentId: assessmentId,
+          },
+        }),
+      };
     } catch (err) {
       throw new CustomError(
         err.message || "Failed to save processes",
@@ -242,7 +249,14 @@ class AssessmentService {
           { where: { assessmentId } }
         );
       }
-      return { message: "Risk Scenarios saved successfully" };
+      return {
+        message: "Risk Scenarios saved successfully",
+        riskScenarios: await AssessmentProcessRiskScenario.findAll({
+          where: {
+            assessmentId: assessmentId,
+          },
+        }),
+      };
     } catch (err) {
       throw new CustomError(
         err.message || "Failed to save risk scenarios",
@@ -510,7 +524,14 @@ class AssessmentService {
         );
       }
 
-      return { message: "Assets saved successfully" };
+      return {
+        message: "Assets saved successfully",
+        assets: await AssessmentProcessAsset.findAll({
+          where: {
+            assessmentId: assessmentId,
+          },
+        }),
+      };
     } catch (err) {
       throw new CustomError(
         err.message || "Failed to save assets",

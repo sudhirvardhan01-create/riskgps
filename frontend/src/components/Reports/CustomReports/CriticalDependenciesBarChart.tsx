@@ -115,48 +115,52 @@ const CriticalDependenciesBarChart: React.FC<
       }}
     >
       <Box sx={{ flexGrow: 1 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            layout="vertical"
-            data={data}
-            margin={{ top: 10, right: 30, left: 30, bottom: 10 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-            <XAxis
-              type="number"
-              domain={[0, "dataMax + 1"]}
-              tick={{ fontSize: 11 }}
-              axisLine={{ stroke: "#ddd" }}
-              tickLine={false}
-              label={{
-                value: "Number of Critical Process Dependencies",
-                position: "insideBottom",
-                offset: -5,
-                style: { fontWeight: "bold", fontSize: 10 },
-              }}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              tick={<CustomYAxisTick />}
-              axisLine={{ stroke: "#ddd" }}
-              tickLine={false}
-              width={130}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar
-              dataKey="dependencies"
-              fill="#FC816D"
-              barSize={14}
-              radius={[0, 4, 4, 0]}
-              animationDuration={800}
-              animationEasing="ease-in-out"
-              isAnimationActive={false}
-              activeBar={false}
-              className="bar-clickable"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              layout="vertical"
+              data={data}
+              margin={{ top: 10, right: 30, left: 30, bottom: 10 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <XAxis
+                type="number"
+                domain={[0, "dataMax + 1"]}
+                tick={{ fontSize: 11 }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+                label={{
+                  value: "Number of Critical Process Dependencies",
+                  position: "insideBottom",
+                  offset: -5,
+                  style: { fontWeight: "bold", fontSize: 10 },
+                }}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                tick={<CustomYAxisTick />}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+                width={130}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar
+                dataKey="dependencies"
+                fill="#FC816D"
+                barSize={14}
+                radius={[0, 4, 4, 0]}
+                animationDuration={800}
+                animationEasing="ease-in-out"
+                isAnimationActive={false}
+                activeBar={false}
+                className="bar-clickable"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Typography>No data available</Typography>
+        )}
       </Box>
     </Paper>
   );
