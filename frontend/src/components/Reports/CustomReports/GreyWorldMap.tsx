@@ -47,16 +47,7 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({ data = [] }) => {
     }
   }, []);
 
-  // ✅ Default map data (used when no props provided)
-  const defaultData: LocationData[] = [
-    { name: "New York", value: 50, coords: [40.7128, -74.006] },
-    { name: "Texas", value: 70, coords: [31.9686, -99.9018] },
-    { name: "California", value: 85, coords: [36.7783, -119.4179] },
-    { name: "Florida", value: 60, coords: [27.9944, -81.7603] },
-    { name: "Virginia", value: 65, coords: [37.4316, -78.6569] },
-  ];
-
-  const mapData = data.length ? data : defaultData;
+  const mapData = data.length ? data : [];
 
   if (!mounted || !L)
     return (

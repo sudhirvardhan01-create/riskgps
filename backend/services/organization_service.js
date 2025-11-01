@@ -578,6 +578,7 @@ class OrganizationService {
           "createdDate",
           "modifiedDate",
           "weightage",
+          "order",
         ],
         include: [
           {
@@ -596,10 +597,12 @@ class OrganizationService {
               "createdDate",
               "modifiedDate",
               "color",
+              "order",
             ],
+            order: [["order"]],
           },
         ],
-        order: [["createdDate", "DESC"]],
+        order: [["order"]],
       });
 
       return taxonomies;
