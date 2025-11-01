@@ -230,6 +230,12 @@ class OrganizationService {
     }
     return await sequelize.transaction(async (t) => {
       let insertedCount = 0;
+      await OrganizationProcess.destroy({
+        where: { 
+          organizationId: orgId,
+          orgBusinessUnitId: buId
+        },
+      });
       for (let i = 0; i < createBody.length; i++) {
         const data = createBody[i];
         OrganizationProcessService.validateProcessData(data);
@@ -379,6 +385,9 @@ class OrganizationService {
       }
       return await sequelize.transaction(async (t) => {
         let insertedCount = 0;
+        await OrganizationRiskScenario.destroy({
+          where: { organizationId: organizationId },
+        });
         for (let i = 0; i < createBody.length; i++) {
           const data = createBody[i];
           console.log("[createRiskScenariosByOrgId] request received", data);
@@ -497,6 +506,9 @@ class OrganizationService {
       }
 
       return await sequelize.transaction(async (t) => {
+        await OrganizationThreat.destroy({
+          where: { organizationId: organizationId },
+        });
         let insertedCount = 0;
         for (let i = 0; i < createBody.length; i++) {
           const data = createBody[i];
@@ -706,7 +718,11 @@ class OrganizationService {
         throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
       }
       return await sequelize.transaction(async (t) => {
+        await OrganizationAsset.destroy({
+          where: { organizationId: organizationId },
+        });
         let insertedCount = 0;
+
         for (let i = 0; i < createBody.length; i++) {
           const data = createBody[i];
           console.log("[createAssetByOrgId] request received", data);
@@ -722,7 +738,7 @@ class OrganizationService {
             returning: true,
             transaction: t,
           });
-          insertedCount+=1;
+          insertedCount += 1;
 
           await OrganizationAssetService.handleAssetProcessMapping(
             asset.id,
@@ -738,7 +754,6 @@ class OrganizationService {
         }
 
         return insertedCount;
-;
       });
     } catch (err) {
       throw new CustomError(
