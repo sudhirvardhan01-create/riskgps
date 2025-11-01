@@ -80,7 +80,7 @@ module.exports = {
      */
 
     const organization = await Organization.findOne({
-      where: { name: "CDW" },
+      where: { name: "Default Org 1" },
     });
     if (!organization || !organization.organizationId) {
       throw new Error("Organization not found");

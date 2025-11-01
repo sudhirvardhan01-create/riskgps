@@ -167,12 +167,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
               </Link>
             </Box>
 
-            <Box sx={{ mb: 3 }}>
+            {/* <Box sx={{ mb: 3 }}>
               <ReCAPTCHA
                 sitekey="YOUR_RECAPTCHA_SITE_KEY"
                 onChange={handleCaptchaChange}
               />
-            </Box>
+            </Box> */}
 
             <Button
               type="submit"
@@ -196,7 +196,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
               Login
             </Button>
 
-            <Box sx={{ textAlign: "center", mt: 2.5 }}>
+            {/* <Box sx={{ textAlign: "center", mt: 2.5 }}>
               <Typography variant="body2" sx={{ color: "#475467" }}>
                 Want to know more about RiskGPS?{" "}
                 <Typography
@@ -213,7 +213,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
                   Sign Up
                 </Typography>
               </Typography>
-            </Box>
+            </Box> */}
           </Box>
         </Box>
       </Container>

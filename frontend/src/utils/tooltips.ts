@@ -89,4 +89,13 @@ export const tooltips = {
   questionText: "Enter the question",
 
   //User Management
+  userName: "Enter user name",
+  userEmail: "Enter email",
+  userPhone: "Enter phone",
+  userCommunicationPreference: "Select Communication preference",
+  password: "Enter password",
+  confirmPassword: "Confirm Password",
+  userType: "Select User Type",
+  userCompany: "Enter Company Name",
+  userOrganization: "Select Organization",
 };

@@ -5,10 +5,10 @@ const { safeSeed } = require("../utils/seedHelper");
 module.exports = {
   async up() {
     const organizations = [
-      { name: "BluOcean", desc: "BluOcean", orgCode: "OR0001" },
-      { name: "CDW", desc: "CDW", orgCode: "OR0002" },
-      { name: "Affirm", desc: "Affirm", orgCode: "OR0003" },
-      { name: "Piedmont", desc: "Piedmont", orgCode: "OR0004" },
+      { name: "Default Org 1", desc: "Default Org 1", orgCode: "OR0001" },
+      { name: "Default Org 2", desc: "Default Org 2", orgCode: "OR0002" },
+      { name: "Default Org 3", desc: "Default Org 3", orgCode: "OR0003" },
+      { name: "Default Org 4", desc: "Default Org 4", orgCode: "OR0004" },
     ];
 
     await safeSeed(Organization, organizations, "name");

@@ -244,21 +244,20 @@ module.exports = {
     const supportedValues = industryMetadata.supported_values;
 
     const organization = await Organization.findOne({
-      where: { name: "CDW" },
+      where: { name: "Default Org 1" },
     });
     if (!organization || !organization.organizationId) {
-      throw new Error("Organization not found")
+      throw new Error("Organization not found");
     }
     const orgId = organization.organizationId;
 
     const businessUnit = await OrganizationBusinessUnit.findOne({
       where: { name: "Retail Banking" },
     });
-    if (!businessUnit || !businessUnit.orgBusinessUnitId ) {
-      throw new Error("no business unit found ")
+    if (!businessUnit || !businessUnit.orgBusinessUnitId) {
+      throw new Error("no business unit found ");
     }
     const buId = businessUnit.orgBusinessUnitId;
-
 
     /* Application logic to seed Library Process and Process Attributes  */
     await sequelize.transaction(async (t) => {
@@ -295,11 +294,12 @@ module.exports = {
         processData.organizationId = orgId;
         processData.orgBusinessUnitId = buId;
         // Insert the process
-        const [createdProcess, created] = await OrganizationProcess.findOrCreate({
-          where: { processName: processData.processName },
-          defaults: processData,
-          transaction: t,
-        });
+        const [createdProcess, created] =
+          await OrganizationProcess.findOrCreate({
+            where: { processName: processData.processName },
+            defaults: processData,
+            transaction: t,
+          });
 
         if (created) {
           const value = process.industry ?? [];
