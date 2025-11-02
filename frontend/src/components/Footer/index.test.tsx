@@ -20,7 +20,7 @@ describe("Footer", () => {
       justifyContent: "right",
       padding: "20px 15px",
       backgroundColor: "#f5f5f5",
-      color: "#000000",
+      color: "#91939A",
       position: "absolute",
       bottom: "0",
       width: "90vw",

@@ -10,10 +10,20 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         field: "user_id",
       },
+      incrementalId: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        unique: true,
+        field: "incremental_id",
+      },
+      userCode: {
+        type: DataTypes.STRING,
+        unique: true,
+        field: "user_code",
+      },
       name: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         field: "name",
       },
       email: {
@@ -44,13 +54,30 @@ module.exports = (sequelize, DataTypes) => {
       },
       communicationPreference: {
         type: DataTypes.ENUM("Email", "Phone", "Both"),
-        allowNull: false,
+        allowNull: true,
         field: "communication_preference",
       },
       roleId: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         field: "role_id",
+      },
+      organizationId: {
+        type: DataTypes.UUID,
+        field: "org_id",
+        allowNull: true,
+      },
+      isTermsAndConditionsAccepted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        field: "is_terms_and_conditions_accepted",
+      },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+        field: "is_active",
       },
       ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, etc.
     },
@@ -66,11 +93,26 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "roleId",
       as: "role",
     });
+    User.belongsTo(models.Organization, {
+      foreignKey: "organizationId",
+      as: "organization",
+    });
     User.hasMany(models.RefreshToken, {
       foreignKey: "userId",
       as: "refreshTokens",
     });
   };
+
+  User.afterCreate(async (instance, options) => {
+    const paddedId = String(instance.incrementalId).padStart(5, "0");
+    const code = `US${paddedId}`;
+    await instance.update(
+      { userCode: code },
+      {
+        transaction: options.transaction,
+      }
+    );
+  });
 
   return User;
 };

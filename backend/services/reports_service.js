@@ -1,40 +1,75 @@
-const ProcessService = require("./process");
-const { Process, RiskScenario, ProcessRelationship, Asset } = require("../models");
+const {
+  OrganizationProcess,
+  OrganizationRiskScenario,
+  OrganizationProcessRelationship,
+  OrganizationAsset,
+} = require("../models");
 class ReportsService {
-  static async getOrganizationalDependencyData(
-    organizationName = null,
-    businessUnit = null
-  ) {
+  static async getOrganizationalDependencyData(orgId = null, buId = null) {
     console.log("Fetching all processes");
 
+    if (!orgId) {
+      throw new Error("Organization ID requried");
+    }
+    
     const includeRelations = [
       {
-        model: RiskScenario,
+        model: OrganizationRiskScenario,
         as: "riskScenarios",
-        attributes: ["id", "riskCode", "riskScenario", "riskDescription", "ciaMapping", "status"], 
-        include: [], 
-        through: { attributes: [] }
-
+        attributes: [
+          "id",
+          "riskCode",
+          "riskScenario",
+          "riskDescription",
+          "ciaMapping",
+          "status",
+        ],
+        include: [],
+        through: { attributes: [] },
       },
       {
-        model: Asset,
+        model: OrganizationAsset,
         as: "assets",
-        attributes: ["id", "assetCode", "applicationName", "hosting", "hostingFacility", "cloudServiceProvider", "geographicLocation"], 
-        include: [], 
-        through: { attributes: [] }
+        attributes: [
+          "id",
+          "assetCode",
+          "applicationName",
+          "hosting",
+          "hostingFacility",
+          "cloudServiceProvider",
+          "geographicLocation",
+        ],
+        include: [],
+        through: { attributes: [] },
       },
       {
-        model: ProcessRelationship,
+        model: OrganizationProcessRelationship,
         as: "sourceRelationships",
       },
       {
-        model: ProcessRelationship,
+        model: OrganizationProcessRelationship,
         as: "targetRelationships",
       },
     ];
 
-    const data = await Process.findAll({
-      attributes: ["id", "processCode", "processName"],
+    const whereClause = {
+        organizationId: orgId,
+        isDeleted: false,
+      }
+
+      if (buId) {
+        whereClause.orgBusinessUnitId = buId;
+      }
+
+    const data = await OrganizationProcess.findAll({
+      where: whereClause,
+      // attributes: [
+      //   "id",
+      //   "processCode",
+      //   "organizationId",
+      //   "orgBusinessUnitId",
+      //   "processName",
+      // ],
       include: includeRelations,
     });
 
