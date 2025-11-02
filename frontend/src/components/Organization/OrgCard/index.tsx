@@ -259,30 +259,44 @@ const OrgCard: React.FC<OrgCardProps> = ({
 
       {/* Business Units */}
       <Box>
-        <Typography
-          variant="body1"
-          color="#484848"
-          sx={{
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap"
-          }}
-        >
-          {organization.businessUnits.slice(0, 2).join(", ")}
-        </Typography>
-        {organization.businessUnits.length > 2 && (
+        {organization.businessUnits.length === 0 ? (
           <Typography
             variant="body2"
-            color="#04139A"
+            color="#91939A"
             sx={{
-              mt: 0.5,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap"
+              textAlign: "center",
             }}
           >
-            +{organization.businessUnits.length - 2} more
+            --
           </Typography>
+        ) : (
+          <>
+            <Typography
+              variant="body1"
+              color="#484848"
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap"
+              }}
+            >
+              {organization.businessUnits.slice(0, 2).join(", ")}
+            </Typography>
+            {organization.businessUnits.length > 2 && (
+              <Typography
+                variant="body2"
+                color="#04139A"
+                sx={{
+                  mt: 0.5,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                +{organization.businessUnits.length - 2} more
+              </Typography>
+            )}
+          </>
         )}
       </Box>
 
