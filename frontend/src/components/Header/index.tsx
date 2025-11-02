@@ -16,7 +16,7 @@ const Header = () => {
         py: 3,
       }}
     >
-      <Typography variant="h5" color="text.primary" fontWeight={600}>
+      <Typography variant="h5" color="#91939A" fontWeight={500}>
         RiskGPS
       </Typography>
       <Stack display={"flex"} flexDirection={"row"}>

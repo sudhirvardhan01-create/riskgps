@@ -25,7 +25,7 @@ export const getOrganizationProcess = async (
   }
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/processes?page=${page}&limit=${limit}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/processes-v2?page=${page}&limit=${limit}`,
     {
       method: "GET",
       headers: {
@@ -126,7 +126,7 @@ export const getOrganizationAssets = async (orgId: string | undefined) => {
   }
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/assets-v2`,
     {
       method: "GET",
       headers: {
@@ -214,7 +214,7 @@ export const getOrganizationRisks = async (orgId: string | undefined) => {
   }
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios-v2`,
     {
       method: "GET",
       headers: {
@@ -295,6 +295,29 @@ export const createOrganizationRiskScenarios = async (
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.error || errorData.message || "Failed to create organization risk scenarios");
+  }
+
+  return response.json();
+};
+
+export const getOrganizationProcessDetails = async (orgId: string | undefined) => {
+  if (!orgId) {
+    throw new Error("Organization ID is required");
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/reports/process-details/${orgId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to fetch organization process details");
   }
 
   return response.json();

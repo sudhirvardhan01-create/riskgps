@@ -94,15 +94,18 @@ const AssessmentRow: React.FC<{
       </Box>
 
       {/* Dates */}
-      <Typography variant="body2">
+      <Typography variant="body2" textAlign={"center"}>
         {new Date(assessment.startDate).toLocaleDateString()}
       </Typography>
-      <Typography variant="body2">
-        {new Date(assessment.lastActivity).toLocaleDateString()}
+      <Typography variant="body2" textAlign={"center"}>
+        {assessment.lastActivity
+          ? new Date(assessment.lastActivity).toLocaleDateString()
+          : "-"}
       </Typography>
-      <Typography variant="body2">
-        {assessment.endDate &&
-          new Date(assessment.endDate).toLocaleDateString()}
+      <Typography variant="body2" textAlign={"center"}>
+        {assessment.endDate
+          ? new Date(assessment.endDate).toLocaleDateString()
+          : "-"}
       </Typography>
 
       {/* Last Modified */}
@@ -194,7 +197,8 @@ const AssessmentTable: React.FC<Props> = ({
             fontWeight: 600,
           }}
         >
-          No assessments available for {businessUnitName || 'business unit'}. Create new assessment.
+          No assessments available for {businessUnitName || "business unit"}.
+          Create new assessment.
         </Typography>
       </Box>
     );
@@ -363,7 +367,9 @@ const AssessmentTable: React.FC<Props> = ({
                   color: "#484848",
                 }}
               >
-                {new Date(assessment.lastActivity).toLocaleDateString()}
+                {assessment.lastActivity
+                  ? new Date(assessment.lastActivity).toLocaleDateString()
+                  : "-"}
               </Typography>
               <Typography
                 variant="body2"
@@ -376,7 +382,7 @@ const AssessmentTable: React.FC<Props> = ({
               >
                 {assessment.endDate
                   ? new Date(assessment.endDate).toLocaleDateString()
-                  : ""}
+                  : "-"}
               </Typography>
 
               {/* Last Modified */}

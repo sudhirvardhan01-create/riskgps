@@ -17,12 +17,14 @@ module.exports = {
         minRange: "50k",
         maxRange: "100k",
         color: "#3BB966",
+        order: 1,
       },
       {
         name: "Low",
         minRange: "100k",
         maxRange: "200k",
         color: "#3366CC",
+        order: 2,
       },
 
       {
@@ -30,18 +32,21 @@ module.exports = {
         minRange: "200k",
         maxRange: "500k",
         color: "#E3B52A",
+        order: 3,
       },
       {
         name: "High",
         minRange: "500k",
         maxRange: "1000k",
         color: "#DA7706",
+        order: 4,
       },
       {
         name: "Critical",
         minRange: "",
         maxRange: ">1000k",
         color: "#B90D0D",
+        order: 5,
       },
     ];
 

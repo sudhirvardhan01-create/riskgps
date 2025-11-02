@@ -19,6 +19,7 @@ import {
   saveAssessmentProcess,
   saveAssessmentRisk,
   saveAssessmentRiskTaxonomy,
+  saveAssetQuestionnaire,
 } from "@/pages/api/assessment";
 import ProcessTabs from "@/components/Assessment/ProcessTabs";
 import {
@@ -106,6 +107,7 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
+        assessmentProcessRiskId: risk.assessmentProcessRiskId,
         id: risk.id,
         riskScenario: risk.riskScenario,
         riskDescription: risk.riskDescription,
@@ -133,10 +135,27 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.assets.map((asset) => ({
         assessmentProcessId: process.assessmentProcessId,
+        assessmentProcessAssetId: asset.assessmentProcessAssetId,
         id: asset.id,
         applicationName: asset.applicationName,
         assetCategory: asset.assetCategory,
       }))
+    );
+    return obj;
+  };
+
+  const prepareQuestionnairePayload = () => {
+    const obj = assessment?.processes.flatMap((process) =>
+      process.assets.flatMap((asset) =>
+        asset.questionnaire.map((question) => ({
+          assessmentProcessId: process.assessmentProcessId ?? "",
+          assessmentProcessAssetId: asset.assessmentProcessAssetId ?? "",
+          id: asset.id,
+          questionaireId: question.questionaireId,
+          questionaireName: question.questionaireName,
+          responseValue: question.responseValue,
+        }))
+      )
     );
     return obj;
   };
@@ -162,6 +181,7 @@ function BUProcessMappingPage() {
             processes: assessment?.processes.map((item) => {
               return {
                 id: item.id,
+                assessmentProcessId: item.assessmentProcessId,
                 processName: item.processName,
                 processDescription: item.processDescription,
                 order: item.order,
@@ -236,12 +256,49 @@ function BUProcessMappingPage() {
                   ...asset,
                   assessmentProcessAssetId:
                     match?.assessmentProcessAssetId ?? null,
+                  questionnaire: match?.questionnaire ?? [],
                 };
               }),
             })
           );
 
           updateAssessment({ processes: updatedProcessesAsset });
+          break;
+
+        case 4:
+          const questionnaires = prepareQuestionnairePayload();
+          const resultQues = await saveAssetQuestionnaire({
+            assessmentId: assessment?.assessmentId,
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            questionaires: questionnaires,
+          });
+
+          const updatedProcessesAssetQuestionnaire = assessment?.processes.map(
+            (process) => ({
+              ...process,
+              assets: process.assets.map((asset) => ({
+                ...asset,
+                questionnaire: asset.questionnaire.map((question) => {
+                  // Find a matching question entry from resultQues.questionnaire
+                  const match = resultQues.data.find(
+                    (obj: any) => obj.questionaireId === question.questionaireId
+                  );
+
+                  // Return updated question
+                  return {
+                    ...question,
+                    assessmentQuestionaireId:
+                      match?.assessmentQuestionaireId ?? null,
+                    responseValue:
+                      match?.responseValue ?? question.responseValue ?? null,
+                  };
+                }),
+              })),
+            })
+          );
+
+          updateAssessment({ processes: updatedProcessesAssetQuestionnaire });
+          router.push("/assessment");
           break;
       }
 

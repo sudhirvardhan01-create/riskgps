@@ -23,7 +23,7 @@ import { constants } from "@/utils/constants";
 import RiskTaxonomy from './RiskTaxonomy';
 import Scales from './Scales';
 import { tooltips } from "@/utils/tooltips";
-import { getOrganizationRisks, getOrganizationAssets } from "@/pages/api/organization";
+import { getOrganizationRisks, getOrganizationAssets, getOrganizationProcessDetails } from "@/pages/api/organization";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,12 +54,14 @@ interface RepositoryCardProps {
   icon: React.ReactNode;
   href: string;
   count: number;
+  disabled?: boolean;
 }
 
-function RepositoryCard({ name, description, icon, href, count }: RepositoryCardProps) {
+function RepositoryCard({ name, description, icon, href, count, disabled = false }: RepositoryCardProps) {
   const router = useRouter();
 
   const handleCardClick = () => {
+    if (disabled) return;
     // Extract orgId from current route
     const orgId = router.query.orgId;
     if (orgId) {
@@ -75,10 +77,13 @@ function RepositoryCard({ name, description, icon, href, count }: RepositoryCard
         border: "1px solid #E4E4E4",
         borderRadius: 2,
         boxShadow: "0px 4px 4px 0px #D9D9D98F",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        opacity: disabled ? 0.5 : 1,
+        backgroundColor: disabled ? "#F5F5F5" : "inherit",
+        pointerEvents: disabled ? "none" : "auto",
       }}
       onClick={handleCardClick}
     >
@@ -87,16 +92,16 @@ function RepositoryCard({ name, description, icon, href, count }: RepositoryCard
         spacing={2}
         alignItems="center"
       >
-        <Box sx={{ height: 24, width: 24 }}>{icon}</Box>
+        <Box sx={{ height: 24, width: 24, opacity: disabled ? 0.5 : 1 }}>{icon}</Box>
         <Typography
           variant="h6"
           fontWeight={600}
-          color="primary.main"
+          color={disabled ? "#91939A" : "primary.main"}
         >
           {name} ({count})
         </Typography>
       </Stack>
-      <Typography variant="body1" color="#91939A" sx={{ mt: 3 }}>
+      <Typography variant="body1" color={disabled ? "#B0B0B0" : "#91939A"} sx={{ mt: 3 }}>
         {description}
       </Typography>
     </Box>
@@ -109,6 +114,7 @@ function Repository() {
   const [repositoryTabValue, setRepositoryTabValue] = useState(0);
   const [riskScenarioCount, setRiskScenarioCount] = useState(0);
   const [assetCount, setAssetCount] = useState(0);
+  const [processCount, setProcessCount] = useState(0);
 
   const handleRepositoryTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setRepositoryTabValue(newValue);
@@ -118,7 +124,7 @@ function Repository() {
   useEffect(() => {
     const fetchRiskScenarioCount = async () => {
       if (!orgId || typeof orgId !== 'string') return;
-      
+
       try {
         const response = await getOrganizationRisks(orgId);
         if (response?.data && Array.isArray(response.data)) {
@@ -139,7 +145,7 @@ function Repository() {
   useEffect(() => {
     const fetchAssetCount = async () => {
       if (!orgId || typeof orgId !== 'string') return;
-      
+
       try {
         const response = await getOrganizationAssets(orgId);
         if (response?.data && Array.isArray(response.data)) {
@@ -156,41 +162,67 @@ function Repository() {
     fetchAssetCount();
   }, [orgId]);
 
+  // Fetch processes count from process-details API
+  useEffect(() => {
+    const fetchProcessCount = async () => {
+      if (!orgId || typeof orgId !== 'string') return;
+
+      try {
+        const response = await getOrganizationProcessDetails(orgId);
+        if (response?.data && Array.isArray(response.data)) {
+          setProcessCount(response.data.length);
+        } else {
+          setProcessCount(0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch processes count:", err);
+        setProcessCount(0);
+      }
+    };
+
+    fetchProcessCount();
+  }, [orgId]);
+
   const repositoryCards = [
     {
       name: constants.libRiskScenarioTitle,
       description: constants.libRiskScenarioDescription,
       icon: <LibraryCardIcon height={24} width={24} />,
       href: "/riskScenarios",
-      count: riskScenarioCount
-    },
-    {
-      name: constants.libThreatTitle,
-      description: constants.libThreatDescription,
-      icon: <ThreatCardIcon height={24} width={24} />,
-      href: "/threats",
-      count: 0
+      count: riskScenarioCount,
+      disabled: false
     },
     {
       name: constants.libAssetTitle,
       description: constants.libAssetDescription,
       icon: <AssetCardIcon height={24} width={24} />,
       href: "/assets",
-      count: assetCount
-    },
-    {
-      name: constants.libControlTitle,
-      description: constants.libControlDescription,
-      icon: <ControlCardIcon height={24} width={24} />,
-      href: "/controls",
-      count: 0
+      count: assetCount,
+      disabled: false
     },
     {
       name: constants.libProcessTitle,
       description: constants.libProcessDescription,
       icon: <ProcessCardIcon height={24} width={24} />,
       href: "/processes",
-      count: 0
+      count: processCount,
+      disabled: false
+    },
+    {
+      name: constants.libThreatTitle,
+      description: constants.libThreatDescription,
+      icon: <ThreatCardIcon height={24} width={24} />,
+      href: "/threats",
+      count: 0,
+      disabled: true
+    },
+    {
+      name: constants.libControlTitle,
+      description: constants.libControlDescription,
+      icon: <ControlCardIcon height={24} width={24} />,
+      href: "/controls",
+      count: 0,
+      disabled: true
     },
   ];
 
@@ -340,6 +372,7 @@ function Repository() {
                 icon={card.icon}
                 href={card.href}
                 count={card.count}
+                disabled={card.disabled}
               />
             </Grid>
           ))}

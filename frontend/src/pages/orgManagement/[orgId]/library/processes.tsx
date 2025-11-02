@@ -246,6 +246,16 @@ function ProcessesPage() {
       // Call the POST API to save to organization
       await createOrganizationProcesses(orgId, buId, formattedData);
 
+      // Update current business unit state and URL if different from current
+      if (buId !== currentBusinessUnitId) {
+        setCurrentBusinessUnitId(buId);
+        // Update URL query param
+        router.push({
+          pathname: router.pathname,
+          query: { ...router.query, businessUnitId: buId },
+        }, undefined, { shallow: true });
+      }
+
       // Refresh the list
       await fetchOrganizationProcesses(buId);
 

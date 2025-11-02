@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -78,7 +78,8 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
   const [selectedBusinessUnitId, setSelectedBusinessUnitId] = useState<string>("");
   const [loadingBusinessUnits, setLoadingBusinessUnits] = useState(false);
   const [cachedOrgProcesses, setCachedOrgProcesses] = useState<any[]>([]);
-  const router = useRouter();
+  const [allOrgProcessesByBuId, setAllOrgProcessesByBuId] = useState<Map<string, any[]>>(new Map());
+  const fetchingBUsRef = React.useRef<Set<string>>(new Set()); // Track which BUs are currently being fetched
 
   const fetchItems = async () => {
     try {
@@ -99,6 +100,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     if (!open || itemType !== 'processes' || !orgId || typeof orgId !== 'string') {
       setBusinessUnits([]);
       setSelectedBusinessUnitId("");
+      setAllOrgProcessesByBuId(new Map());
       return;
     }
 
@@ -116,9 +118,14 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
           // User must select manually
           setSelectedBusinessUnitId("");
         }
+
+        // Don't fetch processes for all BUs upfront - only fetch when a BU is selected
+        // This avoids making unnecessary API calls
+        setAllOrgProcessesByBuId(new Map());
       } catch (err) {
         console.error("Error fetching business units:", err);
         setBusinessUnits([]);
+        setAllOrgProcessesByBuId(new Map());
       } finally {
         setLoadingBusinessUnits(false);
       }
@@ -133,14 +140,18 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       setSelectedItems([]);
       setHasInitialized(false);
       setCachedOrgProcesses([]);
+      fetchingBUsRef.current.clear(); // Clear fetching ref when modal opens
       if (itemType !== 'processes') {
         setSelectedBusinessUnitId("");
+        setAllOrgProcessesByBuId(new Map());
       }
     } else {
       // Reset when modal closes
       setHasInitialized(false);
       setSelectedBusinessUnitId("");
       setCachedOrgProcesses([]);
+      setAllOrgProcessesByBuId(new Map());
+      fetchingBUsRef.current.clear(); // Clear fetching ref when modal closes
     }
   }, [open, itemType]);
 
@@ -155,7 +166,8 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     return () => clearTimeout(timeoutId);
   }, [searchTerm, open]);
 
-  // Fetch processes for selected business unit when it changes (for processes type)
+  // Fetch processes for selected business unit and other business units when it changes
+  // This is more efficient - only fetches what's needed when a BU is selected
   useEffect(() => {
     if (
       itemType !== 'processes' ||
@@ -163,26 +175,101 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       !selectedBusinessUnitId ||
       !orgId ||
       typeof orgId !== 'string' ||
-      typeof selectedBusinessUnitId !== 'string'
+      typeof selectedBusinessUnitId !== 'string' ||
+      !businessUnits.length
     ) {
       setCachedOrgProcesses([]);
       return;
     }
 
-    const fetchProcessesForBusinessUnit = async () => {
+    const fetchProcessesData = async () => {
       try {
-        const response = await getOrganizationProcess(orgId, selectedBusinessUnitId, 0, -1);
-        const processesData = response?.data?.data || response?.data || [];
-
-        if (Array.isArray(processesData)) {
-          setCachedOrgProcesses(processesData);
+        // 1. Fetch processes for the selected business unit (for pre-selection)
+        const selectedResponse = await getOrganizationProcess(orgId, selectedBusinessUnitId, 0, -1);
+        const selectedProcessesData = selectedResponse?.data?.data || selectedResponse?.data || [];
+        
+        if (Array.isArray(selectedProcessesData)) {
+          setCachedOrgProcesses(selectedProcessesData);
+          // Update the map with data for the selected business unit
+          setAllOrgProcessesByBuId(prev => {
+            const newMap = new Map(prev);
+            newMap.set(selectedBusinessUnitId, selectedProcessesData);
+            return newMap;
+          });
         } else {
           setCachedOrgProcesses([]);
+          setAllOrgProcessesByBuId(prev => {
+            const newMap = new Map(prev);
+            newMap.set(selectedBusinessUnitId, []);
+            return newMap;
+          });
+        }
+
+        // 2. Fetch processes for OTHER business units (to build exclusion list)
+        // Get current state to check what's already cached
+        const currentMap = allOrgProcessesByBuId;
+        const otherBusinessUnits = businessUnits.filter(bu => bu.id !== selectedBusinessUnitId);
+        
+        // Filter to only fetch uncached BUs - check state map and fetching ref
+        const uncachedBUs = otherBusinessUnits.filter(bu => {
+          const buId = bu.id;
+          // Fetch only if: not currently fetching AND not already in cache
+          return !fetchingBUsRef.current.has(buId) && !currentMap.has(buId);
+        });
+        
+        if (uncachedBUs.length > 0) {
+          // Mark BUs as being fetched
+          uncachedBUs.forEach(bu => fetchingBUsRef.current.add(bu.id));
+          
+          // Fetch processes for uncached business units in parallel (non-blocking)
+          const fetchPromises = uncachedBUs.map(async (bu: BusinessUnitData) => {
+            try {
+              const response = await getOrganizationProcess(orgId, bu.id, 0, -1);
+              const processesData = response?.data?.data || response?.data || [];
+              
+              // Update map as data arrives - only if not already cached
+              setAllOrgProcessesByBuId(prev => {
+                // Check if already cached (avoid race conditions)
+                if (prev.has(bu.id)) return prev;
+                const newMap = new Map(prev);
+                if (Array.isArray(processesData) && processesData.length > 0) {
+                  newMap.set(bu.id, processesData);
+                } else {
+                  // Cache empty array to avoid refetching
+                  newMap.set(bu.id, []);
+                }
+                return newMap;
+              });
+            } catch (err: any) {
+              // Cache empty array on error to avoid retrying
+              if (err.message?.toLowerCase().includes('no processes found')) {
+                setAllOrgProcessesByBuId(prev => {
+                  if (prev.has(bu.id)) return prev;
+                  const newMap = new Map(prev);
+                  newMap.set(bu.id, []);
+                  return newMap;
+                });
+              } else {
+                console.error(`Error fetching processes for business unit ${bu.id}:`, err);
+              }
+            } finally {
+              // Remove from fetching set when done
+              fetchingBUsRef.current.delete(bu.id);
+            }
+          });
+          
+          // Don't await - let it run in background to avoid blocking UI
+          Promise.allSettled(fetchPromises);
         }
       } catch (err: any) {
         // If error is "No processes found", treat it as empty state
         if (err.message?.toLowerCase().includes('no processes found')) {
           setCachedOrgProcesses([]);
+          setAllOrgProcessesByBuId(prev => {
+            const newMap = new Map(prev);
+            newMap.set(selectedBusinessUnitId, []);
+            return newMap;
+          });
         } else {
           console.error("Error fetching processes for business unit:", err);
           setCachedOrgProcesses([]);
@@ -190,8 +277,9 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       }
     };
 
-    fetchProcessesForBusinessUnit();
-  }, [selectedBusinessUnitId, itemType, open, orgId]);
+    fetchProcessesData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBusinessUnitId, itemType, open, orgId]); // businessUnits is stable after initial fetch
 
   // Match cached processes with library items whenever items change
   useEffect(() => {
@@ -332,31 +420,80 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     });
   };
 
-  const handleSelectAll = () => {
+  // Memoize the set of process names that are assigned to other business units
+  // This Set is computed once and reused for fast O(1) lookups instead of nested loops
+  const excludedProcessNames = useMemo(() => {
+    if (itemType !== 'processes' || !selectedBusinessUnitId || allOrgProcessesByBuId.size === 0) {
+      return new Set<string>();
+    }
+
+    const excluded = new Set<string>();
+    
+    // Build a Set of process names that are assigned to other business units
+    for (const [buId, processes] of allOrgProcessesByBuId.entries()) {
+      if (buId !== selectedBusinessUnitId) {
+        processes.forEach((process: any) => {
+          // Only include processes that have orgBusinessUnitId set (are assigned)
+          if (process.orgBusinessUnitId && process.processName) {
+            const processName = (process.processName || '').toLowerCase().trim();
+            if (processName) {
+              excluded.add(processName);
+            }
+          }
+        });
+      }
+    }
+
+    return excluded;
+  }, [itemType, selectedBusinessUnitId, allOrgProcessesByBuId]);
+
+  // Memoize filtered items calculation to avoid recalculating on every render
+  const filteredItems = useMemo(() => {
+    if (!items.length) return [];
+
+    const searchLower = searchTerm.toLowerCase();
+    
+    return items.filter(item => {
+      // Only include items with valid IDs
+      if (!item.id) return false;
+      
+      // Fast search filter first
+      const matchesSearch = item.name.toLowerCase().includes(searchLower) ||
+        item.description.toLowerCase().includes(searchLower);
+
+      if (!matchesSearch) return false;
+
+      // For processes, filter out items that are assigned to other business units
+      if (itemType === 'processes' && excludedProcessNames.size > 0) {
+        const processName = (item.name || '').toLowerCase().trim();
+        // Fast O(1) lookup in Set instead of nested loop
+        if (processName && excludedProcessNames.has(processName)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [items, searchTerm, itemType, excludedProcessNames]);
+
+  const handleSelectAll = useCallback(() => {
     const allFilteredIds = filteredItems
       .map(item => item.id)
-      .filter((id): id is number => id !== undefined);
-    const allSelected = allFilteredIds.every(id => selectedItems.includes(id));
+      .filter((id): id is string | number => id !== undefined);
+    const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedItems.includes(id));
 
     if (allSelected) {
       // Deselect all filtered items
-      setSelectedItems(prev => prev.filter(id => !allFilteredIds.includes(id as number)));
+      setSelectedItems(prev => prev.filter(id => !allFilteredIds.includes(id)));
     } else {
       // Select all filtered items
-      setSelectedItems(prev => [...new Set([...prev, ...allFilteredIds])]);
+      setSelectedItems(prev => {
+        const newSet = new Set(prev);
+        allFilteredIds.forEach(id => newSet.add(id));
+        return Array.from(newSet);
+      });
     }
-  };
-
-  // Filter items based on search term
-  const filteredItems = items.filter(item => {
-    // Only include items with valid IDs
-    if (!item.id) return false;
-    
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    return matchesSearch;
-  });
+  }, [filteredItems, selectedItems]);
 
   // Get display fields based on item type
   const getDisplayFields = (item: LibraryItem) => {
@@ -442,40 +579,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                     Loading...
                   </Typography>
                 </Box>
-              ) 
-              // : businessUnits.length === 0 ? (
-              //   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              //     <Typography variant="body2" sx={{ fontSize: "12px", color: "#484848" }}>
-              //       Create business unit to select process
-              //     </Typography>
-              //     <Button
-              //       onClick={() => {
-              //         if (orgId && typeof orgId === 'string') {
-              //           onClose();
-              //           router.push(`/orgManagement/${orgId}?tab=2`);
-              //         }
-              //       }}
-              //       variant="contained"
-              //       size="small"
-              //       sx={{
-              //         borderRadius: "4px",
-              //         backgroundColor: "#04139A",
-              //         color: "#FFFFFF",
-              //         textTransform: "none",
-              //         fontWeight: 500,
-              //         fontSize: "12px",
-              //         px: 2,
-              //         py: 0.5,
-              //         "&:hover": {
-              //           backgroundColor: "#030d6b",
-              //         },
-              //       }}
-              //     >
-              //       Go to Business Units
-              //     </Button>
-              //   </Box>
-              // ) 
-              : (
+              ) : (
                 <FormControl
                   size="small"
                   sx={{
@@ -629,39 +733,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
         </Box>
 
         {/* Items Grid */}
-        {
-        // itemType === 'processes' && !loadingBusinessUnits && businessUnits.length === 0 ? (
-        //   <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", p: 4, gap: 2 }}>
-        //     <Typography variant="body1" sx={{ fontSize: "14px", color: "#484848", textAlign: "center" }}>
-        //       No business units available. Please create a business unit to select processes.
-        //     </Typography>
-        //     <Button
-        //       onClick={() => {
-        //         if (orgId && typeof orgId === 'string') {
-        //           onClose();
-        //           router.push(`/orgManagement/${orgId}?tab=2`);
-        //         }
-        //       }}
-        //       variant="contained"
-        //       sx={{
-        //         borderRadius: "4px",
-        //         backgroundColor: "#04139A",
-        //         color: "#FFFFFF",
-        //         textTransform: "none",
-        //         fontWeight: 500,
-        //         fontSize: "14px",
-        //         px: 3,
-        //         py: 1,
-        //         "&:hover": {
-        //           backgroundColor: "#030d6b",
-        //         },
-        //       }}
-        //     >
-        //       Go to Business Units
-        //     </Button>
-        //   </Box>
-        // ) : 
-        loading ? (
+        {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
             <CircularProgress sx={{ color: "#04139A" }} />
           </Box>

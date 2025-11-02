@@ -357,3 +357,125 @@ export const updateOrganization = async (
   const responseData = await response.json();
   return responseData;
 };
+
+export interface SaveTaxonomiesRequest {
+  taxonomies: Array<{
+    name: string;
+    weightage: number;
+    order: number;
+    createdBy: string;
+    severityLevels: Array<{
+      name: string;
+      minRange: string;
+      maxRange: string;
+      color: string;
+      order: number;
+      createdBy: string;
+    }>;
+  }>;
+}
+
+export interface SaveTaxonomiesResponse {
+  message: string;
+  data: any;
+}
+
+export interface Taxonomy {
+  taxonomyId: string;
+  name: string;
+  organizationId: string;
+  createdBy: string;
+  modifiedBy: string | null;
+  createdDate: string;
+  modifiedDate: string;
+  weightage: number;
+  order: number;
+  severityLevels: Array<{
+    severityId: string;
+    taxonomyId: string;
+    name: string;
+    minRange: string;
+    maxRange: string;
+    createdBy: string;
+    modifiedBy: string | null;
+    createdDate: string;
+    modifiedDate: string;
+    color: string;
+    order: number;
+  }>;
+}
+
+export interface GetTaxonomiesResponse {
+  message: string;
+  data: Taxonomy[];
+}
+
+export const getTaxonomies = async (
+  orgId: string
+): Promise<GetTaxonomiesResponse> => {
+  // Get access token from cookies
+  const token = typeof window !== 'undefined' ? document.cookie
+    .split('; ')
+    .find(row => row.startsWith('accessToken='))
+    ?.split('=')[1] : null;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add authorization header if token exists
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/taxonomies`,
+    {
+      method: "GET",
+      headers,
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to fetch taxonomies");
+  }
+
+  return response.json();
+};
+
+export const saveTaxonomies = async (
+  orgId: string,
+  taxonomies: SaveTaxonomiesRequest['taxonomies']
+): Promise<SaveTaxonomiesResponse> => {
+  // Get access token from cookies
+  const token = typeof window !== 'undefined' ? document.cookie
+    .split('; ')
+    .find(row => row.startsWith('accessToken='))
+    ?.split('=')[1] : null;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add authorization header if token exists
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/taxonomies`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ taxonomies }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to save taxonomies");
+  }
+
+  return response.json();
+};

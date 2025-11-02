@@ -520,7 +520,7 @@ module.exports = {
     const supportedValues = industryMetadata.supported_values;
 
     const organization = await Organization.findOne({
-      where: { name: "CDW" },
+      where: { name: "Default Org 1" },
     });
     if (!organization || !organization.organizationId) {
       throw new Error("Organization not found");
@@ -545,11 +545,12 @@ module.exports = {
         riskData["riskField2"] = risk["risk_field_2"];
         riskData["organizationId"] = orgId;
 
-        const [createdRisk, created] = await OrganizationRiskScenario.findOrCreate({
-          where: { riskScenario: riskData.riskScenario },
-          defaults: riskData,
-          transaction: t,
-        });
+        const [createdRisk, created] =
+          await OrganizationRiskScenario.findOrCreate({
+            where: { riskScenario: riskData.riskScenario },
+            defaults: riskData,
+            transaction: t,
+          });
 
         if (created) {
           console.log(
@@ -606,9 +607,12 @@ module.exports = {
       );
 
       // Insert all risk scenario attributes at once
-      await OrganizationRiskScenarioAttribute.bulkCreate(riskScenarioAttributes, {
-        transaction: t,
-      });
+      await OrganizationRiskScenarioAttribute.bulkCreate(
+        riskScenarioAttributes,
+        {
+          transaction: t,
+        }
+      );
       console.log("seeded risk scenario data");
     });
   },

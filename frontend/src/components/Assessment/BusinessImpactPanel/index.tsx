@@ -19,7 +19,6 @@ export default function BusinessImpactPanel({
 }) {
   const { assessment } = useAssessment();
 
-  const [thresholdHours, setThresholdHours] = useState<number | undefined>();
   const [thresholdCost, setThresholdCost] = useState<number | undefined>();
   const [taxonomies, setTaxonomies] = useState<any[]>([]);
   const [taxonomyValue, setTaxonomyValue] = useState<Taxonomy[]>([]);
@@ -47,6 +46,7 @@ export default function BusinessImpactPanel({
 
   // Reset form when selectedScenario changes
   useEffect(() => {
+    console.log("selected scenario", selectedScenario);
     if (selectedScenario) {
       setThresholdCost(selectedScenario.thresholdCost ?? undefined);
 
@@ -64,13 +64,12 @@ export default function BusinessImpactPanel({
         setTaxonomyValue([]);
       }
     } else {
-      setThresholdHours(undefined);
       setThresholdCost(undefined);
       setTaxonomyValue([]);
     }
 
     setIsInternalChange(false);
-  }, [selectedScenario, assessment?.orgId]);
+  }, [JSON.stringify(selectedScenario), assessment?.orgId]);
 
   // Push updates back into parent
   useEffect(() => {
@@ -91,25 +90,15 @@ export default function BusinessImpactPanel({
       onUpdateScenario(updatedScenario);
     }
   }, [
-    thresholdHours,
     thresholdCost,
     taxonomyValue,
-    selectedScenario,
+    JSON.stringify(selectedScenario),
     isInternalChange,
     onUpdateScenario,
   ]);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-  };
-
-  const handleThresholdHoursChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsInternalChange(true);
-    setThresholdHours(
-      e.target.value === "" ? undefined : Number(e.target.value)
-    );
   };
 
   const handleThresholdCostChange = (
@@ -210,13 +199,6 @@ export default function BusinessImpactPanel({
             {/* Thresholds */}
             <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
               <TextFieldStyled
-                label="Risk Threshold (hours)"
-                type="number"
-                size="small"
-                value={thresholdHours ?? ""}
-                onChange={handleThresholdHoursChange}
-              />
-              <TextFieldStyled
                 label="Risk Threshold ($)"
                 type="number"
                 size="small"
@@ -251,7 +233,7 @@ export default function BusinessImpactPanel({
                 key={item.taxonomyId}
                 label={item.name}
                 severityLevels={item.severityLevels}
-                value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
+                value={taxonomyValue[ind]?.severityDetails?.name ?? ""}
                 onChange={(val) =>
                   setTaxonomy(item.taxonomyId, item.name, ind, val)
                 }

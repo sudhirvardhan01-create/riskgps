@@ -34,7 +34,6 @@ export const fetchAssets = async (
     params.append("attrFilters", paramString);
   }
   const transformAssetData = (data: any[]): AssetForm[] => {
-
     return data.map((item) => ({
       id: item.id,
       assetCode: item.assetCode,
@@ -81,15 +80,18 @@ export const fetchAssets = async (
   return res.data;
 };
 
-export const fetchAssetById = async (id: number) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/asset/${id}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+export const fetchAssetsById = async (assetId: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/${assetId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
   if (!response.ok) {
-    throw new Error("Failed to fetch asset data");
+    throw new Error("Failed to fetch assets data");
   }
   const res = await response.json();
   return res.data;
@@ -231,7 +233,6 @@ export const updateAssetStatus = async (id: number, status: string) => {
   return res.data;
 };
 
-
 export const downloadAssetTemplateFile = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/asset/download-template-file`,
@@ -293,10 +294,10 @@ export const importAssets = async (file: File): Promise<any> => {
   }
 
   const formData = new FormData();
-  formData.append("file", file); 
+  formData.append("file", file);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/import`, 
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/import`,
     {
       method: "POST",
       body: formData,
@@ -308,6 +309,6 @@ export const importAssets = async (file: File): Promise<any> => {
   }
 
   const response = await res.json();
-  console.log(response)
-  return response; 
+  console.log(response);
+  return response;
 };

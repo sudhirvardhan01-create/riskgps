@@ -23,7 +23,7 @@ import Image from "next/image";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { AssetLibraryService } from "@/services/orgLibraryService/assetLibraryService";
 import { createOrganizationAssets, getOrganizationAssets } from "@/pages/api/organization";
-import { fetchAssetById } from "@/pages/api/asset";
+import { fetchAssetsById } from "@/pages/api/asset";
 
 interface Asset {
   id: string | number;
@@ -113,7 +113,7 @@ function AssetsPage() {
       // Fetch full asset data from library using the IDs
       const fullAssetData: any[] = await Promise.all(
         selectedAssets.map(async (asset) => {
-          const fullData = await fetchAssetById(asset.id!);
+          const fullData = await fetchAssetsById(asset.id!);
           return fullData;
         })
       );
