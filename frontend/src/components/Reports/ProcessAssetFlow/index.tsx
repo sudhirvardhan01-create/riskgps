@@ -14,7 +14,14 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "dagre";
-import { Card, CardContent, Typography, Box, Divider } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Divider,
+  Chip,
+} from "@mui/material";
 import { fetchAssetsById } from "@/pages/api/asset";
 
 // ---- Types ----
@@ -42,8 +49,8 @@ interface ProcessAssetFlowProps {
   processes: Process[];
 }
 
-const nodeWidth = 180;
-const nodeHeight = 60;
+const nodeWidth = 200;
+const nodeHeight = 70;
 
 // ---- Layout (Dagre) ----
 const getLayoutedElements = (
@@ -53,33 +60,38 @@ const getLayoutedElements = (
 ) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-
-  const isHorizontal = direction === "LR";
   dagreGraph.setGraph({ rankdir: direction });
 
-  nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-  });
+  const isHorizontal = direction === "LR";
 
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
+  nodes.forEach((n) =>
+    dagreGraph.setNode(n.id, { width: nodeWidth, height: nodeHeight })
+  );
+  edges.forEach((e) => dagreGraph.setEdge(e.source, e.target));
 
   dagre.layout(dagreGraph);
 
   nodes.forEach((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
+    const n = dagreGraph.node(node.id);
     node.targetPosition = isHorizontal ? Position.Left : Position.Top;
     node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
-
     node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2,
-      y: nodeWithPosition.y - nodeHeight / 2,
+      x: n.x - nodeWidth / 2,
+      y: n.y - nodeHeight / 2,
     };
   });
 
   return { nodes, edges };
 };
+
+// ---- Process Colors ----
+const COLOR_PALETTES = [
+  { bg: "linear-gradient(135deg, #E3F2FD, #BBDEFB)", border: "#1565C0" },
+  { bg: "linear-gradient(135deg, #E8F5E9, #C8E6C9)", border: "#2E7D32" },
+  { bg: "linear-gradient(135deg, #FFF3E0, #FFE0B2)", border: "#EF6C00" },
+  { bg: "linear-gradient(135deg, #F3E5F5, #E1BEE7)", border: "#8E24AA" },
+  { bg: "linear-gradient(135deg, #E1F5FE, #B3E5FC)", border: "#0277BD" },
+];
 
 // ---- Component ----
 const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
@@ -89,21 +101,24 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
   const initialNodes: Node[] = [];
   const initialEdges: Edge[] = [];
 
-  processes.forEach((process) => {
+  processes.forEach((process, index) => {
+    const color = COLOR_PALETTES[index % COLOR_PALETTES.length];
+
     // Process Node
     initialNodes.push({
       id: process.id,
       data: { label: process.name, type: "process" },
       position: { x: 0, y: 0 },
-      type: "default",
       draggable: false,
       style: {
-        borderRadius: 12,
+        borderRadius: 14,
         padding: 10,
-        background: "#fff",
-        border: "1.5px solid #bbb",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        background: color.bg,
+        border: `2px solid ${color.border}`,
+        boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
         cursor: "pointer",
+        fontWeight: 600,
+        transition: "all 0.2s ease-in-out",
       },
     });
 
@@ -114,14 +129,17 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
         id: assetId,
         data: { id: asset.id, label: asset.name, type: "asset" },
         position: { x: 0, y: 0 },
-        type: "default",
         draggable: false,
         style: {
           borderRadius: 8,
-          padding: 6,
-          background: "#f8f8f8",
-          border: "1px solid #ddd",
-          cursor: "pointer",
+          padding: "6px 10px",
+          background: "#FFFDE7",
+          border: "1.5px solid #FBC02D",
+          fontSize: 13,
+          fontWeight: 500,
+          color: "#795548",
+          boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+          transition: "all 0.2s ease",
         },
       });
 
@@ -130,8 +148,8 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
         source: process.id,
         target: assetId,
         type: "smoothstep",
-        //markerEnd: { type: MarkerType.ArrowClosed, color: "#517ca0" },
-        style: { strokeWidth: 1.5, stroke: "#517ca0" },
+        style: { strokeWidth: 1.6, stroke: "#42a5f5" },
+        // markerEnd: { type: MarkerType.ArrowClosed, color: "#42a5f5" },
       });
     });
 
@@ -144,8 +162,8 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
           target: process.id,
           type: "smoothstep",
           animated: true,
-          markerEnd: { type: MarkerType.ArrowClosed, color: "#fc816d" },
-          style: { strokeWidth: 2, stroke: "#fc816d" },
+          markerEnd: { type: MarkerType.ArrowClosed, color: "#ef5350" },
+          style: { strokeWidth: 2, stroke: "#ef5350" },
         });
       }
     });
@@ -171,69 +189,137 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
       setSelectedProcess(null);
     } else {
       setSelectedProcess(null);
+      setSelectedAsset(null);
     }
   };
 
   return (
-    <Box sx={{ display: "flex", width: "100%", height: "420px" }}>
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+        height: "420px",
+        borderRadius: 3,
+        overflow: "hidden",
+      }}
+    >
       {/* Left: Flow chart */}
-      <Box sx={{ flex: 3, backgroundColor: "#fafafa" }}>
+      <Box
+        sx={{
+          flex: 3,
+          background: "linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%)",
+          borderRight: "1px solid #e0e0e0",
+        }}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeClick={handleNodeClick}
           nodesDraggable={false}
           nodesConnectable={false}
-          onNodeClick={handleNodeClick}
-          panOnDrag
-          zoomOnScroll
+          zoomOnScroll={true}
+          zoomOnPinch={true}
+          zoomOnDoubleClick={false}
           fitView
+          fitViewOptions={{ padding: 0.2 }}
+          proOptions={{ hideAttribution: true }}
+          defaultViewport={{ x: 0, y: 0, zoom: 2 }}
+          style={{
+            background: "linear-gradient(135deg, #f9f9ff 0%, #eef3f9 100%)",
+            borderRadius: 12,
+          }}
         >
-          <MiniMap zoomable={false} pannable={false} />
-          <Controls />
+          <MiniMap
+            nodeColor={(n) =>
+              n.data.type === "process"
+                ? "#90caf9"
+                : n.data.type === "asset"
+                ? "#ffe082"
+                : "#cfd8dc"
+            }
+            maskColor="rgba(0, 0, 0, 0.1)"
+            zoomable
+            pannable
+          />
+          <Controls
+            showInteractive={false}
+            style={{
+              background: "#fff",
+              borderRadius: 8,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          />
           <Background color="#e0e0e0" gap={16} />
         </ReactFlow>
       </Box>
 
-      {/* Right: Risk panel */}
-      {selectedProcess && (
+      {/* Right: Info Panel */}
+      {(selectedProcess || selectedAsset) && (
         <Box
           sx={{
-            flex: 1,
-            borderLeft: "1px solid #ddd",
-            p: 2,
-            background: "#fff",
+            flex: 1.2,
+            background: "#ffffff",
+            borderLeft: "1px solid #eee",
+            p: 3,
             overflowY: "auto",
+            transition: "all 0.3s ease",
           }}
         >
-          {selectedProcess ? (
-            <Card variant="outlined">
+          {selectedProcess && (
+            <Card
+              sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+            >
               <CardContent>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant="h6" fontWeight="bold" color="#1565C0">
                   {selectedProcess.name}
                 </Typography>
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={{ my: 2 }} />
                 <Typography variant="subtitle1" gutterBottom>
                   Risk Scenarios:
                 </Typography>
+
                 {selectedProcess.risks && selectedProcess.risks.length > 0 ? (
                   selectedProcess.risks.map((r) => (
                     <Box
                       key={r.id}
                       sx={{
-                        p: 1,
+                        p: 1.2,
                         mb: 1,
-                        border: "1px solid #eee",
                         borderRadius: 2,
-                        background: "#fafafa",
+                        background:
+                          r.severity === "High"
+                            ? "#FFEBEE"
+                            : r.severity === "Medium"
+                            ? "#FFF8E1"
+                            : "#E8F5E9",
                       }}
                     >
-                      <Typography variant="body1">{r.name}</Typography>
+                      <Typography variant="body1" fontWeight={500}>
+                        {r.name}
+                      </Typography>
                       {r.severity && (
-                        <Typography variant="caption" color="text.secondary">
-                          Severity: {r.severity}
-                        </Typography>
+                        <Chip
+                          label={r.severity}
+                          size="small"
+                          sx={{
+                            mt: 0.5,
+                            fontWeight: 600,
+                            color:
+                              r.severity === "High"
+                                ? "#C62828"
+                                : r.severity === "Medium"
+                                ? "#EF6C00"
+                                : "#2E7D32",
+                            backgroundColor:
+                              r.severity === "High"
+                                ? "#FFCDD2"
+                                : r.severity === "Medium"
+                                ? "#FFE0B2"
+                                : "#C8E6C9",
+                          }}
+                        />
                       )}
                     </Box>
                   ))
@@ -244,73 +330,25 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
                 )}
               </CardContent>
             </Card>
-          ) : (
-            <Typography
-              color="text.secondary"
-              sx={{ mt: 5, textAlign: "center" }}
-            >
-              Click a process node to view its risk scenarios
-            </Typography>
           )}
-        </Box>
-      )}
 
-      {/* Right: Risk panel */}
-      {selectedAsset && (
-        <Box
-          sx={{
-            flex: 1,
-            borderLeft: "1px solid #ddd",
-            p: 2,
-            background: "#fff",
-            overflowY: "auto",
-          }}
-        >
-          {selectedAsset ? (
-            <Card variant="outlined">
+          {selectedAsset && (
+            <Card
+              sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+            >
               <CardContent>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant="h6" fontWeight="bold" color="#FBC02D">
                   {selectedAsset.name}
                 </Typography>
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={{ my: 2 }} />
                 <Typography variant="subtitle1" gutterBottom>
                   Controls:
                 </Typography>
-                {/* {selectedProcess.controls &&
-                selectedProcess.controls.length > 0 ? (
-                  selectedProcess.controls.map((r) => (
-                    <Box
-                      key={r.id}
-                      sx={{
-                        p: 1,
-                        mb: 1,
-                        border: "1px solid #eee",
-                        borderRadius: 2,
-                        background: "#fafafa",
-                      }}
-                    >
-                      <Typography variant="body1">{r.name}</Typography>
-                      {r.severity && (
-                        <Typography variant="caption" color="text.secondary">
-                          Severity: {r.severity}
-                        </Typography>
-                      )}
-                    </Box>
-                  ))
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No controls defined for this asset.
-                  </Typography>
-                )} */}
+                <Typography variant="body2" color="text.secondary">
+                  No controls defined for this asset.
+                </Typography>
               </CardContent>
             </Card>
-          ) : (
-            <Typography
-              color="text.secondary"
-              sx={{ mt: 5, textAlign: "center" }}
-            >
-              Click a asset node to view its controls
-            </Typography>
           )}
         </Box>
       )}

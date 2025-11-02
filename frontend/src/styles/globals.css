@@ -119,14 +119,3 @@ a {
 .bar-clickable {
   cursor: pointer;
 }
-
-/* Hide connection handles */
-.react-flow__handle {
-  display: none !important;
-}
-
-/* Or customize them */
-.react-flow__handle {
-  background: transparent !important;
-  border: none !important;
-}
