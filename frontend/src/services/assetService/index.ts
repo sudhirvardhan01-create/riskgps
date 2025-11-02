@@ -11,7 +11,7 @@ import {
 import { Filter } from "@/types/filter";
 
 export const AssetService = {
-  fetch: (page: number, limit : number, searchPattern : string, sort : string, statusFilter?: string[], filters?: Filter[]) => fetchAssets(page, limit, searchPattern, sort, statusFilter, filters),
+  fetch: (page: number, limit? : number, searchPattern? : string, sort? : string, statusFilter?: string[], filters?: Filter[]) => fetchAssets(page, limit, searchPattern, sort, statusFilter, filters),
   create: (body: any) => createAsset(body),
   update: (id: number, body: any) => updateAsset(id, body),
   delete: (id: number) => deleteAsset(id),

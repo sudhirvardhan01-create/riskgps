@@ -135,8 +135,9 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
   const handleEdit = () => {
     if (businessUnit) {
+      // Don't close the modal here - let the parent handle it after setting edit state
+      // This prevents race conditions with state updates
       onEdit(businessUnit);
-      handleClose();
     }
   };
 

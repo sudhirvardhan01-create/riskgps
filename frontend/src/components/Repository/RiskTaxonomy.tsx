@@ -17,6 +17,7 @@ import {
 import { CheckCircle, TrendingUp, ShowChart, Save } from '@mui/icons-material';
 import { useOrganization } from "@/hooks/useOrganization";
 import { useRouter } from 'next/router';
+import { getTaxonomies, Taxonomy } from '@/services/organizationService';
 
 interface ImpactCategory {
   id: string;
@@ -44,6 +45,18 @@ const RiskTaxonomy: React.FC = () => {
   const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
   const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
   const [saveStates, setSaveStates] = useState<Record<string, boolean>>({});
+  const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]);
+  const [loadingTaxonomies, setLoadingTaxonomies] = useState<boolean>(false);
+
+  // Helper function to map taxonomy name to category ID
+  const mapTaxonomyNameToCategoryId = (name: string): string => {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('financial')) return 'financial';
+    if (nameLower.includes('regulatory')) return 'regulatory';
+    if (nameLower.includes('operational')) return 'operational';
+    if (nameLower.includes('reputational')) return 'reputational';
+    return 'financial'; // Default fallback
+  };
 
   // Get annual revenue from organization data (with fallback for calculations)
   const annualRevenue = organization?.details?.annualRevenue
@@ -97,9 +110,69 @@ const RiskTaxonomy: React.FC = () => {
     },
   });
 
+  // Fetch taxonomies from API when orgId is available
+  useEffect(() => {
+    const fetchTaxonomies = async () => {
+      if (orgId && typeof orgId === 'string') {
+        setLoadingTaxonomies(true);
+        try {
+          const response = await getTaxonomies(orgId);
+          if (response.data && response.data.length > 0) {
+            setTaxonomies(response.data);
+            
+            // Update impact categories from API data
+            setImpactCategories(prevCategories => {
+              return prevCategories.map(category => {
+                const taxonomy = response.data.find(t => 
+                  mapTaxonomyNameToCategoryId(t.name) === category.id
+                );
+                return taxonomy ? {
+                  ...category,
+                  name: taxonomy.name.replace(' Risk', ''), // Remove " Risk" suffix
+                } : category;
+              });
+            });
+
+            // Update ranges from API data based on severity levels
+            response.data.forEach(taxonomy => {
+              const categoryId = mapTaxonomyNameToCategoryId(taxonomy.name);
+              if (taxonomy.severityLevels && taxonomy.severityLevels.length > 0) {
+                // Get the first severity level's minRange and last severity level's maxRange
+                const sortedSeverity = [...taxonomy.severityLevels].sort((a, b) => a.order - b.order);
+                const minRange = parseInt(sortedSeverity[0].minRange);
+                const maxRange = parseInt(sortedSeverity[sortedSeverity.length - 1].maxRange);
+                
+                switch (categoryId) {
+                  case 'financial':
+                    setFinancialRange([minRange, maxRange]);
+                    break;
+                  case 'regulatory':
+                    setRegulatoryRange([minRange, maxRange]);
+                    break;
+                  case 'operational':
+                    setOperationalRange([minRange, maxRange]);
+                    break;
+                  case 'reputational':
+                    setReputationalRange([minRange, maxRange]);
+                    break;
+                }
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching taxonomies:', error);
+        } finally {
+          setLoadingTaxonomies(false);
+        }
+      }
+    };
+
+    fetchTaxonomies();
+  }, [orgId]);
+
   // Update state when organization data loads
   useEffect(() => {
-    if (organization?.details?.annualRevenue) {
+    if (organization?.details?.annualRevenue && taxonomies.length === 0) {
       const newAnnualRevenue = parseInt(organization.details.annualRevenue.replace(/[^0-9]/g, ''));
       const newDefaultMin = Math.round(newAnnualRevenue * 0.25);
       const newDefaultMax = Math.round(newAnnualRevenue * 0.75);
@@ -116,10 +189,10 @@ const RiskTaxonomy: React.FC = () => {
         },
       }));
     }
-  }, [organization?.details?.annualRevenue]);
+  }, [organization?.details?.annualRevenue, taxonomies.length]);
 
-  // Show loading state until organization data is loaded
-  if (!organization?.details?.annualRevenue) {
+  // Show loading state until organization data is loaded or taxonomies are loading
+  if (!organization?.details?.annualRevenue || loadingTaxonomies) {
     return (
       <Box sx={{
         display: 'flex',
@@ -130,10 +203,10 @@ const RiskTaxonomy: React.FC = () => {
         gap: 2
       }}>
         <Typography variant="h6" sx={{ color: '#484848' }}>
-          Loading organization data...
+          {loadingTaxonomies ? 'Loading taxonomies...' : 'Loading organization data...'}
         </Typography>
         <Typography variant="body2" sx={{ color: '#91939A' }}>
-          Please wait while we fetch your organization details
+          Please wait while we fetch your data
         </Typography>
       </Box>
     );
@@ -211,6 +284,65 @@ const RiskTaxonomy: React.FC = () => {
   // Helper function to check if current category is enabled
   const isCurrentCategoryEnabled = () => {
     return impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled || false;
+  };
+
+  // Helper function to get severity levels for current category
+  const getCurrentCategorySeverityLevels = () => {
+    const taxonomy = taxonomies.find(t => 
+      mapTaxonomyNameToCategoryId(t.name) === selectedCategory
+    );
+    if (taxonomy && taxonomy.severityLevels) {
+      return [...taxonomy.severityLevels].sort((a, b) => a.order - b.order);
+    }
+    return [];
+  };
+
+  // Helper function to calculate Impact Scale range for a severity level
+  const calculateSeverityRange = (severityIndex: number, totalSeverities: number) => {
+    const currentRange = getCurrentRange();
+    if (currentRange[0] <= 0 || currentRange[1] <= 0 || totalSeverities === 0) {
+      return { min: 0, max: 0 };
+    }
+
+    // Distribute severity levels across 0-100% of the range
+    // For n levels, divide into (n-1) equal segments
+    // Example for 5 levels: 0-25%, 25-50%, 50-75%, 75-100%, >100%
+    const step = 100 / (totalSeverities - 1); // For 5 levels: step = 25
+    
+    // Calculate percentage range for this severity level
+    let minSliderValue, maxSliderValue;
+    
+    if (severityIndex === 0) {
+      // First level (Very Low): starts at 0% to first step
+      minSliderValue = 0;
+      maxSliderValue = step; // e.g., 0 to 25
+    } else if (severityIndex === totalSeverities - 1) {
+      // Last level (Critical): starts from previous step to 100%
+      minSliderValue = (severityIndex - 1) * step; // e.g., 75
+      maxSliderValue = 100; // Extends to 100%
+    } else {
+      // Middle levels: each level starts where the previous ended
+      // e.g., index 1: 25% to 50%, index 2: 50% to 75%
+      minSliderValue = severityIndex * step; // e.g., 25, 50, 75 (where previous ended)
+      maxSliderValue = (severityIndex + 1) * step; // e.g., 50, 75, 100 (next step)
+    }
+
+    // Apply gradient type to calculate actual dollar values
+    // For first level, min is always the actual min range
+    const minValue = severityIndex === 0 ? currentRange[0] : calculateImpact(minSliderValue, gradientType);
+    
+    // For Critical (last level), maxValue should be the actual max range
+    // For other levels, calculate based on gradient type
+    let maxValue;
+    if (severityIndex === totalSeverities - 1) {
+      // Critical level: use the actual max range value
+      maxValue = currentRange[1];
+    } else {
+      // Other levels: calculate based on gradient type
+      maxValue = calculateImpact(maxSliderValue, gradientType);
+    }
+
+    return { min: minValue, max: maxValue };
   };
 
   const handleThresholdChange = (field: 'minimum' | 'maximum', value: string) => {
@@ -390,6 +522,11 @@ const RiskTaxonomy: React.FC = () => {
     }
     return points;
   };
+
+  // Get severity level labels for X-axis from API
+  const severityLevels = getCurrentCategorySeverityLevels();
+  const firstSeverityLabel = severityLevels.length > 0 ? severityLevels[0].name : 'Very Low';
+  const lastSeverityLabel = severityLevels.length > 0 ? severityLevels[severityLevels.length - 1].name : 'Critical';
 
   return (
     <Box sx={{ width: '100%', height: '100%' }}>
@@ -812,9 +949,9 @@ const RiskTaxonomy: React.FC = () => {
                       <text x="15" y="135" fontSize="12" fill="#91939A" textAnchor="middle">Min</text>
                       <text x="15" y="35" fontSize="12" fill="#91939A" textAnchor="middle">Max</text>
 
-                      {/* X-axis labels (Very Low and Critical only) */}
-                      <text x="40" y="150" fontSize="12" fill="#91939A" textAnchor="start">Very Low</text>
-                      <text x="360" y="150" fontSize="12" fill="#91939A" textAnchor="end">Critical</text>
+                      {/* X-axis labels (First and Last severity levels from API) */}
+                      <text x="40" y="150" fontSize="12" fill="#91939A" textAnchor="start">{firstSeverityLabel}</text>
+                      <text x="360" y="150" fontSize="12" fill="#91939A" textAnchor="end">{lastSeverityLabel}</text>
                     </svg>
                   </Box>
                     </CardContent>
@@ -860,127 +997,168 @@ const RiskTaxonomy: React.FC = () => {
                 overflow: 'hidden',
                 border: '1px solid #E4E4E4'
               }}>
-                {/* Very Low - Green */}
-                <Box sx={{
-                  flex: 1,
-                  backgroundColor: '#3BB966',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  borderRight: '1px solid rgba(255, 255, 255, 0.3)',
-                  '&:first-of-type': {
-                    borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px',
-                  }
-                }}>
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
-                    Very Low
-                  </Typography>
-                  {getCurrentRange()[0] > 0 && (
-                    <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(getCurrentRange()[0])}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* Low - Blue-purple */}
-                <Box sx={{
-                  flex: 1,
-                  backgroundColor: '#3366CC',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  borderRight: '1px solid rgba(255, 255, 255, 0.3)'
-                }}>
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
-                    Low
-                  </Typography>
-                  {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                    <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(calculateImpact(25, gradientType))}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* Medium - Gold/Yellow */}
-                <Box sx={{
-                  flex: 1,
-                  backgroundColor: '#E3B52A',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  borderRight: '1px solid rgba(255, 255, 255, 0.3)'
-                }}>
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
-                    Medium
-                  </Typography>
-                  {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                    <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(calculateImpact(50, gradientType))}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* High - Orange */}
-                <Box sx={{
-                  flex: 1,
-                  backgroundColor: '#DA7706',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  borderRight: '1px solid rgba(255, 255, 255, 0.3)'
-                }}>
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
-                    High
-                  </Typography>
-                  {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                    <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(calculateImpact(75, gradientType))}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* Critical - Red */}
-                <Box sx={{
-                  flex: 1,
-                  backgroundColor: '#B90D0D',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  '&:last-of-type': {
-                    borderTopRightRadius: '8px',
-                    borderBottomRightRadius: '8px',
-                  }
-                }}>
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
-                    Critical
-                  </Typography>
-                  {getCurrentRange()[1] > 0 && (
-                    <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '16px', mt: 0.5 }}>
-                      {formatCurrency(getCurrentRange()[1])}
-                    </Typography>
-                  )}
-                </Box>
+                {getCurrentCategorySeverityLevels().length > 0 ? (
+                  getCurrentCategorySeverityLevels().map((severity, index) => (
+                    <Box
+                      key={severity.severityId}
+                      sx={{
+                        flex: 1,
+                        backgroundColor: severity.color,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        borderRight: index < getCurrentCategorySeverityLevels().length - 1 ? '1px solid rgba(255, 255, 255, 0.3)' : 'none',
+                        '&:first-of-type': {
+                          borderTopLeftRadius: '8px',
+                          borderBottomLeftRadius: '8px',
+                        },
+                        '&:last-of-type': {
+                          borderTopRightRadius: '8px',
+                          borderBottomRightRadius: '8px',
+                        }
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                        {severity.name}
+                      </Typography>
+                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (() => {
+                        const totalSeverities = getCurrentCategorySeverityLevels().length;
+                        const severityRange = calculateSeverityRange(index, totalSeverities);
+                        const isLast = index === totalSeverities - 1;
+                        
+                        return (
+                          <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
+                            {isLast ? (
+                              <>&gt; {formatCurrency(severityRange.max)}</>
+                            ) : (
+                              <>{formatCurrency(severityRange.min)} - {formatCurrency(severityRange.max)}</>
+                            )}
+                          </Typography>
+                        );
+                      })()}
+                    </Box>
+                  ))
+                ) : (
+                  // Fallback to default severity levels if no API data
+                  <>
+                    <Box sx={{
+                      flex: 1,
+                      backgroundColor: '#3BB966',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+                      '&:first-of-type': {
+                        borderTopLeftRadius: '8px',
+                        borderBottomLeftRadius: '8px',
+                      }
+                    }}>
+                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                        Very Low
+                      </Typography>
+                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
+                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
+                          {formatCurrency(getCurrentRange()[0])} - {formatCurrency(calculateImpact(25, gradientType))}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{
+                      flex: 1,
+                      backgroundColor: '#3366CC',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      borderRight: '1px solid rgba(255, 255, 255, 0.3)'
+                    }}>
+                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                        Low
+                      </Typography>
+                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
+                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
+                          {formatCurrency(calculateImpact(25, gradientType))} - {formatCurrency(calculateImpact(50, gradientType))}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{
+                      flex: 1,
+                      backgroundColor: '#E3B52A',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      borderRight: '1px solid rgba(255, 255, 255, 0.3)'
+                    }}>
+                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                        Medium
+                      </Typography>
+                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
+                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
+                          {formatCurrency(calculateImpact(50, gradientType))} - {formatCurrency(calculateImpact(75, gradientType))}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{
+                      flex: 1,
+                      backgroundColor: '#DA7706',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      borderRight: '1px solid rgba(255, 255, 255, 0.3)'
+                    }}>
+                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                        High
+                      </Typography>
+                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
+                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
+                          {formatCurrency(calculateImpact(75, gradientType))} - {formatCurrency(calculateImpact(100, gradientType))}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{
+                      flex: 1,
+                      backgroundColor: '#B90D0D',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      '&:last-of-type': {
+                        borderTopRightRadius: '8px',
+                        borderBottomRightRadius: '8px',
+                      }
+                    }}>
+                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                        Critical
+                      </Typography>
+                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
+                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
+                          &gt; {formatCurrency(calculateImpact(100, gradientType))}
+                        </Typography>
+                      )}
+                    </Box>
+                  </>
+                )}
               </Box>
             </Paper>
 

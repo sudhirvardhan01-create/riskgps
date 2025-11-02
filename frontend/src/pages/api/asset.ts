@@ -4,7 +4,7 @@ import { Filter } from "@/types/filter";
 //Function to fetch assets
 export const fetchAssets = async (
   page: number,
-  limit: number,
+  limit?: number,
   searchPattern?: string,
   sort?: string,
   statusFilter?: string[],
@@ -13,7 +13,9 @@ export const fetchAssets = async (
   const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
-  params.append("limit", JSON.stringify(limit));
+  if (limit !== undefined) {
+    params.append("limit", JSON.stringify(limit));
+  }
   params.append("search", searchPattern ?? "");
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
