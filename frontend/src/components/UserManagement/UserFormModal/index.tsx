@@ -36,6 +36,7 @@ interface UserFormModalProps {
   formData: UserFormData;
   setFormData: React.Dispatch<React.SetStateAction<UserFormData>>;
   onSubmit: () => void;
+  pageLoading: boolean;
 }
 
 const UserFormModal: React.FC<UserFormModalProps> = ({
@@ -43,6 +44,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   formData,
   setFormData,
   onSubmit,
+  pageLoading,
 }) => {
   const [orgSearch, setOrgSearch] = useState("");
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
@@ -522,6 +524,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             <Button
               sx={{ width: 110, height: 40, borderRadius: 1 }}
               variant="contained"
+              loading={pageLoading}
               onClick={() => {
                 onSubmit();
               }}

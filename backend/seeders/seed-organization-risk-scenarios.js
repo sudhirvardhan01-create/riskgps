@@ -43,7 +43,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Account Management Process"],
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Customer accounts cannot be managed for 1 week.",
@@ -57,7 +57,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Account Management Process"],
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Electronic banking accounts are exposed.",
@@ -71,7 +71,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Electronic Banking"],
-        industry: ["Banking", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -86,7 +86,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Electronic Banking"],
-        industry: ["Healthcare"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -100,7 +100,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Electronic Banking"],
-        industry: ["Healthcare", "Banking", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -114,7 +114,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Electronic Banking"],
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -141,7 +141,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ACH"],
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Payment data is corrupted and no longer accurate.",
@@ -167,7 +167,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ACH"],
-        industry: ["Government", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "ACH payments cannot be completed for 1 day.",
@@ -180,7 +180,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ACH"],
-        industry: ["Healthcare"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "ACH payments cannot be completed for 1 week.",
@@ -193,7 +193,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ACH"],
-        industry: ["Healthcare", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Wire transfer data is exposed.",
@@ -219,7 +219,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Wire Transfer"],
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Wire transfers cannot be completed for 4 hours.",
@@ -232,7 +232,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Wire Transfer"],
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Wire transfers cannot be completed for 1 day.",
@@ -245,7 +245,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Wire Transfer"],
-        industry: ["Healthcare", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Wire transfers cannot be completed for 1 week.",
@@ -271,7 +271,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ATM Management"],
-        industry: ["Healthcare", "Banking", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "ATM data is corrupted and no longer accurate.",
@@ -284,7 +284,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ATM Management"],
-        industry: ["Healthcare"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "ATMs are not available for 1 day.",
@@ -297,7 +297,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ATM Management"],
-        industry: ["Banking", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "ATMs are not available for 1 week.",
@@ -310,7 +310,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["ATM Management"],
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Fraud monitoring data is exposed.",
@@ -336,7 +336,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Fraud Monitoring"],
-        industry: ["Healthcare", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "KYC data is exposed.",
@@ -349,7 +349,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["KYC"],
-        industry: ["Banking", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "KYC data is corrupted and no longer accurate.",
@@ -362,7 +362,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["KYC"],
-        industry: ["Healthcare"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -376,7 +376,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["KYC"],
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Customer loan data is exposed.",
@@ -402,7 +402,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Loan Origination"],
-        industry: ["Healthcare"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Loans cannot be originated for 1 day.",
@@ -415,7 +415,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Loan Origination"],
-        industry: ["Healthcare", "Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Loans cannot be originated for 1 week.",
@@ -441,7 +441,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Underwriting"],
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -455,7 +455,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Underwriting"],
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Underwriting cannot take place for 1 week.",
@@ -468,7 +468,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Underwriting"],
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario:
@@ -482,7 +482,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Loan Servicing"],
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Loans cannot be serviced for 1 day.",
@@ -495,7 +495,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Loan Servicing"],
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         risk_scenario: "Loans cannot be serviced for 1 week.",
@@ -508,7 +508,7 @@ module.exports = {
         created_at: now,
         updated_at: now,
         related_process: ["Loan Servicing"],
-        industry: ["Banking", "Government"],
+        industry: ["Banking"],
       },
     ];
 

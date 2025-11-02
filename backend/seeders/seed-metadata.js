@@ -8,16 +8,6 @@ module.exports = {
 
     const seedMetadatas = [
       {
-        name: "Severity",
-        label: "Severity",
-        input_type: "multiselect",
-        supported_values: ["High", "Medium", "Low"],
-        applies_to: ["all"],
-        description: "",
-        created_at: now,
-        updated_at: now,
-      },
-      {
         name: "Asset Category",
         label: "Asset Category",
         input_type: "select",
@@ -44,17 +34,14 @@ module.exports = {
         name: "Industry",
         label: "Industry",
         input_type: "text",
-        supported_values: ["Healthcare", "Banking", "Government"],
-        applies_to: ["all"],
-        description: "",
-        created_at: now,
-        updated_at: now,
-      },
-      {
-        name: "Domain",
-        label: "Domain",
-        input_type: "select",
-        supported_values: ["NIST", "NIST CSF", "GDPR", "MITRE", "ISO", "SOC 2"],
+        supported_values: [
+          "Banking",
+          "Finance",
+          "Technology",
+          "Retail",
+          "Healthcare",
+          "Manufacturing",
+        ],
         applies_to: ["all"],
         description: "",
         created_at: now,

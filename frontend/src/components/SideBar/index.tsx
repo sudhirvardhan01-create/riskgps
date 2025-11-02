@@ -9,7 +9,11 @@ import OrgManagementIcon from "@/icons/orgManagement.svg";
 import { useRouter } from "next/router";
 
 const links = [
-  { name: "Home", path: "/", icon: <HomeIcon /> },
+  {
+    name: "Home",
+    path: "/",
+    icon: <HomeIcon />,
+  },
   { name: "Meta Data", path: "/metadata", icon: <MetaDataIcon /> },
   { name: "Library", path: "/library", icon: <LibraryIcon /> },
   { name: "Assessment", path: "/assessment", icon: <AssessmentIcon /> },
@@ -39,7 +43,7 @@ const SideBar = () => {
       sx={{
         bgcolor: "primary.main",
         width: "100%",
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 71px)",
         display: "flex",
         flexDirection: "column",
         pt: 1.5,
@@ -73,7 +77,7 @@ const SideBar = () => {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              color: "white",
+              color: "#fff",
               cursor: "pointer",
               width: "90%",
               textAlign: "center",

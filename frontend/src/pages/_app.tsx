@@ -43,9 +43,9 @@ export default function App({ Component, pageProps }: AppProps) {
                       <CssBaseline />
 
                       <Grid container sx={{ height: "100vh" }}>
+                        <Grid size={12}>{!isLoginPage && <Header />}</Grid>
                         <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
                         <Grid size={11}>
-                          {!isLoginPage && <Header />}
                           <Component {...pageProps} />
                           {!isLoginPage && !isAssessmentProcess && <Footer />}
                         </Grid>

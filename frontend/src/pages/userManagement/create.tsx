@@ -29,9 +29,11 @@ function UserCreatePage() {
     message: "",
     severity: "success" as "success" | "error" | "info",
   });
+  const [pageLoading, setPageLoading] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     try {
+      setPageLoading(true);
       await UserService.create(formData);
       setToast({
         open: true,
@@ -48,6 +50,8 @@ function UserCreatePage() {
         message: "Failed to create user",
         severity: "error",
       });
+    } finally {
+      setPageLoading(false);
     }
   };
   return (
@@ -89,6 +93,7 @@ function UserCreatePage() {
             formData={formData}
             setFormData={setFormData}
             onSubmit={handleSubmit}
+            pageLoading={pageLoading}
           />
         </Box>
       </Box>
