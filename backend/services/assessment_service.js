@@ -461,6 +461,7 @@ class AssessmentService {
               assessmentRiskTaxonomyId: uuidv4(),
               assessmentId,
               assessmentProcessRiskId: rs.assessmentProcessRiskId,
+              taxonomyId: tx.taxonomyId,
               taxonomyName: tx.name,
               severityName: tx.severityDetails.name,
               severityMinRange: tx.severityDetails.minRange,
@@ -489,7 +490,14 @@ class AssessmentService {
         );
       }
 
-      return { message: "Business Impacts and Taxonomies saved successfully" };
+      return {
+        message: "Business Impacts and Taxonomies saved successfully",
+        taxonomies: await AssessmentRiskTaxonomy.findAll({
+          where: {
+            assessmentId: assessmentId,
+          },
+        }),
+      };
     } catch (err) {
       throw new CustomError(
         err.message || "Failed to save risk details",

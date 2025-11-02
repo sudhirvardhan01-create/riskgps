@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         field: "assessment_id",
       },
+      taxonomyId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        field: "taxonomy_id",
+      },
       taxonomyName: {
         type: DataTypes.STRING,
         allowNull: false,

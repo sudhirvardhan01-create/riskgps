@@ -232,12 +232,36 @@ function BUProcessMappingPage() {
 
         case 2:
           const riskTaxonomies = prepareRiskTaxonomyPayload();
-          saveAssessmentRiskTaxonomy({
+          const resp = await saveAssessmentRiskTaxonomy({
             assessmentId: assessment?.assessmentId,
             status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
+
+          const updatedProcessesRiskTaxonomy = assessment?.processes.map(
+            (process) => ({
+              ...process,
+              risks: process.risks.map((risk) => ({
+                ...risk,
+                taxonomy: risk.taxonomy?.map((tax) => {
+                  // Find a matching question entry from resultQues.questionnaire
+                  const match = resp.taxonomies.find(
+                    (obj: any) => obj.taxonomyId === tax.taxonomyId
+                  );
+
+                  // Return updated question
+                  return {
+                    ...tax,
+                    assessmentRiskTaxonomyId: match?.assessmentRiskTaxonomyId,
+                  };
+                }),
+              })),
+            })
+          );
+
+          updateAssessment({ processes: updatedProcessesRiskTaxonomy });
+
           break;
 
         case 3:
@@ -261,7 +285,6 @@ function BUProcessMappingPage() {
                   ...asset,
                   assessmentProcessAssetId:
                     match?.assessmentProcessAssetId ?? null,
-                  // questionnaire: match?.questionnaire ?? [],
                 };
               }),
             })
