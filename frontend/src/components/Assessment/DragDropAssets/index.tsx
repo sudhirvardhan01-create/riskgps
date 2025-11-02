@@ -30,11 +30,26 @@ const DragDropAssets = () => {
   useEffect(() => {
     const getOrg = async () => {
       const res = await getOrganizationAssets(assessment?.orgId);
-      setAssetPool(res.data);
+
+      if (!res?.data) return;
+
+      // 🔹 Collect all asset IDs already in the assessment
+      const existingAssetIds = new Set(
+        assessment?.processes?.flatMap((p) => p?.assets?.map((r) => r.id)) || []
+      );
+
+      // 🔹 Filter out assets already present in assessment
+      const filteredAssets = res.data.filter(
+        (asset: any) => !existingAssetIds.has(asset.id)
+      );
+
+      setAssetPool(filteredAssets);
     };
 
-    getOrg();
-  }, []);
+    if (assessment?.orgId) {
+      getOrg();
+    }
+  }, [assessment]);
 
   useEffect(() => {
     updateAssessment({ processes });

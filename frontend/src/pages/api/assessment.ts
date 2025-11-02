@@ -1,15 +1,16 @@
+import apiClient from "@/utils/apiClient";
 import { Taxonomy } from "@/types/assessment";
 
 interface AssessmentData {
-  assessmentId?: string | undefined;
+  assessmentId?: string;
   assessmentName: string | undefined;
   assessmentDesc: string | undefined;
-  orgId?: string | undefined;
-  orgName?: string | undefined;
-  orgDesc?: string | undefined;
-  businessUnitId?: string | undefined;
-  businessUnitName?: string | undefined;
-  businessUnitDesc?: string | undefined;
+  orgId?: string;
+  orgName?: string;
+  orgDesc?: string;
+  businessUnitId?: string;
+  businessUnitName?: string;
+  businessUnitDesc?: string;
   status?: string;
   userId: string | undefined;
 }
@@ -25,14 +26,14 @@ interface Process {
   id: string;
   processName: string;
   processDescription: string;
-  order: number | undefined;
+  order?: number;
 }
 
 interface AssessmentRisk {
-  assessmentId: string | undefined;
+  assessmentId?: string;
   status: string;
   userId: string;
-  riskScenarios: RiskScenarios[] | undefined;
+  riskScenarios?: RiskScenarios[];
 }
 
 interface RiskScenarios {
@@ -43,152 +44,83 @@ interface RiskScenarios {
   taxonomy?: Taxonomy[];
 }
 
+/**
+ * Save Assessment
+ */
 export const saveAssessment = async (data: AssessmentData) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  if (!response.ok) {
-    throw new Error("Failed to fetch api data");
-  }
-  return response.json();
+  const res = await apiClient.post("/assessment", data);
+  return res.data;
 };
 
+/**
+ * Get all Assessments
+ */
 export const getAssessment = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  if (!response.ok) {
-    throw new Error("Failed to fetch api data");
-  }
-  return response.json();
+  const res = await apiClient.get("/assessment");
+  return res.data;
 };
 
+/**
+ * Get Assessment by ID
+ */
 export const getAssessmentById = async (assessmentId: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment/${assessmentId}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  if (!response.ok) {
-    throw new Error("Failed to fetch api data");
-  }
-  return response.json();
+  const res = await apiClient.get(`/assessment/${assessmentId}`);
+  return res.data;
 };
 
+/**
+ * Save Processes under Assessment
+ */
 export const saveAssessmentProcess = async (data: AssessmentProcess) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment/${data.id}/save_processes`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+  const res = await apiClient.post(
+    `/assessment/${data.id}/save_processes`,
+    data
   );
-  if (!response.ok) {
-    throw new Error("Failed to fetch api data");
-  }
-  return response.json();
+  return res.data;
 };
 
+/**
+ * Save Risk Scenarios
+ */
 export const saveAssessmentRisk = async (data: AssessmentRisk) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment/assessment-process-risk-scenarios`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+  const res = await apiClient.post(
+    `/assessment/assessment-process-risk-scenarios`,
+    data
   );
-  if (!response.ok) {
-    throw new Error("Failed to fetch api data");
-  }
-  return response.json();
+  return res.data;
 };
 
+/**
+ * Save Risk Taxonomy
+ */
 export const saveAssessmentRiskTaxonomy = async (data: AssessmentRisk) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment/assessment-risk-details`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  if (!response.ok) {
-    throw new Error("Failed to fetch api data");
-  }
-  return response.json();
+  const res = await apiClient.post(`/assessment/assessment-risk-details`, data);
+  return res.data;
 };
 
+/**
+ * Save Assets under Assessment
+ */
 export const saveAssessmentAssets = async (data: any) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment/assessment-process-assets`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+  const res = await apiClient.post(
+    `/assessment/assessment-process-assets`,
+    data
   );
-  if (!response.ok) {
-    throw new Error("Failed to fetch api data");
-  }
-  return response.json();
+  return res.data;
 };
 
+/**
+ * Get Asset Questionnaires
+ */
 export const getAssetQuestionnaire = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/questionnaire`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  if (!response.ok) {
-    throw new Error("Failed to fetch login data");
-  }
-  return response.json();
+  const res = await apiClient.get(`/library/questionnaire`);
+  return res.data;
 };
 
+/**
+ * Save Asset Questionnaire
+ */
 export const saveAssetQuestionnaire = async (data: any) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/assessment/assessment-questionaire`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  if (!response.ok) {
-    throw new Error("Failed to fetch login data");
-  }
-  return response.json();
+  const res = await apiClient.post(`/assessment/assessment-questionaire`, data);
+  return res.data;
 };

@@ -30,11 +30,26 @@ const DragDropRiskScenarios = () => {
   useEffect(() => {
     const getOrg = async () => {
       const res = await getOrganizationRisks(assessment?.orgId);
-      setRiskPool(res.data);
+
+      if (!res?.data) return;
+
+      // 🔹 Collect all risk IDs already in the assessment
+      const existingRiskIds = new Set(
+        assessment?.processes?.flatMap((p) => p?.risks?.map((r) => r.id)) || []
+      );
+
+      // 🔹 Filter out risks already present in assessment
+      const filteredRisks = res.data.filter(
+        (risk: any) => !existingRiskIds.has(risk.id)
+      );
+
+      setRiskPool(filteredRisks);
     };
 
-    getOrg();
-  }, []);
+    if (assessment?.orgId) {
+      getOrg();
+    }
+  }, [assessment]);
 
   useEffect(() => {
     updateAssessment({ processes });
