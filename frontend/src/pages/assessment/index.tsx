@@ -108,7 +108,7 @@ const AssessmentDashboard = () => {
       (item) => item.runId === selectedAssessment
     );
 
-    const res = await saveAssessment({
+    await saveAssessment({
       assessmentId: assess?.assessmentId,
       assessmentName: assess?.assessmentName,
       assessmentDesc: assess?.assessmentDesc,
