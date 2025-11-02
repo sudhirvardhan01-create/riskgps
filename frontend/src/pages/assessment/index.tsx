@@ -3,11 +3,16 @@ import AssessmentTable from "@/components/Assessment/AssessmentTable";
 import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { Box, Button, Menu, MenuItem, Typography } from "@mui/material";
 import React, { useContext, useEffect, useState } from "react";
-import { getAssessment, getAssessmentById } from "../api/assessment";
+import {
+  getAssessment,
+  getAssessmentById,
+  saveAssessment,
+} from "../api/assessment";
 import { useRouter } from "next/router";
 import { Assessment } from "@/types/assessment";
 import withAuth from "@/hoc/withAuth";
 import { useAssessment } from "@/context/AssessmentContext";
+import Cookies from "js-cookie";
 
 const options = [
   { label: "All", value: 0 },
@@ -54,6 +59,20 @@ const AssessmentDashboard = () => {
     router.push("/assessment/assessmentProcess");
   };
 
+  const handleMenuOptionClick = (option: string) => {
+    switch (option) {
+      case "publish":
+        onSubmit("completed");
+        break;
+      case "close":
+        onSubmit("closed");
+        break;
+      case "delete":
+        break;
+    }
+    handleMenuClose();
+  };
+
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedAssessment(null);
@@ -82,6 +101,26 @@ const AssessmentDashboard = () => {
         );
         break;
     }
+  };
+
+  const onSubmit = async (status: string) => {
+    const assess = assessments.find(
+      (item) => item.runId === selectedAssessment
+    );
+
+    const res = await saveAssessment({
+      assessmentId: assess?.assessmentId,
+      assessmentName: assess?.assessmentName,
+      assessmentDesc: assess?.assessmentDesc,
+      orgId: assess?.orgId,
+      orgName: assess?.orgName,
+      orgDesc: assess?.orgDesc,
+      businessUnitId: assess?.businessUnitId,
+      businessUnitName: assess?.businessUnitName,
+      businessUnitDesc: assess?.businessUnitDesc,
+      status: status,
+      userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+    });
   };
 
   return (
@@ -164,8 +203,12 @@ const AssessmentDashboard = () => {
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={handleMenuClose}>Publish</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Close</MenuItem>
+          <MenuItem onClick={() => handleMenuOptionClick("publish")}>
+            Publish
+          </MenuItem>
+          <MenuItem onClick={() => handleMenuOptionClick("close")}>
+            Close
+          </MenuItem>
           <MenuItem onClick={handleMenuClose}>Delete</MenuItem>
         </Menu>
       </Box>

@@ -130,23 +130,25 @@ export default function AssessmentPreviewModal({
             </Typography>
             <Grid container spacing={2}>
               <Grid size={6}>
-                <Typography>
-                  Assessment Name: {assessment.assessmentName}
+                <Typography variant="subtitle1">
+                  Assessment Name: <strong>{assessment.assessmentName}</strong>
                 </Typography>
-                <Typography>Run ID: {assessment.runId}</Typography>
-                <Typography>Organization: {assessment.orgName}</Typography>
-                <Typography>
-                  Business Unit: {assessment.businessUnitName}
-                </Typography>
-              </Grid>
-              <Grid size={6}>
-                <Typography>Status: {assessment.status}</Typography>
                 {assessment.startDate && (
-                  <Typography>
+                  <Typography variant="subtitle1">
                     Start Date:{" "}
-                    {new Date(assessment.startDate).toLocaleString()}
+                    <strong>
+                      {new Date(assessment.startDate).toLocaleString()}
+                    </strong>
                   </Typography>
                 )}
+              </Grid>
+              <Grid size={6}>
+                <Typography variant="subtitle1">
+                  Organization: <strong>{assessment.orgName}</strong>
+                </Typography>
+                <Typography variant="subtitle1">
+                  Business Unit: <strong>{assessment.businessUnitName}</strong>
+                </Typography>
               </Grid>
             </Grid>
           </CardContent>

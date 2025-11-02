@@ -128,8 +128,11 @@ const AssessmentRow: React.FC<{
             height: 12,
             borderRadius: 1,
             "& .MuiLinearProgress-bar": {
-              backgroundColor:
-                assessment.status == "completed" ? "#147A50" : "#FFD966",
+              backgroundColor: ["completed", "closed"].includes(
+                assessment.status
+              )
+                ? "#147A50"
+                : "#FFD966",
             },
           }}
         />
@@ -433,10 +436,11 @@ const AssessmentTable: React.FC<Props> = ({
                       height: 12,
                       borderRadius: 1,
                       "& .MuiLinearProgress-bar": {
-                        backgroundColor:
-                          assessment.status == "completed"
-                            ? "#147A50"
-                            : "#FFD966",
+                        backgroundColor: ["completed", "closed"].includes(
+                          assessment.status
+                        )
+                          ? "#147A50"
+                          : "#FFD966",
                       },
                     }}
                   />
