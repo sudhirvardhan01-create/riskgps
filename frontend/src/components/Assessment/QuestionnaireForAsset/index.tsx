@@ -104,7 +104,7 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
                         <InputLabel>Response</InputLabel>
                         <Select
                           value={
-                            asset?.questionnaire.find(
+                            asset?.questionnaire?.find(
                               (item) =>
                                 item.questionaireId === q.questionnaireId
                             )?.responseValue ?? 0

@@ -7,9 +7,7 @@
   Organization,
   OrganizationBusinessUnit,
   AssessmentProcessAsset,
-  SeverityLevel,
   AssessmentQuestionaire,
-  sequelize,
 } = require("../models");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
@@ -101,6 +99,7 @@ class AssessmentService {
         businessUnitName: assessmentData.businessUnitName || null,
         businessUnitDesc: assessmentData.businessUnitDesc || null,
         status: assessmentData.status || "pending",
+        progress: 0,
         startDate: new Date(),
         createdBy: userId,
         createdDate: new Date(),
@@ -137,6 +136,8 @@ class AssessmentService {
         throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
       }
 
+      let progress = undefined;
+
       for (const proc of processes) {
         let existingProcess = null;
 
@@ -169,11 +170,14 @@ class AssessmentService {
             modifiedBy: userId,
             createdDate: new Date(),
           });
+
+          progress = 20;
         }
       }
 
       if (status) {
         assessment.status = status;
+        assessment.progress = progress;
         assessment.modifiedBy = userId;
         assessment.modifiedDate = new Date();
         await assessment.save();
@@ -212,6 +216,8 @@ class AssessmentService {
           HttpStatus.BAD_REQUEST
         );
 
+      let progress = undefined;
+
       for (const rs of riskScenarios) {
         let existingRisk = null;
 
@@ -241,12 +247,19 @@ class AssessmentService {
             createdDate: new Date(),
             modifiedDate: new Date(),
           });
+
+          progress = 40;
         }
       }
 
       if (status) {
         await Assessment.update(
-          { status, modifiedBy: userId, modifiedDate: new Date() },
+          {
+            status,
+            progress: progress,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          },
           { where: { assessmentId } }
         );
       }
@@ -319,7 +332,7 @@ class AssessmentService {
                 include: [
                   {
                     model: AssessmentQuestionaire,
-                    as: "questionaires",
+                    as: "questionnaire",
                     required: false,
                   },
                 ],
@@ -365,6 +378,7 @@ class AssessmentService {
                 minRange: t.severityMinRange,
                 maxRange: t.severityMaxRange,
                 color: t.color,
+                severityId: t.severityId,
               },
             })),
           })),
@@ -391,38 +405,37 @@ class AssessmentService {
    */
   static async saveRiskDetails(payload, userId) {
     try {
-      const { assessmentId, riskScenarios } = payload;
+      const { assessmentId, riskScenarios, status } = payload;
+      let progress = undefined;
 
       for (const rs of riskScenarios) {
         // Business Impacts
-        for (const bi of rs.businessImpacts || []) {
-          let existingBI = null;
-          if (bi.assessmentRiskBIId) {
-            existingBI = await AssessmentRiskScenarioBusinessImpact.findOne({
-              where: { assessmentRiskBIId: bi.assessmentRiskBIId },
-            });
-          }
+        // for (const bi of rs.businessImpacts || []) {
+        //   let existingBI = null;
+        //   if (bi.assessmentRiskBIId) {
+        //     existingBI = await AssessmentRiskScenarioBusinessImpact.findOne({
+        //       where: { assessmentRiskBIId: bi.assessmentRiskBIId },
+        //     });
+        //   }
 
-          if (existingBI) {
-            await existingBI.update({
-              riskThresholdValue: bi.thresholdCost,
-              modifiedBy: userId,
-              modifiedDate: new Date(),
-            });
-          } else {
-            await AssessmentRiskScenarioBusinessImpact.create({
-              assessmentRiskBIId: uuidv4(),
-              assessmentId,
-              assessmentProcessRiskId: rs.assessmentProcessRiskId,
-              riskThresholdValue: bi.thresholdCost,
-              createdBy: userId,
-              modifiedBy: userId,
-              createdDate: new Date(),
-              modifiedDate: new Date(),
-              isDeleted: false,
-            });
-          }
-        }
+        //   if (existingBI) {
+        //     await existingBI.update({
+        //       modifiedBy: userId,
+        //       modifiedDate: new Date(),
+        //     });
+        //   } else {
+        //     await AssessmentRiskScenarioBusinessImpact.create({
+        //       assessmentRiskBIId: uuidv4(),
+        //       assessmentId,
+        //       assessmentProcessRiskId: rs.assessmentProcessRiskId,
+        //       createdBy: userId,
+        //       modifiedBy: userId,
+        //       createdDate: new Date(),
+        //       modifiedDate: new Date(),
+        //       isDeleted: false,
+        //     });
+        //   }
+        // }
 
         // Taxonomies
         for (const tx of rs.taxonomy || []) {
@@ -448,20 +461,43 @@ class AssessmentService {
               assessmentRiskTaxonomyId: uuidv4(),
               assessmentId,
               assessmentProcessRiskId: rs.assessmentProcessRiskId,
+              taxonomyId: tx.taxonomyId,
               taxonomyName: tx.name,
               severityName: tx.severityDetails.name,
               severityMinRange: tx.severityDetails.minRange,
               severityMaxRange: tx.severityDetails.maxRange,
               color: tx.severityDetails.color,
+              severityId: tx.severityDetails.severityId,
               createdBy: userId,
               modifiedBy: userId,
               createdDate: new Date(),
             });
+
+            progress = 60;
           }
         }
       }
 
-      return { message: "Business Impacts and Taxonomies saved successfully" };
+      if (status) {
+        await Assessment.update(
+          {
+            status,
+            progress: progress,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          },
+          { where: { assessmentId } }
+        );
+      }
+
+      return {
+        message: "Business Impacts and Taxonomies saved successfully",
+        taxonomies: await AssessmentRiskTaxonomy.findAll({
+          where: {
+            assessmentId: assessmentId,
+          },
+        }),
+      };
     } catch (err) {
       throw new CustomError(
         err.message || "Failed to save risk details",
@@ -486,6 +522,8 @@ class AssessmentService {
           "assessmentId is required",
           HttpStatus.BAD_REQUEST
         );
+
+      let progress = undefined;
 
       for (const a of assets) {
         let existingAsset = null;
@@ -515,12 +553,19 @@ class AssessmentService {
             modifiedBy: userId,
             createdDate: new Date(),
           });
+
+          progress = 80;
         }
       }
 
       if (status) {
         await Assessment.update(
-          { status, modifiedBy: userId, modifiedDate: new Date() },
+          {
+            status,
+            progress: progress,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          },
           { where: { assessmentId } }
         );
       }
@@ -644,7 +689,12 @@ class AssessmentService {
    * @param {Array} questionaires
    * @param {string} userId
    */
-  static async createQuestionaires(assessmentId, questionaires, userId) {
+  static async createQuestionaires(
+    assessmentId,
+    questionaires,
+    status,
+    userId
+  ) {
     try {
       const recordsToInsert = questionaires.map((q) => ({
         assessmentQuestionaireId: uuidv4(),
@@ -659,6 +709,19 @@ class AssessmentService {
       }));
 
       await AssessmentQuestionaire.bulkCreate(recordsToInsert);
+
+      if (status) {
+        await Assessment.update(
+          {
+            status: status,
+            progress: 100,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          },
+          { where: { assessmentId } }
+        );
+      }
+
       return recordsToInsert;
     } catch (err) {
       throw new CustomError(

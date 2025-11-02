@@ -19,7 +19,6 @@ export default function BusinessImpactPanel({
 }) {
   const { assessment } = useAssessment();
 
-  const [thresholdCost, setThresholdCost] = useState<number | undefined>();
   const [taxonomies, setTaxonomies] = useState<any[]>([]);
   const [taxonomyValue, setTaxonomyValue] = useState<Taxonomy[]>([]);
   const [value, setValue] = useState("1");
@@ -47,24 +46,22 @@ export default function BusinessImpactPanel({
   // Reset form when selectedScenario changes
   useEffect(() => {
     console.log("selected scenario", selectedScenario);
-    if (selectedScenario) {
-      setThresholdCost(selectedScenario.thresholdCost ?? undefined);
 
-      if (selectedScenario.taxonomy && selectedScenario.taxonomy.length > 0) {
-        // map scenario taxonomy to array
-        setTaxonomyValue(
-          selectedScenario.taxonomy.map((t: any) => ({
-            taxonomyId: t.taxonomyId,
-            name: t.name ?? "",
-            orgId: t.orgId ?? assessment?.orgId,
-            severityDetails: t.severityDetails ?? {},
-          }))
-        );
-      } else {
-        setTaxonomyValue([]);
-      }
+    if (
+      selectedScenario &&
+      selectedScenario.taxonomy &&
+      selectedScenario.taxonomy.length > 0
+    ) {
+      // map scenario taxonomy to array
+      setTaxonomyValue(
+        selectedScenario.taxonomy.map((t: any) => ({
+          taxonomyId: t.taxonomyId,
+          name: t.name ?? "",
+          orgId: t.orgId ?? assessment?.orgId,
+          severityDetails: t.severityDetails ?? {},
+        }))
+      );
     } else {
-      setThresholdCost(undefined);
       setTaxonomyValue([]);
     }
 
@@ -77,20 +74,17 @@ export default function BusinessImpactPanel({
 
     const updatedScenario: Risk = {
       ...selectedScenario,
-      thresholdCost,
       taxonomy: taxonomyValue,
     };
 
     const isDifferent =
-      updatedScenario.thresholdCost !== selectedScenario.thresholdCost ||
       JSON.stringify(updatedScenario.taxonomy) !==
-        JSON.stringify(selectedScenario.taxonomy);
+      JSON.stringify(selectedScenario.taxonomy);
 
     if (isDifferent) {
       onUpdateScenario(updatedScenario);
     }
   }, [
-    thresholdCost,
     taxonomyValue,
     JSON.stringify(selectedScenario),
     isInternalChange,
@@ -99,15 +93,6 @@ export default function BusinessImpactPanel({
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-  };
-
-  const handleThresholdCostChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsInternalChange(true);
-    setThresholdCost(
-      e.target.value === "" ? undefined : Number(e.target.value)
-    );
   };
 
   const setTaxonomy = (
@@ -196,17 +181,6 @@ export default function BusinessImpactPanel({
 
         <TabPanel value="1" sx={{ p: 0, pt: 4 }}>
           <Box>
-            {/* Thresholds */}
-            <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
-              <TextFieldStyled
-                label="Risk Threshold ($)"
-                type="number"
-                size="small"
-                value={thresholdCost ?? ""}
-                onChange={handleThresholdCostChange}
-              />
-            </Box>
-
             {/* Tooltip */}
             <Box
               sx={{
@@ -233,7 +207,7 @@ export default function BusinessImpactPanel({
                 key={item.taxonomyId}
                 label={item.name}
                 severityLevels={item.severityLevels}
-                value={taxonomyValue[ind]?.severityDetails?.name ?? ""}
+                value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
                 onChange={(val) =>
                   setTaxonomy(item.taxonomyId, item.name, ind, val)
                 }

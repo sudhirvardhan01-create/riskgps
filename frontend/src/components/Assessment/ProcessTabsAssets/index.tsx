@@ -17,7 +17,7 @@ export default function ProcessTabsAssets() {
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedAsset(assessment?.processes[newValue].assets[0]); // reset selection when switching process
+    setSelectedAsset({ ...assessment!.processes[newValue].assets[0] } as Asset); // reset selection when switching process
   };
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function ProcessTabsAssets() {
 
   useEffect(() => {
     if (assessment?.processes && assessment?.processes.length > 0) {
-      setSelectedAsset(assessment?.processes[0].assets[0]);
+      setSelectedAsset({ ...assessment!.processes[0].assets[0] } as Asset);
     }
   }, []);
 

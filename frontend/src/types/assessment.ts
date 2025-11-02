@@ -10,6 +10,7 @@ export interface Assessment {
   businessUnitName: string;
   businessUnitDesc: string | null;
   status: string;
+  progress: number;
   startDate: string;
   endDate: string | null;
   lastActivity: string | null;
@@ -43,6 +44,7 @@ export interface Severity {
 }
 
 export interface Taxonomy {
+  assessmentRiskTaxonomyId?: string;
   taxonomyId: string;
   name: string;
   orgId: string;
@@ -54,7 +56,6 @@ export interface Risk {
   assessmentProcessRiskId?: string;
   riskScenario: string;
   riskDescription: string;
-  thresholdCost?: number;
   taxonomy?: Taxonomy[];
 }
 

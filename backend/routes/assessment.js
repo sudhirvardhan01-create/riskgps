@@ -192,7 +192,7 @@ router.get("/all/details", async (req, res) => {
  */
 router.post("/assessment-questionaire", async (req, res) => {
   try {
-    const { assessmentId, userId, questionaires } = req.body;
+    const { assessmentId, userId, questionaires, status } = req.body;
 
     if (!userId) {
       return res.status(HttpStatus.BAD_REQUEST).json({
@@ -213,6 +213,7 @@ router.post("/assessment-questionaire", async (req, res) => {
     const result = await AssessmentService.createQuestionaires(
       assessmentId,
       questionaires,
+      status,
       userId
     );
 

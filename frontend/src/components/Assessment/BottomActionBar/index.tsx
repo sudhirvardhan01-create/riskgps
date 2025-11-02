@@ -54,7 +54,7 @@ export default function BottomActionBar({
           Cancel
         </Button>
 
-        <Button
+        {/* <Button
           variant="outlined"
           onClick={onSaveDraft}
           sx={{
@@ -66,7 +66,7 @@ export default function BottomActionBar({
           }}
         >
           Save as Draft
-        </Button>
+        </Button> */}
 
         <Button
           variant="contained"
