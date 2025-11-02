@@ -32,7 +32,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         process_name: "Electronic Banking",
@@ -54,7 +54,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Banking", "Government"],
+        industry: ["Banking"],
       },
       {
         process_name: "ACH",
@@ -76,7 +76,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Healthcare"],
+        industry: ["Banking"],
       },
       {
         process_name: "Wire Transfer",
@@ -98,7 +98,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Healthcare", "Banking"],
+        industry: ["Banking"],
       },
       {
         process_name: "ATM Management",
@@ -142,7 +142,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Healthcare", "Government"],
+        industry: ["Banking"],
       },
       {
         process_name: "KYC",
@@ -186,7 +186,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Government"],
+        industry: ["Banking"],
       },
       {
         process_name: "Underwriting",
@@ -208,7 +208,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Healthcare"],
+        industry: ["Banking"],
       },
       {
         process_name: "Loan Servicing",
@@ -230,7 +230,7 @@ module.exports = {
         status: "published",
         created_at: now,
         updated_at: now,
-        industry: ["Banking", "Government"],
+        industry: ["Banking"],
       },
     ];
 

@@ -2,6 +2,8 @@ import { Avatar, Box, Stack, Typography } from "@mui/material";
 import React from "react";
 import NotificationIcon from "@/icons/notification.svg";
 import AvatarIcon from "@/icons/avatar.svg";
+import Image from "next/image";
+import riskgps_logo from "../../../public/riskgps_logo.jpg";
 
 const Header = () => {
   return (
@@ -12,13 +14,15 @@ const Header = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        px: 5,
+        pr: 5,
         py: 3,
+        pl: 2,
       }}
     >
-      <Typography variant="h5" color="#91939A" fontWeight={500}>
+      {/* <Typography variant="h5" color="#91939A" fontWeight={500}>
         RiskGPS
-      </Typography>
+      </Typography> */}
+      <Image src={riskgps_logo} alt="RiskGPS Logo" width={150} height={36} />
       <Stack display={"flex"} flexDirection={"row"}>
         <NotificationIcon
           height={24}

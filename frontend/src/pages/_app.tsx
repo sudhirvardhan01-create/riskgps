@@ -26,17 +26,23 @@ export default function App({ Component, pageProps }: AppProps) {
         <AssessmentProvider>
           {isLandingPage ? (
             <>
-            <CssBaseline/>
-            <LandingPage />
+              <CssBaseline />
+              <LandingPage />
             </>
           ) : (
             <ThemeProvider theme={theme}>
               <CssBaseline />
 
               <Grid container sx={{ height: "100vh" }}>
-                <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+                {/* <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
                 <Grid size={11}>
                   {!isLoginPage && <Header />}
+                  <Component {...pageProps} />
+                  {!isLoginPage && !isAssessmentProcess && <Footer />}
+                </Grid> */}
+                <Grid size={12}>{!isLoginPage && <Header />}</Grid>
+                <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+                <Grid size={11}>
                   <Component {...pageProps} />
                   {!isLoginPage && !isAssessmentProcess && <Footer />}
                 </Grid>
