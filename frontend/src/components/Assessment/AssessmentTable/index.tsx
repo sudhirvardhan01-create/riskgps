@@ -12,6 +12,7 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import React, { useState } from "react";
 import { Assessment } from "@/types/assessment";
+import Cookies from "js-cookie";
 
 interface Props {
   data: Assessment[];
@@ -21,10 +22,7 @@ interface Props {
   businessUnitName?: string;
 }
 
-const userData = {
-  name: "Harsh Kansal",
-  avatar: "/path/to/avatar",
-};
+const userData = JSON.parse(Cookies.get("user") ?? "");
 
 // ✅ Row component
 const AssessmentRow: React.FC<{
@@ -112,8 +110,8 @@ const AssessmentRow: React.FC<{
           justifyContent: "center",
         }}
       >
-        <Avatar src={userData.avatar} sx={{ width: 24, height: 24 }} />
-        <Typography variant="body2">{userData.name}</Typography>
+        <Avatar src={userData?.avatar} sx={{ width: 24, height: 24 }} />
+        <Typography variant="body2">{userData?.name}</Typography>
       </Box>
 
       <Box textAlign="center">
@@ -398,8 +396,8 @@ const AssessmentTable: React.FC<Props> = ({
 
                 {/* Last Modified */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Avatar src={userData.avatar} sx={{ width: 24, height: 24 }}>
-                    {userData.name.charAt(0)}
+                  <Avatar src={userData?.avatar} sx={{ width: 24, height: 24 }}>
+                    {userData?.name.charAt(0)}
                   </Avatar>
                   <Typography
                     variant="body2"
@@ -410,7 +408,7 @@ const AssessmentTable: React.FC<Props> = ({
                       color: "#484848",
                     }}
                   >
-                    {userData.name}
+                    {userData?.name}
                   </Typography>
                 </Box>
 
