@@ -1,9 +1,11 @@
 import { ControlService } from "@/services/controlService";
 
 // Adapter service for controls to match the common library interface
+const NO_LIMIT = undefined as number | undefined;
 export const ControlLibraryService = {
-  fetch: async (page: number, limit: number, searchTerm: string, sort: string) => {
-    const response = await ControlService.fetch(page, limit, searchTerm, sort, []);
+  fetch: async (page: number, searchTerm: string, sort: string) => {
+    // Call fetch without limit parameter (using NO_LIMIT to skip the optional limit param)
+    const response = await ControlService.fetch(page, NO_LIMIT, searchTerm, sort, []);
     
     // Transform control data to LibraryItem format
     // The response structure is: response.data.data

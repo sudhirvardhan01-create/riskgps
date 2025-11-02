@@ -12,10 +12,10 @@ import { ThreatForm } from "@/types/threat";
 export const ThreatService = {
   fetch: (
     page: number,
-    limit: number,
-    searchPattern: string,
-    sort: string,
-    statusFilter: string[],
+    limit?: number,
+    searchPattern?: string,
+    sort?: string,
+    statusFilter?: string[],
     filters?: Filter[]
   ) => fetchThreats(page, limit, searchPattern, sort, statusFilter, filters),
   create: (data: ThreatForm) => createThreat(data),

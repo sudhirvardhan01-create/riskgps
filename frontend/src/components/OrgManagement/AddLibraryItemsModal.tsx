@@ -39,7 +39,7 @@ interface LibraryItem {
 
 // Service interface for fetching data
 interface LibraryService {
-  fetch: (page: number, limit: number, searchTerm: string, sort: string) => Promise<{ data: LibraryItem[] }>;
+  fetch: (page: number, searchTerm: string, sort: string) => Promise<{ data: LibraryItem[] }>;
 }
 
 interface AddLibraryItemsModalProps {
@@ -85,7 +85,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const response = await service.fetch(0, -1, searchTerm, "id:asc");
+      const response = await service.fetch(0, searchTerm, "id:asc");
       setItems(response.data);
     } catch (err) {
       setError(`Failed to fetch ${itemType}. Please try again.`);
