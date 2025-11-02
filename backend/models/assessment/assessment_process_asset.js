@@ -32,6 +32,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         field: "application_name",
       },
+      assetCategory: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        field: "asset_category",
+      },
       ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, etc.
     },
     {
@@ -50,7 +55,7 @@ module.exports = (sequelize, DataTypes) => {
 
     AssessmentProcessAsset.hasMany(models.AssessmentQuestionaire, {
       foreignKey: "assessmentProcessAssetId",
-      as: "questionaires",
+      as: "questionnaire",
     });
   };
 

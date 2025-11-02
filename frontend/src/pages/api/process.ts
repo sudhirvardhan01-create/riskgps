@@ -3,7 +3,7 @@ import { ProcessData, ProcessDependency } from "@/types/process";
 
 export const fetchProcesses = async (
   page: number,
-  limit: number,
+  limit?: number,
   searchPattern?: string,
   sort?: string,
   statusFilter?: string[],
@@ -12,7 +12,9 @@ export const fetchProcesses = async (
   const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
-  params.append("limit", JSON.stringify(limit));
+  if (limit !== undefined) {
+    params.append("limit", JSON.stringify(limit));
+  }
   params.append("search", searchPattern ?? "");
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
@@ -264,6 +266,26 @@ export const deleteProcess = async (id: number) => {
   }
   const res = await response.json();
   console.log(res);
+  return res.data;
+};
+
+export const fetchProcessById = async (id: string | number) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/process/${id}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to fetch process");
+  }
+
+  const res = await response.json();
   return res.data;
 };
 

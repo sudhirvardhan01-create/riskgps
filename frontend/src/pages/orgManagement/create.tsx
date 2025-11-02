@@ -19,10 +19,11 @@ import {
 } from "@mui/material";
 import { ArrowBack, CameraAlt, Add, Check } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
-import BusinessContextForm from "@/components/orgManagement/BusinessContextForm";
-import { createOrganization, CreateOrganizationRequest } from "@/services/organizationService";
+import BusinessContextForm from "@/components/OrgManagement/BusinessContextForm";
+import { createOrganization, CreateOrganizationRequest, saveTaxonomies } from "@/services/organizationService";
 import ToastComponent from "@/components/ToastComponent";
 import Image from "next/image";
+import Cookies from "js-cookie";
 
 interface Tag {
   key: string;
@@ -261,6 +262,261 @@ function CreateNewOrgPage() {
         const response = await createOrganization(organizationData);
 
         if (response.success && response.data.organizationId) {
+          // Get user ID from cookies for createdBy
+          const userCookie = Cookies.get("user");
+          const user = userCookie ? JSON.parse(userCookie) : null;
+          const userId = user?.userId || user?.id || response.data.createdBy || null;
+
+          // Extract numeric value from annualRevenue (remove any formatting) - same as RiskTaxonomy.tsx
+          const annualRevenueValue = businessContext.annualRevenue
+            ? parseInt(businessContext.annualRevenue.replace(/[^0-9]/g, ''))
+            : 0;
+
+          // Set default dollar range to 25% and 75% of annual revenue (same as RiskTaxonomy.tsx)
+          const defaultMin = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.25) : 0;
+          const defaultMax = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.75) : 0;
+          const range = defaultMax - defaultMin;
+
+          // Calculate impact based on percentage (same formula as RiskTaxonomy.tsx calculateImpact)
+          // Using linear calculation: userMin + (normalizedValue * range)
+          const calculateImpact = (percentage: number): number => {
+            if (defaultMin > 0 && defaultMax > 0) {
+              const normalizedValue = percentage / 100;
+              return defaultMin + (normalizedValue * range);
+            }
+            return 0;
+          };
+
+          // Compute severity ranges same as RiskTaxonomy.tsx:
+          // Very Low: defaultMin to calculateImpact(25)
+          // Low: calculateImpact(25) to calculateImpact(50)
+          // Medium: calculateImpact(50) to calculateImpact(75)
+          // High: calculateImpact(75) to calculateImpact(100) = defaultMax
+          // Critical: calculateImpact(100) = defaultMax, and since RiskTaxonomy.tsx shows "> calculateImpact(100)",
+          // we extend Critical beyond defaultMax. The maxRange extends proportionally beyond the defaultMax.
+          // Extending Critical from defaultMax (75%) to a value that maintains the range proportion.
+          const formatRange = (value: number): string => {
+            return Math.round(value).toString();
+          };
+
+          // Calculate Low, Medium, and High values based on defaultMin (Very Low) and defaultMax (Critical)
+          // Low: 25% of the range from defaultMin to defaultMax
+          // Medium: 50% of the range from defaultMin to defaultMax  
+          // High: 75% of the range from defaultMin to defaultMax
+          const lowValue = calculateImpact(25);   // 25% point between defaultMin and defaultMax
+          const mediumValue = calculateImpact(50); // 50% point between defaultMin and defaultMax
+          const highValue = calculateImpact(75);   // 75% point between defaultMin and defaultMax
+
+          // Create taxonomies payload with severity levels
+          const taxonomiesPayload = [
+            {
+              name: "Financial Risk",
+              weightage: 40,
+              order: 1,
+              createdBy: userId || "",
+              severityLevels: [
+                {
+                  name: "Very Low",
+                  minRange: formatRange(defaultMin),
+                  maxRange: formatRange(lowValue),
+                  color: "#3BB966",
+                  order: 1,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Low",
+                  minRange: formatRange(lowValue),
+                  maxRange: formatRange(mediumValue),
+                  color: "#3366CC",
+                  order: 2,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Medium",
+                  minRange: formatRange(mediumValue),
+                  maxRange: formatRange(highValue),
+                  color: "#E3B52A",
+                  order: 3,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "High",
+                  minRange: formatRange(highValue),
+                  maxRange: formatRange(defaultMax),
+                  color: "#DA7706",
+                  order: 4,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Critical",
+                  minRange: formatRange(defaultMax),
+                  maxRange: formatRange(annualRevenueValue),
+                  color: "#B90D0D",
+                  order: 5,
+                  createdBy: userId || ""
+                }
+              ]
+            },
+            {
+              name: "Regulatory Risk",
+              weightage: 30,
+              order: 2,
+              createdBy: userId || "",
+              severityLevels: [
+                {
+                  name: "Very Low",
+                  minRange: formatRange(defaultMin),
+                  maxRange: formatRange(lowValue),
+                  color: "#3BB966",
+                  order: 1,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Low",
+                  minRange: formatRange(lowValue),
+                  maxRange: formatRange(mediumValue),
+                  color: "#3366CC",
+                  order: 2,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Medium",
+                  minRange: formatRange(mediumValue),
+                  maxRange: formatRange(highValue),
+                  color: "#E3B52A",
+                  order: 3,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "High",
+                  minRange: formatRange(highValue),
+                  maxRange: formatRange(defaultMax),
+                  color: "#DA7706",
+                  order: 4,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Critical",
+                  minRange: formatRange(defaultMax),
+                  maxRange: formatRange(annualRevenueValue),
+                  color: "#B90D0D",
+                  order: 5,
+                  createdBy: userId || ""
+                }
+              ]
+            },
+            {
+              name: "Operational Risk",
+              weightage: 20,
+              order: 3,
+              createdBy: userId || "",
+              severityLevels: [
+                {
+                  name: "Very Low",
+                  minRange: formatRange(defaultMin),
+                  maxRange: formatRange(lowValue),
+                  color: "#3BB966",
+                  order: 1,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Low",
+                  minRange: formatRange(lowValue),
+                  maxRange: formatRange(mediumValue),
+                  color: "#3366CC",
+                  order: 2,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Medium",
+                  minRange: formatRange(mediumValue),
+                  maxRange: formatRange(highValue),
+                  color: "#E3B52A",
+                  order: 3,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "High",
+                  minRange: formatRange(highValue),
+                  maxRange: formatRange(defaultMax),
+                  color: "#DA7706",
+                  order: 4,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Critical",
+                  minRange: formatRange(defaultMax),
+                  maxRange: formatRange(annualRevenueValue),
+                  color: "#B90D0D",
+                  order: 5,
+                  createdBy: userId || ""
+                }
+              ]
+            },
+            {
+              name: "Reputational Risk",
+              weightage: 10,
+              order: 4,
+              createdBy: userId || "",
+              severityLevels: [
+                {
+                  name: "Very Low",
+                  minRange: formatRange(defaultMin),
+                  maxRange: formatRange(lowValue),
+                  color: "#3BB966",
+                  order: 1,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Low",
+                  minRange: formatRange(lowValue),
+                  maxRange: formatRange(mediumValue),
+                  color: "#3366CC",
+                  order: 2,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Medium",
+                  minRange: formatRange(mediumValue),
+                  maxRange: formatRange(highValue),
+                  color: "#E3B52A",
+                  order: 3,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "High",
+                  minRange: formatRange(highValue),
+                  maxRange: formatRange(defaultMax),
+                  color: "#DA7706",
+                  order: 4,
+                  createdBy: userId || ""
+                },
+                {
+                  name: "Critical",
+                  minRange: formatRange(defaultMax),
+                  maxRange: formatRange(annualRevenueValue),
+                  color: "#B90D0D",
+                  order: 5,
+                  createdBy: userId || ""
+                }
+              ]
+            }
+          ];
+
+          // Save taxonomies for the organization
+          try {
+            await saveTaxonomies(response.data.organizationId, taxonomiesPayload);
+          } catch (taxonomyError) {
+            // Log error but don't block navigation if taxonomy save fails
+            console.error("Failed to save taxonomies:", taxonomyError);
+            // Optionally show a warning toast
+            setToast({
+              open: true,
+              message: "Organization created successfully, but failed to save taxonomies. You can configure them later.",
+              severity: "warning"
+            });
+          }
+
           // Encode form data as URL parameters
           const queryParams = new URLSearchParams({
             showSuccess: 'true',
@@ -478,7 +734,7 @@ function CreateNewOrgPage() {
             {currentStep === 0 ? (
               <>
                 {/* Org Logo Upload */}
-                <Box sx={{ position: "relative", mb: 4 }}>
+                <Box sx={{ position: "relative", mb: 4, opacity: 0.5, pointerEvents: "none" }}>
                   <Avatar
                     sx={{
                       width: 96,
@@ -508,6 +764,7 @@ function CreateNewOrgPage() {
                     </Box>
                   </Avatar>
                   <IconButton
+                    disabled
                     sx={{
                       position: "absolute",
                       bottom: 0,
@@ -519,6 +776,10 @@ function CreateNewOrgPage() {
                       "&:hover": {
                         backgroundColor: "#04139A",
                         opacity: 0.9
+                      },
+                      "&.Mui-disabled": {
+                        backgroundColor: "#E0E0E0",
+                        color: "#9E9E9E"
                       }
                     }}
                   >
@@ -831,7 +1092,7 @@ function CreateNewOrgPage() {
                     variant="contained"
                     onClick={(event) => handleContinue(event)}
                     disabled={
-                      isLoading || 
+                      isLoading ||
                       (currentStep === 0 ? !orgName.trim() || !isTagsValid() :
                         currentStep === 1 ? !isStep1Valid() :
                           currentStep === 2 ? !isStep2Valid() : false)
@@ -855,10 +1116,10 @@ function CreateNewOrgPage() {
                     }}
                   >
                     {isLoading ? (
-                      <CircularProgress 
-                        size={32} 
+                      <CircularProgress
+                        size={32}
                         thickness={4}
-                        sx={{ 
+                        sx={{
                           color: "inherit",
                           animation: "spin 1s linear infinite",
                           "@keyframes spin": {

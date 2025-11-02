@@ -1,6 +1,6 @@
-export const getProcessList = async () => {
+export const getProcessList = async (orgId: string | undefined) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/reports/process-details`,
+    `${process.env.NEXT_PUBLIC_API_URL}/reports/process-details/${orgId}`,
     {
       method: "GET",
       headers: {

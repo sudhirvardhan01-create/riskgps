@@ -17,7 +17,7 @@ export default function ProcessTabsAssets() {
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedAsset(assessment?.processes[newValue].assets[0]); // reset selection when switching process
+    setSelectedAsset({ ...assessment!.processes[newValue].assets[0] } as Asset); // reset selection when switching process
   };
 
   useEffect(() => {
@@ -33,18 +33,50 @@ export default function ProcessTabsAssets() {
     fetchOrgs();
   }, []);
 
-  const handleUpdateScenario = (updatedAsset: Asset) => {
-    // update inside context
-    const updatedProcesses = assessment?.processes.map((p, idx) => {
+  const handleUpdateAsset = (questionaireObj: any) => {
+    if (!assessment || selectedAsset == null) return;
+
+    const updatedProcesses = assessment.processes.map((p, idx) => {
       if (idx !== currentTab) return p;
+
+      const updatedAssets = p.assets.map((a: Asset) => {
+        if (a.id !== selectedAsset.id) return a;
+
+        const updatedQuestionnaire = (() => {
+          const existingQuestionnaire = a.questionnaire || [];
+
+          // Try to find an existing entry
+          const index = existingQuestionnaire.findIndex(
+            (q: any) => q.questionaireId === questionaireObj.questionaireId
+          );
+
+          if (index === -1) {
+            // Not found → add new entry
+            return [...existingQuestionnaire, questionaireObj];
+          } else {
+            // Found → update existing one
+            return existingQuestionnaire.map((q: any, i: number) =>
+              i === index ? { ...q, ...questionaireObj } : q
+            );
+          }
+        })();
+
+        return {
+          ...a,
+          questionnaire: updatedQuestionnaire,
+        };
+      });
 
       return {
         ...p,
-        assets: p.assets.map((a: Asset) =>
-          a.id === updatedAsset.id ? updatedAsset : a
-        ),
+        assets: updatedAssets,
       };
     });
+
+    // Find the newly updated asset to keep UI in sync
+    const updatedAsset = updatedProcesses[currentTab].assets.find(
+      (a: Asset) => a.id === selectedAsset.id
+    );
 
     updateAssessment({ processes: updatedProcesses }); // push back to context
     setSelectedAsset(updatedAsset);
@@ -54,7 +86,7 @@ export default function ProcessTabsAssets() {
 
   useEffect(() => {
     if (assessment?.processes && assessment?.processes.length > 0) {
-      setSelectedAsset(assessment?.processes[0].assets[0]);
+      setSelectedAsset({ ...assessment!.processes[0].assets[0] } as Asset);
     }
   }, []);
 
@@ -121,10 +153,8 @@ export default function ProcessTabsAssets() {
         {/* Right Panel: Questionnaire*/}
         <QuestionnaireForAsset
           questionnaires={questionnaire}
-          assetCategory={selectedAsset?.assetCategory}
-          // onSubmit={() => {
-          //   console.log("questionnaire");
-          // }}
+          asset={selectedAsset}
+          onSubmit={handleUpdateAsset}
         />
       </Box>
     </Box>

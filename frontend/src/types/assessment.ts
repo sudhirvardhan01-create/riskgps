@@ -5,14 +5,21 @@ export interface Assessment {
   runId: string;
   orgId: string;
   orgName: string;
-  orgDesc?: string;
+  orgDesc: string | null;
   businessUnitId: string;
   businessUnitName: string;
-  businessUnitDesc?: string;
+  businessUnitDesc: string | null;
   status: string;
-  startDate: Date;
-  endDate: Date | null;
-  lastActivity: Date;
+  progress: number;
+  startDate: string;
+  endDate: string | null;
+  lastActivity: string | null;
+  createdBy: string;
+  modifiedBy: string;
+  createdDate: string;
+  modifiedDate: string;
+  isDeleted: boolean;
+  organizationId: string | null;
 }
 
 export interface Organisation {
@@ -37,6 +44,7 @@ export interface Severity {
 }
 
 export interface Taxonomy {
+  assessmentRiskTaxonomyId?: string;
   taxonomyId: string;
   name: string;
   orgId: string;
@@ -48,7 +56,6 @@ export interface Risk {
   assessmentProcessRiskId?: string;
   riskScenario: string;
   riskDescription: string;
-  thresholdCost?: number;
   taxonomy?: Taxonomy[];
 }
 
@@ -57,6 +64,14 @@ export interface Asset {
   assessmentProcessAssetId?: string;
   applicationName: string;
   assetCategory: string;
+  questionnaire: Questionnaire[];
+}
+
+export interface Questionnaire {
+  assessmentQuestionaireId?: string;
+  questionaireId: string;
+  questionaireName: string;
+  responseValue: string;
 }
 
 export interface ProcessUnit {

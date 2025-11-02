@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -30,6 +30,9 @@ const BusinessUnits: React.FC = () => {
 
   // State for business units from API
   const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([]);
+  
+  // Ref to track when we're entering edit mode (to avoid React state batching issues)
+  const isEnteringEditModeRef = useRef(false);
 
   // Fetch business units from API
   useEffect(() => {
@@ -55,13 +58,18 @@ const BusinessUnits: React.FC = () => {
   }, [orgId]);
 
   const handleCreateBusinessUnit = () => {
+    isEnteringEditModeRef.current = false;
     setIsEditMode(false);
     setEditData(null);
     setIsCreateFormOpen(true);
   };
 
   const handleFormSubmit = async (data: BusinessUnitFormData) => {
-    console.log('Form submitted. isEditMode:', isEditMode, 'selectedBusinessUnit:', selectedBusinessUnit?.id);
+    // Store current edit state before any async operations
+    const currentEditMode = isEditMode;
+    const currentSelectedBusinessUnit = selectedBusinessUnit;
+    
+    console.log('Form submitted. isEditMode:', currentEditMode, 'selectedBusinessUnit:', currentSelectedBusinessUnit?.id);
     if (!orgId) {
       setError("Organization ID is required");
       return;
@@ -81,10 +89,10 @@ const BusinessUnits: React.FC = () => {
         return;
       }
 
-      if (isEditMode && selectedBusinessUnit) {
+      if (currentEditMode && currentSelectedBusinessUnit) {
         // Update existing business unit
-        console.log('Updating business unit with ID:', selectedBusinessUnit.id);
-        await updateBusinessUnit(selectedBusinessUnit.id, {
+        console.log('Updating business unit with ID:', currentSelectedBusinessUnit.id);
+        await updateBusinessUnit(currentSelectedBusinessUnit.id, {
           name: data.businessUnitName,
           tags: data.tags,
           head: data.buHead,
@@ -97,7 +105,7 @@ const BusinessUnits: React.FC = () => {
         // Update local state
         setBusinessUnits((prev) =>
           prev.map((bu) =>
-            bu.id === selectedBusinessUnit.id
+            bu.id === currentSelectedBusinessUnit.id
               ? {
                   ...bu,
                   businessUnitName: data.businessUnitName,
@@ -169,6 +177,7 @@ const BusinessUnits: React.FC = () => {
 
   const handleFormClose = () => {
     console.log('Form closing. Resetting edit mode and selected business unit');
+    isEnteringEditModeRef.current = false;
     setIsCreateFormOpen(false);
     setIsEditMode(false);
     setEditData(null);
@@ -191,10 +200,21 @@ const BusinessUnits: React.FC = () => {
     };
 
     console.log('Setting edit mode with business unit:', businessUnit);
+    // Set ref to indicate we're entering edit mode (before state updates)
+    isEnteringEditModeRef.current = true;
+    // Set all edit state
     setSelectedBusinessUnit(businessUnit);
     setEditData(formData);
     setIsEditMode(true);
     setIsCreateFormOpen(true);
+    // Close the details modal after state is set
+    setTimeout(() => {
+      setIsDetailsModalOpen(false);
+      // Reset the ref after a short delay to ensure form is open
+      setTimeout(() => {
+        isEnteringEditModeRef.current = false;
+      }, 100);
+    }, 0);
   };
 
   const handleBusinessUnitClick = (businessUnit: BusinessUnitData) => {
@@ -204,7 +224,11 @@ const BusinessUnits: React.FC = () => {
 
   const handleDetailsModalClose = () => {
     setIsDetailsModalOpen(false);
-    setSelectedBusinessUnit(null);
+    // Don't reset selectedBusinessUnit if we're entering edit mode
+    // Check both the ref (for immediate access) and isCreateFormOpen (for delayed closes)
+    if (!isEnteringEditModeRef.current && !isCreateFormOpen) {
+      setSelectedBusinessUnit(null);
+    }
   };
 
   const handleToastClose = () => {

@@ -38,8 +38,8 @@ export const useOrganization = (orgId: string | string[] | undefined): UseOrgani
                 : "Large (> 2000 Employees)",
           },
           members: {
-            avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-            additionalCount: 3,
+            avatars: [], // Empty array - API doesn't return member data
+            additionalCount: 0,
           },
           businessUnits: apiResponse.data.businessUnits || ["-", "-", "-"],
           status: apiResponse.data.isDeleted ? "disabled" : "active",

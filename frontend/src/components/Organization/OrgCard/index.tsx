@@ -3,7 +3,6 @@ import { DeleteOutlineOutlined, EditOutlined } from "@mui/icons-material";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import ToggleSwitch from "@/components/Library/ToggleSwitch/ToggleSwitch";
 import { Organization } from "@/types/organization";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { ORG_COLUMN_TEMPLATE } from "@/constants/constant";
 
@@ -84,14 +83,27 @@ const OrgCard: React.FC<OrgCardProps> = ({
             borderRadius: "36px",
             overflow: "hidden",
             position: "relative",
+            backgroundColor: "#91939A",
           }}
         >
-          <Image
-            src={organization.orgImage}
-            alt="org-image"
-            fill
-            style={{ objectFit: "cover" }}
-          />
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#FFFFFF",
+              fontSize: "18px",
+              fontWeight: 600,
+              zIndex: 2,
+            }}
+          >
+            {organization.name?.charAt(0)?.toUpperCase() || "?"}
+          </Box>
           <Box
             sx={{
               position: "absolute",
@@ -100,6 +112,7 @@ const OrgCard: React.FC<OrgCardProps> = ({
               right: 0,
               bottom: 0,
               backgroundColor: "#0000001F",
+              zIndex: 1,
             }}
           />
         </Box>
@@ -181,80 +194,109 @@ const OrgCard: React.FC<OrgCardProps> = ({
 
       {/* Org Members */}
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          {organization.members.avatars.map((avatar, index) => (
-            <Avatar
-              key={index}
-              src={avatar || undefined}
-              sx={{
-                width: 28,
-                height: 28,
-                fontSize: "12px",
-                border: "1.5px solid white",
-                zIndex: index,
-                ml: index === 0 ? 0 : -0.75, //negative margin for overlap
-              }}
-            >
-              {!avatar && "?"}
-            </Avatar>
-          ))}
-          {organization.members.additionalCount > 0 && (
-            <Box
-              sx={{
-                width: 28,
-                height: 28,
-                borderRadius: "32px",
-                backgroundColor: "#04139A",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1.5px solid #FFFFFF",
-                opacity: 1,
-                zIndex: organization.members.avatars.length + 1,
-                ml: -0.75, //also overlap with previous avatar
-                p: 0.5,
-              }}
-            >
-              <Typography
-                variant="body2"
+        {(!organization.members || 
+          !organization.members.avatars || 
+          organization.members.avatars.length === 0) && 
+          (!organization.members?.additionalCount || organization.members.additionalCount === 0) ? (
+          <Typography
+            variant="body2"
+            color="#91939A"
+            sx={{
+              textAlign: "center",
+            }}
+          >
+            --
+          </Typography>
+        ) : (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {(organization.members?.avatars || []).map((avatar, index) => (
+              <Avatar
+                key={index}
+                src={avatar || undefined}
                 sx={{
-                  color: "#FFFFFF",
-                  textAlign: "center",
+                  width: 28,
+                  height: 28,
+                  fontSize: "12px",
+                  border: "1.5px solid white",
+                  zIndex: index,
+                  ml: index === 0 ? 0 : -0.75, //negative margin for overlap
                 }}
               >
-                +{organization.members.additionalCount}
-              </Typography>
-            </Box>
-          )}
-        </Box>
+                {!avatar && "?"}
+              </Avatar>
+            ))}
+            {organization.members?.additionalCount > 0 && (
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "32px",
+                  backgroundColor: "#04139A",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1.5px solid #FFFFFF",
+                  opacity: 1,
+                  zIndex: (organization.members?.avatars?.length || 0) + 1,
+                  ml: -0.75, //also overlap with previous avatar
+                  p: 0.5,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#FFFFFF",
+                    textAlign: "center",
+                  }}
+                >
+                  +{organization.members.additionalCount}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Business Units */}
       <Box>
-        <Typography
-          variant="body1"
-          color="#484848"
-          sx={{
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap"
-          }}
-        >
-          {organization.businessUnits.slice(0, 2).join(", ")}
-        </Typography>
-        {organization.businessUnits.length > 2 && (
+        {organization.businessUnits.length === 0 ? (
           <Typography
             variant="body2"
-            color="#04139A"
+            color="#91939A"
             sx={{
-              mt: 0.5,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap"
+              textAlign: "center",
             }}
           >
-            +{organization.businessUnits.length - 2} more
+            --
           </Typography>
+        ) : (
+          <>
+            <Typography
+              variant="body1"
+              color="#484848"
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap"
+              }}
+            >
+              {organization.businessUnits.slice(0, 2).join(", ")}
+            </Typography>
+            {organization.businessUnits.length > 2 && (
+              <Typography
+                variant="body2"
+                color="#04139A"
+                sx={{
+                  mt: 0.5,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                +{organization.businessUnits.length - 2} more
+              </Typography>
+            )}
+          </>
         )}
       </Box>
 

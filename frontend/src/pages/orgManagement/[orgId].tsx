@@ -146,12 +146,8 @@ function OrgDetailsPage() {
             };
           })(),
           members: {
-            avatars: [
-              "/memberImage.jpg",
-              "/memberImage1.jpg",
-              "/memberImage2.jpg",
-            ],
-            additionalCount: 3,
+            avatars: [], // Empty array - API doesn't return member data
+            additionalCount: 0,
           },
           businessUnits:
             apiResponse.data.businessUnits &&
@@ -325,8 +321,8 @@ function OrgDetailsPage() {
       }}
     >
       {/* Breadcrumb */}
-      <Stack sx={{ backgroundColor: "#F0F2FB", height: "228px", pt: 3, pb: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3, pl: 2 }}>
+      <Stack sx={{ backgroundColor: "#F0F2FB", pt: 1, pb: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2, pl: 2 }}>
           <IconButton onClick={handleBackClick} sx={{ mr: 1 }}>
             <ArrowBack />
           </IconButton>
@@ -366,14 +362,35 @@ function OrgDetailsPage() {
         <Box sx={{ pl: 8, mb: 2 }}>
           {/* Logo and Company Name on same line */}
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <Box sx={{ mr: 2, position: "relative", width: 48, height: 48 }}>
-              <Image
-                src={organization.orgImage}
-                alt="org-image"
-                width={48}
-                height={48}
-                style={{ borderRadius: "48px" }}
-              />
+            <Box
+              sx={{
+                mr: 2,
+                position: "relative",
+                width: 40,
+                height: 40,
+                borderRadius: "30px",
+                overflow: "hidden",
+                backgroundColor: "#91939A",
+              }}
+            >
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#FFFFFF",
+                  fontSize: "22px",
+                  fontWeight: 600,
+                  zIndex: 2,
+                }}
+              >
+                {organization.name?.charAt(0)?.toUpperCase() || "?"}
+              </Box>
               {/* Gradient overlay */}
               <Box
                 sx={{
@@ -384,10 +401,11 @@ function OrgDetailsPage() {
                   height: "100%",
                   backgroundColor: "#0000001F",
                   borderRadius: "48px",
+                  zIndex: 1,
                 }}
               />
             </Box>
-            <Typography variant="h3" sx={{ fontWeight: 500, color: "#484848" }}>
+            <Typography variant="h4" sx={{ fontWeight: 500, color: "#484848" }}>
               {organization.name}
             </Typography>
           </Box>
@@ -534,7 +552,6 @@ function OrgDetailsPage() {
               justifyContent: "flex-end",
               alignItems: "center",
               mb: 3,
-              mt: 2,
             }}
           >
             <Box

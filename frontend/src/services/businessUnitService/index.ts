@@ -50,30 +50,7 @@ export interface AssessmentApiResponse {
   total: number;
   page: number;
   limit: number;
-  data: AssessmentApiData[];
-}
-
-export interface AssessmentApiData {
-  assessmentId: string;
-  assessmentName: string;
-  assessmentDesc: string;
-  runId: string;
-  orgId: string;
-  orgName: string;
-  orgDesc: string | null;
-  businessUnitId: string;
-  businessUnitName: string;
-  businessUnitDesc: string | null;
-  status: string;
-  startDate: string;
-  endDate: string | null;
-  lastActivity: string | null;
-  createdBy: string;
-  modifiedBy: string;
-  createdDate: string;
-  modifiedDate: string;
-  isDeleted: boolean;
-  organizationId: string | null;
+  data: Assessment[];
 }
 
 export interface ApiBusinessUnitResponse {
@@ -82,18 +59,21 @@ export interface ApiBusinessUnitResponse {
 }
 
 // Transform API business unit data to frontend format
-export const transformApiBusinessUnitToFrontend = (apiBu: ApiBusinessUnit, orgId?: string): BusinessUnitData => {
+export const transformApiBusinessUnitToFrontend = (
+  apiBu: ApiBusinessUnit,
+  orgId?: string
+): BusinessUnitData => {
   // Handle status mapping - convert API status to frontend format
   const getStatus = (apiStatus?: string): "active" | "disable" => {
     if (!apiStatus) return "active"; // Default to active if no status provided
-    
+
     // Handle case sensitivity - convert to lowercase for comparison
     const normalizedStatus = apiStatus.toLowerCase();
-    
+
     if (normalizedStatus === "disable" || normalizedStatus === "disabled") {
       return "disable";
     }
-    
+
     // Default to active for any other status (including "active", "Active", etc.)
     return "active";
   };
@@ -116,22 +96,32 @@ export const transformApiBusinessUnitToFrontend = (apiBu: ApiBusinessUnit, orgId
 };
 
 // Transform API response to frontend format
-export const transformApiResponseToFrontend = (apiResponse: ApiBusinessUnitsResponse, orgId?: string) => {
+export const transformApiResponseToFrontend = (
+  apiResponse: ApiBusinessUnitsResponse,
+  orgId?: string
+) => {
   return {
-    businessUnits: apiResponse.data.businessUnits.map(bu => transformApiBusinessUnitToFrontend(bu, orgId)),
+    businessUnits: apiResponse.data.businessUnits.map((bu) =>
+      transformApiBusinessUnitToFrontend(bu, orgId)
+    ),
     total: apiResponse.data.total,
     page: apiResponse.data.page,
-    limit: apiResponse.data.limit
+    limit: apiResponse.data.limit,
   };
 };
 
 // Get business units for an organization
-export const getBusinessUnits = async (orgId: string): Promise<BusinessUnitData[]> => {
+export const getBusinessUnits = async (
+  orgId: string
+): Promise<BusinessUnitData[]> => {
   // Get access token from cookies
-  const token = typeof window !== 'undefined' ? document.cookie
-    .split('; ')
-    .find(row => row.startsWith('accessToken='))
-    ?.split('=')[1] : null;
+  const token =
+    typeof window !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1]
+      : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -152,22 +142,29 @@ export const getBusinessUnits = async (orgId: string): Promise<BusinessUnitData[
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || "Failed to fetch business units");
+    throw new Error(
+      errorData.error || errorData.message || "Failed to fetch business units"
+    );
   }
 
   const apiResponse: ApiBusinessUnitsResponse = await response.json();
   const transformedData = transformApiResponseToFrontend(apiResponse, orgId);
-  
+
   return transformedData.businessUnits;
 };
 
 // Get single business unit by ID
-export const getBusinessUnitById = async (businessUnitId: string): Promise<BusinessUnitData> => {
+export const getBusinessUnitById = async (
+  businessUnitId: string
+): Promise<BusinessUnitData> => {
   // Get access token from cookies
-  const token = typeof window !== 'undefined' ? document.cookie
-    .split('; ')
-    .find(row => row.startsWith('accessToken='))
-    ?.split('=')[1] : null;
+  const token =
+    typeof window !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1]
+      : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -188,7 +185,9 @@ export const getBusinessUnitById = async (businessUnitId: string): Promise<Busin
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || "Failed to fetch business unit");
+    throw new Error(
+      errorData.error || errorData.message || "Failed to fetch business unit"
+    );
   }
 
   const apiResponse: ApiBusinessUnitResponse = await response.json();
@@ -233,10 +232,13 @@ export const createBusinessUnit = async (
   businessUnitData: CreateBusinessUnitRequest
 ): Promise<CreateBusinessUnitResponse> => {
   // Get access token from cookies
-  const token = typeof window !== 'undefined' ? document.cookie
-    .split('; ')
-    .find(row => row.startsWith('accessToken='))
-    ?.split('=')[1] : null;
+  const token =
+    typeof window !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1]
+      : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -258,7 +260,9 @@ export const createBusinessUnit = async (
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || "Failed to create business unit");
+    throw new Error(
+      errorData.error || errorData.message || "Failed to create business unit"
+    );
   }
 
   return response.json();
@@ -302,10 +306,13 @@ export const updateBusinessUnit = async (
   businessUnitData: UpdateBusinessUnitRequest
 ): Promise<UpdateBusinessUnitResponse> => {
   // Get access token from cookies
-  const token = typeof window !== 'undefined' ? document.cookie
-    .split('; ')
-    .find(row => row.startsWith('accessToken='))
-    ?.split('=')[1] : null;
+  const token =
+    typeof window !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1]
+      : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -327,7 +334,9 @@ export const updateBusinessUnit = async (
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || "Failed to update business unit");
+    throw new Error(
+      errorData.error || errorData.message || "Failed to update business unit"
+    );
   }
 
   return response.json();
@@ -344,10 +353,13 @@ export const deleteBusinessUnit = async (
   modifiedBy: string
 ): Promise<DeleteBusinessUnitResponse> => {
   // Get access token from cookies
-  const token = typeof window !== 'undefined' ? document.cookie
-    .split('; ')
-    .find(row => row.startsWith('accessToken='))
-    ?.split('=')[1] : null;
+  const token =
+    typeof window !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1]
+      : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -369,23 +381,31 @@ export const deleteBusinessUnit = async (
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || "Failed to delete business unit");
+    throw new Error(
+      errorData.error || errorData.message || "Failed to delete business unit"
+    );
   }
 
   return response.json();
 };
 
 // Assessment functions for business units
-export const getAssessmentsByBusinessUnit = async (orgId?: string, businessUnitId?: string): Promise<AssessmentApiResponse> => {
+export const getAssessmentsByBusinessUnit = async (
+  orgId?: string,
+  businessUnitId?: string
+): Promise<AssessmentApiResponse> => {
   const params = new URLSearchParams();
-  if (orgId) params.append('orgId', orgId);
-  if (businessUnitId) params.append('businessUnitId', businessUnitId);
-  
+  if (orgId) params.append("orgId", orgId);
+  if (businessUnitId) params.append("businessUnitId", businessUnitId);
+
   // Get access token from cookies
-  const token = typeof window !== 'undefined' ? document.cookie
-    .split('; ')
-    .find(row => row.startsWith('accessToken='))
-    ?.split('=')[1] : null;
+  const token =
+    typeof window !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1]
+      : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -395,7 +415,7 @@ export const getAssessmentsByBusinessUnit = async (orgId?: string, businessUnitI
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  
+
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/assessment/by-org-or-bu?${params}`,
     {
@@ -410,21 +430,25 @@ export const getAssessmentsByBusinessUnit = async (orgId?: string, businessUnitI
 };
 
 // Helper function to format API response to match Assessment interface
-export const formatAssessmentData = (apiData: AssessmentApiData): Assessment => {
-  return {
-    assessmentId: apiData.assessmentId,
-    assessmentName: apiData.assessmentName,
-    assessmentDesc: apiData.assessmentDesc,
-    runId: apiData.runId,
-    orgId: apiData.orgId,
-    orgName: apiData.orgName,
-    orgDesc: apiData.orgDesc || undefined,
-    businessUnitId: apiData.businessUnitId,
-    businessUnitName: apiData.businessUnitName,
-    businessUnitDesc: apiData.businessUnitDesc || undefined,
-    status: apiData.status,
-    startDate: new Date(apiData.startDate),
-    endDate: apiData.endDate ? new Date(apiData.endDate) : null,
-    lastActivity: apiData.lastActivity ? new Date(apiData.lastActivity) : new Date(apiData.createdDate),
-  };
-};
+// export const formatAssessmentData = (
+//   apiData: AssessmentApiData
+// ): Assessment => {
+//   return {
+//     assessmentId: apiData.assessmentId,
+//     assessmentName: apiData.assessmentName,
+//     assessmentDesc: apiData.assessmentDesc,
+//     runId: apiData.runId,
+//     orgId: apiData.orgId,
+//     orgName: apiData.orgName,
+//     orgDesc: apiData.orgDesc || undefined,
+//     businessUnitId: apiData.businessUnitId,
+//     businessUnitName: apiData.businessUnitName,
+//     businessUnitDesc: apiData.businessUnitDesc || undefined,
+//     status: apiData.status,
+//     startDate: new Date(apiData.startDate),
+//     endDate: apiData.endDate ? new Date(apiData.endDate) : null,
+//     lastActivity: apiData.lastActivity
+//       ? new Date(apiData.lastActivity)
+//       : new Date(apiData.createdDate),
+//   };
+// };

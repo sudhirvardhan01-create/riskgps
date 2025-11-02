@@ -15,10 +15,12 @@ import {
   getOrganizationProcess,
 } from "../../api/organization";
 import {
+  saveAssessment,
   saveAssessmentAssets,
   saveAssessmentProcess,
   saveAssessmentRisk,
   saveAssessmentRiskTaxonomy,
+  saveAssetQuestionnaire,
 } from "@/pages/api/assessment";
 import ProcessTabs from "@/components/Assessment/ProcessTabs";
 import {
@@ -31,6 +33,7 @@ import Cookies from "js-cookie";
 import withAuth from "@/hoc/withAuth";
 import DragDropAssets from "@/components/Assessment/DragDropAssets";
 import ProcessTabsAssets from "@/components/Assessment/ProcessTabsAssets";
+import AssessmentPreview from "@/components/Assessment/AssessmentPreview";
 
 function BUProcessMappingPage() {
   const { assessment, updateAssessment } = useAssessment();
@@ -62,6 +65,7 @@ function BUProcessMappingPage() {
   const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
   const [processes, setProcesses] = useState<ProcessUnit[]>([]);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrgs = async () => {
@@ -106,6 +110,7 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.risks.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
+        assessmentProcessRiskId: risk.assessmentProcessRiskId,
         id: risk.id,
         riskScenario: risk.riskScenario,
         riskDescription: risk.riskDescription,
@@ -122,7 +127,6 @@ function BUProcessMappingPage() {
         id: risk.id,
         riskScenario: risk.riskScenario,
         riskDescription: risk.riskDescription,
-        thresholdCost: risk.thresholdCost,
         taxonomy: risk.taxonomy,
       }))
     );
@@ -133,10 +137,27 @@ function BUProcessMappingPage() {
     const obj = assessment?.processes.flatMap((process) =>
       process.assets.map((asset) => ({
         assessmentProcessId: process.assessmentProcessId,
+        assessmentProcessAssetId: asset.assessmentProcessAssetId,
         id: asset.id,
         applicationName: asset.applicationName,
         assetCategory: asset.assetCategory,
       }))
+    );
+    return obj;
+  };
+
+  const prepareQuestionnairePayload = () => {
+    const obj = assessment?.processes.flatMap((process) =>
+      process.assets.flatMap((asset) =>
+        asset.questionnaire.map((question) => ({
+          assessmentProcessId: process.assessmentProcessId ?? "",
+          assessmentProcessAssetId: asset.assessmentProcessAssetId ?? "",
+          id: asset.id,
+          questionaireId: question.questionaireId,
+          questionaireName: question.questionaireName,
+          responseValue: question.responseValue,
+        }))
+      )
     );
     return obj;
   };
@@ -162,6 +183,7 @@ function BUProcessMappingPage() {
             processes: assessment?.processes.map((item) => {
               return {
                 id: item.id,
+                assessmentProcessId: item.assessmentProcessId,
                 processName: item.processName,
                 processDescription: item.processDescription,
                 order: item.order,
@@ -186,6 +208,7 @@ function BUProcessMappingPage() {
           const riskScenarios = prepareRiskPayload();
           const response = await saveAssessmentRisk({
             assessmentId: assessment?.assessmentId,
+            status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios,
           });
@@ -209,17 +232,43 @@ function BUProcessMappingPage() {
 
         case 2:
           const riskTaxonomies = prepareRiskTaxonomyPayload();
-          saveAssessmentRiskTaxonomy({
+          const resp = await saveAssessmentRiskTaxonomy({
             assessmentId: assessment?.assessmentId,
+            status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
+
+          const updatedProcessesRiskTaxonomy = assessment?.processes.map(
+            (process) => ({
+              ...process,
+              risks: process.risks.map((risk) => ({
+                ...risk,
+                taxonomy: risk.taxonomy?.map((tax) => {
+                  // Find a matching question entry from resultQues.questionnaire
+                  const match = resp.taxonomies.find(
+                    (obj: any) => obj.taxonomyId === tax.taxonomyId
+                  );
+
+                  // Return updated question
+                  return {
+                    ...tax,
+                    assessmentRiskTaxonomyId: match?.assessmentRiskTaxonomyId,
+                  };
+                }),
+              })),
+            })
+          );
+
+          updateAssessment({ processes: updatedProcessesRiskTaxonomy });
+
           break;
 
         case 3:
           const assets = prepareAssetPayload();
           const result = await saveAssessmentAssets({
             assessmentId: assessment?.assessmentId,
+            status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             assets,
           });
@@ -243,10 +292,49 @@ function BUProcessMappingPage() {
 
           updateAssessment({ processes: updatedProcessesAsset });
           break;
+
+        case 4:
+          const questionnaires = prepareQuestionnairePayload();
+          const resultQues = await saveAssetQuestionnaire({
+            assessmentId: assessment?.assessmentId,
+            status: "in_progress",
+            userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+            questionaires: questionnaires,
+          });
+
+          const updatedProcessesAssetQuestionnaire = assessment?.processes.map(
+            (process) => ({
+              ...process,
+              assets: process.assets.map((asset) => ({
+                ...asset,
+                questionnaire: asset.questionnaire.map((question) => {
+                  // Find a matching question entry from resultQues.questionnaire
+                  const match = resultQues.data.find(
+                    (obj: any) => obj.questionaireId === question.questionaireId
+                  );
+
+                  // Return updated question
+                  return {
+                    ...question,
+                    assessmentQuestionaireId:
+                      match?.assessmentQuestionaireId ?? null,
+                    responseValue:
+                      match?.responseValue ?? question.responseValue ?? null,
+                  };
+                }),
+              })),
+            })
+          );
+
+          updateAssessment({ processes: updatedProcessesAssetQuestionnaire });
+          setOpen(true);
+          break;
       }
 
-      setActiveStep((prev) => prev + 1);
-      setActiveTab(0);
+      if (activeStep < 4) {
+        setActiveStep((prev) => prev + 1);
+        setActiveTab(0);
+      }
     }
   };
 
@@ -256,6 +344,30 @@ function BUProcessMappingPage() {
         return assessment?.processes && assessment?.processes.length <= 0;
     }
     return false;
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const onSubmit = async () => {
+    const res = await saveAssessment({
+      assessmentId: assessment?.assessmentId,
+      assessmentName: assessment?.assessmentName,
+      assessmentDesc: assessment?.assessmentDesc,
+      orgId: assessment?.orgId,
+      orgName: assessment?.orgName,
+      orgDesc: assessment?.orgDesc,
+      businessUnitId: assessment?.businessUnitId,
+      businessUnitName: assessment?.businessUnitName,
+      businessUnitDesc: assessment?.businessUnitDesc,
+      status: "completed",
+      userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+    });
+
+    if (res) {
+      router.push("/assessment");
+    }
   };
 
   return (
@@ -340,6 +452,12 @@ function BUProcessMappingPage() {
           />
         </Box>
       )}
+
+      <AssessmentPreview
+        open={open}
+        onClose={handleClose}
+        onSubmit={onSubmit}
+      />
     </>
   );
 }

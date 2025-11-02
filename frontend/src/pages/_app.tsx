@@ -12,6 +12,10 @@ import { AuthProvider } from "@/context/AuthContext";
 import { AssessmentProvider } from "@/context/AssessmentContext";
 import { ConfigProvider } from "@/context/ConfigContext";
 import LandingPage from ".";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import GlobalToastProvider from "@/components/GlobalToastProvider";
+import { LoaderProvider } from "@/context/LoaderContext";
+import GlobalInitializer from "@/components/GlobalInitializer";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -21,36 +25,45 @@ export default function App({ Component, pageProps }: AppProps) {
     router.pathname === "/assessment/assessmentProcess";
 
   return (
-    <AuthProvider>
-      <ConfigProvider>
-        <AssessmentProvider>
-          {isLandingPage ? (
-            <>
-              <CssBaseline />
-              <LandingPage />
-            </>
-          ) : (
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
+    <GlobalToastProvider>
+      <ErrorBoundary>
+        <LoaderProvider>
+          <AuthProvider>
+            <ConfigProvider>
+              <AssessmentProvider>
+                {isLandingPage ? (
+                  <>
+                    <CssBaseline />
+                    <LandingPage />
+                  </>
+                ) : (
+                  <>
+                    <GlobalInitializer />
+                    <ThemeProvider theme={theme}>
+                      <CssBaseline />
 
-              <Grid container sx={{ height: "100vh" }}>
-                {/* <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-                <Grid size={11}>
-                  {!isLoginPage && <Header />}
-                  <Component {...pageProps} />
-                  {!isLoginPage && !isAssessmentProcess && <Footer />}
-                </Grid> */}
-                <Grid size={12}>{!isLoginPage && <Header />}</Grid>
-                <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-                <Grid size={11}>
-                  <Component {...pageProps} />
-                  {!isLoginPage && !isAssessmentProcess && <Footer />}
-                </Grid>
-              </Grid>
-            </ThemeProvider>
-          )}
-        </AssessmentProvider>
-      </ConfigProvider>
-    </AuthProvider>
+                      <Grid container sx={{ height: "100vh" }}>
+                        {/* <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+                        <Grid size={11}>
+                          {!isLoginPage && <Header />}
+                          <Component {...pageProps} />
+                          {!isLoginPage && !isAssessmentProcess && <Footer />}
+                        </Grid> */}
+                        <Grid size={12}>{!isLoginPage && <Header />}</Grid>
+                        <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
+                        <Grid size={11}>
+                          <Component {...pageProps} />
+                          {!isLoginPage && !isAssessmentProcess && <Footer />}
+                        </Grid>
+                      </Grid>
+                    </ThemeProvider>
+                  </>
+                )}
+              </AssessmentProvider>
+            </ConfigProvider>
+          </AuthProvider>
+        </LoaderProvider>
+      </ErrorBoundary>
+    </GlobalToastProvider>
   );
 }

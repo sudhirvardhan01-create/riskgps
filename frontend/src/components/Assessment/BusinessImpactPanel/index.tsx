@@ -19,8 +19,6 @@ export default function BusinessImpactPanel({
 }) {
   const { assessment } = useAssessment();
 
-  const [thresholdHours, setThresholdHours] = useState<number | undefined>();
-  const [thresholdCost, setThresholdCost] = useState<number | undefined>();
   const [taxonomies, setTaxonomies] = useState<any[]>([]);
   const [taxonomyValue, setTaxonomyValue] = useState<Taxonomy[]>([]);
   const [value, setValue] = useState("1");
@@ -47,30 +45,28 @@ export default function BusinessImpactPanel({
 
   // Reset form when selectedScenario changes
   useEffect(() => {
-    if (selectedScenario) {
-      setThresholdCost(selectedScenario.thresholdCost ?? undefined);
+    console.log("selected scenario", selectedScenario);
 
-      if (selectedScenario.taxonomy && selectedScenario.taxonomy.length > 0) {
-        // map scenario taxonomy to array
-        setTaxonomyValue(
-          selectedScenario.taxonomy.map((t: any) => ({
-            taxonomyId: t.taxonomyId,
-            name: t.name ?? "",
-            orgId: t.orgId ?? assessment?.orgId,
-            severityDetails: t.severityDetails ?? {},
-          }))
-        );
-      } else {
-        setTaxonomyValue([]);
-      }
+    if (
+      selectedScenario &&
+      selectedScenario.taxonomy &&
+      selectedScenario.taxonomy.length > 0
+    ) {
+      // map scenario taxonomy to array
+      setTaxonomyValue(
+        selectedScenario.taxonomy.map((t: any) => ({
+          taxonomyId: t.taxonomyId,
+          name: t.name ?? "",
+          orgId: t.orgId ?? assessment?.orgId,
+          severityDetails: t.severityDetails ?? {},
+        }))
+      );
     } else {
-      setThresholdHours(undefined);
-      setThresholdCost(undefined);
       setTaxonomyValue([]);
     }
 
     setIsInternalChange(false);
-  }, [selectedScenario, assessment?.orgId]);
+  }, [JSON.stringify(selectedScenario), assessment?.orgId]);
 
   // Push updates back into parent
   useEffect(() => {
@@ -78,47 +74,25 @@ export default function BusinessImpactPanel({
 
     const updatedScenario: Risk = {
       ...selectedScenario,
-      thresholdCost,
       taxonomy: taxonomyValue,
     };
 
     const isDifferent =
-      updatedScenario.thresholdCost !== selectedScenario.thresholdCost ||
       JSON.stringify(updatedScenario.taxonomy) !==
-        JSON.stringify(selectedScenario.taxonomy);
+      JSON.stringify(selectedScenario.taxonomy);
 
     if (isDifferent) {
       onUpdateScenario(updatedScenario);
     }
   }, [
-    thresholdHours,
-    thresholdCost,
     taxonomyValue,
-    selectedScenario,
+    JSON.stringify(selectedScenario),
     isInternalChange,
     onUpdateScenario,
   ]);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-  };
-
-  const handleThresholdHoursChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsInternalChange(true);
-    setThresholdHours(
-      e.target.value === "" ? undefined : Number(e.target.value)
-    );
-  };
-
-  const handleThresholdCostChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsInternalChange(true);
-    setThresholdCost(
-      e.target.value === "" ? undefined : Number(e.target.value)
-    );
   };
 
   const setTaxonomy = (
@@ -207,24 +181,6 @@ export default function BusinessImpactPanel({
 
         <TabPanel value="1" sx={{ p: 0, pt: 4 }}>
           <Box>
-            {/* Thresholds */}
-            <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
-              <TextFieldStyled
-                label="Risk Threshold (hours)"
-                type="number"
-                size="small"
-                value={thresholdHours ?? ""}
-                onChange={handleThresholdHoursChange}
-              />
-              <TextFieldStyled
-                label="Risk Threshold ($)"
-                type="number"
-                size="small"
-                value={thresholdCost ?? ""}
-                onChange={handleThresholdCostChange}
-              />
-            </Box>
-
             {/* Tooltip */}
             <Box
               sx={{

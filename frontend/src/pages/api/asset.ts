@@ -4,7 +4,7 @@ import { Filter } from "@/types/filter";
 //Function to fetch assets
 export const fetchAssets = async (
   page: number,
-  limit: number,
+  limit?: number,
   searchPattern?: string,
   sort?: string,
   statusFilter?: string[],
@@ -13,7 +13,9 @@ export const fetchAssets = async (
   const [sortBy, sortOrder] = (sort ?? "").split(":");
   const params = new URLSearchParams();
   params.append("page", JSON.stringify(page));
-  params.append("limit", JSON.stringify(limit));
+  if (limit !== undefined) {
+    params.append("limit", JSON.stringify(limit));
+  }
   params.append("search", searchPattern ?? "");
   params.append("sort_by", sortBy);
   params.append("sort_order", sortOrder);
@@ -34,7 +36,6 @@ export const fetchAssets = async (
     params.append("attrFilters", paramString);
   }
   const transformAssetData = (data: any[]): AssetForm[] => {
-
     return data.map((item) => ({
       id: item.id,
       assetCode: item.assetCode,
@@ -78,6 +79,23 @@ export const fetchAssets = async (
   }
   const res = await response.json();
   if (res.data.data) res.data.data = transformAssetData(res.data.data);
+  return res.data;
+};
+
+export const fetchAssetsById = async (assetId: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/${assetId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch assets data");
+  }
+  const res = await response.json();
   return res.data;
 };
 
@@ -217,7 +235,6 @@ export const updateAssetStatus = async (id: number, status: string) => {
   return res.data;
 };
 
-
 export const downloadAssetTemplateFile = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/library/asset/download-template-file`,
@@ -279,10 +296,10 @@ export const importAssets = async (file: File): Promise<any> => {
   }
 
   const formData = new FormData();
-  formData.append("file", file); 
+  formData.append("file", file);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/import`, 
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/import`,
     {
       method: "POST",
       body: formData,
@@ -294,6 +311,6 @@ export const importAssets = async (file: File): Promise<any> => {
   }
 
   const response = await res.json();
-  console.log(response)
-  return response; 
+  console.log(response);
+  return response;
 };

@@ -124,8 +124,8 @@ function EditOrgDetailsPage() {
             return result;
           })(),
           members: {
-            avatars: ["/memberImage.jpg", "/memberImage1.jpg", "/memberImage2.jpg"],
-            additionalCount: 3
+            avatars: [], // Empty array - API doesn't return member data
+            additionalCount: 0
           },
           businessUnits: apiResponse.data.businessUnits && apiResponse.data.businessUnits.length > 0
             ? apiResponse.data.businessUnits

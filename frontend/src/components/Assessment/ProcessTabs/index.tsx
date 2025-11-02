@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
 import RiskScenarioList from "../RiskScenarioBussiness";
 import BusinessImpactPanel from "../BusinessImpactPanel";
@@ -17,7 +17,9 @@ export default function ProcessTabs() {
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
-    setSelectedScenario(assessment?.processes[newValue].risks[0]); // reset selection when switching process
+    setSelectedScenario({
+      ...assessment!.processes[newValue].risks[0],
+    } as Risk); // reset selection when switching process
   };
 
   const handleUpdateScenario = (updatedScenario: Risk) => {
@@ -34,14 +36,14 @@ export default function ProcessTabs() {
     });
 
     updateAssessment({ processes: updatedProcesses }); // push back to context
-    setSelectedScenario(updatedScenario);
+    setSelectedScenario({ ...updatedScenario });
   };
 
   const activeProcess = assessment?.processes[currentTab];
 
   useEffect(() => {
     if (assessment?.processes && assessment?.processes.length > 0) {
-      setSelectedScenario(assessment?.processes[0].risks[0]);
+      setSelectedScenario({ ...assessment?.processes[0].risks[0] } as Risk);
     }
   }, []);
 

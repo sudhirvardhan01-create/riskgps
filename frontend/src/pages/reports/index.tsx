@@ -1,33 +1,76 @@
-import React, { useEffect, useState } from "react";
-import ProcessAssetFlow from "@/components/Reports/ProcessAssetFlow";
-import { Box, Tab, Tabs, Typography } from "@mui/material";
 import RiskDashboard from "@/components/Reports/CustomReports";
+import ProcessAssetFlow from "@/components/Reports/ProcessAssetFlow";
 import { ChartProcess } from "@/types/reports";
 import { transformProcessData } from "@/utils/utility";
+import { Box, Stack, Tab, Tabs, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { getOrganizationAssets } from "../api/organization";
 import { getProcessList } from "../api/reports";
+import Cookies from "js-cookie";
 
 function Reports() {
-  const [currentTab, setCurrentTab] = React.useState(0);
-  const [chartData, setChartData] = useState<ChartProcess[]>([]);
+  const [currentTab, setCurrentTab] = useState(0);
+  const [processData, setProcessData] = useState<ChartProcess[]>([]);
+  const [assetData, setAssetData] = useState<any[]>([]);
+  const [orgId, setOrgId] = useState<string | null>(
+    "71e715aa-ef8c-4af7-8292-127e4c0b5b39"
+  );
+
+  // useEffect(() => {
+  //   // ✅ Only run on client
+  //   if (typeof window !== "undefined") {
+  //     try {
+  //       const cookieUser = Cookies.get("user");
+  //       if (cookieUser) {
+  //         const parsed = JSON.parse(cookieUser);
+  //         setOrgId(parsed?.orgId || parsed?.org_id || null);
+  //       }
+  //     } catch (err) {
+  //       console.warn("Invalid or missing cookie:", err);
+  //     }
+  //   }
+  // }, []);
 
   useEffect(() => {
     async function fetchData() {
-      const processData = await getProcessList();
-      const formatted = transformProcessData(processData.data);
-      setChartData(formatted);
+      if (!orgId) return;
+      try {
+        const [processRes, assetRes] = await Promise.all([
+          getProcessList(orgId),
+          getOrganizationAssets(orgId),
+        ]);
+
+        const formatted = transformProcessData(processRes.data);
+        setProcessData(formatted);
+        setAssetData(assetRes.data ?? []);
+      } catch (error) {
+        console.error("Error fetching reports data:", error);
+      }
     }
     fetchData();
-  }, []);
+  }, [orgId]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
 
+  // ✅ SSR-safe: show fallback if no org assigned
+  if (!orgId) {
+    return (
+      <Box sx={{ m: 5 }}>
+        <Typography>User is not assigned to any organization</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ m: 5, height: "63vh" }}>
-      <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
-        Reports
-      </Typography>
+      <Stack direction={"row"} justifyContent={"space-between"}>
+        <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
+          Reports
+        </Typography>
+      </Stack>
+
       <Tabs
         value={currentTab}
         onChange={handleChange}
@@ -47,7 +90,7 @@ function Reports() {
         <Tab
           label={
             <Typography variant="body2" fontWeight={550}>
-              Asset Reports
+              Asset View
             </Typography>
           }
           sx={{
@@ -62,7 +105,7 @@ function Reports() {
         <Tab
           label={
             <Typography variant="body2" fontWeight={550}>
-              Process Tree
+              Process View
             </Typography>
           }
           sx={{
@@ -77,7 +120,7 @@ function Reports() {
       </Tabs>
 
       {/* Tab Content */}
-      {currentTab == 0 && (
+      {currentTab === 0 ? (
         <Box
           sx={{
             display: "flex",
@@ -87,12 +130,9 @@ function Reports() {
             overflow: "auto",
           }}
         >
-          <RiskDashboard />
+          <RiskDashboard assetData={assetData} />
         </Box>
-      )}
-
-      {/* Tab Content */}
-      {currentTab == 1 && (
+      ) : (
         <Box
           sx={{
             display: "flex",
@@ -102,7 +142,7 @@ function Reports() {
             overflow: "auto",
           }}
         >
-          <ProcessAssetFlow processes={chartData} />
+          <ProcessAssetFlow processes={processData} />
         </Box>
       )}
     </Box>

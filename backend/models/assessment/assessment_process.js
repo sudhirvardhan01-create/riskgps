@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
         field: "process_name",
       },
       processDescription: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
         field: "process_description",
       },
