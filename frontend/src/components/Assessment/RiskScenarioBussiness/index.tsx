@@ -35,7 +35,7 @@ export default function RiskScenarioBussiness({
   };
 
   const isScenarioComplete = (s: Risk) => {
-    return s.thresholdCost !== undefined && s.taxonomy?.length == 4;
+    return s.taxonomy?.length == 4;
   };
 
   return (

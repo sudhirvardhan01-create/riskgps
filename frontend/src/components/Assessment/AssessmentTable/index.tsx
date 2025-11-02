@@ -117,13 +117,13 @@ const AssessmentRow: React.FC<{
       {/* Status */}
       <Box textAlign={"center"}>
         <Typography variant="caption" fontWeight={600}>
-          {assessment.status == "in_progress" ? 61 : 100}
+          {assessment.progress}
           {"% Completed "}
           {assessment.status == "closed" && " • Closed"}
         </Typography>
         <LinearProgress
           variant="determinate"
-          value={assessment.status == "in_progress" ? 61 : 100}
+          value={assessment.progress}
           sx={{
             height: 12,
             borderRadius: 1,
@@ -414,13 +414,13 @@ const AssessmentTable: React.FC<Props> = ({
                     mb: 1,
                   }}
                 >
-                  {assessment.status == "in_progress" ? 61 : 100}
+                  {assessment.progress}
                   {"% Completed "}
                   {assessment.status == "closed" && " • Closed"}
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={assessment.status == "in_progress" ? 61 : 100}
+                  value={assessment.progress}
                   sx={{
                     height: 12,
                     borderRadius: 1,

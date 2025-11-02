@@ -15,10 +15,6 @@ export default function ProcessTabs() {
     Risk | null | undefined
   >(null);
 
-  useEffect(() => {
-    setSelectedScenario({ ...assessment!.processes[0].risks[0] } as Risk);
-  }, []);
-
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
     setSelectedScenario({
@@ -47,7 +43,7 @@ export default function ProcessTabs() {
 
   useEffect(() => {
     if (assessment?.processes && assessment?.processes.length > 0) {
-      setSelectedScenario({ ...assessment?.processes[0].risks[0] });
+      setSelectedScenario({ ...assessment?.processes[0].risks[0] } as Risk);
     }
   }, []);
 

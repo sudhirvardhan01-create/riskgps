@@ -1,15 +1,17 @@
 import { Taxonomy } from "@/types/assessment";
 
 interface AssessmentData {
-  assessmentName: string;
-  assessmentDesc: string;
-  orgId?: string;
-  orgName?: string;
-  orgDesc?: string;
-  businessUnitId?: string;
-  businessUnitName?: string;
-  businessUnitDesc?: string;
-  userId: string;
+  assessmentId?: string | undefined;
+  assessmentName: string | undefined;
+  assessmentDesc: string | undefined;
+  orgId?: string | undefined;
+  orgName?: string | undefined;
+  orgDesc?: string | undefined;
+  businessUnitId?: string | undefined;
+  businessUnitName?: string | undefined;
+  businessUnitDesc?: string | undefined;
+  status?: string;
+  userId: string | undefined;
 }
 
 interface AssessmentProcess {
@@ -28,6 +30,7 @@ interface Process {
 
 interface AssessmentRisk {
   assessmentId: string | undefined;
+  status: string;
   userId: string;
   riskScenarios: RiskScenarios[] | undefined;
 }
@@ -37,7 +40,6 @@ interface RiskScenarios {
   id: string;
   riskScenario: string;
   riskDescription: string;
-  thresholdCost?: number;
   taxonomy?: Taxonomy[];
 }
 

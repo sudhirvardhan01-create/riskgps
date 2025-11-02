@@ -1,4 +1,5 @@
 "use strict";
+const { v4: uuidv4 } = require("uuid");
 const { Taxonomy, SeverityLevel } = require("../models");
 const { safeSeed } = require("../utils/seedHelper");
 
@@ -57,6 +58,7 @@ module.exports = {
         allSeverityLevels.push({
           ...level,
           taxonomyId: taxonomy.taxonomyId,
+          severityId: uuidv4(),
         });
       }
     }

@@ -58,12 +58,14 @@ export default function ImpactSelector({
           {severityLevels.map((opt) => (
             <ToggleButton
               key={opt.severityId}
-              value={opt.name}
+              value={opt.severityId}
               sx={{
                 textTransform: "none",
                 bgcolor:
-                  value === opt.name ? `${opt.color} !important` : "#f5f5f5",
-                color: value === opt.name ? "#ffffff !important" : "#333",
+                  value === opt.severityId
+                    ? `${opt.color} !important`
+                    : "#f5f5f5",
+                color: value === opt.severityId ? "#ffffff !important" : "#333",
                 borderRadius: 2,
                 px: 2,
                 py: 1,

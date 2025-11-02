@@ -15,6 +15,7 @@ import {
   getOrganizationProcess,
 } from "../../api/organization";
 import {
+  saveAssessment,
   saveAssessmentAssets,
   saveAssessmentProcess,
   saveAssessmentRisk,
@@ -32,6 +33,7 @@ import Cookies from "js-cookie";
 import withAuth from "@/hoc/withAuth";
 import DragDropAssets from "@/components/Assessment/DragDropAssets";
 import ProcessTabsAssets from "@/components/Assessment/ProcessTabsAssets";
+import AssessmentPreview from "@/components/Assessment/AssessmentPreview";
 
 function BUProcessMappingPage() {
   const { assessment, updateAssessment } = useAssessment();
@@ -63,6 +65,7 @@ function BUProcessMappingPage() {
   const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
   const [processes, setProcesses] = useState<ProcessUnit[]>([]);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrgs = async () => {
@@ -124,7 +127,6 @@ function BUProcessMappingPage() {
         id: risk.id,
         riskScenario: risk.riskScenario,
         riskDescription: risk.riskDescription,
-        thresholdCost: risk.thresholdCost,
         taxonomy: risk.taxonomy,
       }))
     );
@@ -206,6 +208,7 @@ function BUProcessMappingPage() {
           const riskScenarios = prepareRiskPayload();
           const response = await saveAssessmentRisk({
             assessmentId: assessment?.assessmentId,
+            status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios,
           });
@@ -231,6 +234,7 @@ function BUProcessMappingPage() {
           const riskTaxonomies = prepareRiskTaxonomyPayload();
           saveAssessmentRiskTaxonomy({
             assessmentId: assessment?.assessmentId,
+            status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             riskScenarios: riskTaxonomies,
           });
@@ -240,6 +244,7 @@ function BUProcessMappingPage() {
           const assets = prepareAssetPayload();
           const result = await saveAssessmentAssets({
             assessmentId: assessment?.assessmentId,
+            status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             assets,
           });
@@ -256,7 +261,7 @@ function BUProcessMappingPage() {
                   ...asset,
                   assessmentProcessAssetId:
                     match?.assessmentProcessAssetId ?? null,
-                  questionnaire: match?.questionnaire ?? [],
+                  // questionnaire: match?.questionnaire ?? [],
                 };
               }),
             })
@@ -269,6 +274,7 @@ function BUProcessMappingPage() {
           const questionnaires = prepareQuestionnairePayload();
           const resultQues = await saveAssetQuestionnaire({
             assessmentId: assessment?.assessmentId,
+            status: "in_progress",
             userId: JSON.parse(Cookies.get("user") ?? "")?.id,
             questionaires: questionnaires,
           });
@@ -298,12 +304,14 @@ function BUProcessMappingPage() {
           );
 
           updateAssessment({ processes: updatedProcessesAssetQuestionnaire });
-          router.push("/assessment");
+          setOpen(true);
           break;
       }
 
-      setActiveStep((prev) => prev + 1);
-      setActiveTab(0);
+      if (activeStep < 4) {
+        setActiveStep((prev) => prev + 1);
+        setActiveTab(0);
+      }
     }
   };
 
@@ -313,6 +321,30 @@ function BUProcessMappingPage() {
         return assessment?.processes && assessment?.processes.length <= 0;
     }
     return false;
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const onSubmit = async () => {
+    const res = await saveAssessment({
+      assessmentId: assessment?.assessmentId,
+      assessmentName: assessment?.assessmentName,
+      assessmentDesc: assessment?.assessmentDesc,
+      orgId: assessment?.orgId,
+      orgName: assessment?.orgName,
+      orgDesc: assessment?.orgDesc,
+      businessUnitId: assessment?.businessUnitId,
+      businessUnitName: assessment?.businessUnitName,
+      businessUnitDesc: assessment?.businessUnitDesc,
+      status: "completed",
+      userId: JSON.parse(Cookies.get("user") ?? "")?.id,
+    });
+
+    if (res) {
+      router.push("/assessment");
+    }
   };
 
   return (
@@ -397,6 +429,12 @@ function BUProcessMappingPage() {
           />
         </Box>
       )}
+
+      <AssessmentPreview
+        open={open}
+        onClose={handleClose}
+        onSubmit={onSubmit}
+      />
     </>
   );
 }

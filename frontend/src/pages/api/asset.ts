@@ -82,7 +82,7 @@ export const fetchAssets = async (
 
 export const fetchAssetsById = async (assetId: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/library/asset?${assetId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/library/asset/${assetId}`,
     {
       method: "GET",
       headers: {

@@ -14,7 +14,7 @@ interface Assessment {
   orgDesc?: string;
   businessUnitId?: string;
   businessUnitName?: string;
-  businessUnitDesc?: string | null;
+  businessUnitDesc?: string;
   status?: string;
   startDate?: string | null;
   endDate?: string | null;
