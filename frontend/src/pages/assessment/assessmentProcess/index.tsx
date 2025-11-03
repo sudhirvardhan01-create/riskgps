@@ -15,7 +15,6 @@ import {
   getOrganizationProcess,
 } from "../../api/organization";
 import {
-  saveAssessment,
   saveAssessmentAssets,
   saveAssessmentProcess,
   saveAssessmentRisk,
@@ -23,12 +22,7 @@ import {
   saveAssetQuestionnaire,
 } from "@/pages/api/assessment";
 import ProcessTabs from "@/components/Assessment/ProcessTabs";
-import {
-  Assessment,
-  BusinessUnit,
-  Organisation,
-  ProcessUnit,
-} from "@/types/assessment";
+import { BusinessUnit, Organisation, ProcessUnit } from "@/types/assessment";
 import Cookies from "js-cookie";
 import withAuth from "@/hoc/withAuth";
 import DragDropAssets from "@/components/Assessment/DragDropAssets";
@@ -350,26 +344,6 @@ function BUProcessMappingPage() {
     setOpen(false);
   };
 
-  const onSubmit = async () => {
-    const res = await saveAssessment({
-      assessmentId: assessment?.assessmentId,
-      assessmentName: assessment?.assessmentName,
-      assessmentDesc: assessment?.assessmentDesc,
-      orgId: assessment?.orgId,
-      orgName: assessment?.orgName,
-      orgDesc: assessment?.orgDesc,
-      businessUnitId: assessment?.businessUnitId,
-      businessUnitName: assessment?.businessUnitName,
-      businessUnitDesc: assessment?.businessUnitDesc,
-      status: "completed",
-      userId: JSON.parse(Cookies.get("user") ?? "")?.id,
-    });
-
-    if (res) {
-      router.push("/assessment");
-    }
-  };
-
   return (
     <>
       {loading ? (
@@ -456,7 +430,9 @@ function BUProcessMappingPage() {
       <AssessmentPreview
         open={open}
         onClose={handleClose}
-        onSubmit={onSubmit}
+        onSubmit={() => {
+          router.push("/assessment");
+        }}
       />
     </>
   );

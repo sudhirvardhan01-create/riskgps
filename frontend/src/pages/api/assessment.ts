@@ -7,10 +7,10 @@ interface AssessmentData {
   assessmentDesc: string | undefined;
   orgId?: string;
   orgName?: string;
-  orgDesc?: string;
+  orgDesc?: string | null;
   businessUnitId?: string;
   businessUnitName?: string;
-  businessUnitDesc?: string;
+  businessUnitDesc?: string | null;
   status?: string;
   userId: string | undefined;
 }
@@ -113,7 +113,7 @@ export const saveAssessmentAssets = async (data: any) => {
  * Get Asset Questionnaires
  */
 export const getAssetQuestionnaire = async () => {
-  const res = await apiClient.get(`/library/questionnaire`);
+  const res = await apiClient.get(`/library/questionnaire?limit=-1`);
   return res.data;
 };
 

@@ -50,7 +50,7 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 9999,
           color: "#fff",
-          backgroundColor: "#000",
+          backgroundColor: "#00000066",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -153,32 +153,6 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({
             />
           ))}
         </Box>
-
-        <Typography
-          variant="h5"
-          sx={{
-            mt: 3,
-            color: "#00ffaa",
-            fontFamily: "'Orbitron', sans-serif",
-            textShadow: "0 0 12px rgba(0,255,170,0.6)",
-            animation: "fadeText 2s ease-in-out infinite alternate",
-          }}
-        >
-          RiskGPS
-        </Typography>
-
-        <Typography
-          variant="body2"
-          sx={{
-            color: "rgba(255,255,255,0.7)",
-            mt: 0.5,
-            letterSpacing: 1,
-            fontFamily: "monospace",
-            animation: "fadeText 3s ease-in-out infinite alternate",
-          }}
-        >
-          Scanning Cyber Threats...
-        </Typography>
 
         <style>{`
           @keyframes radarRotate {
