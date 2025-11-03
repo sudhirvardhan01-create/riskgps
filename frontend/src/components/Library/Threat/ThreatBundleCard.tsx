@@ -1,4 +1,4 @@
-import { Card, IconButton, Stack, Typography } from "@mui/material";
+import { Box, Card, IconButton, Typography } from "@mui/material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
 interface ThreatBundleCardProps {
@@ -17,46 +17,41 @@ const ThreatBundleCard: React.FC<ThreatBundleCardProps> = ({
       variant="outlined"
       sx={{
         borderRadius: 2,
-        px: 3,
-        py: 2,
         boxShadow: "0px 4px 4px 0px #D9D9D966",
         display: "flex",
-        flexDirection: { xs: "column", sm: "row" },
-        flexShrink: 0,
-        alignItems: { sm: "center" },
-        justifyContent: "space-between",
-        gap: 2,
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "center",
         border: "1px solid #E4E4E4",
       }}
     >
-      {/* Key */}
-      <Stack spacing={0.5} flex={1}>
-        <Typography variant="body2" color="#91939A" fontWeight={550}>
-          MITRE Technique ID
-        </Typography>
+      <Box
+        sx={{ backgroundColor: "#F3F8FF", width: "100%", py: 1, px: 3 }}
+        display={"flex"}
+        flexDirection={"row"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+      >
         <Typography variant="body1" fontWeight={500} color="text.primary">
           {mitreTechniqueId}
         </Typography>
-      </Stack>
-
-      {/* Values */}
-      <Stack spacing={0.5} flex={2}>
-        <Typography variant="body2" color="#91939A" fontWeight={550}>
-          MITRE Technique Name
-        </Typography>
-        <Typography variant="body1" fontWeight={500} color="text.primary">
-          {mitreTechniqueName}
-        </Typography>
-      </Stack>
-
-      {/* Actions */}
-      <IconButton
-        onClick={onDelete}
-        aria-label="delete"
-        sx={{ color: "#CD0303" }}
+        <IconButton
+          onClick={onDelete}
+          aria-label="delete"
+          sx={{ color: "#CD0303" }}
+        >
+          <DeleteOutlineOutlinedIcon />
+        </IconButton>
+      </Box>
+      <Typography
+        variant="body1"
+        fontWeight={550}
+        color="text.primary"
+        py={2}
+        px={3}
       >
-        <DeleteOutlineOutlinedIcon />
-      </IconButton>
+        {mitreTechniqueName}
+      </Typography>
     </Card>
   );
 };

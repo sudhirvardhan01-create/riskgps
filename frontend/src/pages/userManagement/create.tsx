@@ -43,11 +43,11 @@ function UserCreatePage() {
       setTimeout(() => {
         router.push("/userManagement");
       }, 2000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setToast({
         open: true,
-        message: "Failed to create user",
+        message: err.message || "Failed to create user",
         severity: "error",
       });
     } finally {

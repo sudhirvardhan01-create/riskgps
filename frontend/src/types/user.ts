@@ -40,6 +40,6 @@ export interface UserEditFormData {
   phone: string;
   communicationPreference: string;
   company: string;
-  role: string;
-  organization: string;
+  role: string | null;
+  organization: string | null;
 }

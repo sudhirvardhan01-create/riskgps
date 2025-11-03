@@ -19,7 +19,8 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.error("Error creating an user:", err);
-    res.status(HttpStatus.BAD_REQUEST).json({
+    const statusCode = err.statusCode || HttpStatus.BAD_REQUEST;
+    res.status(statusCode).json({
       error: err.message,
     });
   }

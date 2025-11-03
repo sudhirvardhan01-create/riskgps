@@ -17,6 +17,7 @@ import ControlFrameworkContainer from "../ControlFrameworkContainer";
 import { ControlFrameworkService } from "@/services/controlFrameworkService";
 import SelectMultipleModal from "@/components/Library/Control/SelectMultipleModal";
 import { FileService } from "@/services/fileService";
+import { useConfig } from "@/context/ConfigContext";
 
 const initialControlFrameworkFormData: ControlFrameworkForm = {
   frameWorkName: "",
@@ -38,6 +39,7 @@ const breadcrumbItems = [
 ];
 
 export default function ControlContainer() {
+  const { fetchMetadataByKey } = useConfig();
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
@@ -96,7 +98,8 @@ export default function ControlContainer() {
   }
   const [selectedControlFramework, setSelectedControlFramework] =
     useState("MITRE");
-  const frameworks = ["NIST", "ATLAS", "CRI"];
+  const frameworks = fetchMetadataByKey("Control Framework")
+    ?.supported_values ?? ["NIST", "ATLAS", "CRI"];
 
   const sortItems = [
     { label: "ID (Ascending)", value: "id:asc" },

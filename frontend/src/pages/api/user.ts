@@ -62,10 +62,10 @@ export const createUser = async (data: UserFormData) => {
     },
     body: JSON.stringify(data),
   });
-  if (!response.ok) {
-    throw new Error("Failed to create an user");
-  }
   const res = await response.json();
+  if (!response.ok) {
+    throw new Error(res.error || "Failed to create an user");
+  }
   return res.data;
 };
 
