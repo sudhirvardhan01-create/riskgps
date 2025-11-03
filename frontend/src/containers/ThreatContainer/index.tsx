@@ -34,8 +34,8 @@ const initialThreatBundleFormData: ThreatBundleForm = {
 };
 
 const sortItems = [
-  { label: "ID (Ascending)", value: "id:asc" },
-  { label: "ID (Descending)", value: "id:desc" },
+  // { label: "ID (Ascending)", value: "id:asc" },
+  // { label: "ID (Descending)", value: "id:desc" },
   {
     label: "MITRE Technique Name (Ascending)",
     value: "mitreTechniqueName:asc",
@@ -68,7 +68,7 @@ export default function ThreatContainer() {
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [sort, setSort] = useState<string>("id:asc");
+  const [sort, setSort] = useState<string>("mitreTechniqueName:asc");
   const [searchPattern, setSearchPattern] = useState<string>();
   const [threatsData, setThreatsData] = useState<ThreatForm[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);

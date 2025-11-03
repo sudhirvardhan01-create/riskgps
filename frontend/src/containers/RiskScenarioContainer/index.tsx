@@ -28,8 +28,8 @@ const initialRiskData: RiskScenarioData = {
 };
 
 const sortItems = [
-  { label: "Risk ID (Ascending)", value: "riskCode:asc" },
-  { label: "Risk ID (Descending)", value: "riskCode:desc" },
+  { label: "Risk Code (Ascending)", value: "riskCode:asc" },
+  { label: "Risk Code (Descending)", value: "riskCode:desc" },
   { label: "Risk Name (Ascending)", value: "risk_scenario:asc" },
   { label: "Risk Name (Descending)", value: "risk_scenario:desc" },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
