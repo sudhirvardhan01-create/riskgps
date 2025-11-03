@@ -230,12 +230,17 @@ class OrganizationService {
     }
     return await sequelize.transaction(async (t) => {
       let insertedCount = 0;
+      const idsToKeep = createBody
+        .map((item) => item.id)
+        .filter((id) => id !== undefined && id !== null);
       await OrganizationProcess.destroy({
-        where: { 
+        where: {
           organizationId: orgId,
-          orgBusinessUnitId: buId
+          orgBusinessUnitId: buId,
+          ...(idsToKeep.length > 0 ? { id: { [Op.notIn]: idsToKeep } } : {}),
         },
       });
+
       for (let i = 0; i < createBody.length; i++) {
         const data = createBody[i];
         OrganizationProcessService.validateProcessData(data);
@@ -291,6 +296,70 @@ class OrganizationService {
       }
 
       return insertedCount;
+    });
+  }
+
+  static async updateProcess(id, orgId, buId, createBody) {
+    if (!id || !orgId || !buId) {
+      throw new Error("process id, OrgID and BuID required");
+    }
+
+    return await sequelize.transaction(async (t) => {
+      const data = createBody;
+      OrganizationProcessService.validateProcessData(data);
+
+      const processData =
+        OrganizationProcessService.handleProcessDataColumnMapping(data);
+      processData.orgBusinessUnitId = buId;
+      console.log("Creating process with data:", processData);
+
+      const [updatedCount, updatedRows] = await OrganizationProcess.update(
+        processData,
+        {
+          where: {
+            id,
+            organizationId: orgId,
+            orgBusinessUnitId: buId,
+          },
+          returning: true,
+          transaction: t,
+        }
+      );
+
+      if (updatedCount < 1) {
+        throw new Error("No process found.");
+      }
+
+      await OrganizationProcessAttribute.destroy({
+        where: { processId: id },
+        transaction: t,
+      });
+      await OrganizationProcessRelationship.destroy({
+        where: {
+          [Op.or]: [{ sourceProcessId: id }, { targetProcessId: id }],
+        },
+        transaction: t,
+      });
+      if (
+        Array.isArray(data.processDependency) &&
+        data.processDependency.length > 0
+      ) {
+        await OrganizationProcessService.handleProcessDependencies(
+          process.id,
+          data.processDependency,
+          t
+        );
+      }
+
+      if (Array.isArray(data.attributes) && data.attributes.length > 0) {
+        await OrganizationProcessService.handleProcessAttributes(
+          process.id,
+          data.attributes,
+          t
+        );
+      }
+
+      return updatedRows;
     });
   }
   /**
@@ -385,8 +454,17 @@ class OrganizationService {
       }
       return await sequelize.transaction(async (t) => {
         let insertedCount = 0;
+        const idsToKeep = createBody
+          .map((item) => item.id)
+          .filter((id) => id !== undefined && id !== null);
+
+        // Delete all OrganizationRiskScenario rows for this organizationId
+        // that are NOT in the idsToKeep array
         await OrganizationRiskScenario.destroy({
-          where: { organizationId: organizationId },
+          where: {
+            organizationId: organizationId,
+            ...(idsToKeep.length > 0 ? { id: { [Op.notIn]: idsToKeep } } : {}),
+          },
         });
         for (let i = 0; i < createBody.length; i++) {
           const data = createBody[i];
@@ -426,6 +504,65 @@ class OrganizationService {
         }
 
         return insertedCount;
+      });
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create createRiskScenariosByOrgId",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  static async updateRiskScenario(id, organizationId, createBody) {
+    try {
+      if (!id || !organizationId) {
+        throw new CustomError(
+          "Risk scenario Id and Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      if (!createBody) {
+        throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+      }
+      return await sequelize.transaction(async (t) => {
+        const data = createBody;
+        console.log("[createRiskScenariosByOrgId] request received", data);
+
+        OrganizationRiskScenarioService.validateRiskScenarioData(data);
+
+        const riskScenarioData =
+          OrganizationRiskScenarioService.handleRiskScenarioColumnMapping(data);
+        console.log(
+          "[createRiskScenariosByOrgId], risk scenario mapped values",
+          riskScenarioData
+        );
+        const [updatedCount, created] = await OrganizationRiskScenario.update(
+          riskScenarioData,
+          {
+            where: {
+              id,
+              organizationId: organizationId,
+            },
+            returning: true,
+            transaction: t,
+          }
+        );
+        if (updatedCount < 1) {
+          throw new Error("No risk scenario found");
+        }
+        await OrganizationRiskScenarioService.handleRiskScenarioProcessMapping(
+          id,
+          data.relatedProcesses ?? [],
+          t
+        );
+
+        await OrganizationRiskScenarioService.handleRiskScenarioAttributes(
+          id,
+          data.attributes ?? [],
+          t
+        );
+
+        return created;
       });
     } catch (err) {
       throw new CustomError(
@@ -506,9 +643,17 @@ class OrganizationService {
       }
 
       return await sequelize.transaction(async (t) => {
+        const idsToKeep = createBody
+          .map((item) => item.id)
+          .filter((id) => id !== undefined && id !== null);
+
         await OrganizationThreat.destroy({
-          where: { organizationId: organizationId },
+          where: {
+            organizationId: organizationId,
+            ...(idsToKeep.length > 0 ? { id: { [Op.notIn]: idsToKeep } } : {}),
+          },
         });
+
         let insertedCount = 0;
         for (let i = 0; i < createBody.length; i++) {
           const data = createBody[i];
@@ -721,9 +866,17 @@ class OrganizationService {
         throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
       }
       return await sequelize.transaction(async (t) => {
+        const idsToKeep = createBody
+          .map((item) => item.id)
+          .filter((id) => id !== undefined && id !== null);
+
         await OrganizationAsset.destroy({
-          where: { organizationId: organizationId },
+          where: {
+            organizationId: organizationId,
+            ...(idsToKeep.length > 0 ? { id: { [Op.notIn]: idsToKeep } } : {}),
+          },
         });
+
         let insertedCount = 0;
 
         for (let i = 0; i < createBody.length; i++) {
@@ -757,6 +910,63 @@ class OrganizationService {
         }
 
         return insertedCount;
+      });
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create createAssetByOrgId",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  static async updateAsset(id, organizationId, createBody) {
+    try {
+      if (!id || !organizationId) {
+        throw new CustomError(
+          "ID and Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      if (!createBody) {
+        throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+      }
+      return await sequelize.transaction(async (t) => {
+          const data = createBody;
+
+          console.log("[createAssetByOrgId] request received", data);
+
+          OrganizationAssetService.validateAssetData(data);
+
+          const assetData =
+            OrganizationAssetService.handleAssetDataColumnMapping(data);
+
+          console.log("[createAssetByOrgId], asset mapped values", assetData);
+          const [updatedCount, created] = await OrganizationAsset.update(assetData, {
+            where: {
+              id,
+              organizationId: organizationId,
+            },
+            returning: true,
+            transaction: t,
+          });
+
+          if (updatedCount < 1) {
+            throw new Error("failed to update asset")
+          }
+          await OrganizationAssetService.handleAssetProcessMapping(
+            id,
+            data.relatedProcesses ?? [],
+            t
+          );
+
+          await OrganizationAssetService.handleAssetAttributes(
+            id,
+            data.attributes ?? [],
+            t
+          );
+
+        return created;
       });
     } catch (err) {
       throw new CustomError(
