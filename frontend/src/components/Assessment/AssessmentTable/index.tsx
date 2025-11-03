@@ -22,7 +22,7 @@ interface Props {
   businessUnitName?: string;
 }
 
-const userData = JSON.parse(Cookies.get("user") ?? "");
+const userData = JSON.parse(JSON.stringify(Cookies.get("user")) || "");
 
 // ✅ Row component
 const AssessmentRow: React.FC<{

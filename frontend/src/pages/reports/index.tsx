@@ -12,24 +12,22 @@ function Reports() {
   const [currentTab, setCurrentTab] = useState(0);
   const [processData, setProcessData] = useState<ChartProcess[]>([]);
   const [assetData, setAssetData] = useState<any[]>([]);
-  const [orgId, setOrgId] = useState<string | null>(
-    "71e715aa-ef8c-4af7-8292-127e4c0b5b39"
-  );
+  const [orgId, setOrgId] = useState<string | null>();
 
-  // useEffect(() => {
-  //   // ✅ Only run on client
-  //   if (typeof window !== "undefined") {
-  //     try {
-  //       const cookieUser = Cookies.get("user");
-  //       if (cookieUser) {
-  //         const parsed = JSON.parse(cookieUser);
-  //         setOrgId(parsed?.orgId || parsed?.org_id || null);
-  //       }
-  //     } catch (err) {
-  //       console.warn("Invalid or missing cookie:", err);
-  //     }
-  //   }
-  // }, []);
+  useEffect(() => {
+    // ✅ Only run on client
+    if (typeof window !== "undefined") {
+      try {
+        const cookieUser = Cookies.get("user");
+        if (cookieUser) {
+          const parsed = JSON.parse(cookieUser);
+          setOrgId(parsed?.orgId || parsed?.org_id || null);
+        }
+      } catch (err) {
+        console.warn("Invalid or missing cookie:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
