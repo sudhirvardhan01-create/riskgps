@@ -22,7 +22,8 @@ interface Props {
   businessUnitName?: string;
 }
 
-const userData = JSON.parse(JSON.stringify(Cookies.get("user")) || "");
+const userCookie = Cookies.get("user");
+const userData = userCookie ? JSON.parse(userCookie) : null;
 
 // ✅ Row component
 const AssessmentRow: React.FC<{
