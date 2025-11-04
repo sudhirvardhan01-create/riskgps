@@ -288,7 +288,7 @@ export default function AssessmentPreviewModal({
                                 color="text.secondary"
                                 sx={{ pr: 2, flex: 1 }}
                               >
-                                {q.questionaireName}
+                                {q.question}
                               </Typography>
                               <Chip
                                 size="small"

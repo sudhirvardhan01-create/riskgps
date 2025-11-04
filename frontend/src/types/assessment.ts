@@ -56,7 +56,7 @@ export interface Risk {
   assessmentProcessRiskId?: string;
   riskScenario: string;
   riskDescription: string;
-  taxonomy?: Taxonomy[];
+  taxonomy: Taxonomy[];
 }
 
 export interface Asset {
@@ -69,9 +69,12 @@ export interface Asset {
 
 export interface Questionnaire {
   assessmentQuestionaireId?: string;
-  questionaireId: string;
-  questionaireName: string;
-  responseValue: string;
+  assetCategories: string[];
+  questionCode: string;
+  question: string;
+  mitreControlId: string[];
+  questionnaireId: string;
+  responseValue: number;
 }
 
 export interface ProcessUnit {

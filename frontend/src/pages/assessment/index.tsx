@@ -203,10 +203,24 @@ const AssessmentDashboard = () => {
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={() => handleMenuOptionClick("publish")}>
+          <MenuItem
+            disabled={
+              (assessmentStatusFilter.find(
+                (item) => item.runId == selectedAssessment
+              )?.progress ?? 0) < 100
+            }
+            onClick={() => handleMenuOptionClick("publish")}
+          >
             Publish
           </MenuItem>
-          <MenuItem onClick={() => handleMenuOptionClick("close")}>
+          <MenuItem
+            disabled={
+              (assessmentStatusFilter.find(
+                (item) => item.runId == selectedAssessment
+              )?.progress ?? 0) < 100
+            }
+            onClick={() => handleMenuOptionClick("close")}
+          >
             Close
           </MenuItem>
           <MenuItem onClick={handleMenuClose}>Delete</MenuItem>

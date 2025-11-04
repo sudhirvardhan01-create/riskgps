@@ -31,13 +31,13 @@ apiClient.interceptors.response.use(
   (response) => {
     loaderCallbacks?.hide();
     // Show success toast automatically for POST/PUT/DELETE
-    const method = response.config.method?.toUpperCase();
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method ?? "")) {
-      const endpoint = response.config.url?.split("/").pop();
-      const formattedName =
-        endpoint?.replace(/-/g, " ").replace(/\?.*/, "") ?? "Operation";
-      showToast(`${formattedName} completed successfully`, "success");
-    }
+    // const method = response.config.method?.toUpperCase();
+    // if (["POST", "PUT", "PATCH", "DELETE"].includes(method ?? "")) {
+    //   const endpoint = response.config.url?.split("/").pop();
+    //   const formattedName =
+    //     endpoint?.replace(/-/g, " ").replace(/\?.*/, "") ?? "Operation";
+    //   showToast(`${formattedName} completed successfully`, "success");
+    // }
     return response;
   },
   (error) => {

@@ -369,7 +369,8 @@ class AssessmentService {
           risks: (process.risks || []).map((risk) => ({
             ...risk,
             taxonomy: (risk.taxonomy || []).map((t) => ({
-              taxonomyId: t.assessmentRiskTaxonomyId,
+              assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
+              taxonomyId: t.taxonomyId,
               name: t.taxonomyName,
               orgId: plainAssessment.orgId,
               weightage: t.weightage,
@@ -409,34 +410,6 @@ class AssessmentService {
       let progress = undefined;
 
       for (const rs of riskScenarios) {
-        // Business Impacts
-        // for (const bi of rs.businessImpacts || []) {
-        //   let existingBI = null;
-        //   if (bi.assessmentRiskBIId) {
-        //     existingBI = await AssessmentRiskScenarioBusinessImpact.findOne({
-        //       where: { assessmentRiskBIId: bi.assessmentRiskBIId },
-        //     });
-        //   }
-
-        //   if (existingBI) {
-        //     await existingBI.update({
-        //       modifiedBy: userId,
-        //       modifiedDate: new Date(),
-        //     });
-        //   } else {
-        //     await AssessmentRiskScenarioBusinessImpact.create({
-        //       assessmentRiskBIId: uuidv4(),
-        //       assessmentId,
-        //       assessmentProcessRiskId: rs.assessmentProcessRiskId,
-        //       createdBy: userId,
-        //       modifiedBy: userId,
-        //       createdDate: new Date(),
-        //       modifiedDate: new Date(),
-        //       isDeleted: false,
-        //     });
-        //   }
-        // }
-
         // Taxonomies
         for (const tx of rs.taxonomy || []) {
           let existingTax = null;
@@ -700,8 +673,8 @@ class AssessmentService {
         assessmentQuestionaireId: uuidv4(),
         assessmentId: assessmentId,
         assessmentProcessAssetId: q.assessmentProcessAssetId,
-        questionaireId: q.questionaireId,
-        questionaireName: q.questionaireName,
+        questionnaireId: q.questionnaireId,
+        question: q.question,
         responseValue: q.responseValue || null,
         createdBy: userId,
         createdDate: new Date(),

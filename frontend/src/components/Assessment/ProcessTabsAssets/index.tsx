@@ -47,7 +47,7 @@ export default function ProcessTabsAssets() {
 
           // Try to find an existing entry
           const index = existingQuestionnaire.findIndex(
-            (q: any) => q.questionaireId === questionaireObj.questionaireId
+            (q: any) => q.questionnaireId === questionaireObj.questionnaireId
           );
 
           if (index === -1) {
@@ -97,6 +97,8 @@ export default function ProcessTabsAssets() {
         height: "100vh",
         display: "flex",
         flexDirection: "column",
+        backgroundColor: "#ffffff",
+        borderRadius: "8px 8px 0px 0px",
       }}
     >
       {/* Tabs Header */}
@@ -148,6 +150,7 @@ export default function ProcessTabsAssets() {
           assets={activeProcess?.assets}
           onSelect={setSelectedAsset}
           selectedAsset={selectedAsset}
+          questionnaires={questionnaire}
         />
 
         {/* Right Panel: Questionnaire*/}
