@@ -1,5 +1,6 @@
-import { Box, Typography } from "@mui/material";
-import HomeIcon from "@/icons/home.svg";
+import { Box, Typography, IconButton, Tooltip } from "@mui/material";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import MenuIcon from "@mui/icons-material/Menu";
 import MetaDataIcon from "@/icons/meta-data.svg";
 import LibraryIcon from "@/icons/library.svg";
 import AssessmentIcon from "@/icons/assessment.svg";
@@ -7,99 +8,166 @@ import ReportsIcon from "@/icons/reports.svg";
 import UserManagementIcon from "@/icons/user-management.svg";
 import OrgManagementIcon from "@/icons/orgManagement.svg";
 import { useRouter } from "next/router";
+import Cookies from "js-cookie";
+import { useEffect, useState } from "react";
 
-const links = [
-  {
-    name: "Home",
-    path: "/",
-    icon: <HomeIcon />,
-  },
-  { name: "Meta Data", path: "/metadata", icon: <MetaDataIcon /> },
-  { name: "Library", path: "/library", icon: <LibraryIcon /> },
-  { name: "Assessment", path: "/assessment", icon: <AssessmentIcon /> },
-  { name: "Reports", path: "/reports", icon: <ReportsIcon /> },
-  {
-    name: "User Management",
-    path: "/userManagement",
-    icon: <UserManagementIcon />,
-  },
-  {
-    name: "Org Management",
-    path: "/orgManagement",
-    icon: <OrgManagementIcon />,
-  },
-];
+const ACTIVE_BG = "#00000014";
+const HOVER_BG = "#0000000A";
 
-const ACTIVE_BG = "#FFFFFF40"; // active background
-const HOVER_BG = "#FFFFFF26"; // hover background
+interface SideBarProps {
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
 
-const SideBar = () => {
+const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
+  const [user, setUser] = useState<{ role?: string; orgId?: string }>({});
   const router = useRouter();
+
+  useEffect(() => {
+    const cookieUser = Cookies.get("user");
+    if (cookieUser) setUser(JSON.parse(cookieUser));
+  }, []);
+
+  const links = [
+    { name: "Library", path: "/library", icon: <LibraryIcon /> },
+    { name: "Assessment", path: "/assessment", icon: <AssessmentIcon /> },
+    { name: "Reports", path: "/reports", icon: <ReportsIcon /> },
+    {
+      name: user?.role === "Admin" ? "Org Management" : "My Org",
+      path:
+        user?.role === "Admin"
+          ? "/orgManagement"
+          : `/orgManagement/${user.orgId}`,
+      icon: <OrgManagementIcon />,
+    },
+    ...(user?.role === "Admin"
+      ? [
+          { name: "Meta Data", path: "/metadata", icon: <MetaDataIcon /> },
+          {
+            name: "User Management",
+            path: "/userManagement",
+            icon: <UserManagementIcon />,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <Box
       component="nav"
       aria-label="Main sidebar"
       sx={{
-        bgcolor: "primary.main",
-        width: "100%",
+        position: "relative",
+        bgcolor: "#fff",
+        color: "primary.main",
+        width: collapsed ? "80px" : "120px",
         minHeight: "calc(100vh - 71px)",
         display: "flex",
         flexDirection: "column",
-        pt: 1.5,
+        justifyContent: "space-between",
         alignItems: "center",
+        transition: "width 0.3s ease",
+        borderRight: "1px solid #e0e0e0",
+        overflow: "hidden",
+        flexShrink: 0,
       }}
     >
-      {links.map((link) => {
-        // Decide whether this link is active:
-        // - For root path "/", only exact match is active.
-        // - For other paths, any pathname that starts with link.path is considered active (so nested routes remain highlighted).
-        const isActive =
-          link.path === "/"
-            ? router.pathname === "/"
-            : router.pathname.startsWith(link.path);
+      {/* Sidebar Links */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+          pt: 1.5,
+          flexGrow: 1,
+        }}
+      >
+        {links.map((link) => {
+          const isActive =
+            link.path === "/"
+              ? router.pathname === "/"
+              : router.pathname.startsWith(link.path);
 
-        return (
-          <Box
-            key={link.path}
-            role="button"
-            tabIndex={0}
-            aria-current={isActive ? "page" : undefined}
-            onClick={() => router.push(link.path)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") router.push(link.path);
-            }}
-            sx={{
-              p: 2,
-              mx: 0.5,
-              borderRadius: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              cursor: "pointer",
-              width: "90%",
-              textAlign: "center",
-              backgroundColor: isActive ? ACTIVE_BG : "transparent",
-              transition: "background-color 150ms ease",
-              "&:hover": {
-                backgroundColor: !isActive ? HOVER_BG : ACTIVE_BG,
-              },
-              // keep consistent icon size
-              "& > .MuiBox-root, & svg": {
-                height: 24,
-                width: 24,
-              },
-            }}
-          >
-            <Box sx={{ height: 24, width: 24 }}>{link.icon}</Box>
-            <Typography variant="caption" sx={{ mt: 0.5 }}>
-              {link.name}
-            </Typography>
-          </Box>
-        );
-      })}
+          const linkBox = (
+            <Box
+              key={link.path}
+              role="button"
+              tabIndex={0}
+              aria-current={isActive ? "page" : undefined}
+              onClick={() => router.push(link.path)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") router.push(link.path);
+              }}
+              sx={{
+                p: collapsed ? 1.5 : 2,
+                mx: 0.5,
+                my: 0.5,
+                borderRadius: 1,
+                display: "flex",
+                flexDirection: collapsed ? "row" : "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: collapsed ? 0 : 1,
+                color: "primary.main",
+                cursor: "pointer",
+                width: collapsed ? "60px" : "90%",
+                textAlign: "center",
+                backgroundColor: isActive ? ACTIVE_BG : "transparent",
+                transition: "all 200ms ease",
+                "&:hover": {
+                  backgroundColor: !isActive ? HOVER_BG : ACTIVE_BG,
+                },
+                "& svg path": {
+                  fill: "currentcolor",
+                },
+                "& svg": {
+                  color: "primary.main",
+                  height: 24,
+                  width: 24,
+                },
+              }}
+            >
+              <Box sx={{ height: 24, width: 24 }}>{link.icon}</Box>
+              {!collapsed && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    mt: 0.5,
+                    color: "primary.main",
+                    fontWeight: isActive ? 600 : 400,
+                  }}
+                >
+                  {link.name}
+                </Typography>
+              )}
+            </Box>
+          );
+
+          return collapsed ? (
+            <Tooltip title={link.name} placement="right" key={link.path}>
+              {linkBox}
+            </Tooltip>
+          ) : (
+            linkBox
+          );
+        })}
+      </Box>
+
+      {/* Collapse Toggle Button (Bottom Right) */}
+      <Box sx={{ width: "100%", display: "flex", justifyContent: "flex-end" }}>
+        <IconButton
+          onClick={() => setCollapsed(!collapsed)}
+          sx={{
+            color: "primary.main",
+            mb: 1.5,
+            mr: collapsed ? "auto" : 1.5,
+            transition: "all 0.3s ease",
+          }}
+        >
+          {collapsed ? <MenuIcon /> : <MenuOpenIcon />}
+        </IconButton>
+      </Box>
     </Box>
   );
 };

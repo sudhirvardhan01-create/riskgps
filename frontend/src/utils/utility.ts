@@ -1,5 +1,4 @@
 import { ProcessUnit } from "@/types/assessment";
-import { ApiProcess, ChartProcess } from "@/types/reports";
 
 // src/utils/dataTransform.ts
 import type { LatLngExpression } from "leaflet";
@@ -90,24 +89,6 @@ export const formatDate = (dateString: Date | string) => {
   const year = date.getFullYear();
   return `${day} ${month}, ${year}`;
 };
-
-export function transformProcessData(apiData: ApiProcess[]): ChartProcess[] {
-  if (!Array.isArray(apiData)) return [];
-
-  return apiData.map((process) => ({
-    id: process.id,
-    name: process.processName,
-    assets: (process.assets || []).map((asset) => ({
-      id: asset.id,
-      name: asset.applicationName,
-    })),
-    risks: (process.riskScenarios || []).map((risk) => ({
-      id: risk.id,
-      name: risk.riskScenario,
-    })),
-    dependsOn: process.processDependency ?? [],
-  }));
-}
 
 export function transformAssetData(apiData: RawAsset[]) {
   // 1️⃣ Asset bar chart data
