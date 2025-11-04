@@ -365,7 +365,7 @@ function BUProcessMappingPage() {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <Box sx={{ backgroundColor: "#ffffff" }}>
+        <Box>
           <Box
             sx={{
               py: 3,

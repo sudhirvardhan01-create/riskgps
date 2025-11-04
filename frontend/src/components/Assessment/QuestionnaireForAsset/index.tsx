@@ -64,7 +64,7 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
   };
 
   return (
-    <Box sx={{ width: "70%", p: 3, mb: 5 }}>
+    <Box sx={{ width: "70%", p: 3, mb: 5, maxHeight: 616, overflow: "auto" }}>
       <Typography variant="h5" gutterBottom fontWeight="bold">
         {asset?.assetCategory
           ? `${asset?.assetCategory} Security Questionnaire`

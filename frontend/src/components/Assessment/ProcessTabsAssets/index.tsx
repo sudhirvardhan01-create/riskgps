@@ -97,6 +97,8 @@ export default function ProcessTabsAssets() {
         height: "100vh",
         display: "flex",
         flexDirection: "column",
+        backgroundColor: "#ffffff",
+        borderRadius: "8px 8px 0px 0px",
       }}
     >
       {/* Tabs Header */}
