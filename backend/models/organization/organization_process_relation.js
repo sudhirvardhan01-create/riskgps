@@ -32,10 +32,11 @@ module.exports = (sequelize) => {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      relationship_type: {
+      relationshipType: {
         type: DataTypes.ENUM(...PROCESS.PROCESS_RELATIONSHIP_TYPES),
         allowNull: false,
         defaultValue: "follows",
+        field: "relationship_type"
       },
       description: DataTypes.TEXT,
     },

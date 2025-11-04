@@ -83,9 +83,9 @@ class ReportsService {
       if (p?.sourceRelationships?.length > 0) {
         p.processDependency.push(
           ...p.sourceRelationships.map((val) => ({
-            sourceProcessId: val.source_process_id,
-            targetProcessId: val.target_process_id,
-            relationshipType: val.relationship_type,
+            sourceProcessId: val.sourceProcessId,
+            targetProcessId: val.targetProcessId,
+            relationshipType: val.relationshipType,
           }))
         );
       }
@@ -93,9 +93,9 @@ class ReportsService {
       if (p?.targetRelationships?.length > 0) {
         p.processDependency.push(
           ...p.targetRelationships.map((val) => ({
-            sourceProcessId: val.source_process_id,
-            targetProcessId: val.target_process_id,
-            relationshipType: val.relationship_type,
+            sourceProcessId: val.sourceProcessId,
+            targetProcessId: val.targetProcessId,
+            relationshipType: val.relationshipType,
           }))
         );
       }

@@ -130,7 +130,7 @@ class OrganizationProcessService {
       if (
         !dependency.relationshipType ||
         !PROCESS.PROCESS_RELATIONSHIP_TYPES.includes(
-          dependency.relationship_type
+          dependency.relationshipType
         )
       ) {
         console.log("Invalid relationship type in dependency:", dependency);
