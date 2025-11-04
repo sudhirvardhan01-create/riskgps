@@ -205,9 +205,9 @@ const AssessmentDashboard = () => {
         >
           <MenuItem
             disabled={
-              assessmentStatusFilter.find(
+              (assessmentStatusFilter.find(
                 (item) => item.runId == selectedAssessment
-              )?.progress < 100
+              )?.progress ?? 0) < 100
             }
             onClick={() => handleMenuOptionClick("publish")}
           >
@@ -215,9 +215,9 @@ const AssessmentDashboard = () => {
           </MenuItem>
           <MenuItem
             disabled={
-              assessmentStatusFilter.find(
+              (assessmentStatusFilter.find(
                 (item) => item.runId == selectedAssessment
-              )?.progress < 100
+              )?.progress ?? 0) < 100
             }
             onClick={() => handleMenuOptionClick("close")}
           >
