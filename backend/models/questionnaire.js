@@ -55,8 +55,8 @@ module.exports = (sequelize, DataTypes) => {
 
   // ✅ After create hook to generate questionCode
   LibraryQuestionnaire.afterCreate(async (instance, options) => {
-    const paddedId = String(instance.incrementalId).padStart(4, "0");
-    const code = `1${paddedId}`;
+    const paddedId = String(instance.incrementalId).padStart(5, "0");
+    const code = `QS${paddedId}`;
     await instance.update(
       { questionCode: code },
       { transaction: options.transaction }

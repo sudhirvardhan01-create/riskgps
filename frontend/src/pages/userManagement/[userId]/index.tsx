@@ -24,7 +24,7 @@ function UserDetailsPage() {
   useEffect(() => {
     (async () => {
       try {
-        if (!userId) {
+        if (!router.isReady || !userId) {
           return;
         }
         setLoading(true);
@@ -41,7 +41,7 @@ function UserDetailsPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [router.isReady, userId]);
 
   //Delete function
   const handleDelete = async () => {

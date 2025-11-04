@@ -25,8 +25,8 @@ function UserEditPage() {
   useEffect(() => {
     (async () => {
       try {
-        if (!userId) {
-          throw new Error("Invalid selection");
+        if (!router.isReady || !userId) {
+          return;
         }
         setLoading(true);
         const data = await UserService.fetchById(userId as string);
@@ -42,7 +42,7 @@ function UserEditPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [router.isReady, userId]);
 
   return (
     <>
@@ -85,10 +85,10 @@ function UserEditPage() {
                 phone: userData.phone,
                 company: userData.company,
                 communicationPreference: userData.communicationPreference,
-                role: userData.roleId ? userData.roleId : "",
+                role: userData.roleId ? userData.roleId : null,
                 organization: userData.organizationId
                   ? userData.organizationId
-                  : "",
+                  : null,
               }}
               setIsEditConfirmOpen={setIsEditConfirmOpen}
               setToast={setToast}

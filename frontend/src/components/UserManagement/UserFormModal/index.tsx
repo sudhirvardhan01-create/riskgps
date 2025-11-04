@@ -108,7 +108,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         mb={2}
         sx={{
           overflow: "auto",
-          scrollbarWidth: "none",
           backgroundColor: "white",
         }}
       >

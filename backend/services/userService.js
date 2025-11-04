@@ -28,6 +28,19 @@ class UserService {
       }
     }
 
+    const existingEmail = await User.findOne({
+      where: {
+        email: sequelize.where(
+          sequelize.fn("LOWER", sequelize.col("email")),
+          sequelize.fn("LOWER", data.email.trim())
+        ),
+      },
+    });
+
+    if (existingEmail) {
+      throw new CustomError("Email ID already exists", HttpStatus.CONFLICT);
+    }
+
     //Hash Password
     const hashedPassword = await bcrypt.hash(data.password, 10);
 

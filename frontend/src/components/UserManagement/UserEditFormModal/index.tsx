@@ -106,6 +106,7 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
 
   const handleUpdate = async () => {
     try {
+      setLoading(true);
       await UserService.update(formData.userId, formData);
       setToast({
         open: true,
@@ -123,10 +124,10 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
         message: "Failed to update user",
         severity: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
-
-  console.log(formData);
 
   return (
     <>
@@ -138,7 +139,6 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
         mb={2}
         sx={{
           overflow: "auto",
-          scrollbarWidth: "none",
           backgroundColor: "white",
         }}
       >
@@ -487,6 +487,7 @@ const UserEditFormModal: React.FC<UserEditFormModalProps> = ({
             <Button
               sx={{ width: 110, height: 40, borderRadius: 1 }}
               variant="contained"
+              loading={loading}
               onClick={() => {
                 handleUpdate();
               }}

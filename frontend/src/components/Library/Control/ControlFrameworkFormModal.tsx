@@ -29,6 +29,7 @@ import { tooltips } from "@/utils/tooltips";
 import { ControlFrameworkForm } from "@/types/control";
 import SelectStyled from "@/components/SelectStyled";
 import TooltipComponent from "@/components/TooltipComponent";
+import { useConfig } from "@/context/ConfigContext";
 
 interface ControlFrameworkFormModalProps {
   operation: "create" | "edit";
@@ -49,6 +50,9 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
   setFormData,
   onSubmit,
 }) => {
+  const { fetchMetadataByKey } = useConfig();
+  const frameworks = fetchMetadataByKey("Control Framework")
+    ?.supported_values ?? ["NIST", "ATLAS", "CRI"];
   const [selectedMITREControlID, setSelectedMITREControlID] = useState<
     string | null
   >(null);
@@ -160,9 +164,11 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                 }
               }}
             >
-              <MenuItem value="NIST">NIST</MenuItem>
-              <MenuItem value="ATLAS">ATLAS</MenuItem>
-              <MenuItem value="CRI">CRI</MenuItem>
+              {frameworks.map((f, index) => (
+                <MenuItem value={f} key={index}>
+                  {f}
+                </MenuItem>
+              ))}
             </SelectStyled>
           </Grid>
 
@@ -309,7 +315,13 @@ const ControlFrameworkFormModal: React.FC<ControlFrameworkFormModalProps> = ({
                             >
                               {labels.mitreControlId}
                             </Typography>
-                            <Typography color="#FB2020" variant="body1" fontWeight={600}>*</Typography>
+                            <Typography
+                              color="#FB2020"
+                              variant="body1"
+                              fontWeight={600}
+                            >
+                              *
+                            </Typography>
                             <TooltipComponent title={tooltips.mitreControlId} />
                           </Box>
                         }
