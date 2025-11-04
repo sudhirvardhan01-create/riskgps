@@ -9,19 +9,21 @@ import {
   Typography,
   TextField,
 } from "@mui/material";
-import { Asset } from "@/types/assessment";
+import { Asset, Questionnaire } from "@/types/assessment";
 import { CheckCircle, WatchLater } from "@mui/icons-material";
 
 interface AssetListProps {
   assets: Asset[] | undefined;
   onSelect: (asset: Asset) => void;
   selectedAsset: Asset | undefined;
+  questionnaires: Questionnaire[];
 }
 
 export default function AssetStrength({
   assets,
   onSelect,
   selectedAsset,
+  questionnaires,
 }: AssetListProps) {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({});
@@ -34,8 +36,13 @@ export default function AssetStrength({
     setExpanded((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  const isQuestionnaireComplete = (s: Asset) => {
-    return true;
+  const isQuestionnaireComplete = (a: Asset) => {
+    const filterQuestions = questionnaires.filter(
+      (q) =>
+        selectedAsset?.assetCategory &&
+        q.assetCategories.includes(selectedAsset?.assetCategory)
+    );
+    return a.questionnaire.length === filterQuestions.length;
   };
 
   return (

@@ -11,15 +11,7 @@ import {
   Select,
   Typography,
 } from "@mui/material";
-import { Asset } from "@/types/assessment";
-
-interface Questionnaire {
-  assetCategories: string[];
-  questionCode: string;
-  question: string;
-  mitreControlId: string[];
-  questionnaireId: string;
-}
+import { Asset, Questionnaire } from "@/types/assessment";
 
 interface QuestionnaireProps {
   asset: Asset | undefined;
@@ -45,13 +37,13 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
   }, [asset?.assetCategory, questionnaires]);
 
   const handleResponseChange = (
-    questionCode: string,
+    questionnaireId: string,
     question: string,
     value: number
   ) => {
     onSubmit({
-      questionaireId: questionCode,
-      questionaireName: question,
+      questionnaireId: questionnaireId,
+      question: question,
       responseValue: value,
     });
   };
@@ -91,7 +83,7 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
             const selectedValue =
               Number(
                 asset?.questionnaire?.find(
-                  (item) => item.questionaireId === q.questionnaireId
+                  (item) => item.questionnaireId === q.questionnaireId
                 )?.responseValue
               ) ?? -1;
 

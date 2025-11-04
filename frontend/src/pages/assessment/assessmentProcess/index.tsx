@@ -147,8 +147,8 @@ function BUProcessMappingPage() {
           assessmentProcessId: process.assessmentProcessId ?? "",
           assessmentProcessAssetId: asset.assessmentProcessAssetId ?? "",
           id: asset.id,
-          questionaireId: question.questionaireId,
-          questionaireName: question.questionaireName,
+          questionnaireId: question.questionnaireId,
+          question: question.question,
           responseValue: question.responseValue,
         }))
       )
@@ -255,7 +255,6 @@ function BUProcessMappingPage() {
           );
 
           updateAssessment({ processes: updatedProcessesRiskTaxonomy });
-
           break;
 
         case 3:
@@ -304,7 +303,8 @@ function BUProcessMappingPage() {
                 questionnaire: asset.questionnaire.map((question) => {
                   // Find a matching question entry from resultQues.questionnaire
                   const match = resultQues.data.find(
-                    (obj: any) => obj.questionaireId === question.questionaireId
+                    (obj: any) =>
+                      obj.questionnaireId === question.questionnaireId
                   );
 
                   // Return updated question
@@ -332,12 +332,28 @@ function BUProcessMappingPage() {
     }
   };
 
-  const getDisableCondition = (activeStep: number) => {
+  const getEnableCondition = (activeStep: number) => {
     switch (activeStep) {
       case 0:
-        return assessment?.processes && assessment?.processes.length <= 0;
+        return assessment?.processes && assessment?.processes.length > 0;
+      case 1:
+        return assessment?.processes.some((item) => item.risks.length > 0);
+      case 2:
+        return assessment?.processes.some(
+          (item) =>
+            item.risks.length > 0 &&
+            item.risks.some((risk) => risk.taxonomy?.length > 0)
+        );
+      case 3:
+        return assessment?.processes.some((item) => item.assets.length > 0);
+      case 4:
+        return assessment?.processes.some(
+          (item) =>
+            item.assets.length > 0 &&
+            item.assets.some((asset) => asset.questionnaire?.length > 0)
+        );
     }
-    return false;
+    return true;
   };
 
   const handleClose = () => {
@@ -422,7 +438,7 @@ function BUProcessMappingPage() {
               e.stopPropagation();
               handleSaveContinue("in_progress");
             }}
-            disableButton={getDisableCondition(activeStep)}
+            disableButton={!getEnableCondition(activeStep)}
           />
         </Box>
       )}
