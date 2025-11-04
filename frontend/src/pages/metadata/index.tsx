@@ -25,8 +25,8 @@ import MetaDataFormModal from "@/components/MetaData/MetaDataFormModal";
 
 const Index = () => {
   const sortItems = [
-    { value: "id:asc", label: "ID (Ascending)" },
-    { value: "id:desc", label: "ID (Descending)" },
+    // { value: "id:asc", label: "ID (Ascending)" },
+    // { value: "id:desc", label: "ID (Descending)" },
     { value: "name:asc", label: "Key (Ascending)" },
     { value: "name:desc", label: "Key (Descending)" },
     { value: "created_at:asc", label: "Created (Oldest to Latest)" },

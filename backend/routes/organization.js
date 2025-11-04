@@ -152,6 +152,38 @@ router.post(
   }
 );
 
+router.put(
+  "/:orgId/business-unit/:businessUnitId/process/:id",
+  async (req, res) => {
+    try {
+      const { id, orgId, businessUnitId } = req.params;
+      console.log({ id ,orgId, businessUnitId })
+      if (!id || !orgId || !businessUnitId) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message:
+            "Process ID, Organization ID and Business unit ID is required in the URL",
+        });
+      }
+
+      const process = await OrganizationService.updateProcess(
+        id,
+        orgId,
+        businessUnitId,
+        req.body
+      );
+
+      res.status(HttpStatus.OK).json({
+        message: "Organization process updated successfully",
+        data: process,
+      });
+    } catch (err) {
+      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+        error: err.message || "Failed to create organization process",
+      });
+    }
+  }
+);
+
 /**
  * @route GET /organization/:orgId/risk-scenarios
  * @desc Get all risk scenarios for an organization
@@ -234,6 +266,34 @@ router.post("/:orgId/risk-scenarios", async (req, res) => {
   } catch (err) {
     res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
       error: err.message || "Failed to create organization risk scenarios",
+    });
+  }
+});
+
+
+router.put("/:orgId/risk-scenarios/:id", async (req, res) => {
+  try {
+    const { id , orgId } = req.params;
+
+    if (!id || !orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "id and Organization ID is required in the URL",
+      });
+    }
+
+    const scenarios = await OrganizationService.updateRiskScenario(
+      id,
+      orgId,
+      req.body
+    );
+
+    res.status(HttpStatus.OK).json({
+      message: "Organization risk scenarios updated successfully",
+      data: scenarios,
+    });
+  } catch (err) {
+    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || "Failed to update organization risk scenarios",
     });
   }
 });
@@ -405,6 +465,33 @@ router.post("/:orgId/asset", async (req, res) => {
   } catch (err) {
     res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
       error: err.message || "Failed to created org asset",
+    });
+  }
+});
+
+router.put("/:orgId/asset/:id", async (req, res) => {
+  try {
+    const { id, orgId } = req.params;
+
+    if (!id || !orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "asset id and Organization ID is required in the URL",
+      });
+    }
+
+    const scenarios = await OrganizationService.updateAsset(
+      id,
+      orgId,
+      req.body
+    );
+
+    res.status(HttpStatus.OK).json({
+      message: "Organization asset updated successfully",
+      data: scenarios,
+    });
+  } catch (err) {
+    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || "Failed to update org asset",
     });
   }
 });

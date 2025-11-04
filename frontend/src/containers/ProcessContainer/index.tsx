@@ -34,8 +34,8 @@ const initialProcessData: ProcessData = {
 };
 
 const sortItems = [
-  { label: "Process ID (Ascending)", value: "processCode:asc" },
-  { label: "Process ID (Descending)", value: "processCode:desc" },
+  { label: "Process Code (Ascending)", value: "processCode:asc" },
+  { label: "Process Code (Descending)", value: "processCode:desc" },
   { label: "Created (Latest to Oldest)", value: "created_at:desc" },
   { label: "Created (Oldest to Latest)", value: "created_at:asc" },
   { label: "Updated (Latest to Oldest)", value: "updated_at:desc" },

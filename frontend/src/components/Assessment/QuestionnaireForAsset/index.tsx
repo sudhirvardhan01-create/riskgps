@@ -11,15 +11,7 @@ import {
   Select,
   Typography,
 } from "@mui/material";
-import { Asset } from "@/types/assessment";
-
-interface Questionnaire {
-  assetCategories: string[];
-  questionCode: string;
-  question: string;
-  mitreControlId: string[];
-  questionnaireId: string;
-}
+import { Asset, Questionnaire } from "@/types/assessment";
 
 interface QuestionnaireProps {
   asset: Asset | undefined;
@@ -45,13 +37,13 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
   }, [asset?.assetCategory, questionnaires]);
 
   const handleResponseChange = (
-    questionCode: string,
+    questionnaireId: string,
     question: string,
     value: number
   ) => {
     onSubmit({
-      questionaireId: questionCode,
-      questionaireName: question,
+      questionnaireId: questionnaireId,
+      question: question,
       responseValue: value,
     });
   };
@@ -72,7 +64,7 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
   };
 
   return (
-    <Box sx={{ width: "70%", p: 3, mb: 5 }}>
+    <Box sx={{ width: "70%", p: 3, mb: 5, maxHeight: 616, overflow: "auto" }}>
       <Typography variant="h5" gutterBottom fontWeight="bold">
         {asset?.assetCategory
           ? `${asset?.assetCategory} Security Questionnaire`
@@ -91,7 +83,7 @@ const QuestionnaireComponent: React.FC<QuestionnaireProps> = ({
             const selectedValue =
               Number(
                 asset?.questionnaire?.find(
-                  (item) => item.questionaireId === q.questionnaireId
+                  (item) => item.questionnaireId === q.questionnaireId
                 )?.responseValue
               ) ?? -1;
 
