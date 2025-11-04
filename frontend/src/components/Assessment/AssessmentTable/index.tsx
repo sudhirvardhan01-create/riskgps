@@ -12,6 +12,7 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import React, { useState } from "react";
 import { Assessment } from "@/types/assessment";
+import Cookies from "js-cookie";
 
 interface Props {
   data: Assessment[];
@@ -21,10 +22,8 @@ interface Props {
   businessUnitName?: string;
 }
 
-const userData = {
-  name: "Harsh Kansal",
-  avatar: "/path/to/avatar",
-};
+const userCookie = Cookies.get("user");
+const userData = userCookie ? JSON.parse(userCookie) : null;
 
 // ✅ Row component
 const AssessmentRow: React.FC<{
@@ -112,8 +111,8 @@ const AssessmentRow: React.FC<{
           justifyContent: "center",
         }}
       >
-        <Avatar src={userData.avatar} sx={{ width: 24, height: 24 }} />
-        <Typography variant="body2">{userData.name}</Typography>
+        <Avatar src={userData?.avatar} sx={{ width: 24, height: 24 }} />
+        <Typography variant="body2">{userData?.name}</Typography>
       </Box>
 
       <Box textAlign="center">
@@ -128,8 +127,11 @@ const AssessmentRow: React.FC<{
             height: 12,
             borderRadius: 1,
             "& .MuiLinearProgress-bar": {
-              backgroundColor:
-                assessment.status == "completed" ? "#147A50" : "#FFD966",
+              backgroundColor: ["completed", "closed"].includes(
+                assessment.status
+              )
+                ? "#147A50"
+                : "#FFD966",
             },
           }}
         />
@@ -395,8 +397,8 @@ const AssessmentTable: React.FC<Props> = ({
 
                 {/* Last Modified */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Avatar src={userData.avatar} sx={{ width: 24, height: 24 }}>
-                    {userData.name.charAt(0)}
+                  <Avatar src={userData?.avatar} sx={{ width: 24, height: 24 }}>
+                    {userData?.name.charAt(0)}
                   </Avatar>
                   <Typography
                     variant="body2"
@@ -407,7 +409,7 @@ const AssessmentTable: React.FC<Props> = ({
                       color: "#484848",
                     }}
                   >
-                    {userData.name}
+                    {userData?.name}
                   </Typography>
                 </Box>
 
@@ -433,10 +435,11 @@ const AssessmentTable: React.FC<Props> = ({
                       height: 12,
                       borderRadius: 1,
                       "& .MuiLinearProgress-bar": {
-                        backgroundColor:
-                          assessment.status == "completed"
-                            ? "#147A50"
-                            : "#FFD966",
+                        backgroundColor: ["completed", "closed"].includes(
+                          assessment.status
+                        )
+                          ? "#147A50"
+                          : "#FFD966",
                       },
                     }}
                   />
