@@ -16,6 +16,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import GlobalToastProvider from "@/components/GlobalToastProvider";
 import { LoaderProvider } from "@/context/LoaderContext";
 import GlobalInitializer from "@/components/GlobalInitializer";
+import { useState } from "react";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const isLandingPage = router.pathname === "/";
   const isAssessmentProcess =
     router.pathname === "/assessment/assessmentProcess";
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <GlobalToastProvider>
@@ -41,14 +43,53 @@ export default function App({ Component, pageProps }: AppProps) {
                     <GlobalInitializer />
                     <ThemeProvider theme={theme}>
                       <CssBaseline />
-
-                      <Grid container sx={{ height: "100vh" }}>
-                        <Grid size={12}>{!isLoginPage && <Header />}</Grid>
-                        <Grid size={1}>{!isLoginPage && <SideBar />}</Grid>
-                        <Grid size={11}>
-                          <Component {...pageProps} />
-                          {!isLoginPage && !isAssessmentProcess && <Footer />}
+                      {isLoginPage && (
+                        <Grid container sx={{ height: "100vh" }}>
+                          <Grid size={12}>
+                            <Component {...pageProps} />
+                          </Grid>
                         </Grid>
+                      )}
+
+                      <Grid
+                        container
+                        sx={{ height: "100vh", overflow: "hidden" }}
+                      >
+                        {/* Header */}
+                        <Grid size={12}>{!isLoginPage && <Header />}</Grid>
+                        {/* Main Content Row */}
+                        {!isLoginPage && (
+                          <>
+                            <Grid
+                              sx={{
+                                transition: "width 0.3s ease",
+                                width: collapsed ? "80px" : "120px", // match sidebar width
+                                flexShrink: 0,
+                              }}
+                            >
+                              <SideBar
+                                collapsed={collapsed}
+                                setCollapsed={setCollapsed}
+                              />
+                            </Grid>
+
+                            <Grid
+                              sx={{
+                                flexGrow: 1,
+                                transition: "width 0.3s ease",
+                                width: `calc(100% - ${
+                                  collapsed ? "80px" : "220px"
+                                })`,
+                                overflowY: "auto",
+                              }}
+                            >
+                              <Component {...pageProps} />
+                              {!isLoginPage && !isAssessmentProcess && (
+                                <Footer />
+                              )}
+                            </Grid>
+                          </>
+                        )}
                       </Grid>
                     </ThemeProvider>
                   </>

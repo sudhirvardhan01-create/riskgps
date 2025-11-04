@@ -16,24 +16,6 @@ export type ApiProcess = {
   processDependency?: string[];
 };
 
-export type ChartAsset = {
-  id: string;
-  name: string;
-};
-
-export type ChartRisk = {
-  id: string;
-  name: string;
-};
-
-export type ChartProcess = {
-  id: string;
-  name: string;
-  assets: ChartAsset[];
-  risks: ChartRisk[];
-  dependsOn?: string[];
-};
-
 // types.ts
 export interface Asset {
   id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { JSX, useMemo, useState } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -11,181 +11,178 @@ import ReactFlow, {
   Position,
   useNodesState,
   useEdgesState,
+  Handle,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "dagre";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Divider,
-  Chip,
-} from "@mui/material";
+import { Box, Card, CardContent, Typography, Divider } from "@mui/material";
 import { fetchAssetsById } from "@/pages/api/asset";
+import { Apartment, Business, Lan, Storage } from "@mui/icons-material";
 
-// ---- Types ----
-type Risk = {
-  id: string;
-  name: string;
-  severity?: string;
-};
-
-type Asset = {
-  id: string;
-  name: string;
-};
-
-type Process = {
-  id: string;
-  name: string;
-  assets?: Asset[];
-  dependsOn?: string[];
-  risks?: Risk[];
-};
-
-// ---- Props ----
-interface ProcessAssetFlowProps {
-  processes: Process[];
-}
-
-const nodeWidth = 200;
+const nodeWidth = 220;
 const nodeHeight = 70;
 
-// ---- Layout (Dagre) ----
 const getLayoutedElements = (
   nodes: Node[],
   edges: Edge[],
-  direction = "LR"
+  direction = "TB"
 ) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: direction });
+  dagreGraph.setGraph({ rankdir: direction, nodesep: 100, ranksep: 150 });
 
   const isHorizontal = direction === "LR";
-
   nodes.forEach((n) =>
     dagreGraph.setNode(n.id, { width: nodeWidth, height: nodeHeight })
   );
   edges.forEach((e) => dagreGraph.setEdge(e.source, e.target));
-
   dagre.layout(dagreGraph);
 
   nodes.forEach((node) => {
     const n = dagreGraph.node(node.id);
     node.targetPosition = isHorizontal ? Position.Left : Position.Top;
     node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
-    node.position = {
-      x: n.x - nodeWidth / 2,
-      y: n.y - nodeHeight / 2,
-    };
+    node.position = { x: n.x - nodeWidth / 2, y: n.y - nodeHeight / 2 };
   });
-
   return { nodes, edges };
 };
 
-// ---- Process Colors ----
-const COLOR_PALETTES = [
-  { bg: "linear-gradient(135deg, #E3F2FD, #BBDEFB)", border: "#1565C0" },
-  { bg: "linear-gradient(135deg, #E8F5E9, #C8E6C9)", border: "#2E7D32" },
-  { bg: "linear-gradient(135deg, #FFF3E0, #FFE0B2)", border: "#EF6C00" },
-  { bg: "linear-gradient(135deg, #F3E5F5, #E1BEE7)", border: "#8E24AA" },
-  { bg: "linear-gradient(135deg, #E1F5FE, #B3E5FC)", border: "#0277BD" },
-];
+const ProcessAssetFlow = ({ data }: { data: any }) => {
+  const [selectedProcess, setSelectedProcess] = useState<any>(null);
+  const [selectedAsset, setSelectedAsset] = useState<any>(null);
 
-// ---- Component ----
-const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
-  const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  // --- Data Transform ---
+  function transformHierarchyForFlow(data: any) {
+    if (!data?.organizationId || !Array.isArray(data.businessUnits))
+      return { nodes: [], edges: [] };
 
-  const initialNodes: Node[] = [];
-  const initialEdges: Edge[] = [];
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+    const orgNodeId = data.organizationId;
 
-  processes.forEach((process, index) => {
-    const color = COLOR_PALETTES[index % COLOR_PALETTES.length];
-
-    // Process Node
-    initialNodes.push({
-      id: process.id,
-      data: { label: process.name, type: "process" },
-      position: { x: 0, y: 0 },
-      draggable: false,
-      style: {
-        borderRadius: 14,
-        padding: 10,
-        background: color.bg,
-        border: `2px solid ${color.border}`,
-        boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
-        cursor: "pointer",
-        fontWeight: 600,
-        transition: "all 0.2s ease-in-out",
+    // Organization node
+    nodes.push({
+      id: orgNodeId,
+      data: {
+        label: data.name,
+        type: "organization",
+        description: data.desc || "",
       },
+      position: { x: 0, y: 0 },
+      style: { background: "linear-gradient(135deg, #1565C0, #42A5F5)" },
     });
 
-    // Asset Nodes
-    process.assets?.forEach((asset) => {
-      const assetId = `${process.id}-${asset.id}`;
-      initialNodes.push({
-        id: assetId,
-        data: { id: asset.id, label: asset.name, type: "asset" },
+    data.businessUnits.forEach((unit: any) => {
+      const buId = unit.orgBusinessUnitId;
+      nodes.push({
+        id: buId,
+        data: { label: unit.name, type: "businessUnit" },
         position: { x: 0, y: 0 },
-        draggable: false,
-        style: {
-          borderRadius: 8,
-          padding: "6px 10px",
-          background: "#FFFDE7",
-          border: "1.5px solid #FBC02D",
-          fontSize: 13,
-          fontWeight: 500,
-          color: "#795548",
-          boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
-          transition: "all 0.2s ease",
-        },
+        style: { background: "linear-gradient(135deg, #6A1B9A, #AB47BC)" },
       });
 
-      initialEdges.push({
-        id: `edge-${process.id}-${asset.id}`,
-        source: process.id,
-        target: assetId,
+      edges.push({
+        id: `org-${buId}`,
+        source: orgNodeId,
+        target: buId,
         type: "smoothstep",
-        style: { strokeWidth: 1.6, stroke: "#42a5f5" },
-        // markerEnd: { type: MarkerType.ArrowClosed, color: "#42a5f5" },
+        animated: true,
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#6A1B9A" },
+        style: { strokeWidth: 2, stroke: "#6A1B9A" },
+      });
+
+      (unit.processes || []).forEach((process: any) => {
+        const processId = process.id;
+        nodes.push({
+          id: processId,
+          data: {
+            label: process.processName,
+            type: "process",
+            description: process.processDescription || "",
+          },
+          position: { x: 0, y: 0 },
+          style: {
+            background: "linear-gradient(135deg, #EF6C00, #FFB74D)",
+            cursor: "pointer",
+          },
+        });
+
+        edges.push({
+          id: `bu-${buId}-${processId}`,
+          source: buId,
+          target: processId,
+          type: "smoothstep",
+          markerEnd: { type: MarkerType.ArrowClosed, color: "#EF6C00" },
+          style: {
+            strokeWidth: 1.6,
+            stroke: "#EF6C00",
+            strokeDasharray: "4 2",
+          },
+        });
+
+        (process.assets || []).forEach((asset: any) => {
+          const assetId = `${processId}-${asset.id}`;
+          nodes.push({
+            id: assetId,
+            data: { id: asset.id, label: asset.applicationName, type: "asset" },
+            position: { x: 0, y: 0 },
+            style: {
+              background: "linear-gradient(135deg, #2E7D32, #81C784)",
+              cursor: "pointer",
+            },
+          });
+
+          edges.push({
+            id: `proc-${processId}-${assetId}`,
+            source: processId,
+            target: assetId,
+            type: "smoothstep",
+            markerEnd: { type: MarkerType.ArrowClosed, color: "#2E7D32" },
+            style: {
+              strokeWidth: 1.5,
+              stroke: "#2E7D32",
+              strokeDasharray: "3 3",
+            },
+          });
+        });
       });
     });
+    return { nodes, edges };
+  }
 
-    // Process Dependencies
-    process.dependsOn?.forEach((depId) => {
-      if (processes.some((p) => p.id === depId)) {
-        initialEdges.push({
-          id: `proc-edge-${depId}-${process.id}`,
-          source: depId,
-          target: process.id,
-          type: "smoothstep",
-          animated: true,
-          markerEnd: { type: MarkerType.ArrowClosed, color: "#ef5350" },
-          style: { strokeWidth: 2, stroke: "#ef5350" },
-        });
-      }
-    });
-  });
-
-  const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(
-    () => getLayoutedElements(initialNodes, initialEdges, "LR"),
-    [processes]
-  );
+  // --- Layout & States ---
+  const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
+    const { nodes, edges } = transformHierarchyForFlow(data);
+    return getLayoutedElements(nodes, edges, "TB");
+  }, [data]);
 
   const [nodes, , onNodesChange] = useNodesState(layoutedNodes);
   const [edges, , onEdgesChange] = useEdgesState(layoutedEdges);
 
-  // ---- Node Click ----
+  // --- Node Click Logic ---
   const handleNodeClick = async (_: any, node: Node) => {
     if (node.data?.type === "process") {
-      const clickedProcess = processes.find((p) => p.id === node.id);
-      setSelectedProcess(clickedProcess || null);
+      let clickedProcess: any = null;
+      data.businessUnits?.forEach((unit: any) => {
+        unit.processes?.forEach((process: any) => {
+          if (process.id === node.id) {
+            clickedProcess = {
+              id: process.id,
+              name: process.processName,
+              description: process.processDescription,
+              businessUnit: unit.name,
+              assets: process.assets || [],
+              risks: process.riskScenarios || [],
+              status: process.status,
+            };
+          }
+        });
+      });
+      setSelectedProcess(clickedProcess);
       setSelectedAsset(null);
     } else if (node.data?.type === "asset") {
-      const data = await fetchAssetsById(node.data?.id);
-      setSelectedAsset(data.data);
+      const assetData = await fetchAssetsById(node.data?.id);
+      setSelectedAsset(assetData);
       setSelectedProcess(null);
     } else {
       setSelectedProcess(null);
@@ -193,6 +190,116 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
     }
   };
 
+  const nodeTypes = useMemo(
+    () => ({
+      default: ({ data }: any) => {
+        const colors: Record<string, { gradient: string; icon: JSX.Element }> =
+          {
+            organization: {
+              gradient: "linear-gradient(135deg, #1565C0, #42A5F5)",
+              icon: <Business fontSize="small" sx={{ color: "#fff" }} />,
+            },
+            businessUnit: {
+              gradient: "linear-gradient(135deg, #6A1B9A, #AB47BC)",
+              icon: <Apartment fontSize="small" sx={{ color: "#fff" }} />,
+            },
+            process: {
+              gradient: "linear-gradient(135deg, #EF6C00, #FFB74D)",
+              icon: <Lan fontSize="small" sx={{ color: "#fff" }} />,
+            },
+            asset: {
+              gradient: "linear-gradient(135deg, #2E7D32, #81C784)",
+              icon: <Storage fontSize="small" sx={{ color: "#fff" }} />,
+            },
+          };
+
+        const color = colors[data.type] || colors.organization;
+        const description =
+          data.description?.length > 90
+            ? data.description.substring(0, 90) + "..."
+            : data.description || "";
+
+        return (
+          <Box
+            sx={{
+              width: 240,
+              minHeight: 110,
+              background: color.gradient,
+              border: "1.5px solid rgba(255, 255, 255, 0.25)",
+              backdropFilter: "blur(8px)",
+              borderRadius: 3,
+              p: 2,
+              color: "#fff",
+              fontWeight: 500,
+              boxShadow: "0 6px 14px rgba(0,0,0,0.25)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              transition: "transform 0.2s ease, box-shadow 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.05)",
+                boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
+              },
+            }}
+          >
+            <Handle
+              type="target"
+              position={Position.Top}
+              style={{ opacity: 0 }}
+            />
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
+                mb: 1,
+                textAlign: "center",
+              }}
+            >
+              {color.icon}
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: 14,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {data.label}
+              </Typography>
+            </Box>
+
+            {description && (
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: 12,
+                  textAlign: "center",
+                  lineHeight: 1.4,
+                }}
+              >
+                {description}
+              </Typography>
+            )}
+
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              style={{ opacity: 0 }}
+            />
+          </Box>
+        );
+      },
+    }),
+    []
+  );
+
+  // --- Render ---
   return (
     <Box
       sx={{
@@ -203,41 +310,35 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
         overflow: "hidden",
       }}
     >
-      {/* Left: Flow chart */}
       <Box
         sx={{
-          flex: 3,
-          background: "linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%)",
+          flex: 3.2,
+          background: "#fafafa",
           borderRight: "1px solid #e0e0e0",
         }}
       >
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
           nodesDraggable={false}
           nodesConnectable={false}
-          zoomOnScroll={true}
-          zoomOnPinch={true}
-          zoomOnDoubleClick={false}
+          zoomOnScroll
+          zoomOnPinch
           fitView
-          fitViewOptions={{ padding: 0.2 }}
+          fitViewOptions={{ padding: 0.3 }}
           proOptions={{ hideAttribution: true }}
-          defaultViewport={{ x: 0, y: 0, zoom: 2 }}
-          style={{
-            background: "linear-gradient(135deg, #f9f9ff 0%, #eef3f9 100%)",
-            borderRadius: 12,
-          }}
         >
           <MiniMap
             nodeColor={(n) =>
               n.data.type === "process"
-                ? "#90caf9"
+                ? "#FFB74D"
                 : n.data.type === "asset"
-                ? "#ffe082"
-                : "#cfd8dc"
+                ? "#81C784"
+                : "#90CAF9"
             }
             maskColor="rgba(0, 0, 0, 0.1)"
             zoomable
@@ -255,16 +356,14 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
         </ReactFlow>
       </Box>
 
-      {/* Right: Info Panel */}
       {(selectedProcess || selectedAsset) && (
         <Box
           sx={{
-            flex: 1.2,
-            background: "#ffffff",
+            flex: 1.4,
+            background: "#fff",
             borderLeft: "1px solid #eee",
             p: 3,
             overflowY: "auto",
-            transition: "all 0.3s ease",
           }}
         >
           {selectedProcess && (
@@ -272,55 +371,31 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
               sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
             >
               <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="#1565C0">
+                <Typography variant="h6" fontWeight="bold" color="#EF6C00">
                   {selectedProcess.name}
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography variant="body2" color="text.secondary">
                   Risk Scenarios:
                 </Typography>
-
-                {selectedProcess.risks && selectedProcess.risks.length > 0 ? (
-                  selectedProcess.risks.map((r) => (
+                {selectedProcess.risks?.length > 0 ? (
+                  selectedProcess.risks.map((r: any) => (
                     <Box
                       key={r.id}
                       sx={{
                         p: 1.2,
                         mb: 1,
                         borderRadius: 2,
-                        background:
-                          r.severity === "High"
-                            ? "#FFEBEE"
-                            : r.severity === "Medium"
-                            ? "#FFF8E1"
-                            : "#E8F5E9",
+                        background: r.ciaMapping?.includes("C")
+                          ? "#E3F2FD"
+                          : r.ciaMapping?.includes("I")
+                          ? "#FFF8E1"
+                          : "#E8F5E9",
                       }}
                     >
                       <Typography variant="body1" fontWeight={500}>
-                        {r.name}
+                        {r.riskScenario}
                       </Typography>
-                      {r.severity && (
-                        <Chip
-                          label={r.severity}
-                          size="small"
-                          sx={{
-                            mt: 0.5,
-                            fontWeight: 600,
-                            color:
-                              r.severity === "High"
-                                ? "#C62828"
-                                : r.severity === "Medium"
-                                ? "#EF6C00"
-                                : "#2E7D32",
-                            backgroundColor:
-                              r.severity === "High"
-                                ? "#FFCDD2"
-                                : r.severity === "Medium"
-                                ? "#FFE0B2"
-                                : "#C8E6C9",
-                          }}
-                        />
-                      )}
                     </Box>
                   ))
                 ) : (
@@ -328,25 +403,6 @@ const ProcessAssetFlow: React.FC<ProcessAssetFlowProps> = ({ processes }) => {
                     No risks defined for this process.
                   </Typography>
                 )}
-              </CardContent>
-            </Card>
-          )}
-
-          {selectedAsset && (
-            <Card
-              sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
-            >
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="#FBC02D">
-                  {selectedAsset.name}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle1" gutterBottom>
-                  Controls:
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  No controls defined for this asset.
-                </Typography>
               </CardContent>
             </Card>
           )}
