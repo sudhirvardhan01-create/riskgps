@@ -240,7 +240,7 @@ const Scales: React.FC = () => {
                 Add weightage for different types of business Impact:
               </Typography>
               
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 7 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 7 }}>
                 {[
                   { key: 'financial', label: 'Financial' },
                   { key: 'regulatory', label: 'Regulatory' },
