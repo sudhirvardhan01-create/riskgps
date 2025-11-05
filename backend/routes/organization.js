@@ -178,12 +178,43 @@ router.put(
       });
     } catch (err) {
       res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || "Failed to create organization process",
+        error: err.message || "Failed to update organization process",
       });
     }
   }
 );
 
+
+router.delete(
+  "/:orgId/business-unit/:businessUnitId/process/:id",
+  async (req, res) => {
+    try {
+      const { id, orgId, businessUnitId } = req.params;
+      console.log({ id ,orgId, businessUnitId })
+      if (!id || !orgId || !businessUnitId) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message:
+            "Process ID, Organization ID and Business unit ID is required in the URL",
+        });
+      }
+
+      const process = await OrganizationService.deleteProcess(
+        id,
+        orgId,
+        businessUnitId,
+      );
+
+      res.status(HttpStatus.OK).json({
+        message: "Organization process deleted successfully",
+        data: process,
+      });
+    } catch (err) {
+      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+        error: err.message || "Failed to delete organization process",
+      });
+    }
+  }
+);
 /**
  * @route GET /organization/:orgId/risk-scenarios
  * @desc Get all risk scenarios for an organization
@@ -294,6 +325,32 @@ router.put("/:orgId/risk-scenarios/:id", async (req, res) => {
   } catch (err) {
     res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
       error: err.message || "Failed to update organization risk scenarios",
+    });
+  }
+});
+
+router.delete("/:orgId/risk-scenarios/:id", async (req, res) => {
+  try {
+    const { id , orgId } = req.params;
+
+    if (!id || !orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "id and Organization ID is required in the URL",
+      });
+    }
+
+    const scenarios = await OrganizationService.deleteRiskScenario(
+      id,
+      orgId,
+    );
+
+    res.status(HttpStatus.OK).json({
+      message: "Organization risk scenarios deleted successfully",
+      data: scenarios,
+    });
+  } catch (err) {
+    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || "Failed to delete organization risk scenarios",
     });
   }
 });
@@ -492,6 +549,32 @@ router.put("/:orgId/asset/:id", async (req, res) => {
   } catch (err) {
     res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
       error: err.message || "Failed to update org asset",
+    });
+  }
+});
+
+router.delete("/:orgId/asset/:id", async (req, res) => {
+  try {
+    const { id, orgId } = req.params;
+
+    if (!id || !orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "asset id and Organization ID is required in the URL",
+      });
+    }
+
+    const scenarios = await OrganizationService.deleteAsset(
+      id,
+      orgId
+    );
+
+    res.status(HttpStatus.OK).json({
+      message: "Organization asset deleted successfully",
+      data: scenarios,
+    });
+  } catch (err) {
+    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || "Failed to delete org asset",
     });
   }
 });

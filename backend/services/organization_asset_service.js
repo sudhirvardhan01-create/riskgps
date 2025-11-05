@@ -97,6 +97,10 @@ class OrganizationAssetService {
     transaction
   ) {
     if (Array.isArray(relatedProcesses)) {
+      await OrganizationAssetProcessMappings.destroy({
+        where: { assetId: assetId },
+        transaction: transaction,
+      });
       for (const process of relatedProcesses) {
         if (typeof process !== "string") {
           console.log("[createAsset] Invalid related process:", process);
@@ -127,6 +131,10 @@ class OrganizationAssetService {
   }
 
   static async handleAssetAttributes(assetId, attributes, transaction) {
+    await OrganizationAssetAttribute.destroy({
+      where: { assetId: assetId },
+      transaction: transaction,
+    });
     for (const attr of attributes) {
       if (!attr.metaDataKeyId || !attr.values) {
         console.log("Missing metaDataKeyId or values:", attr);
