@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -16,15 +16,20 @@ import {
   Chip,
   CircularProgress,
 } from "@mui/material";
-import { ArrowBack, Search, Delete, Close } from "@mui/icons-material";
+import { ArrowBack, Search, Delete, Close, EditOutlined, DeleteOutlineOutlined } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
 import { RiskScenarioData } from "@/types/risk-scenario";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { RiskScenarioLibraryService } from "@/services/orgLibraryService/riskScenarioLibraryService";
-import { createOrganizationRiskScenarios, getOrganizationRisks } from "@/pages/api/organization";
+import { createOrganizationRiskScenarios, getOrganizationRisks, updateOrganizationRiskScenario } from "@/pages/api/organization";
 import { fetchRiskScenarioById } from "@/pages/api/risk-scenario";
+import RiskScenarioFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
+import MenuItemComponent from "@/components/MenuItemComponent";
+import { fetchMetaDatas } from "@/pages/api/meta-data";
+import { fetchProcessesForListing } from "@/pages/api/process";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface RiskScenario {
   id: string | number;
@@ -47,6 +52,11 @@ function RiskScenariosPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
+  const [processesData, setProcessesData] = useState<any[]>([]);
+  const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -101,6 +111,23 @@ function RiskScenariosPage() {
       fetchOrganizationRiskScenarios();
     }
   }, [orgId, isInitialLoad]);
+
+  // Fetch processes and metaDatas for the edit modal
+  useEffect(() => {
+    (async () => {
+      try {
+        const [processes, meta] = await Promise.all([
+          fetchProcessesForListing(),
+          fetchMetaDatas(),
+        ]);
+        setProcessesData(processes.data ?? []);
+        // Match exactly what RiskScenarioContainer does - it uses meta.data
+        setMetaDatas(meta.data ?? []);
+      } catch (err) {
+        console.error("Failed to fetch supporting data:", err);
+      }
+    })();
+  }, []);
 
   const handleAddScenarios = async (selectedScenarios: any[]) => {
     if (!orgId || typeof orgId !== 'string' || selectedScenarios.length === 0) {
@@ -221,6 +248,63 @@ function RiskScenariosPage() {
 
   const handleDeleteSingleScenario = (scenarioId: string | number) => {
     setRiskScenarios(prev => prev.filter(scenario => scenario.id !== scenarioId));
+  };
+
+  // Helper function to transform orgRiskScenario to RiskScenarioData format
+  const transformToRiskScenarioData = useCallback((fullScenario: any): RiskScenarioData => {
+    return {
+      id: fullScenario.id,
+      riskCode: fullScenario.riskCode,
+      riskScenario: fullScenario.riskScenario || "",
+      riskStatement: fullScenario.riskStatement || "",
+      riskDescription: fullScenario.riskDescription || "",
+      ciaMapping: fullScenario.ciaMapping || [],
+      riskField1: fullScenario.riskField1 || "",
+      riskField2: fullScenario.riskField2 || "",
+      attributes: fullScenario.attributes?.map((attr: any) => ({
+        meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
+        values: attr.values || [],
+      })) || [],
+      related_processes: fullScenario.related_processes || [],
+      status: fullScenario.status || "published",
+    };
+  }, []);
+
+  // Memoized handler for editing a risk scenario
+  const handleEditScenario = useCallback((scenarioId: string | number) => {
+    const fullScenario = orgRiskScenarios.find((rs: any) => rs.id === scenarioId);
+    if (fullScenario) {
+      const riskScenarioData = transformToRiskScenarioData(fullScenario);
+      setSelectedRiskScenario(riskScenarioData);
+      setIsEditOpen(true);
+    }
+  }, [orgRiskScenarios, transformToRiskScenarioData]);
+
+  // Update risk scenario
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedRiskScenario?.id || !orgId || typeof orgId !== 'string') {
+        throw new Error("Invalid selection");
+      }
+      
+      // Transform the selectedRiskScenario to match the API format
+      const body = { ...selectedRiskScenario, status };
+      
+      await updateOrganizationRiskScenario(orgId, String(selectedRiskScenario.id), body);
+      
+      setIsEditOpen(false);
+      setSelectedRiskScenario(null);
+      
+      // Refresh the list
+      await fetchOrganizationRiskScenarios();
+      
+      setShowSuccessMessage(true);
+      setErrorMessage(null);
+    } catch (err: any) {
+      console.error("Failed to update risk scenario:", err);
+      setErrorMessage(err.message || "Failed to update risk scenario. Please try again.");
+      setShowSuccessMessage(false);
+    }
   };
 
 
@@ -755,23 +839,30 @@ function RiskScenariosPage() {
                             },
                           }}
                         />
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteSingleScenario(scenario.id);
-                          }}
+                        <Box
                           sx={{
                             position: "absolute",
                             right: 8,
                             top: 8,
-                            color: "#F44336",
-                            "&:hover": {
-                              backgroundColor: "rgba(244, 67, 54, 0.1)",
-                            },
                           }}
                         >
-                          <Delete sx={{ fontSize: "20px" }} />
-                        </IconButton>
+                          <MenuItemComponent
+                            items={[
+                              {
+                                onAction: () => handleEditScenario(scenario.id),
+                                color: "primary.main",
+                                action: "Edit",
+                                icon: <EditOutlined fontSize="small" />,
+                              },
+                              {
+                                onAction: () => handleDeleteSingleScenario(scenario.id),
+                                color: "#CD0303",
+                                action: "Delete",
+                                icon: <DeleteOutlineOutlined fontSize="small" />,
+                              },
+                            ]}
+                          />
+                        </Box>
                       </Box>
                     </Grid>
                   );
@@ -791,6 +882,41 @@ function RiskScenariosPage() {
         service={RiskScenarioLibraryService}
         itemType="risk-scenarios"
         orgItems={orgRiskScenarios}
+      />
+
+      {/* Edit Risk Scenario Modal */}
+      {isEditOpen && selectedRiskScenario && (
+        <RiskScenarioFormModal
+          operation="edit"
+          open={isEditOpen}
+          riskData={selectedRiskScenario}
+          setRiskData={(val: any) => {
+            if (typeof val === "function") {
+              setSelectedRiskScenario((prev) => val(prev as RiskScenarioData));
+            } else {
+              setSelectedRiskScenario(val);
+            }
+          }}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleUpdate}
+          onClose={() => setIsEditConfirmOpen(true)}
+        />
+      )}
+
+      {/* Confirm Dialog for Edit Cancellation */}
+      <ConfirmDialog
+        open={isEditConfirmOpen}
+        onClose={() => setIsEditConfirmOpen(false)}
+        title="Cancel Risk Scenario Updation?"
+        description="Are you sure you want to cancel the risk scenario updation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsEditConfirmOpen(false);
+          setSelectedRiskScenario(null);
+          setIsEditOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
       />
     </Box>
   );

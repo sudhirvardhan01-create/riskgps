@@ -25,7 +25,6 @@ import {
   Close,
   Search,
 } from "@mui/icons-material";
-import { useRouter } from "next/router";
 import { getBusinessUnits } from "@/services/businessUnitService";
 import { BusinessUnitData } from "@/types/business-unit";
 import { getOrganizationProcess } from "@/pages/api/organization";
@@ -35,6 +34,9 @@ interface LibraryItem {
   id: string | number;
   name: string;
   description: string;
+  riskCode?: string; // For risk scenarios
+  assetCode?: string; // For assets
+  processCode?: string; // For processes
 }
 
 // Service interface for fetching data
@@ -296,16 +298,16 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       return;
     }
 
-    // Create a Set of org process names for quick lookup
-    const orgProcessNames = new Set(
-      cachedOrgProcesses.map((process: any) => (process.processName || '').toLowerCase().trim())
+    // Create a Set of org process codes for quick lookup
+    const orgProcessCodes = new Set(
+      cachedOrgProcesses.map((process: any) => (process.processCode || '').toLowerCase().trim())
     );
 
-    // Match library items with org processes by processName
+    // Match library items with org processes by processCode
     const itemsToSelect = items
       .filter(item => {
-        const libraryProcessName = (item.name || '').toLowerCase().trim();
-        return libraryProcessName && orgProcessNames.has(libraryProcessName);
+        const libraryProcessCode = (item.processCode || '').toLowerCase().trim();
+        return libraryProcessCode && orgProcessCodes.has(libraryProcessCode);
       })
       .map(item => item.id!)
       .filter((id): id is string | number => id !== undefined);
@@ -329,32 +331,32 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
 
     let itemsToSelect: (string | number)[] = [];
 
-    // For risk-scenarios, match with org items by riskScenario text
+    // For risk-scenarios, match with org items by riskCode
     if (itemType === 'risk-scenarios' && orgItems.length > 0) {
-      // Create a Set of org risk scenario texts for quick lookup
-      const orgRiskScenarioTexts = new Set(
-        orgItems.map((orgItem: any) => (orgItem.riskScenario || '').toLowerCase().trim())
+      // Create a Set of org risk codes for quick lookup
+      const orgRiskCodes = new Set(
+        orgItems.map((orgItem: any) => (orgItem.riskCode || '').toLowerCase().trim())
       );
 
-      // Match library items with org items by riskScenario text
+      // Match library items with org items by riskCode
       itemsToSelect = items
         .filter(item => {
-          const libraryRiskScenarioText = (item.name || '').toLowerCase().trim();
-          return libraryRiskScenarioText && orgRiskScenarioTexts.has(libraryRiskScenarioText);
+          const libraryRiskCode = (item.riskCode || '').toLowerCase().trim();
+          return libraryRiskCode && orgRiskCodes.has(libraryRiskCode);
         })
         .map(item => item.id!)
         .filter((id): id is string | number => id !== undefined);
     } else if (itemType === 'assets' && orgItems.length > 0) {
-      // For assets, match with org items by applicationName text
-      const orgAssetNames = new Set(
-        orgItems.map((orgItem: any) => (orgItem.applicationName || '').toLowerCase().trim())
+      // For assets, match with org items by assetCode
+      const orgAssetCodes = new Set(
+        orgItems.map((orgItem: any) => (orgItem.assetCode || '').toLowerCase().trim())
       );
 
-      // Match library items with org items by applicationName text
+      // Match library items with org items by assetCode
       itemsToSelect = items
         .filter(item => {
-          const libraryAssetName = (item.name || '').toLowerCase().trim();
-          return libraryAssetName && orgAssetNames.has(libraryAssetName);
+          const libraryAssetCode = (item.assetCode || '').toLowerCase().trim();
+          return libraryAssetCode && orgAssetCodes.has(libraryAssetCode);
         })
         .map(item => item.id!)
         .filter((id): id is string | number => id !== undefined);
@@ -420,24 +422,24 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     });
   };
 
-  // Memoize the set of process names that are assigned to other business units
+  // Memoize the set of process codes that are assigned to other business units
   // This Set is computed once and reused for fast O(1) lookups instead of nested loops
-  const excludedProcessNames = useMemo(() => {
+  const excludedProcessCodes = useMemo(() => {
     if (itemType !== 'processes' || !selectedBusinessUnitId || allOrgProcessesByBuId.size === 0) {
       return new Set<string>();
     }
 
     const excluded = new Set<string>();
     
-    // Build a Set of process names that are assigned to other business units
+    // Build a Set of process codes that are assigned to other business units
     for (const [buId, processes] of allOrgProcessesByBuId.entries()) {
       if (buId !== selectedBusinessUnitId) {
         processes.forEach((process: any) => {
           // Only include processes that have orgBusinessUnitId set (are assigned)
-          if (process.orgBusinessUnitId && process.processName) {
-            const processName = (process.processName || '').toLowerCase().trim();
-            if (processName) {
-              excluded.add(processName);
+          if (process.orgBusinessUnitId && process.processCode) {
+            const processCode = (process.processCode || '').toLowerCase().trim();
+            if (processCode) {
+              excluded.add(processCode);
             }
           }
         });
@@ -464,17 +466,17 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       if (!matchesSearch) return false;
 
       // For processes, filter out items that are assigned to other business units
-      if (itemType === 'processes' && excludedProcessNames.size > 0) {
-        const processName = (item.name || '').toLowerCase().trim();
+      if (itemType === 'processes' && excludedProcessCodes.size > 0) {
+        const processCode = (item.processCode || '').toLowerCase().trim();
         // Fast O(1) lookup in Set instead of nested loop
-        if (processName && excludedProcessNames.has(processName)) {
+        if (processCode && excludedProcessCodes.has(processCode)) {
           return false;
         }
       }
 
       return true;
     });
-  }, [items, searchTerm, itemType, excludedProcessNames]);
+  }, [items, searchTerm, itemType, excludedProcessCodes]);
 
   const handleSelectAll = useCallback(() => {
     const allFilteredIds = filteredItems

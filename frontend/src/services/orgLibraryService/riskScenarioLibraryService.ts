@@ -15,6 +15,7 @@ export const RiskScenarioLibraryService = {
         id: scenario.id!,
         name: scenario.riskScenario,
         description: scenario.riskStatement || '',
+        riskCode: scenario.riskCode,
       }));
 
     return {

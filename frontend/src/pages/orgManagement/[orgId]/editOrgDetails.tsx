@@ -572,7 +572,7 @@ function EditOrgDetailsPage() {
                 </Box>
 
                 {/* Tags Section */}
-                <Box sx={{ mb: 2 }}>
+                {/* <Box sx={{ mb: 2 }}>
                   <Typography sx={{
                     fontSize: "16px",
                     fontWeight: 500,
@@ -689,7 +689,7 @@ function EditOrgDetailsPage() {
                   >
                     Add New Key
                   </Button>
-                </Box>
+                </Box> */}
               </Box>
             </AccordionDetails>
           </Accordion>

@@ -61,7 +61,8 @@ interface BusinessContextData {
 const MANDATORY_FIELDS = {
   // Basic Details
   orgName: true,
-  tags: true, // At least one tag is mandatory
+  // tags: true, // At least one tag is mandatory
+  tags: false, // Tags section is commented out, so tags are optional
 
   // Business Context - Step 1
   industryVertical: true,
@@ -350,7 +351,7 @@ function CreateNewOrgPage() {
                 {
                   name: "Critical",
                   minRange: formatRange(defaultMax),
-                  maxRange: formatRange(annualRevenueValue),
+                  maxRange: formatRange(defaultMax),
                   color: "#B90D0D",
                   order: 5,
                   createdBy: userId || ""
@@ -618,12 +619,17 @@ function CreateNewOrgPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        p: 1
+        p: 1,
+        // Hide scrollbar but keep scrolling functionality
+        "&::-webkit-scrollbar": {
+          display: "none"
+        },
+        scrollbarWidth: "none", // Firefox
+        msOverflowStyle: "none" // IE and Edge
       }}>
         <Box
           sx={{
             width: "880px",
-            minHeight: "656px",
             borderRadius: "8px",
             border: "1px solid #E7E7E8",
             p: "40px",
@@ -831,7 +837,7 @@ function CreateNewOrgPage() {
                   />
 
                   {/* Tags Section */}
-                  <Box sx={{ mb: 2, mt: 3 }}>
+                  {/* <Box sx={{ mb: 2, mt: 3 }}>
                     <Typography
                       variant="h6"
                       sx={{
@@ -853,7 +859,6 @@ function CreateNewOrgPage() {
                     </Typography>
 
                     <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
-                      {/* Key Select */}
                       <FormControl variant="outlined" sx={{ flex: 1 }}>
                         <InputLabel
                           sx={{
@@ -896,7 +901,6 @@ function CreateNewOrgPage() {
                         </Select>
                       </FormControl>
 
-                      {/* Value Field */}
                       <TextField
                         label="Value"
                         placeholder="Enter Value"
@@ -954,7 +958,6 @@ function CreateNewOrgPage() {
                       Add New Key
                     </Button>
 
-                    {/* Display Added Tags */}
                     {tags.length > 0 ? (
                       <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 1 }}>
                         {tags.map((tag, index) => (
@@ -988,7 +991,7 @@ function CreateNewOrgPage() {
                         No tags added yet. Please add at least one tag to continue.
                       </Typography>
                     )}
-                  </Box>
+                  </Box> */}
                 </Box>
               </>
             ) : (
