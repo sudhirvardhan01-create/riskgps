@@ -185,38 +185,37 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     }
 
     const fetchProcessesData = async () => {
+      // Store selected BU processes in a variable to preserve it even if parallel fetches fail
+      let selectedProcessesData: any[] = [];
+      
       try {
         // 1. Fetch processes for the selected business unit (for pre-selection)
+        // This is critical and must succeed - preserve this data
         const selectedResponse = await getOrganizationProcess(orgId, selectedBusinessUnitId, 0, -1);
-        const selectedProcessesData = selectedResponse?.data?.data || selectedResponse?.data || [];
+        selectedProcessesData = selectedResponse?.data?.data || selectedResponse?.data || [];
         
-        if (Array.isArray(selectedProcessesData)) {
-          setCachedOrgProcesses(selectedProcessesData);
-          // Update the map with data for the selected business unit
-          setAllOrgProcessesByBuId(prev => {
-            const newMap = new Map(prev);
-            newMap.set(selectedBusinessUnitId, selectedProcessesData);
-            return newMap;
-          });
-        } else {
-          setCachedOrgProcesses([]);
-          setAllOrgProcessesByBuId(prev => {
-            const newMap = new Map(prev);
-            newMap.set(selectedBusinessUnitId, []);
-            return newMap;
-          });
+        if (!Array.isArray(selectedProcessesData)) {
+          selectedProcessesData = [];
         }
+        
+        // Set the selected processes data immediately - this is the critical data
+        setCachedOrgProcesses(selectedProcessesData);
+        // Update the map with data for the selected business unit
+        setAllOrgProcessesByBuId(prev => {
+          const newMap = new Map(prev);
+          newMap.set(selectedBusinessUnitId, selectedProcessesData);
+          return newMap;
+        });
 
         // 2. Fetch processes for OTHER business units (to build exclusion list)
-        // Get current state to check what's already cached
-        const currentMap = allOrgProcessesByBuId;
+        // This is non-critical and failures should not affect the selected BU data
         const otherBusinessUnits = businessUnits.filter(bu => bu.id !== selectedBusinessUnitId);
         
         // Filter to only fetch uncached BUs - check state map and fetching ref
         const uncachedBUs = otherBusinessUnits.filter(bu => {
           const buId = bu.id;
           // Fetch only if: not currently fetching AND not already in cache
-          return !fetchingBUsRef.current.has(buId) && !currentMap.has(buId);
+          return !fetchingBUsRef.current.has(buId) && !allOrgProcessesByBuId.has(buId);
         });
         
         if (uncachedBUs.length > 0) {
@@ -224,6 +223,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
           uncachedBUs.forEach(bu => fetchingBUsRef.current.add(bu.id));
           
           // Fetch processes for uncached business units in parallel (non-blocking)
+          // Use Promise.allSettled to handle all promises, even if some fail
           const fetchPromises = uncachedBUs.map(async (bu: BusinessUnitData) => {
             try {
               const response = await getOrganizationProcess(orgId, bu.id, 0, -1);
@@ -243,15 +243,20 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                 return newMap;
               });
             } catch (err: any) {
-              // Cache empty array on error to avoid retrying
-              if (err.message?.toLowerCase().includes('no processes found')) {
-                setAllOrgProcessesByBuId(prev => {
-                  if (prev.has(bu.id)) return prev;
-                  const newMap = new Map(prev);
-                  newMap.set(bu.id, []);
-                  return newMap;
-                });
-              } else {
+              // Handle errors gracefully - don't let them affect the selected BU data
+              const errorMessage = err?.message || err?.error || JSON.stringify(err || {});
+              const isNoProcessesError = errorMessage?.toLowerCase().includes('no processes found');
+              
+              // Cache empty array on "No processes found" error or any error to avoid retrying
+              setAllOrgProcessesByBuId(prev => {
+                if (prev.has(bu.id)) return prev; // Already cached
+                const newMap = new Map(prev);
+                newMap.set(bu.id, []); // Cache empty array
+                return newMap;
+              });
+              
+              // Only log non-"No processes found" errors
+              if (!isNoProcessesError) {
                 console.error(`Error fetching processes for business unit ${bu.id}:`, err);
               }
             } finally {
@@ -260,12 +265,22 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
             }
           });
           
+          // Use Promise.allSettled to handle all promises without blocking
           // Don't await - let it run in background to avoid blocking UI
-          Promise.allSettled(fetchPromises);
+          // But handle it properly to ensure errors don't propagate
+          Promise.allSettled(fetchPromises).catch(() => {
+            // This should never happen, but handle it just in case
+            // All individual promises are already handled in their own try-catch
+          });
         }
       } catch (err: any) {
-        // If error is "No processes found", treat it as empty state
-        if (err.message?.toLowerCase().includes('no processes found')) {
+        // Handle error for selected BU fetch
+        // But preserve any data we already have
+        const errorMessage = err?.message || err?.error || JSON.stringify(err || {});
+        const isNoProcessesError = errorMessage?.toLowerCase().includes('no processes found');
+        
+        if (isNoProcessesError) {
+          // "No processes found" is a valid empty state, not an error
           setCachedOrgProcesses([]);
           setAllOrgProcessesByBuId(prev => {
             const newMap = new Map(prev);
@@ -273,8 +288,12 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
             return newMap;
           });
         } else {
-          console.error("Error fetching processes for business unit:", err);
-          setCachedOrgProcesses([]);
+          // For other errors, log but don't clear data if we already have it
+          console.error("Error fetching processes for selected business unit:", err);
+          // Only clear if we don't have any data yet
+          if (selectedProcessesData.length === 0) {
+            setCachedOrgProcesses([]);
+          }
         }
       }
     };
