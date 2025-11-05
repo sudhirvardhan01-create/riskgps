@@ -145,6 +145,7 @@ class OrganizationService {
         },
         attributes: [
           "id",
+          "parentObjectId",
           "organizationId",
           "orgBusinessUnitId",
           "autoIncrementId",
@@ -245,6 +246,7 @@ class OrganizationService {
         processData.organizationId = orgId;
         processData.orgBusinessUnitId = buId;
         processData.isDeleted = false;
+
         console.log("Creating process with data:", processData);
 
         const [process, created] = await OrganizationProcess.upsert(
@@ -434,6 +436,7 @@ class OrganizationService {
           isDeleted: false,
         },
         attributes: [
+          "parentObjectId",
           "id",
           "organizationId",
           "autoIncrementId",
@@ -713,6 +716,7 @@ class OrganizationService {
             };
           }
           acc[key].controls.push({
+            parentObjectId: row.parentObjectId ?? null,
             id: row.id,
             mitreControlId: row.mitreControlId,
             mitreControlName: row.mitreControlName,
@@ -768,6 +772,7 @@ class OrganizationService {
           this.validateMitreThreatControlData(data);
           const controls = data.controls ?? [];
           const payloads = controls.map((control) => ({
+            parentObjectId: data?.parentObjectId ?? null,
             organizationId: organizationId,
             platforms: data.platforms,
             mitreTechniqueId: data.mitreTechniqueId,
@@ -882,6 +887,7 @@ class OrganizationService {
           isDeleted: false,
         },
         attributes: [
+          "parentObjectId",
           "id",
           "organizationId",
           "autoIncrementId",
@@ -992,6 +998,7 @@ class OrganizationService {
           const assetData =
             OrganizationAssetService.handleAssetDataColumnMapping(data);
           assetData.organizationId = organizationId;
+          assetData.isDeleted = false;
 
           console.log("[createAssetByOrgId], asset mapped values", assetData);
           const [asset, created] = await OrganizationAsset.upsert(assetData, {

@@ -3,6 +3,7 @@
 module.exports = {
   async up(queryInterface) {
     const {
+      Process,
       OrganizationProcess,
       MetaData,
       Organization,
@@ -293,6 +294,14 @@ module.exports = {
         }
         processData.organizationId = orgId;
         processData.orgBusinessUnitId = buId;
+        const a = await Process.findOne({
+          where: { processName: process.process_name },
+        });
+        const p = a.toJSON();
+
+        if (p) {
+          processData.parentObjectId = p.id ?? null;
+        }
         // Insert the process
         const [createdProcess, created] =
           await OrganizationProcess.findOrCreate({
