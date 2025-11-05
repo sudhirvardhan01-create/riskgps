@@ -23,6 +23,7 @@ class OrganizationRiskScenarioService {
 
   static handleRiskScenarioColumnMapping(data) {
     const fields = [
+      "parentObjectId",
       "riskScenario",
       "riskDescription",
       "riskStatement",

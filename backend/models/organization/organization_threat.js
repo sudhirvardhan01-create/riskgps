@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         field: "id",
       },
+      parentObjectId: {
+        type: DataTypes.UUID,
+        field: "parent_object_id",
+      },
       organizationId: {
         type: DataTypes.UUID,
         allowNull: false,
