@@ -15,6 +15,7 @@ export const AssetLibraryService = {
         id: asset.id!,
         name: asset.applicationName,
         description: asset.assetDescription || '',
+        assetCode: asset.assetCode,
       }));
 
     return {

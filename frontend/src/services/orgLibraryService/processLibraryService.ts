@@ -15,6 +15,7 @@ export const ProcessLibraryService = {
         id: process.id!,
         name: process.processName,
         description: process.processDescription || '',
+        processCode: process.processCode,
       }));
 
     return {

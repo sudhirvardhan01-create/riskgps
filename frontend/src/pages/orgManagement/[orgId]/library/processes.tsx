@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -20,16 +20,21 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { ArrowBack, Search, Delete, Close } from "@mui/icons-material";
+import { ArrowBack, Search, Delete, Close, EditOutlined, DeleteOutlineOutlined } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
+import { ProcessData } from "@/types/process";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { ProcessLibraryService } from "@/services/orgLibraryService/processLibraryService";
-import { getOrganizationProcess, createOrganizationProcesses } from "@/pages/api/organization";
-import { fetchProcessById } from "@/pages/api/process";
+import { getOrganizationProcess, createOrganizationProcesses, updateOrganizationProcess } from "@/pages/api/organization";
+import { fetchProcessById, fetchProcessesForListing } from "@/pages/api/process";
 import { getBusinessUnits } from "@/services/businessUnitService";
 import { BusinessUnitData } from "@/types/business-unit";
+import ProcessFormModal from "@/components/Library/Process/ProcessFormModal";
+import MenuItemComponent from "@/components/MenuItemComponent";
+import { fetchMetaDatas } from "@/pages/api/meta-data";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface Process {
   id: string | number;
@@ -55,6 +60,11 @@ function ProcessesPage() {
   const [currentBusinessUnitId, setCurrentBusinessUnitId] = useState<string | string[] | undefined>(businessUnitId);
   const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([]);
   const [loadingBusinessUnits, setLoadingBusinessUnits] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(null);
+  const [processesData, setProcessesData] = useState<any[]>([]);
+  const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -151,6 +161,23 @@ function ProcessesPage() {
       fetchOrganizationProcesses(currentBusinessUnitId);
     }
   }, [orgId, currentBusinessUnitId]);
+
+  // Fetch processes and metaDatas for the edit modal
+  useEffect(() => {
+    (async () => {
+      try {
+        const [processes, meta] = await Promise.all([
+          fetchProcessesForListing(),
+          fetchMetaDatas(),
+        ]);
+        setProcessesData(processes.data ?? []);
+        // Match exactly what ProcessContainer does - it uses meta.data
+        setMetaDatas(meta.data ?? []);
+      } catch (err) {
+        console.error("Failed to fetch supporting data:", err);
+      }
+    })();
+  }, []);
 
   // Handle business unit selection change
   const handleBusinessUnitChange = (event: any) => {
@@ -298,6 +325,80 @@ function ProcessesPage() {
 
   const handleDeleteSingleProcess = (processId: string | number) => {
     setProcesses(prev => prev.filter(process => process.id !== processId));
+  };
+
+  // Helper function to transform orgProcess to ProcessData format
+  const transformToProcessData = useCallback((fullProcess: any): ProcessData => {
+    return {
+      id: fullProcess.id,
+      processCode: fullProcess.processCode,
+      processName: fullProcess.processName || "",
+      processDescription: fullProcess.processDescription || "",
+      seniorExecutiveOwnerName: fullProcess.seniorExecutiveOwnerName || "",
+      seniorExecutiveOwnerEmail: fullProcess.seniorExecutiveOwnerEmail || "",
+      operationsOwnerName: fullProcess.operationsOwnerName || "",
+      operationsOwnerEmail: fullProcess.operationsOwnerEmail || "",
+      technologyOwnerName: fullProcess.technologyOwnerName || "",
+      technologyOwnerEmail: fullProcess.technologyOwnerEmail || "",
+      organizationalRevenueImpactPercentage: fullProcess.organizationalRevenueImpactPercentage || null,
+      financialMateriality: typeof fullProcess.financialMateriality === 'boolean' 
+        ? fullProcess.financialMateriality 
+        : fullProcess.financialMateriality === 'true',
+      thirdPartyInvolvement: typeof fullProcess.thirdPartyInvolvement === 'boolean' 
+        ? fullProcess.thirdPartyInvolvement 
+        : fullProcess.thirdPartyInvolvement === 'true',
+      users: fullProcess.usersCustomers || "",
+      requlatoryAndCompliance: fullProcess.regulatoryAndCompliance || [],
+      criticalityOfDataProcessed: fullProcess.criticalityOfDataProcessed || "",
+      dataProcessed: fullProcess.dataProcessed || [],
+      status: fullProcess.status || "published",
+      attributes: fullProcess.attributes?.map((attr: any) => ({
+        meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
+        values: attr.values || [],
+      })) || [],
+      processDependency: fullProcess.process_dependency?.map((dep: any) => ({
+        sourceProcessId: dep.sourceProcessId || dep.source_process_id,
+        targetProcessId: dep.targetProcessId || dep.target_process_id,
+        relationshipType: dep.relationshipType || dep.relationship_type,
+      })) || [],
+    };
+  }, []);
+
+  // Memoized handler for editing a process
+  const handleEditProcess = useCallback((processId: string | number) => {
+    const fullProcess = orgProcesses.find((p: any) => p.id === processId);
+    if (fullProcess) {
+      const processData = transformToProcessData(fullProcess);
+      setSelectedProcess(processData);
+      setIsEditOpen(true);
+    }
+  }, [orgProcesses, transformToProcessData]);
+
+  // Update process
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedProcess?.id || !orgId || typeof orgId !== 'string' || !currentBusinessUnitId || typeof currentBusinessUnitId !== 'string') {
+        throw new Error("Invalid selection");
+      }
+      
+      // Transform the selectedProcess to match the API format
+      const body = { ...selectedProcess, status };
+      
+      await updateOrganizationProcess(orgId, currentBusinessUnitId, String(selectedProcess.id), body);
+      
+      setIsEditOpen(false);
+      setSelectedProcess(null);
+      
+      // Refresh the list
+      await fetchOrganizationProcesses(currentBusinessUnitId);
+      
+      setShowSuccessMessage(true);
+      setErrorMessage(null);
+    } catch (err: any) {
+      console.error("Failed to update process:", err);
+      setErrorMessage(err.message || "Failed to update process. Please try again.");
+      setShowSuccessMessage(false);
+    }
   };
 
   const handleCloseSuccessMessage = () => {
@@ -735,7 +836,7 @@ function ProcessesPage() {
               </Box>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3 }}>
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}
@@ -983,23 +1084,30 @@ function ProcessesPage() {
                             },
                           }}
                         />
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteSingleProcess(process.id);
-                          }}
+                        <Box
                           sx={{
                             position: "absolute",
                             right: 8,
                             top: 8,
-                            color: "#F44336",
-                            "&:hover": {
-                              backgroundColor: "rgba(244, 67, 54, 0.1)",
-                            },
                           }}
                         >
-                          <Delete sx={{ fontSize: "20px" }} />
-                        </IconButton>
+                          <MenuItemComponent
+                            items={[
+                              {
+                                onAction: () => handleEditProcess(process.id),
+                                color: "primary.main",
+                                action: "Edit",
+                                icon: <EditOutlined fontSize="small" />,
+                              },
+                              {
+                                onAction: () => handleDeleteSingleProcess(process.id),
+                                color: "#CD0303",
+                                action: "Delete",
+                                icon: <DeleteOutlineOutlined fontSize="small" />,
+                              },
+                            ]}
+                          />
+                        </Box>
                       </Box>
                     </Grid>
                   );
@@ -1021,6 +1129,42 @@ function ProcessesPage() {
         alreadyAddedIds={processes.map(process => process.id)}
         orgId={orgId}
         initialBusinessUnitId={currentBusinessUnitId}
+      />
+
+      {/* Edit Process Modal */}
+      {isEditOpen && selectedProcess && (
+        <ProcessFormModal
+          operation="edit"
+          open={isEditOpen}
+          processData={selectedProcess}
+          setProcessData={(val: any) => {
+            if (typeof val === "function") {
+              setSelectedProcess((prev) => val(prev as ProcessData));
+            } else {
+              setSelectedProcess(val);
+            }
+          }}
+          processes={processesData}
+          processForListing={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleUpdate}
+          onClose={() => setIsEditConfirmOpen(true)}
+        />
+      )}
+
+      {/* Confirm Dialog for Edit Cancellation */}
+      <ConfirmDialog
+        open={isEditConfirmOpen}
+        onClose={() => setIsEditConfirmOpen(false)}
+        title="Cancel Process Updation?"
+        description="Are you sure you want to cancel the process updation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsEditConfirmOpen(false);
+          setSelectedProcess(null);
+          setIsEditOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
       />
     </Box>
   );
