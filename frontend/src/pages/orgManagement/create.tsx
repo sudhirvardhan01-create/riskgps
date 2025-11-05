@@ -350,7 +350,7 @@ function CreateNewOrgPage() {
                 },
                 {
                   name: "Critical",
-                  minRange: formatRange(defaultMax),
+                  minRange: "",
                   maxRange: formatRange(defaultMax),
                   color: "#B90D0D",
                   order: 5,
@@ -398,8 +398,8 @@ function CreateNewOrgPage() {
                 },
                 {
                   name: "Critical",
-                  minRange: formatRange(defaultMax),
-                  maxRange: formatRange(annualRevenueValue),
+                  minRange: "",
+                  maxRange: formatRange(defaultMax),
                   color: "#B90D0D",
                   order: 5,
                   createdBy: userId || ""
@@ -446,8 +446,8 @@ function CreateNewOrgPage() {
                 },
                 {
                   name: "Critical",
-                  minRange: formatRange(defaultMax),
-                  maxRange: formatRange(annualRevenueValue),
+                  minRange: "",
+                  maxRange: formatRange(defaultMax),
                   color: "#B90D0D",
                   order: 5,
                   createdBy: userId || ""
@@ -494,8 +494,8 @@ function CreateNewOrgPage() {
                 },
                 {
                   name: "Critical",
-                  minRange: formatRange(defaultMax),
-                  maxRange: formatRange(annualRevenueValue),
+                  minRange: "",
+                  maxRange: formatRange(defaultMax),
                   color: "#B90D0D",
                   order: 5,
                   createdBy: userId || ""
