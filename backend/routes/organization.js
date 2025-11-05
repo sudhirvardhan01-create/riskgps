@@ -186,20 +186,20 @@ router.put(
 
 
 router.delete(
-  "/:orgId/business-unit/:businessUnitId/process/:id",
+  "/:orgId/business-unit/:businessUnitId/process",
   async (req, res) => {
     try {
-      const { id, orgId, businessUnitId } = req.params;
-      console.log({ id ,orgId, businessUnitId })
-      if (!id || !orgId || !businessUnitId) {
+      const { orgId, businessUnitId } = req.params;
+      const ids = req.body.id ?? null;
+      if (!ids || !Array.isArray(ids) || !orgId || !businessUnitId) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           message:
-            "Process ID, Organization ID and Business unit ID is required in the URL",
+            "Process ID array, Organization ID and Business unit ID is required in the URL",
         });
       }
 
       const process = await OrganizationService.deleteProcess(
-        id,
+        ids,
         orgId,
         businessUnitId,
       );
@@ -329,18 +329,19 @@ router.put("/:orgId/risk-scenarios/:id", async (req, res) => {
   }
 });
 
-router.delete("/:orgId/risk-scenarios/:id", async (req, res) => {
+router.delete("/:orgId/risk-scenarios", async (req, res) => {
   try {
-    const { id , orgId } = req.params;
-
-    if (!id || !orgId) {
+    const { orgId } = req.params;
+    const ids = req.body.id ?? null;
+    
+    if (!Array.isArray(ids) || !orgId) {
       return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "id and Organization ID is required in the URL",
+        message: "id array and Organization ID is required in the URL",
       });
     }
 
     const scenarios = await OrganizationService.deleteRiskScenario(
-      id,
+      ids,
       orgId,
     );
 
@@ -553,18 +554,19 @@ router.put("/:orgId/asset/:id", async (req, res) => {
   }
 });
 
-router.delete("/:orgId/asset/:id", async (req, res) => {
+router.delete("/:orgId/asset/", async (req, res) => {
   try {
-    const { id, orgId } = req.params;
+    const { orgId } = req.params;
+    const ids = req.body.id ?? null;
 
-    if (!id || !orgId) {
+    if (!Array.isArray(ids) || !orgId) {
       return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "asset id and Organization ID is required in the URL",
+        message: "asset id array and Organization ID is required in the URL",
       });
     }
 
     const scenarios = await OrganizationService.deleteAsset(
-      id,
+      ids,
       orgId
     );
 
