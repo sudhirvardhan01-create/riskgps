@@ -49,3 +49,25 @@ export const register = async (
   }
   return response.json();
 };
+
+export const logout = async (refreshToken: string) => {
+  if (!refreshToken) {
+    throw new Error("Missing refresh token");
+  }
+  const reqBody = { refreshToken };
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/logout`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reqBody),
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to logout user");
+  }
+  const res = await response.json();
+  return res.msg;
+};
