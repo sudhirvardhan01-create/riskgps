@@ -206,7 +206,7 @@ class OrganizationService {
           orgId,
           businessUnitId
         );
-        
+
       return processes;
     } catch (err) {
       throw new CustomError(
@@ -393,6 +393,16 @@ class OrganizationService {
         where: {
           [Op.or]: [{ sourceProcessId: id }, { targetProcessId: id }],
         },
+        transaction: t,
+      });
+
+      await OrganizationAssetProcessMappings.destroy({
+        where: { processId: id },
+        transaction: t,
+      });
+
+      await OrganizationProcessRiskScenarioMappings.destroy({
+        where: { processId: id },
         transaction: t,
       });
 
