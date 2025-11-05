@@ -3,6 +3,7 @@
 module.exports = {
   async up(queryInterface) {
     const {
+      Asset,
       Organization,
       OrganizationProcess,
       OrganizationAsset,
@@ -106,6 +107,14 @@ module.exports = {
           }
         }
         assetData["organizationId"] = orgId;
+
+        const p = await Asset.findOne({
+          where: { applicationName: asset.application_name },
+        });
+
+        if (p) {
+          assetData.parentObjectId = p.id ?? null;
+        }
 
         const [createdAsset, created] = await OrganizationAsset.findOrCreate({
           where: { applicationName: assetData.applicationName },

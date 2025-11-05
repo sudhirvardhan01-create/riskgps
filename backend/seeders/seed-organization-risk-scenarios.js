@@ -5,6 +5,7 @@ const riskScenario = require("../models/riskScenario");
 module.exports = {
   async up(queryInterface) {
     const {
+      RiskScenario,
       OrganizationProcess,
       Organization,
       MetaData,
@@ -545,6 +546,13 @@ module.exports = {
         riskData["riskField2"] = risk["risk_field_2"];
         riskData["organizationId"] = orgId;
 
+        const p = await RiskScenario.findOne({
+          where: { riskScenario: risk.risk_scenario },
+        });
+
+        if (p) {
+          riskData.parentObjectId = p.id ?? null;
+        }
         const [createdRisk, created] =
           await OrganizationRiskScenario.findOrCreate({
             where: { riskScenario: riskData.riskScenario },
