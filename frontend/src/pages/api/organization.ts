@@ -497,6 +497,103 @@ export const updateOrganizationRiskScenario = async (
   return response.json();
 };
 
+export const deleteOrganizationRiskScenario = async (
+  orgId: string | undefined,
+  riskScenarioIds: string[] | string | undefined
+) => {
+  if (!orgId || !riskScenarioIds) {
+    throw new Error("Organization ID and Risk Scenario ID(s) are required");
+  }
+
+  // Convert single ID to array for consistency
+  const ids = Array.isArray(riskScenarioIds) ? riskScenarioIds : [riskScenarioIds];
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: ids,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to delete organization risk scenario");
+  }
+
+  return response.json();
+};
+
+export const deleteOrganizationAsset = async (
+  orgId: string | undefined,
+  assetIds: string[] | string | undefined
+) => {
+  if (!orgId || !assetIds) {
+    throw new Error("Organization ID and Asset ID(s) are required");
+  }
+
+  // Convert single ID to array for consistency
+  const ids = Array.isArray(assetIds) ? assetIds : [assetIds];
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/asset`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: ids,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to delete organization asset");
+  }
+
+  return response.json();
+};
+
+export const deleteOrganizationProcess = async (
+  orgId: string | undefined,
+  buId: string | undefined,
+  processIds: string[] | string | undefined
+) => {
+  if (!orgId || !buId || !processIds) {
+    throw new Error("Organization ID, Business Unit ID, and Process ID(s) are required");
+  }
+
+  // Convert single ID to array for consistency
+  const ids = Array.isArray(processIds) ? processIds : [processIds];
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/process`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: ids,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to delete organization process");
+  }
+
+  return response.json();
+};
+
 export const getOrganizationProcessDetails = async (orgId: string | undefined) => {
   if (!orgId) {
     throw new Error("Organization ID is required");

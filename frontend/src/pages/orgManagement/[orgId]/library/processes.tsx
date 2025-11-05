@@ -27,7 +27,7 @@ import Image from "next/image";
 import { ProcessData } from "@/types/process";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { ProcessLibraryService } from "@/services/orgLibraryService/processLibraryService";
-import { getOrganizationProcess, createOrganizationProcesses, updateOrganizationProcess } from "@/pages/api/organization";
+import { getOrganizationProcess, createOrganizationProcesses, updateOrganizationProcess, deleteOrganizationProcess } from "@/pages/api/organization";
 import { fetchProcessById, fetchProcessesForListing } from "@/pages/api/process";
 import { getBusinessUnits } from "@/services/businessUnitService";
 import { BusinessUnitData } from "@/types/business-unit";
@@ -51,8 +51,8 @@ function ProcessesPage() {
   const [orgProcesses, setOrgProcesses] = useState<any[]>([]); // Full org processes for matching
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("Success! Processes have been added.");
   const [selectedProcesses, setSelectedProcesses] = useState<(string | number)[]>([]);
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -286,6 +286,7 @@ function ProcessesPage() {
       // Refresh the list
       await fetchOrganizationProcesses(buId);
 
+      setSuccessMessage("Success! Processes have been added.");
       setShowSuccessMessage(true);
       setIsAddModalOpen(false);
     } catch (err: any) {
@@ -296,16 +297,6 @@ function ProcessesPage() {
     }
   };
 
-  const handleEnterDeleteMode = () => {
-    setIsDeleteMode(true);
-    setSelectedProcesses([]);
-  };
-
-  const handleExitDeleteMode = () => {
-    setIsDeleteMode(false);
-    setSelectedProcesses([]);
-  };
-
   const handleProcessToggle = (processId: string | number) => {
     setSelectedProcesses(prev =>
       prev.includes(processId)
@@ -314,17 +305,68 @@ function ProcessesPage() {
     );
   };
 
-  const handleRemoveSelected = () => {
-    setProcesses(prev => prev.filter(process => !selectedProcesses.includes(process.id)));
-    setSelectedProcesses([]);
+  const handleRemoveSelected = async () => {
+    if (!orgId || typeof orgId !== 'string' || !currentBusinessUnitId || typeof currentBusinessUnitId !== 'string') {
+      setErrorMessage("Organization ID and Business Unit ID are required");
+      return;
+    }
+
+    if (selectedProcesses.length === 0) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      // Convert selected process IDs to strings
+      const processIds = selectedProcesses.map(id => String(id));
+      
+      await deleteOrganizationProcess(orgId, currentBusinessUnitId, processIds);
+      
+      // Refresh the list after successful deletion
+      await fetchOrganizationProcesses(currentBusinessUnitId);
+      
+      setSuccessMessage(`Success! ${selectedProcesses.length} process(es) have been deleted.`);
+      setShowSuccessMessage(true);
+      setSelectedProcesses([]);
+    } catch (err: any) {
+      console.error("Failed to delete processes:", err);
+      setErrorMessage(err.message || "Failed to delete processes. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClearSelection = () => {
     setSelectedProcesses([]);
   };
 
-  const handleDeleteSingleProcess = (processId: string | number) => {
-    setProcesses(prev => prev.filter(process => process.id !== processId));
+  const handleDeleteSingleProcess = async (processId: string | number) => {
+    if (!orgId || typeof orgId !== 'string' || !currentBusinessUnitId || typeof currentBusinessUnitId !== 'string') {
+      setErrorMessage("Organization ID and Business Unit ID are required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      await deleteOrganizationProcess(orgId, currentBusinessUnitId, String(processId));
+      
+      // Refresh the list after successful deletion
+      await fetchOrganizationProcesses(currentBusinessUnitId);
+      
+      setSuccessMessage("Success! Process has been deleted.");
+      setShowSuccessMessage(true);
+    } catch (err: any) {
+      console.error("Failed to delete process:", err);
+      setErrorMessage(err.message || "Failed to delete process. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Helper function to transform orgProcess to ProcessData format
@@ -392,6 +434,7 @@ function ProcessesPage() {
       // Refresh the list
       await fetchOrganizationProcesses(currentBusinessUnitId);
       
+      setSuccessMessage("Success! Process has been updated.");
       setShowSuccessMessage(true);
       setErrorMessage(null);
     } catch (err: any) {
@@ -608,7 +651,7 @@ function ProcessesPage() {
             },
           }}
         >
-          Success! Processes have been added.
+          {successMessage}
         </Alert>
       </Snackbar>
 
@@ -836,7 +879,7 @@ function ProcessesPage() {
               </Box>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}

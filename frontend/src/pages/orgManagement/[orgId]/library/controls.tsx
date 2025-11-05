@@ -37,7 +37,6 @@ function ControlsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedControls, setSelectedControls] = useState<(string | number)[]>([]);
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
 
   const handleBackClick = () => {
@@ -63,16 +62,6 @@ function ControlsPage() {
     setControls(prev => [...prev, ...newControls]);
     setShowSuccessMessage(true);
     setIsAddModalOpen(false);
-  };
-
-  const handleEnterDeleteMode = () => {
-    setIsDeleteMode(true);
-    setSelectedControls([]);
-  };
-
-  const handleExitDeleteMode = () => {
-    setIsDeleteMode(false);
-    setSelectedControls([]);
   };
 
   const handleControlToggle = (controlId: string | number) => {
@@ -337,7 +326,7 @@ function ControlsPage() {
               </Typography>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}
