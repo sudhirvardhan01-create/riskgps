@@ -8,6 +8,8 @@
   SeverityLevel,
   MetaData,
   OrganizationAsset,
+  OrganizationAssetProcessMappings,
+  OrganizationProcessRiskScenarioMappings,
   OrganizationRiskScenarioAttribute,
   OrganizationAssetAttribute,
   OrganizationProcessAttribute,
@@ -204,14 +206,7 @@ class OrganizationService {
           orgId,
           businessUnitId
         );
-
-      if (!processes || processes.length === 0) {
-        throw new CustomError(
-          "No processes found for given organization and business unit",
-          HttpStatus.NOT_FOUND
-        );
-      }
-
+        
       return processes;
     } catch (err) {
       throw new CustomError(
@@ -360,6 +355,48 @@ class OrganizationService {
       }
 
       return updatedRows;
+    });
+  }
+
+  static async deleteProcess(id, orgId, buId) {
+    if (!id || !orgId || !buId) {
+      throw new Error("process id, OrgID and BuID required");
+    }
+
+    return await sequelize.transaction(async (t) => {
+      console.log("deleting process process with data:", id, orgId, buId);
+
+      const [updatedCount, updatedRows] = await OrganizationProcess.update(
+        {
+          isDeleted: true,
+        },
+        {
+          where: {
+            id,
+            organizationId: orgId,
+            orgBusinessUnitId: buId,
+          },
+          returning: true,
+          transaction: t,
+        }
+      );
+
+      if (updatedCount < 1) {
+        throw new Error("No process found.");
+      }
+
+      await OrganizationProcessAttribute.destroy({
+        where: { processId: id },
+        transaction: t,
+      });
+      await OrganizationProcessRelationship.destroy({
+        where: {
+          [Op.or]: [{ sourceProcessId: id }, { targetProcessId: id }],
+        },
+        transaction: t,
+      });
+
+      return updatedCount;
     });
   }
   /**
@@ -570,6 +607,45 @@ class OrganizationService {
         err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  static async deleteRiskScenario(id, orgId) {
+    if (!id || !orgId) {
+      throw new Error("risk scenario id, OrgID required");
+    }
+
+    return await sequelize.transaction(async (t) => {
+      console.log("deleting risk scenario :", id, orgId);
+
+      const [updatedCount, updatedRows] = await OrganizationRiskScenario.update(
+        {
+          isDeleted: true,
+        },
+        {
+          where: {
+            id,
+            organizationId: orgId,
+          },
+          returning: true,
+          transaction: t,
+        }
+      );
+
+      if (updatedCount < 1) {
+        throw new Error("No risk scenario found.");
+      }
+
+      await OrganizationProcessRiskScenarioMappings.destroy({
+        where: { riskScenarioId: id },
+        transaction: t,
+      });
+      await OrganizationRiskScenarioAttribute.destroy({
+        where: { riskScenarioId: id },
+        transaction: t,
+      });
+
+      return updatedCount;
+    });
   }
 
   static async getOrganizationMitreThreatsByOrgId(organizationId) {
@@ -932,39 +1008,42 @@ class OrganizationService {
         throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
       }
       return await sequelize.transaction(async (t) => {
-          const data = createBody;
+        const data = createBody;
 
-          console.log("[createAssetByOrgId] request received", data);
+        console.log("[createAssetByOrgId] request received", data);
 
-          OrganizationAssetService.validateAssetData(data);
+        OrganizationAssetService.validateAssetData(data);
 
-          const assetData =
-            OrganizationAssetService.handleAssetDataColumnMapping(data);
+        const assetData =
+          OrganizationAssetService.handleAssetDataColumnMapping(data);
 
-          console.log("[createAssetByOrgId], asset mapped values", assetData);
-          const [updatedCount, created] = await OrganizationAsset.update(assetData, {
+        console.log("[createAssetByOrgId], asset mapped values", assetData);
+        const [updatedCount, created] = await OrganizationAsset.update(
+          assetData,
+          {
             where: {
               id,
               organizationId: organizationId,
             },
             returning: true,
             transaction: t,
-          });
-
-          if (updatedCount < 1) {
-            throw new Error("failed to update asset")
           }
-          await OrganizationAssetService.handleAssetProcessMapping(
-            id,
-            data.relatedProcesses ?? [],
-            t
-          );
+        );
 
-          await OrganizationAssetService.handleAssetAttributes(
-            id,
-            data.attributes ?? [],
-            t
-          );
+        if (updatedCount < 1) {
+          throw new Error("failed to update asset");
+        }
+        await OrganizationAssetService.handleAssetProcessMapping(
+          id,
+          data.relatedProcesses ?? [],
+          t
+        );
+
+        await OrganizationAssetService.handleAssetAttributes(
+          id,
+          data.attributes ?? [],
+          t
+        );
 
         return created;
       });
@@ -974,6 +1053,45 @@ class OrganizationService {
         err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  static async deleteAsset(id, orgId) {
+    if (!id || !orgId) {
+      throw new Error("asset id, OrgID required");
+    }
+
+    return await sequelize.transaction(async (t) => {
+      console.log("deleting asset:", id, orgId);
+
+      const [updatedCount, updatedRows] = await OrganizationAsset.update(
+        {
+          isDeleted: true,
+        },
+        {
+          where: {
+            id,
+            organizationId: orgId,
+          },
+          returning: true,
+          transaction: t,
+        }
+      );
+
+      if (updatedCount < 1) {
+        throw new Error("No asset found.");
+      }
+
+      await OrganizationAssetProcessMappings.destroy({
+        where: { assetId: id },
+        transaction: t,
+      });
+      await OrganizationAssetAttribute.destroy({
+        where: { assetId: id },
+        transaction: t,
+      });
+
+      return updatedCount;
+    });
   }
 
   /**

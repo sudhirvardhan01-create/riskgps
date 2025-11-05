@@ -154,5 +154,6 @@ module.exports = {
     FETCHED: "Organizations fetched successfully",
     FETCHED_BY_ID: "Organization fetched by ID successfully",
     NOT_FOUND: "Organization not found",
+    PROCESSES_FETCHED: "Fetched Organization Process"
   },
 };
