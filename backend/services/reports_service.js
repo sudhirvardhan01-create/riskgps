@@ -1,17 +1,68 @@
 const {
+  Organization,
+  OrganizationBusinessUnit,
   OrganizationProcess,
   OrganizationRiskScenario,
   OrganizationProcessRelationship,
   OrganizationAsset,
 } = require("../models");
 class ReportsService {
-  static async getOrganizationalDependencyData(orgId = null, buId = null) {
+  static async getOrganizationalDependencyData(orgId = null) {
+    console.log("Fetching all Organization Dependecy map details");
+
+    if (!orgId) {
+      throw new Error("Organization ID requried");
+    }
+    const data = await Organization.findByPk(orgId, {
+      include: [
+        {
+          model: OrganizationBusinessUnit,
+          as: "businessUnits",
+          where: { isDeleted: false },
+          required: false,
+          attributes: [
+            "orgBusinessUnitId",
+            "name",
+            "createdBy",
+            "modifiedBy",
+            "createdDate",
+            "modifiedDate",
+          ],
+        },
+      ],
+    });
+    if (!data) {
+      throw new Error("No Organization Found");
+    }
+
+    const organization = data.toJSON();
+    if (organization.businessUnits?.length) {
+      await Promise.all(
+        organization.businessUnits.map(async (bu) => {
+          const buId = bu.orgBusinessUnitId;
+          if (buId) {
+            bu.processes = await this.getOrganizationalProcessDependencyData(
+              orgId,
+              buId
+            );
+          }
+        })
+      );
+    }
+
+    return organization;
+  }
+
+  static async getOrganizationalProcessDependencyData(
+    orgId = null,
+    buId = null
+  ) {
     console.log("Fetching all processes");
 
     if (!orgId) {
       throw new Error("Organization ID requried");
     }
-    
+
     const includeRelations = [
       {
         model: OrganizationRiskScenario,
@@ -53,23 +104,16 @@ class ReportsService {
     ];
 
     const whereClause = {
-        organizationId: orgId,
-        isDeleted: false,
-      }
+      organizationId: orgId,
+      isDeleted: false,
+    };
 
-      if (buId) {
-        whereClause.orgBusinessUnitId = buId;
-      }
+    if (buId) {
+      whereClause.orgBusinessUnitId = buId;
+    }
 
     const data = await OrganizationProcess.findAll({
       where: whereClause,
-      // attributes: [
-      //   "id",
-      //   "processCode",
-      //   "organizationId",
-      //   "orgBusinessUnitId",
-      //   "processName",
-      // ],
       include: includeRelations,
     });
 

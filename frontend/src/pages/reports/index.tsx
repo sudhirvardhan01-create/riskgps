@@ -1,7 +1,5 @@
 import RiskDashboard from "@/components/Reports/CustomReports";
 import ProcessAssetFlow from "@/components/Reports/ProcessAssetFlow";
-import { ChartProcess } from "@/types/reports";
-import { transformProcessData } from "@/utils/utility";
 import { Box, Stack, Tab, Tabs, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { getOrganizationAssets } from "../api/organization";
@@ -10,7 +8,7 @@ import Cookies from "js-cookie";
 
 function Reports() {
   const [currentTab, setCurrentTab] = useState(0);
-  const [processData, setProcessData] = useState<ChartProcess[]>([]);
+  const [orgData, setOrgData] = useState<any>({});
   const [assetData, setAssetData] = useState<any[]>([]);
   const [orgId, setOrgId] = useState<string | null>();
 
@@ -38,8 +36,7 @@ function Reports() {
           getOrganizationAssets(orgId),
         ]);
 
-        const formatted = transformProcessData(processRes.data);
-        setProcessData(formatted);
+        setOrgData(processRes.data);
         setAssetData(assetRes.data ?? []);
       } catch (error) {
         console.error("Error fetching reports data:", error);
@@ -140,7 +137,7 @@ function Reports() {
             overflow: "auto",
           }}
         >
-          <ProcessAssetFlow processes={processData} />
+          <ProcessAssetFlow data={orgData} />
         </Box>
       )}
     </Box>
