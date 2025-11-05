@@ -297,10 +297,12 @@ module.exports = {
         const a = await Process.findOne({
           where: { processName: process.process_name },
         });
-        const p = a.toJSON();
-
-        if (p) {
+        
+        if (a) {
+          const p = a.toJSON();
           processData.parentObjectId = p.id ?? null;
+        } else {
+          processData.parentObjectId = null;
         }
         // Insert the process
         const [createdProcess, created] =

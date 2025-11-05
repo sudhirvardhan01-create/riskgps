@@ -267,6 +267,7 @@ function ProcessesPage() {
           status: data.status || "published",
           attributes: attributes,
           process_dependency: processDependency,
+          parentObjectId: data.id
         };
       });
 

@@ -206,6 +206,7 @@ function AssetsPage() {
           status: data.status || "published",
           attributes: attributes,
           related_processes: relatedProcesses,
+          parentObjectId: data.id
         };
       });
 

@@ -199,6 +199,7 @@ function RiskScenariosPage() {
           riskField2: data.riskField2 || "",
           attributes: attributes,
           related_processes: relatedProcesses,
+          parentObjectId: data.id,
         };
       });
 

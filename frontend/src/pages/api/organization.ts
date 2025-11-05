@@ -98,6 +98,7 @@ export const createOrganizationProcesses = async (
       status: process.status || "published",
       processDependency: processDependency,
       attributes: attributes,
+      parentObjectId: process.id
     };
   });
 
@@ -268,6 +269,7 @@ export const createOrganizationAssets = async (
       status: asset.status || "published",
       // relatedProcesses: relatedProcesses,
       attributes: attributes,
+      parentObjectId: asset.id
     };
   });
 
@@ -423,6 +425,7 @@ export const createOrganizationRiskScenarios = async (
       riskField2: scenario.riskField2 || "",
       relatedProcesses: relatedProcesses,
       attributes: attributes,
+      parentObjectId: scenario.id,
     };
   });
 
