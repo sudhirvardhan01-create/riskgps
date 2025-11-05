@@ -54,6 +54,7 @@ const AssessmentRow: React.FC<{
         width: "100%",
         cursor: "pointer",
         p: 2,
+        mb: 1,
       }}
       onClick={() => onCardClick(assessment.assessmentId)}
     >

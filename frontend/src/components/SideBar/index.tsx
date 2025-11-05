@@ -100,7 +100,7 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
                 if (e.key === "Enter" || e.key === " ") router.push(link.path);
               }}
               sx={{
-                p: collapsed ? 1.5 : 2,
+                p: 1,
                 mx: 0.5,
                 my: 0.5,
                 borderRadius: 1,
@@ -108,7 +108,6 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
                 flexDirection: collapsed ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: collapsed ? 0 : 1,
                 color: "primary.main",
                 cursor: "pointer",
                 width: collapsed ? "60px" : "90%",
