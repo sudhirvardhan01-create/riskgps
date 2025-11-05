@@ -23,7 +23,7 @@ import Image from "next/image";
 import { RiskScenarioData } from "@/types/risk-scenario";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { RiskScenarioLibraryService } from "@/services/orgLibraryService/riskScenarioLibraryService";
-import { createOrganizationRiskScenarios, getOrganizationRisks, updateOrganizationRiskScenario } from "@/pages/api/organization";
+import { createOrganizationRiskScenarios, getOrganizationRisks, updateOrganizationRiskScenario, deleteOrganizationRiskScenario } from "@/pages/api/organization";
 import { fetchRiskScenarioById } from "@/pages/api/risk-scenario";
 import RiskScenarioFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
 import MenuItemComponent from "@/components/MenuItemComponent";
@@ -46,8 +46,8 @@ function RiskScenariosPage() {
   const [orgRiskScenarios, setOrgRiskScenarios] = useState<any[]>([]); // Full org risk scenarios for matching
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [selectedScenarios, setSelectedScenarios] = useState<(string | number)[]>([]);
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -199,6 +199,7 @@ function RiskScenariosPage() {
           riskField2: data.riskField2 || "",
           attributes: attributes,
           related_processes: relatedProcesses,
+          parentObjectId: data.id,
         };
       });
 
@@ -208,6 +209,7 @@ function RiskScenariosPage() {
       // Refresh the list
       await fetchOrganizationRiskScenarios();
 
+      setSuccessMessage("Success! Risk scenarios have been added.");
       setShowSuccessMessage(true);
       setIsAddModalOpen(false);
     } catch (err: any) {
@@ -219,16 +221,6 @@ function RiskScenariosPage() {
     }
   };
 
-  const handleEnterDeleteMode = () => {
-    setIsDeleteMode(true);
-    setSelectedScenarios([]);
-  };
-
-  const handleExitDeleteMode = () => {
-    setIsDeleteMode(false);
-    setSelectedScenarios([]);
-  };
-
   const handleScenarioToggle = (scenarioId: string | number) => {
     setSelectedScenarios(prev =>
       prev.includes(scenarioId)
@@ -237,17 +229,68 @@ function RiskScenariosPage() {
     );
   };
 
-  const handleRemoveSelected = () => {
-    setRiskScenarios(prev => prev.filter(scenario => !selectedScenarios.includes(scenario.id)));
-    setSelectedScenarios([]);
+  const handleRemoveSelected = async () => {
+    if (!orgId || typeof orgId !== 'string') {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    if (selectedScenarios.length === 0) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      // Convert selected scenario IDs to strings
+      const scenarioIds = selectedScenarios.map(id => String(id));
+      
+      await deleteOrganizationRiskScenario(orgId, scenarioIds);
+      
+      // Refresh the list after successful deletion
+      await fetchOrganizationRiskScenarios();
+      
+      setSuccessMessage(`Success! ${selectedScenarios.length} risk scenario(s) have been deleted.`);
+      setShowSuccessMessage(true);
+      setSelectedScenarios([]);
+    } catch (err: any) {
+      console.error("Failed to delete risk scenarios:", err);
+      setErrorMessage(err.message || "Failed to delete risk scenarios. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClearSelection = () => {
     setSelectedScenarios([]);
   };
 
-  const handleDeleteSingleScenario = (scenarioId: string | number) => {
-    setRiskScenarios(prev => prev.filter(scenario => scenario.id !== scenarioId));
+  const handleDeleteSingleScenario = async (scenarioId: string | number) => {
+    if (!orgId || typeof orgId !== 'string') {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      await deleteOrganizationRiskScenario(orgId, String(scenarioId));
+      
+      // Refresh the list after successful deletion
+      await fetchOrganizationRiskScenarios();
+      
+      setSuccessMessage("Success! Risk scenario has been deleted.");
+      setShowSuccessMessage(true);
+    } catch (err: any) {
+      console.error("Failed to delete risk scenario:", err);
+      setErrorMessage(err.message || "Failed to delete risk scenario. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Helper function to transform orgRiskScenario to RiskScenarioData format
@@ -298,6 +341,7 @@ function RiskScenariosPage() {
       // Refresh the list
       await fetchOrganizationRiskScenarios();
       
+      setSuccessMessage("Success! Risk scenario has been updated.");
       setShowSuccessMessage(true);
       setErrorMessage(null);
     } catch (err: any) {
@@ -459,7 +503,7 @@ function RiskScenariosPage() {
             },
           }}
         >
-          Success! Risk scenarios have been added.
+          {successMessage || "Success! Risk scenarios have been added."}
         </Alert>
       </Snackbar>
 
@@ -596,7 +640,7 @@ function RiskScenariosPage() {
               </Typography>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}

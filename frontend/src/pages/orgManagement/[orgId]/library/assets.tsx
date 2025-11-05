@@ -22,7 +22,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { AssetLibraryService } from "@/services/orgLibraryService/assetLibraryService";
-import { createOrganizationAssets, getOrganizationAssets, updateOrganizationAsset } from "@/pages/api/organization";
+import { createOrganizationAssets, getOrganizationAssets, updateOrganizationAsset, deleteOrganizationAsset } from "@/pages/api/organization";
 import { fetchAssetsById } from "@/pages/api/asset";
 import AssetFormModal from "@/components/Library/Asset/AssetFormModal";
 import MenuItemComponent from "@/components/MenuItemComponent";
@@ -48,7 +48,6 @@ function AssetsPage() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("Success! Assets have been added.");
   const [selectedAssets, setSelectedAssets] = useState<(string | number)[]>([]);
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -207,6 +206,7 @@ function AssetsPage() {
           status: data.status || "published",
           attributes: attributes,
           related_processes: relatedProcesses,
+          parentObjectId: data.id
         };
       });
 
@@ -228,16 +228,6 @@ function AssetsPage() {
     }
   };
 
-  const handleEnterDeleteMode = () => {
-    setIsDeleteMode(true);
-    setSelectedAssets([]);
-  };
-
-  const handleExitDeleteMode = () => {
-    setIsDeleteMode(false);
-    setSelectedAssets([]);
-  };
-
   const handleAssetToggle = (assetId: string | number) => {
     setSelectedAssets(prev =>
       prev.includes(assetId)
@@ -246,17 +236,68 @@ function AssetsPage() {
     );
   };
 
-  const handleRemoveSelected = () => {
-    setAssets(prev => prev.filter(asset => !selectedAssets.includes(asset.id)));
-    setSelectedAssets([]);
+  const handleRemoveSelected = async () => {
+    if (!orgId || typeof orgId !== 'string') {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    if (selectedAssets.length === 0) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      // Convert selected asset IDs to strings
+      const assetIds = selectedAssets.map(id => String(id));
+      
+      await deleteOrganizationAsset(orgId, assetIds);
+      
+      // Refresh the list after successful deletion
+      await fetchOrganizationAssets();
+      
+      setSuccessMessage(`Success! ${selectedAssets.length} asset(s) have been deleted.`);
+      setShowSuccessMessage(true);
+      setSelectedAssets([]);
+    } catch (err: any) {
+      console.error("Failed to delete assets:", err);
+      setErrorMessage(err.message || "Failed to delete assets. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClearSelection = () => {
     setSelectedAssets([]);
   };
 
-  const handleDeleteSingleAsset = (assetId: string | number) => {
-    setAssets(prev => prev.filter(asset => asset.id !== assetId));
+  const handleDeleteSingleAsset = async (assetId: string | number) => {
+    if (!orgId || typeof orgId !== 'string') {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      await deleteOrganizationAsset(orgId, String(assetId));
+      
+      // Refresh the list after successful deletion
+      await fetchOrganizationAssets();
+      
+      setSuccessMessage("Success! Asset has been deleted.");
+      setShowSuccessMessage(true);
+    } catch (err: any) {
+      console.error("Failed to delete asset:", err);
+      setErrorMessage(err.message || "Failed to delete asset. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Helper function to transform orgAsset to AssetForm format
@@ -636,7 +677,7 @@ function AssetsPage() {
               </Typography>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}

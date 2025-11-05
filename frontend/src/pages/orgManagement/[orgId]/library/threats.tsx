@@ -37,7 +37,6 @@ function ThreatsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedThreats, setSelectedThreats] = useState<(string | number)[]>([]);
-  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
 
   const handleBackClick = () => {
@@ -63,16 +62,6 @@ function ThreatsPage() {
     setThreats(prev => [...prev, ...newThreats]);
     setShowSuccessMessage(true);
     setIsAddModalOpen(false);
-  };
-
-  const handleEnterDeleteMode = () => {
-    setIsDeleteMode(true);
-    setSelectedThreats([]);
-  };
-
-  const handleExitDeleteMode = () => {
-    setIsDeleteMode(false);
-    setSelectedThreats([]);
   };
 
   const handleThreatToggle = (threatId: string | number) => {
@@ -337,7 +326,7 @@ function ThreatsPage() {
               </Typography>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}
