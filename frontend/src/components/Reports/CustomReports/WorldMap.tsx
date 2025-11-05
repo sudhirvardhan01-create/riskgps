@@ -74,13 +74,23 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({ data = [] }) => {
   const minVal = Math.min(...mapData.map((d) => d.value));
   const maxVal = Math.max(...mapData.map((d) => d.value));
 
-  const getSize = (v: number): number =>
-    12 + ((v - minVal) / (maxVal - minVal || 1)) * 18;
+  // ✅ Enhanced bubble scaling (logarithmic for better visual range)
+  // 🟢 Bubble size based on difference from 0
+  const getSize = (v: number): number => {
+    const maxAbsVal = Math.max(...mapData.map((d) => Math.abs(d.value))) || 1;
 
+    const normalized = Math.abs(v) / maxAbsVal; // range 0 → 1
+    const minSize = 10; // smallest bubble
+    const maxSize = 35; // largest bubble
+
+    return minSize + normalized * (maxSize - minSize);
+  };
+
+  // ✅ More distinct color mapping (blue → red)
   const getColor = (v: number): string => {
     const intensity = (v - minVal) / (maxVal - minVal || 1);
-    const hue = 210 - intensity * 60; // bluish → cyan
-    return `hsl(${hue}, 70%, 55%)`;
+    const hue = 200 - intensity * 160;
+    return `hsl(${hue}, 75%, 55%)`;
   };
 
   return (
