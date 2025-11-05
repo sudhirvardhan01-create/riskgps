@@ -14,9 +14,14 @@ export interface AssetData {
   dependencies: number;
 }
 
-export interface VendorData {
+export interface VendorData extends Record<string, unknown> {
   name: string;
-  dependencies: number;
+  value: number;
+}
+
+export interface NetworkData extends Record<string, unknown> {
+  name: string;
+  value: number;
 }
 
 interface RawAsset {
@@ -26,6 +31,7 @@ interface RawAsset {
   thirdPartyName?: string | null;
   thirdPartyLocation?: string | null;
   geographicLocation?: string | null;
+  networkName?: string | null;
   processes: ProcessUnit[];
 }
 
@@ -204,34 +210,58 @@ export function transformAssetData(apiData: RawAsset[]) {
     vendorMap.set(vendor, (vendorMap.get(vendor) || 0) + count);
   });
 
-  const vendor_data: VendorData[] = Array.from(
-    vendorMap,
-    ([name, dependencies]) => ({
+  const vendor_data: VendorData[] = Array.from(vendorMap, ([name, value]) => ({
+    name,
+    value,
+  }));
+
+  const networkMap = new Map<string, number>();
+
+  apiData.forEach((item) => {
+    if (!item.networkName) return;
+    const network = item.networkName.trim();
+    const count = item.processes?.length || 0;
+    networkMap.set(network, (networkMap.get(network) || 0) + count);
+  });
+
+  const network_data: NetworkData[] = Array.from(
+    networkMap,
+    ([name, value]) => ({
       name,
-      dependencies,
+      value,
     })
   );
 
   // 3️⃣ Locations for the map
-  const uniqueLocations = new Map<string, LocationData>();
+  const cityMap = new Map<
+    string,
+    { name: string; value: number; coords: LatLngExpression }
+  >();
 
   apiData.forEach((item) => {
     const city = item.geographicLocation?.trim();
     if (!city) return;
 
     const coords = CITY_COORDS[city];
-    if (!coords) return; // skip unknown states
+    if (!coords) return; // skip unknown cities
 
-    if (!uniqueLocations.has(city)) {
-      uniqueLocations.set(city, {
+    const processCount = item.processes?.length || 0;
+
+    if (cityMap.has(city)) {
+      // ✅ accumulate the count
+      const existing = cityMap.get(city)!;
+      existing.value += processCount;
+    } else {
+      // ✅ first occurrence
+      cityMap.set(city, {
         name: city,
-        value: Math.floor(Math.random() * 100),
+        value: processCount,
         coords,
       });
     }
   });
 
-  const locations = Array.from(uniqueLocations.values());
+  const cityData = Array.from(cityMap.values());
 
-  return { asset_data, vendor_data, locations };
+  return { asset_data, vendor_data, network_data, cityData };
 }
