@@ -111,7 +111,6 @@ export const deleteUser = async (id: string) => {
 };
 
 export const updateUserStatus = async (id: string, isActive: boolean) => {
-  console.log(id, isActive);
   if (!id) {
     throw new Error("Failed to perform the operation, invalid arguments");
   }
@@ -131,4 +130,26 @@ export const updateUserStatus = async (id: string, isActive: boolean) => {
   }
   const res = await response.json();
   return res.message;
+};
+
+export const resetPassword = async (id: string, password: string) => {
+  if (!id || !password) {
+    throw new Error("Failed to perform the operation, invalid arguments");
+  }
+  const reqBody = { password };
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/users/reset-password/${id}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reqBody),
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to reset the password");
+  }
+  const res = await response.json();
+  return res;
 };

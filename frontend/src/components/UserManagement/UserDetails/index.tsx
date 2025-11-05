@@ -23,7 +23,7 @@ export interface UserDetailsProps {
   user: UserData;
   onEdit: (id: string | undefined) => void;
   onDelete: () => void;
-  onResetPassword?: (id: string | undefined) => void;
+  onResetPassword: () => void;
 }
 
 const UserDetails: React.FC<UserDetailsProps> = ({
@@ -282,7 +282,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
               <Grid size={{ xs: 4 }} display={"flex"} alignItems={"center"}>
                 <Typography
                   component={Link}
-                  onClick={() => onResetPassword?.(user.userId)}
+                  onClick={() => onResetPassword()}
                   sx={{
                     cursor: "pointer",
                     color: "primary.main",

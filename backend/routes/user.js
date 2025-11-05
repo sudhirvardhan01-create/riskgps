@@ -119,7 +119,24 @@ router.patch("/update-status/:id", async (req, res) => {
         name: user.name,
         email: user.email,
       },
-      message: "User status updated successfully",
+      message: Messages.USER.UPDATED_STATUS,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message,
+    });
+  }
+});
+
+router.patch("/reset-password/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const password = req.body.password;
+    const user = await UserService.resetPassword(id, password);
+    res.status(HttpStatus.OK).json({
+      data: user,
+      message: Messages.USER.RESET_PASSWORD,
     });
   } catch (err) {
     console.log(err);

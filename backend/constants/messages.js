@@ -6,6 +6,8 @@ module.exports = {
     DELETED: "User deleted successfully.",
     FETCHED: "Fetched all users successfully.",
     FETCHED_BY_ID: "User fetched by id successfully.",
+    UPDATED_STATUS: "User status updated successfully",
+    RESET_PASSWORD: "User password reset successfully",
   },
   AUTH: {
     UNAUTHORIZED: "Unauthorized access.",

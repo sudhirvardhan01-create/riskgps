@@ -6,10 +6,20 @@ import { UserService } from "@/services/userService";
 import withAuth from "@/hoc/withAuth";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastComponent from "@/components/ToastComponent";
+import ResetPasswordModal from "@/components/UserManagement/ResetPasswordModal";
+
+interface ResetPasswordForm {
+  password: string;
+  confirmPassword: string;
+}
 
 function UserDetailsPage() {
   const router = useRouter();
   const { userId } = router.query;
+  const initialPasswordData = {
+    password: "",
+    confirmPassword: "",
+  };
   const [loading, setLoading] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData>();
   const [toast, setToast] = useState({
@@ -19,6 +29,10 @@ function UserDetailsPage() {
   });
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] =
     useState<boolean>(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] =
+    useState<boolean>(false);
+  const [resetPasswordFormData, setResetPasswordFormData] =
+    useState<ResetPasswordForm>(initialPasswordData);
 
   //Fetch user by id
   useEffect(() => {
@@ -66,6 +80,29 @@ function UserDetailsPage() {
     }
   };
 
+  const handleResetPassword = async () => {
+    try {
+      await UserService.resetPassword(
+        userId as string,
+        resetPasswordFormData.password
+      );
+      setIsResetPasswordOpen(false);
+      setResetPasswordFormData(initialPasswordData);
+      setToast({
+        open: true,
+        message: `Reset password successfully`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({
+        open: true,
+        message: "Failed to reset password",
+        severity: "error",
+      });
+    }
+  };
+
   return (
     <>
       {userData && (
@@ -73,9 +110,20 @@ function UserDetailsPage() {
           user={userData}
           onEdit={(id) => router.push(`/userManagement/${id}/edit`)}
           onDelete={() => setIsDeleteConfirmOpen(true)}
-          onResetPassword={(id) => console.log("Reset password for:", id)}
+          onResetPassword={() => setIsResetPasswordOpen(true)}
         />
       )}
+
+      <ResetPasswordModal
+        open={isResetPasswordOpen}
+        onClose={() => {
+          setIsResetPasswordOpen(false);
+          setResetPasswordFormData(initialPasswordData);
+        }}
+        formData={resetPasswordFormData}
+        setFormData={setResetPasswordFormData}
+        onSubmit={() => handleResetPassword()}
+      />
 
       <ConfirmDialog
         open={isDeleteConfirmOpen}
