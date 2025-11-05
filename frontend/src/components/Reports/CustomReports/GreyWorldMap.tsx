@@ -97,7 +97,7 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({ data = [] }) => {
       <MapContainer
         center={[37.0902, -95.7129]}
         zoom={4}
-        minZoom={3}
+        minZoom={2}
         maxZoom={6}
         scrollWheelZoom
         zoomControl

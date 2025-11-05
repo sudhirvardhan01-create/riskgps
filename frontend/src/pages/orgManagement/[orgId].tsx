@@ -231,7 +231,14 @@ function OrgDetailsPage() {
   }, [orgId, router, formData]);
 
   useEffect(() => {
-    if (router.isReady && router.query.showSuccess === "true") {
+    if (!router.isReady || !orgId) return;
+
+    // Check if showSuccess query parameter is present and equals "true"
+    const showSuccessParam = router.query.showSuccess;
+    const showSuccess = showSuccessParam === "true" || 
+                       (Array.isArray(showSuccessParam) && showSuccessParam[0] === "true");
+    
+    if (showSuccess) {
       setShowSuccessPopup(true);
 
       // Auto-hide popup after 3 seconds
@@ -241,7 +248,9 @@ function OrgDetailsPage() {
         router.replace(`/orgManagement/${orgId}`, undefined, { shallow: true });
       }, 3000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [router.isReady, router.query.showSuccess, orgId, router]);
 

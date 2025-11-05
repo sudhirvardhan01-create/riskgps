@@ -27,7 +27,7 @@ import Image from "next/image";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
 import ToastComponent from "@/components/ToastComponent";
-import { getOrganizationById, updateOrganization } from "@/services/organizationService";
+import { getOrganizationById, updateOrganization, getTaxonomies, saveTaxonomies } from "@/services/organizationService";
 import Cookies from "js-cookie";
 import { COUNTRIES } from "@/constants/constant";
 
@@ -43,6 +43,7 @@ function EditOrgDetailsPage() {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [isFormReady, setIsFormReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasTaxonomies, setHasTaxonomies] = useState<boolean | null>(null);
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -80,6 +81,16 @@ function EditOrgDetailsPage() {
       if (!orgId) return;
 
       try {
+        // Check if taxonomies exist for this organization
+        try {
+          const taxonomiesResponse = await getTaxonomies(orgId as string);
+          const taxonomiesData = taxonomiesResponse?.data || [];
+          setHasTaxonomies(taxonomiesData.length > 0);
+        } catch (taxonomyError) {
+          // If getTaxonomies fails (e.g., 404), assume no taxonomies exist
+          setHasTaxonomies(false);
+        }
+
         // First try to fetch from API
         const apiResponse = await getOrganizationById(orgId as string);
 
@@ -388,6 +399,264 @@ function EditOrgDetailsPage() {
       // Call the update API
       const response = await updateOrganization(orgId as string, updateData);
 
+      // Check if taxonomies don't exist and create them if needed
+      if (response.data.organizationId && !hasTaxonomies) {
+        // Get user ID from cookies for createdBy
+        const userCookie = Cookies.get("user");
+        const user = userCookie ? JSON.parse(userCookie) : null;
+        const userId = user?.userId || user?.id || response.data.createdBy || null;
+
+        // Extract numeric value from annualRevenue (remove any formatting) - same as RiskTaxonomy.tsx
+        const annualRevenueValue = formData.annualRevenue
+          ? parseInt(cleanFinancialValue(formData.annualRevenue))
+          : 0;
+
+        // Set default dollar range to 25% and 75% of annual revenue (same as RiskTaxonomy.tsx)
+        const defaultMin = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.25) : 0;
+        const defaultMax = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.75) : 0;
+        const range = defaultMax - defaultMin;
+
+        // Calculate impact based on percentage (same formula as RiskTaxonomy.tsx calculateImpact)
+        // Using linear calculation: userMin + (normalizedValue * range)
+        const calculateImpact = (percentage: number): number => {
+          if (defaultMin > 0 && defaultMax > 0) {
+            const normalizedValue = percentage / 100;
+            return defaultMin + (normalizedValue * range);
+          }
+          return 0;
+        };
+
+        // Compute severity ranges same as RiskTaxonomy.tsx:
+        // Very Low: defaultMin to calculateImpact(25)
+        // Low: calculateImpact(25) to calculateImpact(50)
+        // Medium: calculateImpact(50) to calculateImpact(75)
+        // High: calculateImpact(75) to calculateImpact(100) = defaultMax
+        // Critical: calculateImpact(100) = defaultMax, and since RiskTaxonomy.tsx shows "> calculateImpact(100)",
+        // we extend Critical beyond defaultMax. The maxRange extends proportionally beyond the defaultMax.
+        // Extending Critical from defaultMax (75%) to a value that maintains the range proportion.
+        const formatRange = (value: number): string => {
+          return Math.round(value).toString();
+        };
+
+        // Calculate Low, Medium, and High values based on defaultMin (Very Low) and defaultMax (Critical)
+        // Low: 25% of the range from defaultMin to defaultMax
+        // Medium: 50% of the range from defaultMin to defaultMax  
+        // High: 75% of the range from defaultMin to defaultMax
+        const lowValue = calculateImpact(25);   // 25% point between defaultMin and defaultMax
+        const mediumValue = calculateImpact(50); // 50% point between defaultMin and defaultMax
+        const highValue = calculateImpact(75);   // 75% point between defaultMin and defaultMax
+
+        // Create taxonomies payload with severity levels
+        const taxonomiesPayload = [
+          {
+            name: "Financial Risk",
+            weightage: 40,
+            order: 1,
+            createdBy: userId || "",
+            severityLevels: [
+              {
+                name: "Very Low",
+                minRange: formatRange(defaultMin),
+                maxRange: formatRange(lowValue),
+                color: "#3BB966",
+                order: 1,
+                createdBy: userId || ""
+              },
+              {
+                name: "Low",
+                minRange: formatRange(lowValue),
+                maxRange: formatRange(mediumValue),
+                color: "#3366CC",
+                order: 2,
+                createdBy: userId || ""
+              },
+              {
+                name: "Medium",
+                minRange: formatRange(mediumValue),
+                maxRange: formatRange(highValue),
+                color: "#E3B52A",
+                order: 3,
+                createdBy: userId || ""
+              },
+              {
+                name: "High",
+                minRange: formatRange(highValue),
+                maxRange: formatRange(defaultMax),
+                color: "#DA7706",
+                order: 4,
+                createdBy: userId || ""
+              },
+              {
+                name: "Critical",
+                minRange: "",
+                maxRange: formatRange(defaultMax),
+                color: "#B90D0D",
+                order: 5,
+                createdBy: userId || ""
+              }
+            ]
+          },
+          {
+            name: "Regulatory Risk",
+            weightage: 30,
+            order: 2,
+            createdBy: userId || "",
+            severityLevels: [
+              {
+                name: "Very Low",
+                minRange: formatRange(defaultMin),
+                maxRange: formatRange(lowValue),
+                color: "#3BB966",
+                order: 1,
+                createdBy: userId || ""
+              },
+              {
+                name: "Low",
+                minRange: formatRange(lowValue),
+                maxRange: formatRange(mediumValue),
+                color: "#3366CC",
+                order: 2,
+                createdBy: userId || ""
+              },
+              {
+                name: "Medium",
+                minRange: formatRange(mediumValue),
+                maxRange: formatRange(highValue),
+                color: "#E3B52A",
+                order: 3,
+                createdBy: userId || ""
+              },
+              {
+                name: "High",
+                minRange: formatRange(highValue),
+                maxRange: formatRange(defaultMax),
+                color: "#DA7706",
+                order: 4,
+                createdBy: userId || ""
+              },
+              {
+                name: "Critical",
+                minRange: "",
+                maxRange: formatRange(defaultMax),
+                color: "#B90D0D",
+                order: 5,
+                createdBy: userId || ""
+              }
+            ]
+          },
+          {
+            name: "Operational Risk",
+            weightage: 20,
+            order: 3,
+            createdBy: userId || "",
+            severityLevels: [
+              {
+                name: "Very Low",
+                minRange: formatRange(defaultMin),
+                maxRange: formatRange(lowValue),
+                color: "#3BB966",
+                order: 1,
+                createdBy: userId || ""
+              },
+              {
+                name: "Low",
+                minRange: formatRange(lowValue),
+                maxRange: formatRange(mediumValue),
+                color: "#3366CC",
+                order: 2,
+                createdBy: userId || ""
+              },
+              {
+                name: "Medium",
+                minRange: formatRange(mediumValue),
+                maxRange: formatRange(highValue),
+                color: "#E3B52A",
+                order: 3,
+                createdBy: userId || ""
+              },
+              {
+                name: "High",
+                minRange: formatRange(highValue),
+                maxRange: formatRange(defaultMax),
+                color: "#DA7706",
+                order: 4,
+                createdBy: userId || ""
+              },
+              {
+                name: "Critical",
+                minRange: "",
+                maxRange: formatRange(defaultMax),
+                color: "#B90D0D",
+                order: 5,
+                createdBy: userId || ""
+              }
+            ]
+          },
+          {
+            name: "Reputational Risk",
+            weightage: 10,
+            order: 4,
+            createdBy: userId || "",
+            severityLevels: [
+              {
+                name: "Very Low",
+                minRange: formatRange(defaultMin),
+                maxRange: formatRange(lowValue),
+                color: "#3BB966",
+                order: 1,
+                createdBy: userId || ""
+              },
+              {
+                name: "Low",
+                minRange: formatRange(lowValue),
+                maxRange: formatRange(mediumValue),
+                color: "#3366CC",
+                order: 2,
+                createdBy: userId || ""
+              },
+              {
+                name: "Medium",
+                minRange: formatRange(mediumValue),
+                maxRange: formatRange(highValue),
+                color: "#E3B52A",
+                order: 3,
+                createdBy: userId || ""
+              },
+              {
+                name: "High",
+                minRange: formatRange(highValue),
+                maxRange: formatRange(defaultMax),
+                color: "#DA7706",
+                order: 4,
+                createdBy: userId || ""
+              },
+              {
+                name: "Critical",
+                minRange: "",
+                maxRange: formatRange(defaultMax),
+                color: "#B90D0D",
+                order: 5,
+                createdBy: userId || ""
+              }
+            ]
+          }
+        ];
+
+        // Save taxonomies for the organization
+        try {
+          await saveTaxonomies(response.data.organizationId, taxonomiesPayload);
+        } catch (taxonomyError) {
+          // Log error but don't block navigation if taxonomy save fails
+          console.error("Failed to save taxonomies:", taxonomyError);
+          // Optionally show a warning toast
+          setToast({
+            open: true,
+            message: "Organization updated successfully, but failed to save taxonomies. You can configure them later.",
+            severity: "warning"
+          });
+        }
+      }
+
       // Show success toast
       setToast({
         open: true,
@@ -572,7 +841,7 @@ function EditOrgDetailsPage() {
                 </Box>
 
                 {/* Tags Section */}
-                <Box sx={{ mb: 2 }}>
+                {/* <Box sx={{ mb: 2 }}>
                   <Typography sx={{
                     fontSize: "16px",
                     fontWeight: 500,
@@ -689,7 +958,7 @@ function EditOrgDetailsPage() {
                   >
                     Add New Key
                   </Button>
-                </Box>
+                </Box> */}
               </Box>
             </AccordionDetails>
           </Accordion>

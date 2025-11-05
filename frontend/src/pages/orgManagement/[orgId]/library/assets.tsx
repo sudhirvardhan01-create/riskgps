@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -16,14 +16,20 @@ import {
   Chip,
   CircularProgress,
 } from "@mui/material";
-import { ArrowBack, Search, Delete, Close } from "@mui/icons-material";
+import { ArrowBack, Search, Delete, Close, EditOutlined, DeleteOutlineOutlined } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { AssetLibraryService } from "@/services/orgLibraryService/assetLibraryService";
-import { createOrganizationAssets, getOrganizationAssets } from "@/pages/api/organization";
+import { createOrganizationAssets, getOrganizationAssets, updateOrganizationAsset } from "@/pages/api/organization";
 import { fetchAssetsById } from "@/pages/api/asset";
+import AssetFormModal from "@/components/Library/Asset/AssetFormModal";
+import MenuItemComponent from "@/components/MenuItemComponent";
+import { AssetForm } from "@/types/asset";
+import { fetchMetaDatas } from "@/pages/api/meta-data";
+import { fetchProcessesForListing } from "@/pages/api/process";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface Asset {
   id: string | number;
@@ -40,12 +46,18 @@ function AssetsPage() {
   const [orgAssets, setOrgAssets] = useState<any[]>([]); // Full org assets for matching
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("Success! Assets have been added.");
   const [selectedAssets, setSelectedAssets] = useState<(string | number)[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<AssetForm | null>(null);
+  const [processesData, setProcessesData] = useState<any[]>([]);
+  const [metaDatas, setMetaDatas] = useState<any[]>([]);
+  const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -100,6 +112,22 @@ function AssetsPage() {
       fetchOrganizationAssets();
     }
   }, [orgId, isInitialLoad]);
+
+  // Fetch processes and metaDatas for the edit modal
+  useEffect(() => {
+    (async () => {
+      try {
+        const [processes, meta] = await Promise.all([
+          fetchProcessesForListing(),
+          fetchMetaDatas(),
+        ]);
+        setProcessesData(processes.data ?? []);
+        setMetaDatas(meta.data ?? []);
+      } catch (err) {
+        console.error("Failed to fetch supporting data:", err);
+      }
+    })();
+  }, []);
 
   const handleAddAssetsFromModal = async (selectedAssets: any[]) => {
     if (!orgId || typeof orgId !== 'string' || selectedAssets.length === 0) {
@@ -188,6 +216,7 @@ function AssetsPage() {
       // Refresh the list
       await fetchOrganizationAssets();
 
+      setSuccessMessage("Success! Assets have been added.");
       setShowSuccessMessage(true);
       setIsAddModalOpen(false);
     } catch (err: any) {
@@ -228,6 +257,94 @@ function AssetsPage() {
 
   const handleDeleteSingleAsset = (assetId: string | number) => {
     setAssets(prev => prev.filter(asset => asset.id !== assetId));
+  };
+
+  // Helper function to transform orgAsset to AssetForm format
+  const transformToAssetForm = useCallback((fullAsset: any): AssetForm => {
+    return {
+      id: fullAsset.id,
+      assetCode: fullAsset.assetCode,
+      applicationName: fullAsset.applicationName || "",
+      assetName: fullAsset.assetName || null,
+      assetCategory: fullAsset.assetCategory || "",
+      assetDescription: fullAsset.assetDescription || "",
+      applicationOwner: fullAsset.applicationOwner || null,
+      applicationITOwner: fullAsset.applicationItOwner || fullAsset.applicationITOwner || null,
+      isThirdPartyManagement: fullAsset.isThirdPartyManagement ?? null,
+      thirdPartyName: fullAsset.thirdPartyName || null,
+      thirdPartyLocation: fullAsset.thirdPartyLocation || null,
+      hosting: fullAsset.hosting || null,
+      hostingFacility: fullAsset.hostingFacility || null,
+      cloudServiceProvider: fullAsset.cloudServiceProvider || null,
+      geographicLocation: fullAsset.geographicLocation || null,
+      hasRedundancy: fullAsset.hasRedundancy ?? null,
+      databases: fullAsset.databases || null,
+      hasNetworkSegmentation: fullAsset.hasNetworkSegmentation ?? null,
+      networkName: fullAsset.networkName || null,
+      attributes: fullAsset.attributes?.map((attr: any) => ({
+        meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
+        values: attr.values || [],
+      })) || [],
+      relatedProcesses: fullAsset.related_processes?.map((p: any) => {
+        // Handle different formats: object with id, string, or number
+        if (typeof p === 'object' && p?.id) {
+          return p.id;
+        } else if (typeof p === 'string') {
+          // Try to parse as number if possible, otherwise keep as string
+          const num = parseInt(p, 10);
+          return isNaN(num) ? p : num;
+        }
+        return p;
+      }) || [],
+      status: fullAsset.status || "published",
+    };
+  }, []);
+
+  // Memoized handler for editing an asset
+  const handleEditAsset = useCallback((assetId: string | number) => {
+    const fullAsset = orgAssets.find((a: any) => a.id === assetId);
+    if (fullAsset) {
+      const assetData = transformToAssetForm(fullAsset);
+      setSelectedAsset(assetData);
+      setIsEditOpen(true);
+    }
+  }, [orgAssets, transformToAssetForm]);
+
+  // Update asset
+  const handleUpdate = async (status: string) => {
+    try {
+      if (!selectedAsset?.id || !orgId || typeof orgId !== 'string') {
+        throw new Error("Invalid selection");
+      }
+      
+      // Transform the selectedAsset to match the API format
+      // Convert relatedProcesses to strings (organization process IDs)
+      const relatedProcesses = selectedAsset.relatedProcesses?.map((p: any) => 
+        String(p)
+      ) || [];
+      
+      const body = { 
+        ...selectedAsset, 
+        status,
+        relatedProcesses: relatedProcesses,
+      };
+      
+      await updateOrganizationAsset(orgId, String(selectedAsset.id), body);
+      
+      setIsEditOpen(false);
+      setSelectedAsset(null);
+      
+      // Refresh the list
+      await fetchOrganizationAssets();
+      
+      setSuccessMessage("Success! Asset has been updated.");
+      setShowSuccessMessage(true);
+      setErrorMessage(null);
+    } catch (err: any) {
+      console.error("Failed to update asset:", err);
+      setErrorMessage(err.message || "Failed to update asset. Please try again.");
+      setShowSuccessMessage(false);
+    }
   };
 
   const handleCloseSuccessMessage = () => {
@@ -358,34 +475,6 @@ function AssetsPage() {
         </Box>
       </Stack>
 
-      {/* Success Toast */}
-      <Snackbar
-        open={showSuccessMessage}
-        autoHideDuration={4000}
-        onClose={handleCloseSuccessMessage}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseSuccessMessage}
-          severity="success"
-          sx={{
-            width: '100%',
-            backgroundColor: "#E8F5E8",
-            color: "#2E7D32",
-            border: "1px solid #4CAF50",
-            borderRadius: "8px",
-            "& .MuiAlert-icon": {
-              color: "#4CAF50",
-            },
-            "& .MuiAlert-message": {
-              fontWeight: 500,
-            },
-          }}
-        >
-          Success! Assets have been added.
-        </Alert>
-      </Snackbar>
-
       {/* Error Toast */}
       <Snackbar
         open={!!errorMessage}
@@ -411,6 +500,34 @@ function AssetsPage() {
           }}
         >
           {errorMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Success Toast */}
+      <Snackbar
+        open={showSuccessMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccessMessage}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSuccessMessage}
+          severity="success"
+          sx={{
+            width: '100%',
+            backgroundColor: "#E8F5E8",
+            color: "#2E7D32",
+            border: "1px solid #4CAF50",
+            borderRadius: "8px",
+            "& .MuiAlert-icon": {
+              color: "#4CAF50",
+            },
+            "& .MuiAlert-message": {
+              fontWeight: 500,
+            },
+          }}
+        >
+          {successMessage}
         </Alert>
       </Snackbar>
 
@@ -519,7 +636,7 @@ function AssetsPage() {
               </Typography>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3 }}>
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}
@@ -762,23 +879,30 @@ function AssetsPage() {
                             },
                           }}
                         />
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteSingleAsset(asset.id);
-                          }}
+                        <Box
                           sx={{
                             position: "absolute",
                             right: 8,
                             top: 8,
-                            color: "#F44336",
-                            "&:hover": {
-                              backgroundColor: "rgba(244, 67, 54, 0.1)",
-                            },
                           }}
                         >
-                          <Delete sx={{ fontSize: "20px" }} />
-                        </IconButton>
+                          <MenuItemComponent
+                            items={[
+                              {
+                                onAction: () => handleEditAsset(asset.id),
+                                color: "primary.main",
+                                action: "Edit",
+                                icon: <EditOutlined fontSize="small" />,
+                              },
+                              {
+                                onAction: () => handleDeleteSingleAsset(asset.id),
+                                color: "#CD0303",
+                                action: "Delete",
+                                icon: <DeleteOutlineOutlined fontSize="small" />,
+                              },
+                            ]}
+                          />
+                        </Box>
                       </Box>
                     </Grid>
                   );
@@ -798,6 +922,41 @@ function AssetsPage() {
         service={AssetLibraryService}
         itemType="assets"
         orgItems={orgAssets}
+      />
+
+      {/* Edit Asset Modal */}
+      {isEditOpen && selectedAsset && (
+        <AssetFormModal
+          operation="edit"
+          open={isEditOpen}
+          assetFormData={selectedAsset}
+          setAssetFormData={(val: any) => {
+            if (typeof val === "function") {
+              setSelectedAsset((prev) => val(prev as AssetForm));
+            } else {
+              setSelectedAsset(val);
+            }
+          }}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleUpdate}
+          onClose={() => setIsEditConfirmOpen(true)}
+        />
+      )}
+
+      {/* Confirm Dialog for Edit Cancellation */}
+      <ConfirmDialog
+        open={isEditConfirmOpen}
+        onClose={() => setIsEditConfirmOpen(false)}
+        title="Cancel Asset Updation?"
+        description="Are you sure you want to cancel the asset updation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsEditConfirmOpen(false);
+          setSelectedAsset(null);
+          setIsEditOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
       />
     </Box>
   );

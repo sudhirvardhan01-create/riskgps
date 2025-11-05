@@ -169,8 +169,13 @@ function Repository() {
 
       try {
         const response = await getOrganizationProcessDetails(orgId);
-        if (response?.data && Array.isArray(response.data)) {
-          setProcessCount(response.data.length);
+        if (response?.data?.businessUnits && Array.isArray(response.data.businessUnits)) {
+          // Sum up all processes from all business units
+          const totalProcesses = response.data.businessUnits.reduce((total: number, bu: any) => {
+            const processCount = Array.isArray(bu.processes) ? bu.processes.length : 0;
+            return total + processCount;
+          }, 0);
+          setProcessCount(totalProcesses);
         } else {
           setProcessCount(0);
         }

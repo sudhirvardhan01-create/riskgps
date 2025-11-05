@@ -25,7 +25,6 @@ import {
   Close,
   Search,
 } from "@mui/icons-material";
-import { useRouter } from "next/router";
 import { getBusinessUnits } from "@/services/businessUnitService";
 import { BusinessUnitData } from "@/types/business-unit";
 import { getOrganizationProcess } from "@/pages/api/organization";
@@ -35,6 +34,9 @@ interface LibraryItem {
   id: string | number;
   name: string;
   description: string;
+  riskCode?: string; // For risk scenarios
+  assetCode?: string; // For assets
+  processCode?: string; // For processes
 }
 
 // Service interface for fetching data
@@ -183,38 +185,37 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     }
 
     const fetchProcessesData = async () => {
+      // Store selected BU processes in a variable to preserve it even if parallel fetches fail
+      let selectedProcessesData: any[] = [];
+      
       try {
         // 1. Fetch processes for the selected business unit (for pre-selection)
+        // This is critical and must succeed - preserve this data
         const selectedResponse = await getOrganizationProcess(orgId, selectedBusinessUnitId, 0, -1);
-        const selectedProcessesData = selectedResponse?.data?.data || selectedResponse?.data || [];
+        selectedProcessesData = selectedResponse?.data?.data || selectedResponse?.data || [];
         
-        if (Array.isArray(selectedProcessesData)) {
-          setCachedOrgProcesses(selectedProcessesData);
-          // Update the map with data for the selected business unit
-          setAllOrgProcessesByBuId(prev => {
-            const newMap = new Map(prev);
-            newMap.set(selectedBusinessUnitId, selectedProcessesData);
-            return newMap;
-          });
-        } else {
-          setCachedOrgProcesses([]);
-          setAllOrgProcessesByBuId(prev => {
-            const newMap = new Map(prev);
-            newMap.set(selectedBusinessUnitId, []);
-            return newMap;
-          });
+        if (!Array.isArray(selectedProcessesData)) {
+          selectedProcessesData = [];
         }
+        
+        // Set the selected processes data immediately - this is the critical data
+        setCachedOrgProcesses(selectedProcessesData);
+        // Update the map with data for the selected business unit
+        setAllOrgProcessesByBuId(prev => {
+          const newMap = new Map(prev);
+          newMap.set(selectedBusinessUnitId, selectedProcessesData);
+          return newMap;
+        });
 
         // 2. Fetch processes for OTHER business units (to build exclusion list)
-        // Get current state to check what's already cached
-        const currentMap = allOrgProcessesByBuId;
+        // This is non-critical and failures should not affect the selected BU data
         const otherBusinessUnits = businessUnits.filter(bu => bu.id !== selectedBusinessUnitId);
         
         // Filter to only fetch uncached BUs - check state map and fetching ref
         const uncachedBUs = otherBusinessUnits.filter(bu => {
           const buId = bu.id;
           // Fetch only if: not currently fetching AND not already in cache
-          return !fetchingBUsRef.current.has(buId) && !currentMap.has(buId);
+          return !fetchingBUsRef.current.has(buId) && !allOrgProcessesByBuId.has(buId);
         });
         
         if (uncachedBUs.length > 0) {
@@ -222,6 +223,7 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
           uncachedBUs.forEach(bu => fetchingBUsRef.current.add(bu.id));
           
           // Fetch processes for uncached business units in parallel (non-blocking)
+          // Use Promise.allSettled to handle all promises, even if some fail
           const fetchPromises = uncachedBUs.map(async (bu: BusinessUnitData) => {
             try {
               const response = await getOrganizationProcess(orgId, bu.id, 0, -1);
@@ -241,15 +243,20 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
                 return newMap;
               });
             } catch (err: any) {
-              // Cache empty array on error to avoid retrying
-              if (err.message?.toLowerCase().includes('no processes found')) {
-                setAllOrgProcessesByBuId(prev => {
-                  if (prev.has(bu.id)) return prev;
-                  const newMap = new Map(prev);
-                  newMap.set(bu.id, []);
-                  return newMap;
-                });
-              } else {
+              // Handle errors gracefully - don't let them affect the selected BU data
+              const errorMessage = err?.message || err?.error || JSON.stringify(err || {});
+              const isNoProcessesError = errorMessage?.toLowerCase().includes('no processes found');
+              
+              // Cache empty array on "No processes found" error or any error to avoid retrying
+              setAllOrgProcessesByBuId(prev => {
+                if (prev.has(bu.id)) return prev; // Already cached
+                const newMap = new Map(prev);
+                newMap.set(bu.id, []); // Cache empty array
+                return newMap;
+              });
+              
+              // Only log non-"No processes found" errors
+              if (!isNoProcessesError) {
                 console.error(`Error fetching processes for business unit ${bu.id}:`, err);
               }
             } finally {
@@ -258,12 +265,22 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
             }
           });
           
+          // Use Promise.allSettled to handle all promises without blocking
           // Don't await - let it run in background to avoid blocking UI
-          Promise.allSettled(fetchPromises);
+          // But handle it properly to ensure errors don't propagate
+          Promise.allSettled(fetchPromises).catch(() => {
+            // This should never happen, but handle it just in case
+            // All individual promises are already handled in their own try-catch
+          });
         }
       } catch (err: any) {
-        // If error is "No processes found", treat it as empty state
-        if (err.message?.toLowerCase().includes('no processes found')) {
+        // Handle error for selected BU fetch
+        // But preserve any data we already have
+        const errorMessage = err?.message || err?.error || JSON.stringify(err || {});
+        const isNoProcessesError = errorMessage?.toLowerCase().includes('no processes found');
+        
+        if (isNoProcessesError) {
+          // "No processes found" is a valid empty state, not an error
           setCachedOrgProcesses([]);
           setAllOrgProcessesByBuId(prev => {
             const newMap = new Map(prev);
@@ -271,8 +288,12 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
             return newMap;
           });
         } else {
-          console.error("Error fetching processes for business unit:", err);
-          setCachedOrgProcesses([]);
+          // For other errors, log but don't clear data if we already have it
+          console.error("Error fetching processes for selected business unit:", err);
+          // Only clear if we don't have any data yet
+          if (selectedProcessesData.length === 0) {
+            setCachedOrgProcesses([]);
+          }
         }
       }
     };
@@ -296,16 +317,16 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       return;
     }
 
-    // Create a Set of org process names for quick lookup
-    const orgProcessNames = new Set(
-      cachedOrgProcesses.map((process: any) => (process.processName || '').toLowerCase().trim())
+    // Create a Set of org process codes for quick lookup
+    const orgProcessCodes = new Set(
+      cachedOrgProcesses.map((process: any) => (process.processCode || '').toLowerCase().trim())
     );
 
-    // Match library items with org processes by processName
+    // Match library items with org processes by processCode
     const itemsToSelect = items
       .filter(item => {
-        const libraryProcessName = (item.name || '').toLowerCase().trim();
-        return libraryProcessName && orgProcessNames.has(libraryProcessName);
+        const libraryProcessCode = (item.processCode || '').toLowerCase().trim();
+        return libraryProcessCode && orgProcessCodes.has(libraryProcessCode);
       })
       .map(item => item.id!)
       .filter((id): id is string | number => id !== undefined);
@@ -329,32 +350,32 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
 
     let itemsToSelect: (string | number)[] = [];
 
-    // For risk-scenarios, match with org items by riskScenario text
+    // For risk-scenarios, match with org items by riskCode
     if (itemType === 'risk-scenarios' && orgItems.length > 0) {
-      // Create a Set of org risk scenario texts for quick lookup
-      const orgRiskScenarioTexts = new Set(
-        orgItems.map((orgItem: any) => (orgItem.riskScenario || '').toLowerCase().trim())
+      // Create a Set of org risk codes for quick lookup
+      const orgRiskCodes = new Set(
+        orgItems.map((orgItem: any) => (orgItem.riskCode || '').toLowerCase().trim())
       );
 
-      // Match library items with org items by riskScenario text
+      // Match library items with org items by riskCode
       itemsToSelect = items
         .filter(item => {
-          const libraryRiskScenarioText = (item.name || '').toLowerCase().trim();
-          return libraryRiskScenarioText && orgRiskScenarioTexts.has(libraryRiskScenarioText);
+          const libraryRiskCode = (item.riskCode || '').toLowerCase().trim();
+          return libraryRiskCode && orgRiskCodes.has(libraryRiskCode);
         })
         .map(item => item.id!)
         .filter((id): id is string | number => id !== undefined);
     } else if (itemType === 'assets' && orgItems.length > 0) {
-      // For assets, match with org items by applicationName text
-      const orgAssetNames = new Set(
-        orgItems.map((orgItem: any) => (orgItem.applicationName || '').toLowerCase().trim())
+      // For assets, match with org items by assetCode
+      const orgAssetCodes = new Set(
+        orgItems.map((orgItem: any) => (orgItem.assetCode || '').toLowerCase().trim())
       );
 
-      // Match library items with org items by applicationName text
+      // Match library items with org items by assetCode
       itemsToSelect = items
         .filter(item => {
-          const libraryAssetName = (item.name || '').toLowerCase().trim();
-          return libraryAssetName && orgAssetNames.has(libraryAssetName);
+          const libraryAssetCode = (item.assetCode || '').toLowerCase().trim();
+          return libraryAssetCode && orgAssetCodes.has(libraryAssetCode);
         })
         .map(item => item.id!)
         .filter((id): id is string | number => id !== undefined);
@@ -420,24 +441,24 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
     });
   };
 
-  // Memoize the set of process names that are assigned to other business units
+  // Memoize the set of process codes that are assigned to other business units
   // This Set is computed once and reused for fast O(1) lookups instead of nested loops
-  const excludedProcessNames = useMemo(() => {
+  const excludedProcessCodes = useMemo(() => {
     if (itemType !== 'processes' || !selectedBusinessUnitId || allOrgProcessesByBuId.size === 0) {
       return new Set<string>();
     }
 
     const excluded = new Set<string>();
     
-    // Build a Set of process names that are assigned to other business units
+    // Build a Set of process codes that are assigned to other business units
     for (const [buId, processes] of allOrgProcessesByBuId.entries()) {
       if (buId !== selectedBusinessUnitId) {
         processes.forEach((process: any) => {
           // Only include processes that have orgBusinessUnitId set (are assigned)
-          if (process.orgBusinessUnitId && process.processName) {
-            const processName = (process.processName || '').toLowerCase().trim();
-            if (processName) {
-              excluded.add(processName);
+          if (process.orgBusinessUnitId && process.processCode) {
+            const processCode = (process.processCode || '').toLowerCase().trim();
+            if (processCode) {
+              excluded.add(processCode);
             }
           }
         });
@@ -464,17 +485,17 @@ const AddLibraryItemsModal: React.FC<AddLibraryItemsModalProps> = ({
       if (!matchesSearch) return false;
 
       // For processes, filter out items that are assigned to other business units
-      if (itemType === 'processes' && excludedProcessNames.size > 0) {
-        const processName = (item.name || '').toLowerCase().trim();
+      if (itemType === 'processes' && excludedProcessCodes.size > 0) {
+        const processCode = (item.processCode || '').toLowerCase().trim();
         // Fast O(1) lookup in Set instead of nested loop
-        if (processName && excludedProcessNames.has(processName)) {
+        if (processCode && excludedProcessCodes.has(processCode)) {
           return false;
         }
       }
 
       return true;
     });
-  }, [items, searchTerm, itemType, excludedProcessNames]);
+  }, [items, searchTerm, itemType, excludedProcessCodes]);
 
   const handleSelectAll = useCallback(() => {
     const allFilteredIds = filteredItems

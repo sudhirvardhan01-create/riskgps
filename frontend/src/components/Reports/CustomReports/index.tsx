@@ -13,7 +13,7 @@ export default function RiskDashboard({ assetData }: any) {
   return (
     <Grid container spacing={3} sx={{ width: "100%" }}>
       {/* ===== LEFT CARD: GEO MAP ===== */}
-      <Grid size={12}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Paper
           elevation={0}
           sx={{
@@ -45,10 +45,10 @@ export default function RiskDashboard({ assetData }: any) {
       </Grid>
 
       {/* ===== RIGHT CARD: BAR CHARTS ===== */}
-      <Grid size={12}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Grid container spacing={3}>
           {/* ---- Asset Dependencies ---- */}
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={12}>
             <Paper
               elevation={0}
               sx={{
@@ -73,7 +73,7 @@ export default function RiskDashboard({ assetData }: any) {
           </Grid>
 
           {/* ---- Vendor Dependencies ---- */}
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={12}>
             <Paper
               elevation={0}
               sx={{

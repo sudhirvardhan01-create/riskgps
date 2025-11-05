@@ -120,6 +120,88 @@ export const createOrganizationProcesses = async (
   return response.json();
 };
 
+export const updateOrganizationProcess = async (
+  orgId: string | undefined,
+  buId: string | undefined,
+  processId: string | undefined,
+  processData: any
+) => {
+  if (!orgId || !buId || !processId) {
+    throw new Error("Organization ID, Business Unit ID, and Process ID are required");
+  }
+
+  // Transform the data to match backend expectations
+  // Map attributes from meta_data_key_id to metaDataKeyId
+  // Filter out invalid attributes (must have metaDataKeyId and values array)
+  const attributes = processData.attributes
+    ?.map((attr: any) => {
+      const metaDataKeyId = attr.meta_data_key_id || attr.metaDataKeyId;
+      const values = Array.isArray(attr.values) ? attr.values : [];
+      
+      // Only include attributes that have metaDataKeyId (values can be empty array)
+      if (metaDataKeyId) {
+        return {
+          metaDataKeyId: metaDataKeyId,
+          values: values,
+        };
+      }
+      return null;
+    })
+    .filter((attr: any) => attr !== null) || [];
+
+  // Map processDependency from camelCase to the expected format
+  const processDependency = processData.processDependency?.map((dep: any) => ({
+    sourceProcessId: dep.sourceProcessId || dep.source_process_id,
+    targetProcessId: dep.targetProcessId || dep.target_process_id,
+    relationshipType: dep.relationshipType || dep.relationship_type,
+  })) || [];
+
+  const transformedData = {
+    processName: processData.processName,
+    processDescription: processData.processDescription || "",
+    seniorExecutiveOwnerName: processData.seniorExecutiveOwnerName || "",
+    seniorExecutiveOwnerEmail: processData.seniorExecutiveOwnerEmail || null,
+    operationsOwnerName: processData.operationsOwnerName || "",
+    operationsOwnerEmail: processData.operationsOwnerEmail || "",
+    technologyOwnerName: processData.technologyOwnerName || "",
+    technologyOwnerEmail: processData.technologyOwnerEmail || "",
+    organizationalRevenueImpactPercentage: processData.organizationalRevenueImpactPercentage || null,
+    financialMateriality: typeof processData.financialMateriality === 'boolean' 
+      ? String(processData.financialMateriality) 
+      : processData.financialMateriality || "",
+    thirdPartyInvolvement: typeof processData.thirdPartyInvolvement === 'boolean' 
+      ? processData.thirdPartyInvolvement 
+      : processData.thirdPartyInvolvement === 'true',
+    usersCustomers: processData.usersCustomers || processData.users || "",
+    regulatoryAndCompliance: processData.regulatoryAndCompliance || processData.requlatoryAndCompliance || null,
+    criticalityOfDataProcessed: processData.criticalityOfDataProcessed || "",
+    dataProcessed: processData.dataProcessed || null,
+    status: processData.status || "published",
+    attributes: attributes,
+    processDependency: processDependency,
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/process/${processId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.error || errorData.message || "Failed to update organization process";
+    console.error("Update process error:", errorData);
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+};
+
 export const getOrganizationAssets = async (orgId: string | undefined) => {
   if (!orgId) {
     throw new Error("Organization ID is required");
@@ -203,6 +285,69 @@ export const createOrganizationAssets = async (
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.error || errorData.message || "Failed to create organization assets");
+  }
+
+  return response.json();
+};
+
+export const updateOrganizationAsset = async (
+  orgId: string | undefined,
+  assetId: string | undefined,
+  asset: any
+) => {
+  if (!orgId || !assetId) {
+    throw new Error("Organization ID and Asset ID are required");
+  }
+
+  // Transform the data to match backend expectations
+  // Map attributes from meta_data_key_id to metaDataKeyId
+  const attributes = asset.attributes?.map((attr: any) => ({
+    metaDataKeyId: attr.meta_data_key_id || attr.metaDataKeyId,
+    values: attr.values || [],
+  })) || [];
+
+  // Map relatedProcesses - handle both number[] and string[]
+  // The API expects organization process IDs as strings
+  const relatedProcesses = asset.relatedProcesses?.map((processId: string | number) => 
+    typeof processId === 'string' ? processId : String(processId)
+  ) || [];
+
+  const transformedData = {
+    applicationName: asset.applicationName,
+    applicationOwner: asset.applicationOwner || null,
+    applicationItOwner: asset.applicationITOwner || asset.applicationItOwner || null,
+    isThirdPartyManagement: asset.isThirdPartyManagement ?? null,
+    thirdPartyName: asset.thirdPartyName || null,
+    thirdPartyLocation: asset.thirdPartyLocation || null,
+    hosting: asset.hosting || null,
+    hostingFacility: asset.hostingFacility || null,
+    cloudServiceProvider: asset.cloudServiceProvider || null,
+    geographicLocation: asset.geographicLocation || null,
+    hasRedundancy: asset.hasRedundancy ?? null,
+    databases: asset.databases || null,
+    hasNetworkSegmentation: asset.hasNetworkSegmentation ?? null,
+    networkName: asset.networkName || null,
+    assetCategory: asset.assetCategory || "",
+    assetName: asset.assetName || null,
+    assetDescription: asset.assetDescription || "",
+    relatedProcesses: relatedProcesses,
+    attributes: attributes,
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/asset/${assetId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to update organization asset");
   }
 
   return response.json();
@@ -295,6 +440,58 @@ export const createOrganizationRiskScenarios = async (
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.error || errorData.message || "Failed to create organization risk scenarios");
+  }
+
+  return response.json();
+};
+
+export const updateOrganizationRiskScenario = async (
+  orgId: string | undefined,
+  riskScenarioId: string | undefined,
+  riskScenario: any
+) => {
+  if (!orgId || !riskScenarioId) {
+    throw new Error("Organization ID and Risk Scenario ID are required");
+  }
+
+  // Transform the data to match backend expectations
+  // Map attributes from meta_data_key_id to metaDataKeyId
+  const attributes = riskScenario.attributes?.map((attr: any) => ({
+    metaDataKeyId: attr.meta_data_key_id || attr.metaDataKeyId,
+    values: attr.values || [],
+  })) || [];
+
+  // Map related_processes to relatedProcesses
+  const relatedProcesses = riskScenario.related_processes?.map((processId: string) => 
+    typeof processId === 'string' ? processId : String(processId)
+  ) || [];
+
+  const transformedData = {
+    riskScenario: riskScenario.riskScenario,
+    riskDescription: riskScenario.riskDescription || "",
+    riskStatement: riskScenario.riskStatement || "",
+    ciaMapping: riskScenario.ciaMapping || [],
+    status: riskScenario.status || "published",
+    riskField1: riskScenario.riskField1 || "",
+    riskField2: riskScenario.riskField2 || "",
+    relatedProcesses: relatedProcesses,
+    attributes: attributes,
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/risk-scenarios/${riskScenarioId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to update organization risk scenario");
   }
 
   return response.json();

@@ -8,6 +8,8 @@
   SeverityLevel,
   MetaData,
   OrganizationAsset,
+  OrganizationAssetProcessMappings,
+  OrganizationProcessRiskScenarioMappings,
   OrganizationRiskScenarioAttribute,
   OrganizationAssetAttribute,
   OrganizationProcessAttribute,
@@ -143,6 +145,7 @@ class OrganizationService {
         },
         attributes: [
           "id",
+          "parentObjectId",
           "organizationId",
           "orgBusinessUnitId",
           "autoIncrementId",
@@ -205,13 +208,6 @@ class OrganizationService {
           businessUnitId
         );
 
-      if (!processes || processes.length === 0) {
-        throw new CustomError(
-          "No processes found for given organization and business unit",
-          HttpStatus.NOT_FOUND
-        );
-      }
-
       return processes;
     } catch (err) {
       throw new CustomError(
@@ -249,6 +245,8 @@ class OrganizationService {
           OrganizationProcessService.handleProcessDataColumnMapping(data);
         processData.organizationId = orgId;
         processData.orgBusinessUnitId = buId;
+        processData.isDeleted = false;
+
         console.log("Creating process with data:", processData);
 
         const [process, created] = await OrganizationProcess.upsert(
@@ -258,7 +256,10 @@ class OrganizationService {
             transaction: t,
           }
         );
-        console.log(process, "creted");
+        const paddedId = String(process.autoIncrementId).padStart(5, "0");
+        const code = `BP${paddedId}`;
+        await process.update({ processCode: code }, { transaction: t });
+        console.log(process, "process created");
         insertedCount++;
 
         await OrganizationProcessAttribute.destroy({
@@ -362,6 +363,61 @@ class OrganizationService {
       return updatedRows;
     });
   }
+
+  static async deleteProcess(ids, orgId, buId) {
+    if (!ids || !Array.isArray(ids) || !orgId || !buId) {
+      throw new Error("process id array, OrgID and BuID required");
+    }
+
+    let deletedCount = 0;
+    return await sequelize.transaction(async (t) => {
+      for (const id of ids) {
+        console.log("deleting process process with data:", id, orgId, buId);
+
+        const [updatedCount, updatedRows] = await OrganizationProcess.update(
+          {
+            isDeleted: true,
+          },
+          {
+            where: {
+              id,
+              organizationId: orgId,
+              orgBusinessUnitId: buId,
+            },
+            returning: true,
+            transaction: t,
+          }
+        );
+
+        if (updatedCount > 0) {
+          deletedCount++;
+        }
+
+        await OrganizationProcessAttribute.destroy({
+          where: { processId: id },
+          transaction: t,
+        });
+        await OrganizationProcessRelationship.destroy({
+          where: {
+            [Op.or]: [{ sourceProcessId: id }, { targetProcessId: id }],
+          },
+          transaction: t,
+        });
+
+        await OrganizationAssetProcessMappings.destroy({
+          where: { processId: id },
+          transaction: t,
+        });
+
+        await OrganizationProcessRiskScenarioMappings.destroy({
+          where: { processId: id },
+          transaction: t,
+        });
+      }
+
+      return deletedCount;
+    });
+  }
   /**
    * Get all risk scenarios by organizationId
    */
@@ -380,6 +436,7 @@ class OrganizationService {
           isDeleted: false,
         },
         attributes: [
+          "parentObjectId",
           "id",
           "organizationId",
           "autoIncrementId",
@@ -477,10 +534,12 @@ class OrganizationService {
               data
             );
           riskScenarioData.organizationId = organizationId;
+          riskScenarioData.isDeleted = false;
           console.log(
             "[createRiskScenariosByOrgId], risk scenario mapped values",
             riskScenarioData
           );
+
           const [scenario, created] = await OrganizationRiskScenario.upsert(
             riskScenarioData,
             {
@@ -488,6 +547,11 @@ class OrganizationService {
               transaction: t,
             }
           );
+
+          const paddedId = String(scenario.autoIncrementId).padStart(5, "0");
+          const code = `RS${paddedId}`;
+          await scenario.update({ riskCode: code }, { transaction: t });
+
           insertedCount++;
 
           await OrganizationRiskScenarioService.handleRiskScenarioProcessMapping(
@@ -572,6 +636,49 @@ class OrganizationService {
     }
   }
 
+  static async deleteRiskScenario(ids, orgId) {
+    let deletedCount = 0;
+    if (!Array.isArray(ids) || !orgId) {
+      throw new Error("risk scenario id array, OrgID required");
+    }
+
+    return await sequelize.transaction(async (t) => {
+      for (const id of ids) {
+        console.log("deleting risk scenario :", id, orgId);
+
+        const [updatedCount, updatedRows] =
+          await OrganizationRiskScenario.update(
+            {
+              isDeleted: true,
+            },
+            {
+              where: {
+                id,
+                organizationId: orgId,
+              },
+              returning: true,
+              transaction: t,
+            }
+          );
+
+        if (updatedCount > 0) {
+          deletedCount++;
+        }
+
+        await OrganizationProcessRiskScenarioMappings.destroy({
+          where: { riskScenarioId: id },
+          transaction: t,
+        });
+        await OrganizationRiskScenarioAttribute.destroy({
+          where: { riskScenarioId: id },
+          transaction: t,
+        });
+      }
+
+      return deletedCount;
+    });
+  }
+
   static async getOrganizationMitreThreatsByOrgId(organizationId) {
     try {
       if (!organizationId) {
@@ -609,6 +716,7 @@ class OrganizationService {
             };
           }
           acc[key].controls.push({
+            parentObjectId: row.parentObjectId ?? null,
             id: row.id,
             mitreControlId: row.mitreControlId,
             mitreControlName: row.mitreControlName,
@@ -664,6 +772,7 @@ class OrganizationService {
           this.validateMitreThreatControlData(data);
           const controls = data.controls ?? [];
           const payloads = controls.map((control) => ({
+            parentObjectId: data?.parentObjectId ?? null,
             organizationId: organizationId,
             platforms: data.platforms,
             mitreTechniqueId: data.mitreTechniqueId,
@@ -778,6 +887,7 @@ class OrganizationService {
           isDeleted: false,
         },
         attributes: [
+          "parentObjectId",
           "id",
           "organizationId",
           "autoIncrementId",
@@ -888,12 +998,18 @@ class OrganizationService {
           const assetData =
             OrganizationAssetService.handleAssetDataColumnMapping(data);
           assetData.organizationId = organizationId;
+          assetData.isDeleted = false;
 
           console.log("[createAssetByOrgId], asset mapped values", assetData);
           const [asset, created] = await OrganizationAsset.upsert(assetData, {
             returning: true,
             transaction: t,
           });
+
+          const paddedId = String(asset.autoIncrementId).padStart(5, "0");
+          const code = `AT${paddedId}`;
+          await asset.update({ assetCode: code }, { transaction: t });
+
           insertedCount += 1;
 
           await OrganizationAssetService.handleAssetProcessMapping(
@@ -932,39 +1048,42 @@ class OrganizationService {
         throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
       }
       return await sequelize.transaction(async (t) => {
-          const data = createBody;
+        const data = createBody;
 
-          console.log("[createAssetByOrgId] request received", data);
+        console.log("[createAssetByOrgId] request received", data);
 
-          OrganizationAssetService.validateAssetData(data);
+        OrganizationAssetService.validateAssetData(data);
 
-          const assetData =
-            OrganizationAssetService.handleAssetDataColumnMapping(data);
+        const assetData =
+          OrganizationAssetService.handleAssetDataColumnMapping(data);
 
-          console.log("[createAssetByOrgId], asset mapped values", assetData);
-          const [updatedCount, created] = await OrganizationAsset.update(assetData, {
+        console.log("[createAssetByOrgId], asset mapped values", assetData);
+        const [updatedCount, created] = await OrganizationAsset.update(
+          assetData,
+          {
             where: {
               id,
               organizationId: organizationId,
             },
             returning: true,
             transaction: t,
-          });
-
-          if (updatedCount < 1) {
-            throw new Error("failed to update asset")
           }
-          await OrganizationAssetService.handleAssetProcessMapping(
-            id,
-            data.relatedProcesses ?? [],
-            t
-          );
+        );
 
-          await OrganizationAssetService.handleAssetAttributes(
-            id,
-            data.attributes ?? [],
-            t
-          );
+        if (updatedCount < 1) {
+          throw new Error("failed to update asset");
+        }
+        await OrganizationAssetService.handleAssetProcessMapping(
+          id,
+          data.relatedProcesses ?? [],
+          t
+        );
+
+        await OrganizationAssetService.handleAssetAttributes(
+          id,
+          data.attributes ?? [],
+          t
+        );
 
         return created;
       });
@@ -974,6 +1093,47 @@ class OrganizationService {
         err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  static async deleteAsset(ids, orgId) {
+    if (!ids || !Array.isArray(ids) || !orgId) {
+      throw new Error("asset id array, OrgID required");
+    }
+    let deletedCount = 0;
+    return await sequelize.transaction(async (t) => {
+      for (const id of ids) {
+        console.log("deleting asset:", id, orgId);
+
+        const [updatedCount, updatedRows] = await OrganizationAsset.update(
+          {
+            isDeleted: true,
+          },
+          {
+            where: {
+              id,
+              organizationId: orgId,
+            },
+            returning: true,
+            transaction: t,
+          }
+        );
+
+        if (updatedCount > 0) {
+          deletedCount++;
+        }
+
+        await OrganizationAssetProcessMappings.destroy({
+          where: { assetId: id },
+          transaction: t,
+        });
+        await OrganizationAssetAttribute.destroy({
+          where: { assetId: id },
+          transaction: t,
+        });
+      }
+
+      return deletedCount;
+    });
   }
 
   /**
