@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+import "@fontsource/inter";
 
 // Customize your theme here
 const theme = createTheme({
@@ -18,7 +19,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
   },
   components: {
     MuiButton: {
