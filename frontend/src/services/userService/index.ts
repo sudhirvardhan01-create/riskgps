@@ -4,6 +4,7 @@ import {
   fetchRoles,
   fetchUserById,
   fetchUsers,
+  resetPassword,
   updateUser,
   updateUserStatus,
 } from "@/pages/api/user";
@@ -18,4 +19,5 @@ export const UserService = {
   delete: (id: string) => deleteUser(id),
   updateStatus: (id: string, isActive: boolean) =>
     updateUserStatus(id, isActive),
+  resetPassword: (id: string, password: string) => resetPassword(id, password),
 };

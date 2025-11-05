@@ -279,6 +279,37 @@ class UserService {
     return updatedUser;
   }
 
+  static async resetPassword(id, password) {
+    if (!id) {
+      throw new CustomError(
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: User Id`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    if (!password) {
+      throw new CustomError(
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: Password`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new CustomError(
+        "No user found with the provided id",
+        HttpStatus.NOT_FOUND
+      );
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const updatedUser = await user.update({
+      password: hashedPassword,
+      modifiedDate: new Date(),
+    });
+    return {
+      name: updatedUser.name,
+      email: updatedUser.email,
+    };
+  }
+
   static async getAllRoles() {
     const roles = await Role.findAll({
       attributes: ["roleId", "name"],
