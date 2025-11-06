@@ -16,19 +16,34 @@ import {
   Chip,
   CircularProgress,
 } from "@mui/material";
-import { ArrowBack, Search, Delete, Close, EditOutlined, DeleteOutlineOutlined } from "@mui/icons-material";
+import {
+  ArrowBack,
+  Search,
+  Delete,
+  Close,
+  EditOutlined,
+  DeleteOutlineOutlined,
+} from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { AssetLibraryService } from "@/services/orgLibraryService/assetLibraryService";
-import { createOrganizationAssets, getOrganizationAssets, updateOrganizationAsset, deleteOrganizationAsset } from "@/pages/api/organization";
+import {
+  createOrganizationAssets,
+  getOrganizationAssets,
+  updateOrganizationAsset,
+  deleteOrganizationAsset,
+} from "@/pages/api/organization";
 import { fetchAssetsById } from "@/pages/api/asset";
 import AssetFormModal from "@/components/Library/Asset/AssetFormModal";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import { AssetForm } from "@/types/asset";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { fetchProcessesForListing } from "@/pages/api/process";
+import {
+  fetchOrganizationProcessesForListing,
+  fetchProcessesForListing,
+} from "@/pages/api/process";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface Asset {
@@ -46,9 +61,13 @@ function AssetsPage() {
   const [orgAssets, setOrgAssets] = useState<any[]>([]); // Full org assets for matching
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("Success! Assets have been added.");
+  const [successMessage, setSuccessMessage] = useState(
+    "Success! Assets have been added."
+  );
   const [selectedAssets, setSelectedAssets] = useState<(string | number)[]>([]);
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
+  const [expandedDescriptions, setExpandedDescriptions] = useState<
+    Set<string | number>
+  >(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -71,23 +90,23 @@ function AssetsPage() {
   };
 
   const fetchOrganizationAssets = async () => {
-    if (!orgId || typeof orgId !== 'string') return;
-    
+    if (!orgId || typeof orgId !== "string") return;
+
     try {
       setIsLoading(true);
       setErrorMessage(null);
       const response = await getOrganizationAssets(orgId);
-      
+
       // Backend returns { message: "...", data: [assets array] }
       if (response?.data && Array.isArray(response.data)) {
         // Store full org assets for matching with library items
         setOrgAssets(response.data);
-        
+
         // Map to display format
         const assetsList: Asset[] = response.data.map((asset: any) => ({
           id: asset.id,
-          applicationName: asset.applicationName || '',
-          assetDescription: asset.assetDescription || '',
+          applicationName: asset.applicationName || "",
+          assetDescription: asset.assetDescription || "",
         }));
         setAssets(assetsList);
       } else {
@@ -97,7 +116,9 @@ function AssetsPage() {
       }
     } catch (err: any) {
       console.error("Failed to fetch organization assets:", err);
-      setErrorMessage(err.message || "Failed to fetch assets. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to fetch assets. Please try again."
+      );
       setOrgAssets([]);
       setAssets([]);
     } finally {
@@ -107,8 +128,18 @@ function AssetsPage() {
   };
 
   useEffect(() => {
-    if (orgId && typeof orgId === 'string' && isInitialLoad) {
+    if (orgId && typeof orgId === "string" && isInitialLoad) {
       fetchOrganizationAssets();
+      (async () => {
+        try {
+          const [processes] = await Promise.all([
+            fetchOrganizationProcessesForListing(orgId as string)          
+          ]);
+          setProcessesData(processes.data ?? []);
+        } catch (err) {
+          console.error("Failed to fetch supporting data:", err);
+        }
+      })();
     }
   }, [orgId, isInitialLoad]);
 
@@ -116,11 +147,9 @@ function AssetsPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [processes, meta] = await Promise.all([
-          fetchProcessesForListing(),
+        const [meta] = await Promise.all([
           fetchMetaDatas(),
         ]);
-        setProcessesData(processes.data ?? []);
         setMetaDatas(meta.data ?? []);
       } catch (err) {
         console.error("Failed to fetch supporting data:", err);
@@ -129,7 +158,7 @@ function AssetsPage() {
   }, []);
 
   const handleAddAssetsFromModal = async (selectedAssets: any[]) => {
-    if (!orgId || typeof orgId !== 'string' || selectedAssets.length === 0) {
+    if (!orgId || typeof orgId !== "string" || selectedAssets.length === 0) {
       return;
     }
 
@@ -148,31 +177,32 @@ function AssetsPage() {
       // Format the data to match the GET response structure exactly (same format as library GET API)
       const formattedData = fullAssetData.map((data: any) => {
         // Transform attributes to match the expected format (same as GET response)
-        const attributes = data.attributes?.map((attr: any) => {
-          let metaDataKeyId: string | undefined;
-          
-          if (attr.metaData?.id) {
-            // When metaData association is included
-            metaDataKeyId = attr.metaData.id;
-          } else if (attr.meta_data_key_id) {
-            // When using snake_case field name
-            metaDataKeyId = attr.meta_data_key_id;
-          } else if (attr.metaDataKeyId) {
-            // When using camelCase field name
-            metaDataKeyId = attr.metaDataKeyId;
-          }
-          
-          return {
-            meta_data_key_id: metaDataKeyId || "",
-            values: attr.values || [],
-          };
-        }) || [];
+        const attributes =
+          data.attributes?.map((attr: any) => {
+            let metaDataKeyId: string | undefined;
+
+            if (attr.metaData?.id) {
+              // When metaData association is included
+              metaDataKeyId = attr.metaData.id;
+            } else if (attr.meta_data_key_id) {
+              // When using snake_case field name
+              metaDataKeyId = attr.meta_data_key_id;
+            } else if (attr.metaDataKeyId) {
+              // When using camelCase field name
+              metaDataKeyId = attr.metaDataKeyId;
+            }
+
+            return {
+              meta_data_key_id: metaDataKeyId || "",
+              values: attr.values || [],
+            };
+          }) || [];
 
         // Transform related_processes - handle both array of IDs and array of objects
         let relatedProcesses: string[] = [];
         if (data.related_processes && Array.isArray(data.related_processes)) {
           relatedProcesses = data.related_processes.map((processId: any) => {
-            if (typeof processId === 'object' && processId?.id) {
+            if (typeof processId === "object" && processId?.id) {
               return processId.id;
             }
             return String(processId);
@@ -189,7 +219,8 @@ function AssetsPage() {
           assetCode: data.assetCode,
           applicationName: data.applicationName,
           applicationOwner: data.applicationOwner || null,
-          applicationItOwner: data.applicationITOwner || data.applicationItOwner || null,
+          applicationItOwner:
+            data.applicationITOwner || data.applicationItOwner || null,
           isThirdPartyManagement: data.isThirdPartyManagement || null,
           thirdPartyName: data.thirdPartyName || null,
           thirdPartyLocation: data.thirdPartyLocation || null,
@@ -206,7 +237,7 @@ function AssetsPage() {
           status: data.status || "published",
           attributes: attributes,
           related_processes: relatedProcesses,
-          parentObjectId: data.id
+          parentObjectId: data.id,
         };
       });
 
@@ -229,15 +260,15 @@ function AssetsPage() {
   };
 
   const handleAssetToggle = (assetId: string | number) => {
-    setSelectedAssets(prev =>
+    setSelectedAssets((prev) =>
       prev.includes(assetId)
-        ? prev.filter(id => id !== assetId)
+        ? prev.filter((id) => id !== assetId)
         : [...prev, assetId]
     );
   };
 
   const handleRemoveSelected = async () => {
-    if (!orgId || typeof orgId !== 'string') {
+    if (!orgId || typeof orgId !== "string") {
       setErrorMessage("Organization ID is required");
       return;
     }
@@ -249,21 +280,25 @@ function AssetsPage() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      
+
       // Convert selected asset IDs to strings
-      const assetIds = selectedAssets.map(id => String(id));
-      
+      const assetIds = selectedAssets.map((id) => String(id));
+
       await deleteOrganizationAsset(orgId, assetIds);
-      
+
       // Refresh the list after successful deletion
       await fetchOrganizationAssets();
-      
-      setSuccessMessage(`Success! ${selectedAssets.length} asset(s) have been deleted.`);
+
+      setSuccessMessage(
+        `Success! ${selectedAssets.length} asset(s) have been deleted.`
+      );
       setShowSuccessMessage(true);
       setSelectedAssets([]);
     } catch (err: any) {
       console.error("Failed to delete assets:", err);
-      setErrorMessage(err.message || "Failed to delete assets. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to delete assets. Please try again."
+      );
       setShowSuccessMessage(false);
     } finally {
       setIsLoading(false);
@@ -275,7 +310,7 @@ function AssetsPage() {
   };
 
   const handleDeleteSingleAsset = async (assetId: string | number) => {
-    if (!orgId || typeof orgId !== 'string') {
+    if (!orgId || typeof orgId !== "string") {
       setErrorMessage("Organization ID is required");
       return;
     }
@@ -283,17 +318,19 @@ function AssetsPage() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      
+
       await deleteOrganizationAsset(orgId, String(assetId));
-      
+
       // Refresh the list after successful deletion
       await fetchOrganizationAssets();
-      
+
       setSuccessMessage("Success! Asset has been deleted.");
       setShowSuccessMessage(true);
     } catch (err: any) {
       console.error("Failed to delete asset:", err);
-      setErrorMessage(err.message || "Failed to delete asset. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to delete asset. Please try again."
+      );
       setShowSuccessMessage(false);
     } finally {
       setIsLoading(false);
@@ -310,7 +347,8 @@ function AssetsPage() {
       assetCategory: fullAsset.assetCategory || "",
       assetDescription: fullAsset.assetDescription || "",
       applicationOwner: fullAsset.applicationOwner || null,
-      applicationITOwner: fullAsset.applicationItOwner || fullAsset.applicationITOwner || null,
+      applicationITOwner:
+        fullAsset.applicationItOwner || fullAsset.applicationITOwner || null,
       isThirdPartyManagement: fullAsset.isThirdPartyManagement ?? null,
       thirdPartyName: fullAsset.thirdPartyName || null,
       thirdPartyLocation: fullAsset.thirdPartyLocation || null,
@@ -322,68 +360,74 @@ function AssetsPage() {
       databases: fullAsset.databases || null,
       hasNetworkSegmentation: fullAsset.hasNetworkSegmentation ?? null,
       networkName: fullAsset.networkName || null,
-      attributes: fullAsset.attributes?.map((attr: any) => ({
-        meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
-        values: attr.values || [],
-      })) || [],
-      relatedProcesses: fullAsset.related_processes?.map((p: any) => {
-        // Handle different formats: object with id, string, or number
-        if (typeof p === 'object' && p?.id) {
-          return p.id;
-        } else if (typeof p === 'string') {
-          // Try to parse as number if possible, otherwise keep as string
-          const num = parseInt(p, 10);
-          return isNaN(num) ? p : num;
-        }
-        return p;
-      }) || [],
+      attributes:
+        fullAsset.attributes?.map((attr: any) => ({
+          meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
+          values: attr.values || [],
+        })) || [],
+      relatedProcesses:
+        fullAsset.related_processes?.map((p: any) => {
+          // Handle different formats: object with id, string, or number
+          if (typeof p === "object" && p?.id) {
+            return p.id;
+          } else if (typeof p === "string") {
+            // Try to parse as number if possible, otherwise keep as string
+            const num = parseInt(p, 10);
+            return isNaN(num) ? p : num;
+          }
+          return p;
+        }) || [],
       status: fullAsset.status || "published",
     };
   }, []);
 
   // Memoized handler for editing an asset
-  const handleEditAsset = useCallback((assetId: string | number) => {
-    const fullAsset = orgAssets.find((a: any) => a.id === assetId);
-    if (fullAsset) {
-      const assetData = transformToAssetForm(fullAsset);
-      setSelectedAsset(assetData);
-      setIsEditOpen(true);
-    }
-  }, [orgAssets, transformToAssetForm]);
+  const handleEditAsset = useCallback(
+    (assetId: string | number) => {
+      const fullAsset = orgAssets.find((a: any) => a.id === assetId);
+      if (fullAsset) {
+        const assetData = transformToAssetForm(fullAsset);
+        setSelectedAsset(assetData);
+        setIsEditOpen(true);
+      }
+    },
+    [orgAssets, transformToAssetForm]
+  );
 
   // Update asset
   const handleUpdate = async (status: string) => {
     try {
-      if (!selectedAsset?.id || !orgId || typeof orgId !== 'string') {
+      if (!selectedAsset?.id || !orgId || typeof orgId !== "string") {
         throw new Error("Invalid selection");
       }
-      
+
       // Transform the selectedAsset to match the API format
       // Convert relatedProcesses to strings (organization process IDs)
-      const relatedProcesses = selectedAsset.relatedProcesses?.map((p: any) => 
-        String(p)
-      ) || [];
-      
-      const body = { 
-        ...selectedAsset, 
+      const relatedProcesses =
+        selectedAsset.relatedProcesses?.map((p: any) => String(p)) || [];
+
+      const body = {
+        ...selectedAsset,
         status,
         relatedProcesses: relatedProcesses,
       };
-      
+
       await updateOrganizationAsset(orgId, String(selectedAsset.id), body);
-      
+
       setIsEditOpen(false);
       setSelectedAsset(null);
-      
+
       // Refresh the list
       await fetchOrganizationAssets();
-      
+
       setSuccessMessage("Success! Asset has been updated.");
       setShowSuccessMessage(true);
       setErrorMessage(null);
     } catch (err: any) {
       console.error("Failed to update asset:", err);
-      setErrorMessage(err.message || "Failed to update asset. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to update asset. Please try again."
+      );
       setShowSuccessMessage(false);
     }
   };
@@ -392,9 +436,12 @@ function AssetsPage() {
     setShowSuccessMessage(false);
   };
 
-  const toggleDescription = (assetId: string | number, event: React.MouseEvent) => {
+  const toggleDescription = (
+    assetId: string | number,
+    event: React.MouseEvent
+  ) => {
     event.stopPropagation();
-    setExpandedDescriptions(prev => {
+    setExpandedDescriptions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(assetId)) {
         newSet.delete(assetId);
@@ -406,9 +453,10 @@ function AssetsPage() {
   };
 
   // Filter assets based on search term
-  const filteredAssets = assets.filter(asset =>
-    asset.applicationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asset.assetDescription.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAssets = assets.filter(
+    (asset) =>
+      asset.applicationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.assetDescription.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading || (isInitialLoad && isLoading)) {
@@ -430,7 +478,9 @@ function AssetsPage() {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error">Error loading organization: {error}</Typography>
+        <Typography color="error">
+          Error loading organization: {error}
+        </Typography>
       </Box>
     );
   }
@@ -521,13 +571,13 @@ function AssetsPage() {
         open={!!errorMessage}
         autoHideDuration={6000}
         onClose={() => setErrorMessage(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => setErrorMessage(null)}
           severity="error"
           sx={{
-            width: '100%',
+            width: "100%",
             backgroundColor: "#FFEBEE",
             color: "#C62828",
             border: "1px solid #EF5350",
@@ -549,13 +599,13 @@ function AssetsPage() {
         open={showSuccessMessage}
         autoHideDuration={4000}
         onClose={handleCloseSuccessMessage}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={handleCloseSuccessMessage}
           severity="success"
           sx={{
-            width: '100%',
+            width: "100%",
             backgroundColor: "#E8F5E8",
             color: "#2E7D32",
             border: "1px solid #4CAF50",
@@ -573,17 +623,26 @@ function AssetsPage() {
       </Snackbar>
 
       {/* Main Content */}
-      <Box sx={{
-        flex: 1,
-        px: 3,
-        pb: 3,
-        display: "flex",
-        flexDirection: "column",
-        minHeight: 0, // Important for flex children to shrink
-      }}>
+      <Box
+        sx={{
+          flex: 1,
+          px: 3,
+          pb: 3,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0, // Important for flex children to shrink
+        }}
+      >
         {assets.length === 0 ? (
           // Empty state
-          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
             <Box
               sx={{
                 width: "100%",
@@ -616,7 +675,8 @@ function AssetsPage() {
               </Box>
 
               <Typography variant="h6" sx={{ mb: 2, color: "#484848" }}>
-                Looks like there are no assets added yet. <br /> Click on &apos;Add Assets&apos; to start adding assets.
+                Looks like there are no assets added yet. <br /> Click on
+                &apos;Add Assets&apos; to start adding assets.
               </Typography>
 
               <Button
@@ -641,7 +701,18 @@ function AssetsPage() {
           </Box>
         ) : (
           // Main content with assets
-          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px", position: "relative" }}>
+          <Box
+            sx={{
+              mx: "auto",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              pl: "40px",
+              pr: "40px",
+              mt: "10px",
+              position: "relative",
+            }}
+          >
             {/* Loading Overlay */}
             {isLoading && !isInitialLoad && (
               <Box
@@ -670,14 +741,23 @@ function AssetsPage() {
                   fontWeight: 500,
                   fontSize: "20px",
                   color: "#484848",
-                  mb: 3
+                  mb: 3,
                 }}
               >
                 Assets
               </Typography>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  mb: 3,
+                  width: "1100px",
+                }}
+              >
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}
@@ -744,80 +824,82 @@ function AssetsPage() {
 
                   {/* Selection Controls */}
                   {selectedAssets.length > 0 && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Chip
-                      label={`${selectedAssets.length} selected`}
-                      onDelete={handleClearSelection}
-                      deleteIcon={<Close />}
-                      sx={{
-                        backgroundColor: "#F3F8FF",
-                        color: "#04139A",
-                        fontWeight: 500,
-                        border: "1px solid #04139A",
-                        borderRadius: "4px",
-                        paddingTop: "7px",
-                        paddingRight: "16px",
-                        paddingBottom: "7px",
-                        paddingLeft: "16px",
-                        gap: "8px",
-                        opacity: 1,
-                        "& .MuiChip-deleteIcon": {
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Chip
+                        label={`${selectedAssets.length} selected`}
+                        onDelete={handleClearSelection}
+                        deleteIcon={<Close />}
+                        sx={{
+                          backgroundColor: "#F3F8FF",
                           color: "#04139A",
-                          "&:hover": {
-                            opacity: 0.8,
+                          fontWeight: 500,
+                          border: "1px solid #04139A",
+                          borderRadius: "4px",
+                          paddingTop: "7px",
+                          paddingRight: "16px",
+                          paddingBottom: "7px",
+                          paddingLeft: "16px",
+                          gap: "8px",
+                          opacity: 1,
+                          "& .MuiChip-deleteIcon": {
+                            color: "#04139A",
+                            "&:hover": {
+                              opacity: 0.8,
+                            },
                           },
-                        },
-                      }}
-                    />
-                    <Button
-                      variant="text"
-                      startIcon={<Delete />}
-                      onClick={handleRemoveSelected}
-                      sx={{
-                        color: "#F44336",
-                        textTransform: "none",
-                        fontWeight: 500,
-                        p: "8px 16px",
-                        paddingTop: "7px",
-                        paddingRight: "16px",
-                        paddingBottom: "7px",
-                        paddingLeft: "16px",
-                        borderRadius: "4px",
-                        backgroundColor: "transparent",
-                        "&:hover": {
-                          backgroundColor: "rgba(244, 67, 54, 0.1)",
-                        },
-                        "& .MuiButton-startIcon": {
-                          marginRight: "8px",
-                        },
-                      }}
-                    >
-                      Remove Selected
-                    </Button>
-                  </Box>
+                        }}
+                      />
+                      <Button
+                        variant="text"
+                        startIcon={<Delete />}
+                        onClick={handleRemoveSelected}
+                        sx={{
+                          color: "#F44336",
+                          textTransform: "none",
+                          fontWeight: 500,
+                          p: "8px 16px",
+                          paddingTop: "7px",
+                          paddingRight: "16px",
+                          paddingBottom: "7px",
+                          paddingLeft: "16px",
+                          borderRadius: "4px",
+                          backgroundColor: "transparent",
+                          "&:hover": {
+                            backgroundColor: "rgba(244, 67, 54, 0.1)",
+                          },
+                          "& .MuiButton-startIcon": {
+                            marginRight: "8px",
+                          },
+                        }}
+                      >
+                        Remove Selected
+                      </Button>
+                    </Box>
                   )}
                 </Box>
               )}
             </Box>
 
             {/* Scrollable Assets Grid */}
-            <Box sx={{
-              flex: 1,
-              overflow: "auto",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
-              scrollbarWidth: "none", // Firefox
-              msOverflowStyle: "none", // IE and Edge
-              mb: 4,
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+                overflow: "auto",
+                "&::-webkit-scrollbar": {
+                  display: "none",
+                },
+                scrollbarWidth: "none", // Firefox
+                msOverflowStyle: "none", // IE and Edge
+                mb: 4,
+              }}
+            >
               <Grid container spacing={2}>
                 {filteredAssets.map((asset) => {
                   const isExpanded = expandedDescriptions.has(asset.id);
                   const descriptionText = `Description: ${asset.assetDescription}`;
                   const actualDescription = asset.assetDescription || "";
                   const shouldShowToggle = actualDescription.trim().length > 80;
-                  
+
                   return (
                     <Grid size={{ xs: 12, sm: 6 }} key={asset.id}>
                       <Box
@@ -855,7 +937,14 @@ function AssetsPage() {
                             />
                           }
                           label={
-                            <Box sx={{ flex: 1, pr: 4, display: "flex", flexDirection: "column" }}>
+                            <Box
+                              sx={{
+                                flex: 1,
+                                pr: 4,
+                                display: "flex",
+                                flexDirection: "column",
+                              }}
+                            >
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -877,10 +966,16 @@ function AssetsPage() {
                                     lineHeight: "20px",
                                     fontWeight: 400,
                                     overflow: isExpanded ? "visible" : "hidden",
-                                    display: isExpanded ? "block" : "-webkit-box",
+                                    display: isExpanded
+                                      ? "block"
+                                      : "-webkit-box",
                                     WebkitLineClamp: isExpanded ? undefined : 2,
-                                    WebkitBoxOrient: isExpanded ? undefined : "vertical",
-                                    textOverflow: isExpanded ? "clip" : "ellipsis",
+                                    WebkitBoxOrient: isExpanded
+                                      ? undefined
+                                      : "vertical",
+                                    textOverflow: isExpanded
+                                      ? "clip"
+                                      : "ellipsis",
                                     maxHeight: isExpanded ? "none" : "40px",
                                     wordBreak: "break-word",
                                   }}
@@ -889,7 +984,9 @@ function AssetsPage() {
                                 </Typography>
                                 {shouldShowToggle && (
                                   <Button
-                                    onClick={(e) => toggleDescription(asset.id, e)}
+                                    onClick={(e) =>
+                                      toggleDescription(asset.id, e)
+                                    }
                                     sx={{
                                       textTransform: "none",
                                       color: "#04139A",
@@ -936,10 +1033,13 @@ function AssetsPage() {
                                 icon: <EditOutlined fontSize="small" />,
                               },
                               {
-                                onAction: () => handleDeleteSingleAsset(asset.id),
+                                onAction: () =>
+                                  handleDeleteSingleAsset(asset.id),
                                 color: "#CD0303",
                                 action: "Delete",
-                                icon: <DeleteOutlineOutlined fontSize="small" />,
+                                icon: (
+                                  <DeleteOutlineOutlined fontSize="small" />
+                                ),
                               },
                             ]}
                           />

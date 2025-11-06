@@ -16,19 +16,34 @@ import {
   Chip,
   CircularProgress,
 } from "@mui/material";
-import { ArrowBack, Search, Delete, Close, EditOutlined, DeleteOutlineOutlined } from "@mui/icons-material";
+import {
+  ArrowBack,
+  Search,
+  Delete,
+  Close,
+  EditOutlined,
+  DeleteOutlineOutlined,
+} from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
 import { RiskScenarioData } from "@/types/risk-scenario";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { RiskScenarioLibraryService } from "@/services/orgLibraryService/riskScenarioLibraryService";
-import { createOrganizationRiskScenarios, getOrganizationRisks, updateOrganizationRiskScenario, deleteOrganizationRiskScenario } from "@/pages/api/organization";
+import {
+  createOrganizationRiskScenarios,
+  getOrganizationRisks,
+  updateOrganizationRiskScenario,
+  deleteOrganizationRiskScenario,
+} from "@/pages/api/organization";
 import { fetchRiskScenarioById } from "@/pages/api/risk-scenario";
 import RiskScenarioFormModal from "@/components/Library/RiskScenario/RiskScenarioFormModal";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
-import { fetchProcessesForListing } from "@/pages/api/process";
+import {
+  fetchOrganizationProcessesForListing,
+  fetchProcessesForListing,
+} from "@/pages/api/process";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface RiskScenario {
@@ -47,13 +62,18 @@ function RiskScenariosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
-  const [selectedScenarios, setSelectedScenarios] = useState<(string | number)[]>([]);
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
+  const [selectedScenarios, setSelectedScenarios] = useState<
+    (string | number)[]
+  >([]);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<
+    Set<string | number>
+  >(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedRiskScenario, setSelectedRiskScenario] = useState<RiskScenarioData | null>(null);
+  const [selectedRiskScenario, setSelectedRiskScenario] =
+    useState<RiskScenarioData | null>(null);
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
@@ -71,24 +91,26 @@ function RiskScenariosPage() {
   };
 
   const fetchOrganizationRiskScenarios = async () => {
-    if (!orgId || typeof orgId !== 'string') return;
-    
+    if (!orgId || typeof orgId !== "string") return;
+
     try {
       setIsLoading(true);
       setErrorMessage(null);
       const response = await getOrganizationRisks(orgId);
-      
+
       // Backend returns { message: "...", data: [scenarios array] }
       if (response?.data && Array.isArray(response.data)) {
         // Store full org risk scenarios for matching with library items
         setOrgRiskScenarios(response.data);
-        
+
         // Map to display format
-        const scenarios: RiskScenario[] = response.data.map((scenario: any) => ({
-          id: scenario.id,
-          riskScenario: scenario.riskScenario || '',
-          riskStatement: scenario.riskStatement || '',
-        }));
+        const scenarios: RiskScenario[] = response.data.map(
+          (scenario: any) => ({
+            id: scenario.id,
+            riskScenario: scenario.riskScenario || "",
+            riskStatement: scenario.riskStatement || "",
+          })
+        );
         setRiskScenarios(scenarios);
       } else {
         // If data is empty or not in expected format, set empty array
@@ -97,7 +119,9 @@ function RiskScenariosPage() {
       }
     } catch (err: any) {
       console.error("Failed to fetch organization risk scenarios:", err);
-      setErrorMessage(err.message || "Failed to fetch risk scenarios. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to fetch risk scenarios. Please try again."
+      );
       setOrgRiskScenarios([]);
       setRiskScenarios([]);
     } finally {
@@ -107,8 +131,18 @@ function RiskScenariosPage() {
   };
 
   useEffect(() => {
-    if (orgId && typeof orgId === 'string' && isInitialLoad) {
+    if (orgId && typeof orgId === "string" && isInitialLoad) {
       fetchOrganizationRiskScenarios();
+      (async () => {
+        try {
+          const [processes] = await Promise.all([
+            fetchOrganizationProcessesForListing(orgId as string),
+          ]);
+          setProcessesData(processes.data ?? []);
+        } catch (err) {
+          console.error("Failed to fetch supporting data:", err);
+        }
+      })();
     }
   }, [orgId, isInitialLoad]);
 
@@ -116,11 +150,7 @@ function RiskScenariosPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [processes, meta] = await Promise.all([
-          fetchProcessesForListing(),
-          fetchMetaDatas(),
-        ]);
-        setProcessesData(processes.data ?? []);
+        const [meta] = await Promise.all([fetchMetaDatas()]);
         // Match exactly what RiskScenarioContainer does - it uses meta.data
         setMetaDatas(meta.data ?? []);
       } catch (err) {
@@ -130,7 +160,7 @@ function RiskScenariosPage() {
   }, []);
 
   const handleAddScenarios = async (selectedScenarios: any[]) => {
-    if (!orgId || typeof orgId !== 'string' || selectedScenarios.length === 0) {
+    if (!orgId || typeof orgId !== "string" || selectedScenarios.length === 0) {
       return;
     }
 
@@ -149,26 +179,27 @@ function RiskScenariosPage() {
       // Format the data to match the GET response structure (same format as library GET API)
       const formattedData = fullRiskScenarioData.map((data: any) => {
         // Transform attributes to match the expected format (as returned by library GET API)
-        const attributes = data.attributes?.map((attr: any) => {
-          // Handle different possible attribute structures from backend
-          let metaDataKeyId: string | undefined;
-          
-          if (attr.metaData?.id) {
-            // When metaData association is included
-            metaDataKeyId = attr.metaData.id;
-          } else if (attr.meta_data_key_id) {
-            // When using snake_case field name
-            metaDataKeyId = attr.meta_data_key_id;
-          } else if (attr.metaDataKeyId) {
-            // When using camelCase field name
-            metaDataKeyId = attr.metaDataKeyId;
-          }
-          
-          return {
-            meta_data_key_id: metaDataKeyId || "",
-            values: attr.values || [],
-          };
-        }) || [];
+        const attributes =
+          data.attributes?.map((attr: any) => {
+            // Handle different possible attribute structures from backend
+            let metaDataKeyId: string | undefined;
+
+            if (attr.metaData?.id) {
+              // When metaData association is included
+              metaDataKeyId = attr.metaData.id;
+            } else if (attr.meta_data_key_id) {
+              // When using snake_case field name
+              metaDataKeyId = attr.meta_data_key_id;
+            } else if (attr.metaDataKeyId) {
+              // When using camelCase field name
+              metaDataKeyId = attr.metaDataKeyId;
+            }
+
+            return {
+              meta_data_key_id: metaDataKeyId || "",
+              values: attr.values || [],
+            };
+          }) || [];
 
         // Transform related_processes - handle both array of IDs and array of objects
         // Note: getRiskScenarioById doesn't include processes, so related_processes might be missing
@@ -176,7 +207,7 @@ function RiskScenariosPage() {
         let relatedProcesses: string[] = [];
         if (data.related_processes && Array.isArray(data.related_processes)) {
           relatedProcesses = data.related_processes.map((processId: any) => {
-            if (typeof processId === 'object' && processId?.id) {
+            if (typeof processId === "object" && processId?.id) {
               return processId.id;
             }
             return String(processId);
@@ -214,7 +245,9 @@ function RiskScenariosPage() {
       setIsAddModalOpen(false);
     } catch (err: any) {
       console.error("Failed to add risk scenarios:", err);
-      setErrorMessage(err.message || "Failed to add risk scenarios. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to add risk scenarios. Please try again."
+      );
       setShowSuccessMessage(false);
     } finally {
       setIsLoading(false);
@@ -222,15 +255,15 @@ function RiskScenariosPage() {
   };
 
   const handleScenarioToggle = (scenarioId: string | number) => {
-    setSelectedScenarios(prev =>
+    setSelectedScenarios((prev) =>
       prev.includes(scenarioId)
-        ? prev.filter(id => id !== scenarioId)
+        ? prev.filter((id) => id !== scenarioId)
         : [...prev, scenarioId]
     );
   };
 
   const handleRemoveSelected = async () => {
-    if (!orgId || typeof orgId !== 'string') {
+    if (!orgId || typeof orgId !== "string") {
       setErrorMessage("Organization ID is required");
       return;
     }
@@ -242,21 +275,25 @@ function RiskScenariosPage() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      
+
       // Convert selected scenario IDs to strings
-      const scenarioIds = selectedScenarios.map(id => String(id));
-      
+      const scenarioIds = selectedScenarios.map((id) => String(id));
+
       await deleteOrganizationRiskScenario(orgId, scenarioIds);
-      
+
       // Refresh the list after successful deletion
       await fetchOrganizationRiskScenarios();
-      
-      setSuccessMessage(`Success! ${selectedScenarios.length} risk scenario(s) have been deleted.`);
+
+      setSuccessMessage(
+        `Success! ${selectedScenarios.length} risk scenario(s) have been deleted.`
+      );
       setShowSuccessMessage(true);
       setSelectedScenarios([]);
     } catch (err: any) {
       console.error("Failed to delete risk scenarios:", err);
-      setErrorMessage(err.message || "Failed to delete risk scenarios. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to delete risk scenarios. Please try again."
+      );
       setShowSuccessMessage(false);
     } finally {
       setIsLoading(false);
@@ -268,7 +305,7 @@ function RiskScenariosPage() {
   };
 
   const handleDeleteSingleScenario = async (scenarioId: string | number) => {
-    if (!orgId || typeof orgId !== 'string') {
+    if (!orgId || typeof orgId !== "string") {
       setErrorMessage("Organization ID is required");
       return;
     }
@@ -276,17 +313,19 @@ function RiskScenariosPage() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      
+
       await deleteOrganizationRiskScenario(orgId, String(scenarioId));
-      
+
       // Refresh the list after successful deletion
       await fetchOrganizationRiskScenarios();
-      
+
       setSuccessMessage("Success! Risk scenario has been deleted.");
       setShowSuccessMessage(true);
     } catch (err: any) {
       console.error("Failed to delete risk scenario:", err);
-      setErrorMessage(err.message || "Failed to delete risk scenario. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to delete risk scenario. Please try again."
+      );
       setShowSuccessMessage(false);
     } finally {
       setIsLoading(false);
@@ -294,71 +333,89 @@ function RiskScenariosPage() {
   };
 
   // Helper function to transform orgRiskScenario to RiskScenarioData format
-  const transformToRiskScenarioData = useCallback((fullScenario: any): RiskScenarioData => {
-    return {
-      id: fullScenario.id,
-      riskCode: fullScenario.riskCode,
-      riskScenario: fullScenario.riskScenario || "",
-      riskStatement: fullScenario.riskStatement || "",
-      riskDescription: fullScenario.riskDescription || "",
-      ciaMapping: fullScenario.ciaMapping || [],
-      riskField1: fullScenario.riskField1 || "",
-      riskField2: fullScenario.riskField2 || "",
-      attributes: fullScenario.attributes?.map((attr: any) => ({
-        meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
-        values: attr.values || [],
-      })) || [],
-      related_processes: fullScenario.related_processes || [],
-      status: fullScenario.status || "published",
-    };
-  }, []);
+  const transformToRiskScenarioData = useCallback(
+    (fullScenario: any): RiskScenarioData => {
+      return {
+        id: fullScenario.id,
+        riskCode: fullScenario.riskCode,
+        riskScenario: fullScenario.riskScenario || "",
+        riskStatement: fullScenario.riskStatement || "",
+        riskDescription: fullScenario.riskDescription || "",
+        ciaMapping: fullScenario.ciaMapping || [],
+        riskField1: fullScenario.riskField1 || "",
+        riskField2: fullScenario.riskField2 || "",
+        attributes:
+          fullScenario.attributes?.map((attr: any) => ({
+            meta_data_key_id:
+              attr.meta_data_key_id || attr.metaDataKeyId || null,
+            values: attr.values || [],
+          })) || [],
+        related_processes: fullScenario.related_processes || [],
+        status: fullScenario.status || "published",
+      };
+    },
+    []
+  );
 
   // Memoized handler for editing a risk scenario
-  const handleEditScenario = useCallback((scenarioId: string | number) => {
-    const fullScenario = orgRiskScenarios.find((rs: any) => rs.id === scenarioId);
-    if (fullScenario) {
-      const riskScenarioData = transformToRiskScenarioData(fullScenario);
-      setSelectedRiskScenario(riskScenarioData);
-      setIsEditOpen(true);
-    }
-  }, [orgRiskScenarios, transformToRiskScenarioData]);
+  const handleEditScenario = useCallback(
+    (scenarioId: string | number) => {
+      const fullScenario = orgRiskScenarios.find(
+        (rs: any) => rs.id === scenarioId
+      );
+      if (fullScenario) {
+        const riskScenarioData = transformToRiskScenarioData(fullScenario);
+        setSelectedRiskScenario(riskScenarioData);
+        setIsEditOpen(true);
+      }
+    },
+    [orgRiskScenarios, transformToRiskScenarioData]
+  );
 
   // Update risk scenario
   const handleUpdate = async (status: string) => {
     try {
-      if (!selectedRiskScenario?.id || !orgId || typeof orgId !== 'string') {
+      if (!selectedRiskScenario?.id || !orgId || typeof orgId !== "string") {
         throw new Error("Invalid selection");
       }
-      
+
       // Transform the selectedRiskScenario to match the API format
       const body = { ...selectedRiskScenario, status };
-      
-      await updateOrganizationRiskScenario(orgId, String(selectedRiskScenario.id), body);
-      
+
+      await updateOrganizationRiskScenario(
+        orgId,
+        String(selectedRiskScenario.id),
+        body
+      );
+
       setIsEditOpen(false);
       setSelectedRiskScenario(null);
-      
+
       // Refresh the list
       await fetchOrganizationRiskScenarios();
-      
+
       setSuccessMessage("Success! Risk scenario has been updated.");
       setShowSuccessMessage(true);
       setErrorMessage(null);
     } catch (err: any) {
       console.error("Failed to update risk scenario:", err);
-      setErrorMessage(err.message || "Failed to update risk scenario. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to update risk scenario. Please try again."
+      );
       setShowSuccessMessage(false);
     }
   };
-
 
   const handleCloseSuccessMessage = () => {
     setShowSuccessMessage(false);
   };
 
-  const toggleDescription = (scenarioId: string | number, event: React.MouseEvent) => {
+  const toggleDescription = (
+    scenarioId: string | number,
+    event: React.MouseEvent
+  ) => {
     event.stopPropagation();
-    setExpandedDescriptions(prev => {
+    setExpandedDescriptions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(scenarioId)) {
         newSet.delete(scenarioId);
@@ -370,9 +427,10 @@ function RiskScenariosPage() {
   };
 
   // Filter scenarios based on search term
-  const filteredScenarios = riskScenarios.filter(scenario =>
-    scenario.riskScenario.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    scenario.riskStatement.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredScenarios = riskScenarios.filter(
+    (scenario) =>
+      scenario.riskScenario.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      scenario.riskStatement.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading || (isInitialLoad && isLoading)) {
@@ -394,7 +452,9 @@ function RiskScenariosPage() {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error">Error loading organization: {error}</Typography>
+        <Typography color="error">
+          Error loading organization: {error}
+        </Typography>
       </Box>
     );
   }
@@ -484,13 +544,13 @@ function RiskScenariosPage() {
         open={showSuccessMessage}
         autoHideDuration={4000}
         onClose={handleCloseSuccessMessage}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={handleCloseSuccessMessage}
           severity="success"
           sx={{
-            width: '100%',
+            width: "100%",
             backgroundColor: "#E8F5E8",
             color: "#2E7D32",
             border: "1px solid #4CAF50",
@@ -512,13 +572,13 @@ function RiskScenariosPage() {
         open={!!errorMessage}
         autoHideDuration={6000}
         onClose={() => setErrorMessage(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => setErrorMessage(null)}
           severity="error"
           sx={{
-            width: '100%',
+            width: "100%",
             backgroundColor: "#FFEBEE",
             color: "#C62828",
             border: "1px solid #EF5350",
@@ -536,17 +596,26 @@ function RiskScenariosPage() {
       </Snackbar>
 
       {/* Main Content */}
-      <Box sx={{
-        flex: 1,
-        px: 3,
-        pb: 3,
-        display: "flex",
-        flexDirection: "column",
-        minHeight: 0, // Important for flex children to shrink
-      }}>
+      <Box
+        sx={{
+          flex: 1,
+          px: 3,
+          pb: 3,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0, // Important for flex children to shrink
+        }}
+      >
         {riskScenarios.length === 0 ? (
           // Empty state
-          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
             <Box
               sx={{
                 width: "100%",
@@ -579,7 +648,9 @@ function RiskScenariosPage() {
               </Box>
 
               <Typography variant="h6" sx={{ mb: 2, color: "#484848" }}>
-                Looks like there are no risk scenarios added yet. <br /> Click on &apos;Add Risk Scenarios&apos; to start adding risk scenarios.
+                Looks like there are no risk scenarios added yet. <br /> Click
+                on &apos;Add Risk Scenarios&apos; to start adding risk
+                scenarios.
               </Typography>
 
               <Button
@@ -604,7 +675,18 @@ function RiskScenariosPage() {
           </Box>
         ) : (
           // Main content with scenarios
-          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px", position: "relative" }}>
+          <Box
+            sx={{
+              mx: "auto",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              pl: "40px",
+              pr: "40px",
+              mt: "10px",
+              position: "relative",
+            }}
+          >
             {/* Loading Overlay */}
             {isLoading && !isInitialLoad && (
               <Box
@@ -633,14 +715,23 @@ function RiskScenariosPage() {
                   fontWeight: 500,
                   fontSize: "20px",
                   color: "#484848",
-                  mb: 3
+                  mb: 3,
                 }}
               >
                 Risk Scenarios
               </Typography>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  mb: 3,
+                  width: "1100px",
+                }}
+              >
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}
@@ -707,80 +798,82 @@ function RiskScenariosPage() {
 
                   {/* Selection Controls */}
                   {selectedScenarios.length > 0 && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Chip
-                      label={`${selectedScenarios.length} selected`}
-                      onDelete={handleClearSelection}
-                      deleteIcon={<Close />}
-                      sx={{
-                        backgroundColor: "#F3F8FF",
-                        color: "#04139A",
-                        fontWeight: 500,
-                        border: "1px solid #04139A",
-                        borderRadius: "4px",
-                        paddingTop: "7px",
-                        paddingRight: "16px",
-                        paddingBottom: "7px",
-                        paddingLeft: "16px",
-                        gap: "8px",
-                        opacity: 1,
-                        "& .MuiChip-deleteIcon": {
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Chip
+                        label={`${selectedScenarios.length} selected`}
+                        onDelete={handleClearSelection}
+                        deleteIcon={<Close />}
+                        sx={{
+                          backgroundColor: "#F3F8FF",
                           color: "#04139A",
-                          "&:hover": {
-                            opacity: 0.8,
+                          fontWeight: 500,
+                          border: "1px solid #04139A",
+                          borderRadius: "4px",
+                          paddingTop: "7px",
+                          paddingRight: "16px",
+                          paddingBottom: "7px",
+                          paddingLeft: "16px",
+                          gap: "8px",
+                          opacity: 1,
+                          "& .MuiChip-deleteIcon": {
+                            color: "#04139A",
+                            "&:hover": {
+                              opacity: 0.8,
+                            },
                           },
-                        },
-                      }}
-                    />
-                    <Button
-                      variant="text"
-                      startIcon={<Delete />}
-                      onClick={handleRemoveSelected}
-                      sx={{
-                        color: "#F44336",
-                        textTransform: "none",
-                        fontWeight: 500,
-                        p: "8px 16px",
-                        paddingTop: "7px",
-                        paddingRight: "16px",
-                        paddingBottom: "7px",
-                        paddingLeft: "16px",
-                        borderRadius: "4px",
-                        backgroundColor: "transparent",
-                        "&:hover": {
-                          backgroundColor: "rgba(244, 67, 54, 0.1)",
-                        },
-                        "& .MuiButton-startIcon": {
-                          marginRight: "8px",
-                        },
-                      }}
-                    >
-                      Remove Selected
-                    </Button>
-                  </Box>
+                        }}
+                      />
+                      <Button
+                        variant="text"
+                        startIcon={<Delete />}
+                        onClick={handleRemoveSelected}
+                        sx={{
+                          color: "#F44336",
+                          textTransform: "none",
+                          fontWeight: 500,
+                          p: "8px 16px",
+                          paddingTop: "7px",
+                          paddingRight: "16px",
+                          paddingBottom: "7px",
+                          paddingLeft: "16px",
+                          borderRadius: "4px",
+                          backgroundColor: "transparent",
+                          "&:hover": {
+                            backgroundColor: "rgba(244, 67, 54, 0.1)",
+                          },
+                          "& .MuiButton-startIcon": {
+                            marginRight: "8px",
+                          },
+                        }}
+                      >
+                        Remove Selected
+                      </Button>
+                    </Box>
                   )}
                 </Box>
               )}
             </Box>
 
             {/* Scrollable Risk Scenarios Grid */}
-            <Box sx={{
-              flex: 1,
-              overflow: "auto",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
-              scrollbarWidth: "none", // Firefox
-              msOverflowStyle: "none", // IE and Edge
-              mb: 4,
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+                overflow: "auto",
+                "&::-webkit-scrollbar": {
+                  display: "none",
+                },
+                scrollbarWidth: "none", // Firefox
+                msOverflowStyle: "none", // IE and Edge
+                mb: 4,
+              }}
+            >
               <Grid container spacing={2}>
                 {filteredScenarios.map((scenario) => {
                   const isExpanded = expandedDescriptions.has(scenario.id);
                   const descriptionText = `Description: ${scenario.riskStatement}`;
                   const actualDescription = scenario.riskStatement || "";
                   const shouldShowToggle = actualDescription.trim().length > 80;
-                  
+
                   return (
                     <Grid size={{ xs: 12, sm: 6 }} key={scenario.id}>
                       <Box
@@ -818,7 +911,14 @@ function RiskScenariosPage() {
                             />
                           }
                           label={
-                            <Box sx={{ flex: 1, pr: 4, display: "flex", flexDirection: "column" }}>
+                            <Box
+                              sx={{
+                                flex: 1,
+                                pr: 4,
+                                display: "flex",
+                                flexDirection: "column",
+                              }}
+                            >
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -840,10 +940,16 @@ function RiskScenariosPage() {
                                     lineHeight: "20px",
                                     fontWeight: 400,
                                     overflow: isExpanded ? "visible" : "hidden",
-                                    display: isExpanded ? "block" : "-webkit-box",
+                                    display: isExpanded
+                                      ? "block"
+                                      : "-webkit-box",
                                     WebkitLineClamp: isExpanded ? undefined : 2,
-                                    WebkitBoxOrient: isExpanded ? undefined : "vertical",
-                                    textOverflow: isExpanded ? "clip" : "ellipsis",
+                                    WebkitBoxOrient: isExpanded
+                                      ? undefined
+                                      : "vertical",
+                                    textOverflow: isExpanded
+                                      ? "clip"
+                                      : "ellipsis",
                                     maxHeight: isExpanded ? "none" : "40px",
                                     wordBreak: "break-word",
                                   }}
@@ -852,7 +958,9 @@ function RiskScenariosPage() {
                                 </Typography>
                                 {shouldShowToggle && (
                                   <Button
-                                    onClick={(e) => toggleDescription(scenario.id, e)}
+                                    onClick={(e) =>
+                                      toggleDescription(scenario.id, e)
+                                    }
                                     sx={{
                                       textTransform: "none",
                                       color: "#04139A",
@@ -899,10 +1007,13 @@ function RiskScenariosPage() {
                                 icon: <EditOutlined fontSize="small" />,
                               },
                               {
-                                onAction: () => handleDeleteSingleScenario(scenario.id),
+                                onAction: () =>
+                                  handleDeleteSingleScenario(scenario.id),
                                 color: "#CD0303",
                                 action: "Delete",
-                                icon: <DeleteOutlineOutlined fontSize="small" />,
+                                icon: (
+                                  <DeleteOutlineOutlined fontSize="small" />
+                                ),
                               },
                             ]}
                           />
