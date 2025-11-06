@@ -11,7 +11,7 @@ import {
   Divider,
   Dialog,
   DialogContent,
-  SxProps, 
+  SxProps,
   Theme,
 } from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
@@ -24,6 +24,7 @@ import { getOrganizationById } from "@/services/organizationService";
 import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTypography";
 import ToastComponent from "@/components/ToastComponent";
 import Repository from "@/components/Repository/Repository";
+import Cookies from "js-cookie";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -65,6 +66,12 @@ function OrgDetailsPage() {
     message: "",
     severity: "error" as "error" | "warning" | "info" | "success",
   });
+  const [user, setUser] = useState<{ role?: string; orgId?: string }>({});
+
+  useEffect(() => {
+    const cookieUser = Cookies.get("user");
+    if (cookieUser) setUser(JSON.parse(cookieUser));
+  }, []);
 
   // Parse form data from URL parameters
   useEffect(() => {
@@ -247,21 +254,25 @@ function OrgDetailsPage() {
 
   // Handle tab query parameter
   useEffect(() => {
-    if (tab && typeof tab === 'string') {
+    if (tab && typeof tab === "string") {
       const tabIndex = parseInt(tab, 10);
       if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
         setTabValue(tabIndex);
       }
     } else if (!tab && router.isReady) {
       // If no tab parameter exists, add it to the URL with default value (0)
-      router.replace(`/orgManagement/${orgId}?tab=0`, undefined, { shallow: true });
+      router.replace(`/orgManagement/${orgId}?tab=0`, undefined, {
+        shallow: true,
+      });
     }
   }, [tab, router.isReady, orgId, router]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     // Update URL with tab parameter
-    router.push(`/orgManagement/${orgId}?tab=${newValue}`, undefined, { shallow: true });
+    router.push(`/orgManagement/${orgId}?tab=${newValue}`, undefined, {
+      shallow: true,
+    });
   };
 
   const handleBackClick = () => {
@@ -323,7 +334,13 @@ function OrgDetailsPage() {
       {/* Breadcrumb */}
       <Stack sx={{ backgroundColor: "#F0F2FB", pt: 1, pb: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2, pl: 2 }}>
-          <IconButton onClick={handleBackClick} sx={{ mr: 1 }}>
+          <IconButton
+            onClick={handleBackClick}
+            sx={{
+              mr: 1,
+              visibility: user?.role === "Admin" ? "visible" : "hidden",
+            }}
+          >
             <ArrowBack />
           </IconButton>
           <Typography
@@ -940,7 +957,7 @@ function OrgDetailsPage() {
           <Repository />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={2} >
+        <TabPanel value={tabValue} index={2}>
           <BusinessUnits />
         </TabPanel>
 
