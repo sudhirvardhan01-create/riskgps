@@ -350,7 +350,17 @@ function RiskScenariosPage() {
               attr.meta_data_key_id || attr.metaDataKeyId || null,
             values: attr.values || [],
           })) || [],
-        related_processes: fullScenario.related_processes || [],
+        related_processes: fullScenario.processes?.map((p: any) => {
+          // Handle different formats: object with id, string, or number
+          if (typeof p === "object" && p?.id) {
+            return p.id;
+          } else if (typeof p === "string") {
+            // Try to parse as number if possible, otherwise keep as string
+            const num = parseInt(p, 10);
+            return isNaN(num) ? p : num;
+          }
+          return p;
+        }) || [],
         status: fullScenario.status || "published",
       };
     },
@@ -365,6 +375,7 @@ function RiskScenariosPage() {
       );
       if (fullScenario) {
         const riskScenarioData = transformToRiskScenarioData(fullScenario);
+        console.log(riskScenarioData)
         setSelectedRiskScenario(riskScenarioData);
         setIsEditOpen(true);
       }
