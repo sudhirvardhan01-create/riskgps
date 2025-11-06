@@ -498,7 +498,7 @@ function ProcessesPage() {
             values: attr.values || [],
           })) || [],
         processDependency:
-          fullProcess.process_dependency?.map((dep: any) => ({
+          fullProcess.processDependency?.map((dep: any) => ({
             sourceProcessId: dep.sourceProcessId || dep.source_process_id,
             targetProcessId: dep.targetProcessId || dep.target_process_id,
             relationshipType: dep.relationshipType || dep.relationship_type,
