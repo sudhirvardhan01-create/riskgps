@@ -125,6 +125,73 @@ class OrganizationService {
     }
   }
 
+    /**
+   * Get processes for an organization + business unit (both mandatory)
+   */
+  static async getOrganizationProcessesForListing(orgId, businessUnitId = null) {
+    try {
+      if (!orgId) {
+        throw new CustomError(
+          "Organization ID are required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      const whereClause = {
+          organizationId: orgId,
+          isDeleted: false,
+      }
+      if (businessUnitId) {
+        whereClause.orgBusinessUnitId = businessUnitId;
+      }
+
+      const processes = await OrganizationProcess.findAll({
+        where: whereClause,
+        attributes: [
+          "id",
+          "parentObjectId",
+          "organizationId",
+          "orgBusinessUnitId",
+          "autoIncrementId",
+          "processCode",
+          "processName",
+          "processDescription",
+          "seniorExecutiveOwnerName",
+          "seniorExecutiveOwnerEmail",
+          "operationsOwnerName",
+          "operationsOwnerEmail",
+          "technologyOwnerName",
+          "technologyOwnerEmail",
+          "organizationalRevenueImpactPercentage",
+          "financialMateriality",
+          "thirdPartyInvolvement",
+          "usersCustomers",
+          "regulatoryAndCompliance",
+          "criticalityOfDataProcessed",
+          "dataProcessed",
+          "status",
+          "createdBy",
+          "modifiedBy",
+          "createdDate",
+          "modifiedDate",
+        ],
+        order: [["createdDate", "DESC"]],
+      });
+
+      if (!processes || processes.length === 0) {
+        throw new CustomError(
+          "No processes found for given organization",
+          HttpStatus.NOT_FOUND
+        );
+      }
+
+      return processes;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch organization processes for listing",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
   /**
    * Get processes for an organization + business unit (both mandatory)
    */

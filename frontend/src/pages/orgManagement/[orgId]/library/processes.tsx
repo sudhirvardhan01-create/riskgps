@@ -20,15 +20,31 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { ArrowBack, Search, Delete, Close, EditOutlined, DeleteOutlineOutlined } from "@mui/icons-material";
+import {
+  ArrowBack,
+  Search,
+  Delete,
+  Close,
+  EditOutlined,
+  DeleteOutlineOutlined,
+} from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
 import { ProcessData } from "@/types/process";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { ProcessLibraryService } from "@/services/orgLibraryService/processLibraryService";
-import { getOrganizationProcess, createOrganizationProcesses, updateOrganizationProcess, deleteOrganizationProcess } from "@/pages/api/organization";
-import { fetchProcessById, fetchProcessesForListing } from "@/pages/api/process";
+import {
+  getOrganizationProcess,
+  createOrganizationProcesses,
+  updateOrganizationProcess,
+  deleteOrganizationProcess,
+} from "@/pages/api/organization";
+import {
+  fetchOrganizationProcessesForListing,
+  fetchProcessById,
+  fetchProcessesForListing,
+} from "@/pages/api/process";
 import { getBusinessUnits } from "@/services/businessUnitService";
 import { BusinessUnitData } from "@/types/business-unit";
 import ProcessFormModal from "@/components/Library/Process/ProcessFormModal";
@@ -51,17 +67,27 @@ function ProcessesPage() {
   const [orgProcesses, setOrgProcesses] = useState<any[]>([]); // Full org processes for matching
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string>("Success! Processes have been added.");
-  const [selectedProcesses, setSelectedProcesses] = useState<(string | number)[]>([]);
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string | number>>(new Set());
+  const [successMessage, setSuccessMessage] = useState<string>(
+    "Success! Processes have been added."
+  );
+  const [selectedProcesses, setSelectedProcesses] = useState<
+    (string | number)[]
+  >([]);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<
+    Set<string | number>
+  >(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [currentBusinessUnitId, setCurrentBusinessUnitId] = useState<string | string[] | undefined>(businessUnitId);
+  const [currentBusinessUnitId, setCurrentBusinessUnitId] = useState<
+    string | string[] | undefined
+  >(businessUnitId);
   const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([]);
   const [loadingBusinessUnits, setLoadingBusinessUnits] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(null);
+  const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(
+    null
+  );
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
@@ -78,8 +104,16 @@ function ProcessesPage() {
     setIsAddModalOpen(false);
   };
 
-  const fetchOrganizationProcesses = async (buId: string | string[] | undefined) => {
-    if (!orgId || typeof orgId !== 'string' || !buId || typeof buId !== 'string') return;
+  const fetchOrganizationProcesses = async (
+    buId: string | string[] | undefined
+  ) => {
+    if (
+      !orgId ||
+      typeof orgId !== "string" ||
+      !buId ||
+      typeof buId !== "string"
+    )
+      return;
 
     try {
       setIsLoading(true);
@@ -96,8 +130,8 @@ function ProcessesPage() {
         // Map to display format
         const processesList: Process[] = processesData.map((process: any) => ({
           id: process.id,
-          processName: process.processName || '',
-          processDescription: process.processDescription || '',
+          processName: process.processName || "",
+          processDescription: process.processDescription || "",
         }));
         setProcesses(processesList);
       } else {
@@ -107,7 +141,8 @@ function ProcessesPage() {
       }
     } catch (err: any) {
       console.error("Failed to fetch organization processes:", err);
-      const errorMessage = err.message || "Failed to fetch processes. Please try again.";
+      const errorMessage =
+        err.message || "Failed to fetch processes. Please try again.";
 
       // If error is "No processes found", treat it as empty state (not an error)
       // This allows the "Add Processes" section to be visible for new business units
@@ -128,7 +163,7 @@ function ProcessesPage() {
 
   // Fetch business units when component mounts
   useEffect(() => {
-    if (!orgId || typeof orgId !== 'string') return;
+    if (!orgId || typeof orgId !== "string") return;
 
     const fetchBusinessUnits = async () => {
       try {
@@ -137,7 +172,7 @@ function ProcessesPage() {
         setBusinessUnits(data);
 
         // If businessUnitId is in query params, use it; otherwise use first business unit
-        if (businessUnitId && typeof businessUnitId === 'string') {
+        if (businessUnitId && typeof businessUnitId === "string") {
           setCurrentBusinessUnitId(businessUnitId);
         } else if (data.length > 0) {
           setCurrentBusinessUnitId(data[0].id);
@@ -156,9 +191,24 @@ function ProcessesPage() {
 
   // Fetch processes when business unit is selected
   useEffect(() => {
-    if (orgId && typeof orgId === 'string' && currentBusinessUnitId && typeof currentBusinessUnitId === 'string') {
+    if (
+      orgId &&
+      typeof orgId === "string" &&
+      currentBusinessUnitId &&
+      typeof currentBusinessUnitId === "string"
+    ) {
       setIsInitialLoad(true);
       fetchOrganizationProcesses(currentBusinessUnitId);
+      (async () => {
+        try {
+          const [processes] = await Promise.all([
+            fetchOrganizationProcessesForListing(orgId as string),
+          ]);
+          setProcessesData(processes.data ?? []);
+        } catch (err) {
+          console.error("Failed to fetch supporting data:", err);
+        }
+      })();
     }
   }, [orgId, currentBusinessUnitId]);
 
@@ -166,11 +216,9 @@ function ProcessesPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [processes, meta] = await Promise.all([
-          fetchProcessesForListing(),
+        const [meta] = await Promise.all([
           fetchMetaDatas(),
         ]);
-        setProcessesData(processes.data ?? []);
         // Match exactly what ProcessContainer does - it uses meta.data
         setMetaDatas(meta.data ?? []);
       } catch (err) {
@@ -184,20 +232,34 @@ function ProcessesPage() {
     const selectedBuId = event.target.value;
     setCurrentBusinessUnitId(selectedBuId);
     // Update URL query param
-    router.push({
-      pathname: router.pathname,
-      query: { ...router.query, businessUnitId: selectedBuId },
-    }, undefined, { shallow: true });
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, businessUnitId: selectedBuId },
+      },
+      undefined,
+      { shallow: true }
+    );
   };
 
   const handleAddProcessesFromModal = async (data: any) => {
     // Handle both old format (array) and new format (object with items and businessUnitId)
-    const selectedProcessesArray = Array.isArray(data) ? data : data.items || [];
+    const selectedProcessesArray = Array.isArray(data)
+      ? data
+      : data.items || [];
     const buId = data.businessUnitId || currentBusinessUnitId;
 
-    if (!orgId || typeof orgId !== 'string' || !buId || typeof buId !== 'string' || selectedProcessesArray.length === 0) {
-      if (!buId || typeof buId !== 'string') {
-        setErrorMessage("Please select a business unit before adding processes.");
+    if (
+      !orgId ||
+      typeof orgId !== "string" ||
+      !buId ||
+      typeof buId !== "string" ||
+      selectedProcessesArray.length === 0
+    ) {
+      if (!buId || typeof buId !== "string") {
+        setErrorMessage(
+          "Please select a business unit before adding processes."
+        );
       }
       return;
     }
@@ -217,32 +279,34 @@ function ProcessesPage() {
       // Format the data to match the GET response structure exactly (same format as library GET API)
       const formattedData = fullProcessData.map((data: any) => {
         // Transform attributes to match the expected format (same as GET response)
-        const attributes = data.attributes?.map((attr: any) => {
-          let metaDataKeyId: string | undefined;
+        const attributes =
+          data.attributes?.map((attr: any) => {
+            let metaDataKeyId: string | undefined;
 
-          if (attr.metaData?.id) {
-            // When metaData association is included
-            metaDataKeyId = attr.metaData.id;
-          } else if (attr.meta_data_key_id) {
-            // When using snake_case field name
-            metaDataKeyId = attr.meta_data_key_id;
-          } else if (attr.metaDataKeyId) {
-            // When using camelCase field name
-            metaDataKeyId = attr.metaDataKeyId;
-          }
+            if (attr.metaData?.id) {
+              // When metaData association is included
+              metaDataKeyId = attr.metaData.id;
+            } else if (attr.meta_data_key_id) {
+              // When using snake_case field name
+              metaDataKeyId = attr.meta_data_key_id;
+            } else if (attr.metaDataKeyId) {
+              // When using camelCase field name
+              metaDataKeyId = attr.metaDataKeyId;
+            }
 
-          return {
-            meta_data_key_id: metaDataKeyId || "",
-            values: attr.values || [],
-          };
-        }) || [];
+            return {
+              meta_data_key_id: metaDataKeyId || "",
+              values: attr.values || [],
+            };
+          }) || [];
 
         // Transform process_dependency
-        const processDependency = data.process_dependency?.map((dep: any) => ({
-          sourceProcessId: dep.sourceProcessId || dep.source_process_id,
-          targetProcessId: dep.targetProcessId || dep.target_process_id,
-          relationshipType: dep.relationshipType || dep.relationship_type,
-        })) || [];
+        const processDependency =
+          data.process_dependency?.map((dep: any) => ({
+            sourceProcessId: dep.sourceProcessId || dep.source_process_id,
+            targetProcessId: dep.targetProcessId || dep.target_process_id,
+            relationshipType: dep.relationshipType || dep.relationship_type,
+          })) || [];
 
         // Return data in exact same format as GET response
         return {
@@ -257,7 +321,8 @@ function ProcessesPage() {
           operationsOwnerEmail: data.operationsOwnerEmail || "",
           technologyOwnerName: data.technologyOwnerName || "",
           technologyOwnerEmail: data.technologyOwnerEmail || "",
-          organizationalRevenueImpactPercentage: data.organizationalRevenueImpactPercentage || null,
+          organizationalRevenueImpactPercentage:
+            data.organizationalRevenueImpactPercentage || null,
           financialMateriality: data.financialMateriality || "",
           thirdPartyInvolvement: data.thirdPartyInvolvement || null,
           usersCustomers: data.usersCustomers || "",
@@ -267,7 +332,7 @@ function ProcessesPage() {
           status: data.status || "published",
           attributes: attributes,
           process_dependency: processDependency,
-          parentObjectId: data.id
+          parentObjectId: data.id,
         };
       });
 
@@ -278,10 +343,14 @@ function ProcessesPage() {
       if (buId !== currentBusinessUnitId) {
         setCurrentBusinessUnitId(buId);
         // Update URL query param
-        router.push({
-          pathname: router.pathname,
-          query: { ...router.query, businessUnitId: buId },
-        }, undefined, { shallow: true });
+        router.push(
+          {
+            pathname: router.pathname,
+            query: { ...router.query, businessUnitId: buId },
+          },
+          undefined,
+          { shallow: true }
+        );
       }
 
       // Refresh the list
@@ -292,22 +361,29 @@ function ProcessesPage() {
       setIsAddModalOpen(false);
     } catch (err: any) {
       console.error("Failed to add processes:", err);
-      setErrorMessage(err.message || "Failed to add processes. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to add processes. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleProcessToggle = (processId: string | number) => {
-    setSelectedProcesses(prev =>
+    setSelectedProcesses((prev) =>
       prev.includes(processId)
-        ? prev.filter(id => id !== processId)
+        ? prev.filter((id) => id !== processId)
         : [...prev, processId]
     );
   };
 
   const handleRemoveSelected = async () => {
-    if (!orgId || typeof orgId !== 'string' || !currentBusinessUnitId || typeof currentBusinessUnitId !== 'string') {
+    if (
+      !orgId ||
+      typeof orgId !== "string" ||
+      !currentBusinessUnitId ||
+      typeof currentBusinessUnitId !== "string"
+    ) {
       setErrorMessage("Organization ID and Business Unit ID are required");
       return;
     }
@@ -319,21 +395,25 @@ function ProcessesPage() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      
+
       // Convert selected process IDs to strings
-      const processIds = selectedProcesses.map(id => String(id));
-      
+      const processIds = selectedProcesses.map((id) => String(id));
+
       await deleteOrganizationProcess(orgId, currentBusinessUnitId, processIds);
-      
+
       // Refresh the list after successful deletion
       await fetchOrganizationProcesses(currentBusinessUnitId);
-      
-      setSuccessMessage(`Success! ${selectedProcesses.length} process(es) have been deleted.`);
+
+      setSuccessMessage(
+        `Success! ${selectedProcesses.length} process(es) have been deleted.`
+      );
       setShowSuccessMessage(true);
       setSelectedProcesses([]);
     } catch (err: any) {
       console.error("Failed to delete processes:", err);
-      setErrorMessage(err.message || "Failed to delete processes. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to delete processes. Please try again."
+      );
       setShowSuccessMessage(false);
     } finally {
       setIsLoading(false);
@@ -345,7 +425,12 @@ function ProcessesPage() {
   };
 
   const handleDeleteSingleProcess = async (processId: string | number) => {
-    if (!orgId || typeof orgId !== 'string' || !currentBusinessUnitId || typeof currentBusinessUnitId !== 'string') {
+    if (
+      !orgId ||
+      typeof orgId !== "string" ||
+      !currentBusinessUnitId ||
+      typeof currentBusinessUnitId !== "string"
+    ) {
       setErrorMessage("Organization ID and Business Unit ID are required");
       return;
     }
@@ -353,17 +438,23 @@ function ProcessesPage() {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      
-      await deleteOrganizationProcess(orgId, currentBusinessUnitId, String(processId));
-      
+
+      await deleteOrganizationProcess(
+        orgId,
+        currentBusinessUnitId,
+        String(processId)
+      );
+
       // Refresh the list after successful deletion
       await fetchOrganizationProcesses(currentBusinessUnitId);
-      
+
       setSuccessMessage("Success! Process has been deleted.");
       setShowSuccessMessage(true);
     } catch (err: any) {
       console.error("Failed to delete process:", err);
-      setErrorMessage(err.message || "Failed to delete process. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to delete process. Please try again."
+      );
       setShowSuccessMessage(false);
     } finally {
       setIsLoading(false);
@@ -371,76 +462,102 @@ function ProcessesPage() {
   };
 
   // Helper function to transform orgProcess to ProcessData format
-  const transformToProcessData = useCallback((fullProcess: any): ProcessData => {
-    return {
-      id: fullProcess.id,
-      processCode: fullProcess.processCode,
-      processName: fullProcess.processName || "",
-      processDescription: fullProcess.processDescription || "",
-      seniorExecutiveOwnerName: fullProcess.seniorExecutiveOwnerName || "",
-      seniorExecutiveOwnerEmail: fullProcess.seniorExecutiveOwnerEmail || "",
-      operationsOwnerName: fullProcess.operationsOwnerName || "",
-      operationsOwnerEmail: fullProcess.operationsOwnerEmail || "",
-      technologyOwnerName: fullProcess.technologyOwnerName || "",
-      technologyOwnerEmail: fullProcess.technologyOwnerEmail || "",
-      organizationalRevenueImpactPercentage: fullProcess.organizationalRevenueImpactPercentage || null,
-      financialMateriality: typeof fullProcess.financialMateriality === 'boolean' 
-        ? fullProcess.financialMateriality 
-        : fullProcess.financialMateriality === 'true',
-      thirdPartyInvolvement: typeof fullProcess.thirdPartyInvolvement === 'boolean' 
-        ? fullProcess.thirdPartyInvolvement 
-        : fullProcess.thirdPartyInvolvement === 'true',
-      users: fullProcess.usersCustomers || "",
-      requlatoryAndCompliance: fullProcess.regulatoryAndCompliance || [],
-      criticalityOfDataProcessed: fullProcess.criticalityOfDataProcessed || "",
-      dataProcessed: fullProcess.dataProcessed || [],
-      status: fullProcess.status || "published",
-      attributes: fullProcess.attributes?.map((attr: any) => ({
-        meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
-        values: attr.values || [],
-      })) || [],
-      processDependency: fullProcess.process_dependency?.map((dep: any) => ({
-        sourceProcessId: dep.sourceProcessId || dep.source_process_id,
-        targetProcessId: dep.targetProcessId || dep.target_process_id,
-        relationshipType: dep.relationshipType || dep.relationship_type,
-      })) || [],
-    };
-  }, []);
+  const transformToProcessData = useCallback(
+    (fullProcess: any): ProcessData => {
+      return {
+        id: fullProcess.id,
+        processCode: fullProcess.processCode,
+        processName: fullProcess.processName || "",
+        processDescription: fullProcess.processDescription || "",
+        seniorExecutiveOwnerName: fullProcess.seniorExecutiveOwnerName || "",
+        seniorExecutiveOwnerEmail: fullProcess.seniorExecutiveOwnerEmail || "",
+        operationsOwnerName: fullProcess.operationsOwnerName || "",
+        operationsOwnerEmail: fullProcess.operationsOwnerEmail || "",
+        technologyOwnerName: fullProcess.technologyOwnerName || "",
+        technologyOwnerEmail: fullProcess.technologyOwnerEmail || "",
+        organizationalRevenueImpactPercentage:
+          fullProcess.organizationalRevenueImpactPercentage || null,
+        financialMateriality:
+          typeof fullProcess.financialMateriality === "boolean"
+            ? fullProcess.financialMateriality
+            : fullProcess.financialMateriality === "true",
+        thirdPartyInvolvement:
+          typeof fullProcess.thirdPartyInvolvement === "boolean"
+            ? fullProcess.thirdPartyInvolvement
+            : fullProcess.thirdPartyInvolvement === "true",
+        users: fullProcess.usersCustomers || "",
+        requlatoryAndCompliance: fullProcess.regulatoryAndCompliance || [],
+        criticalityOfDataProcessed:
+          fullProcess.criticalityOfDataProcessed || "",
+        dataProcessed: fullProcess.dataProcessed || [],
+        status: fullProcess.status || "published",
+        attributes:
+          fullProcess.attributes?.map((attr: any) => ({
+            meta_data_key_id:
+              attr.meta_data_key_id || attr.metaDataKeyId || null,
+            values: attr.values || [],
+          })) || [],
+        processDependency:
+          fullProcess.process_dependency?.map((dep: any) => ({
+            sourceProcessId: dep.sourceProcessId || dep.source_process_id,
+            targetProcessId: dep.targetProcessId || dep.target_process_id,
+            relationshipType: dep.relationshipType || dep.relationship_type,
+          })) || [],
+      };
+    },
+    []
+  );
 
   // Memoized handler for editing a process
-  const handleEditProcess = useCallback((processId: string | number) => {
-    const fullProcess = orgProcesses.find((p: any) => p.id === processId);
-    if (fullProcess) {
-      const processData = transformToProcessData(fullProcess);
-      setSelectedProcess(processData);
-      setIsEditOpen(true);
-    }
-  }, [orgProcesses, transformToProcessData]);
+  const handleEditProcess = useCallback(
+    (processId: string | number) => {
+      const fullProcess = orgProcesses.find((p: any) => p.id === processId);
+      if (fullProcess) {
+        const processData = transformToProcessData(fullProcess);
+        setSelectedProcess(processData);
+        setIsEditOpen(true);
+      }
+    },
+    [orgProcesses, transformToProcessData]
+  );
 
   // Update process
   const handleUpdate = async (status: string) => {
     try {
-      if (!selectedProcess?.id || !orgId || typeof orgId !== 'string' || !currentBusinessUnitId || typeof currentBusinessUnitId !== 'string') {
+      if (
+        !selectedProcess?.id ||
+        !orgId ||
+        typeof orgId !== "string" ||
+        !currentBusinessUnitId ||
+        typeof currentBusinessUnitId !== "string"
+      ) {
         throw new Error("Invalid selection");
       }
-      
+
       // Transform the selectedProcess to match the API format
       const body = { ...selectedProcess, status };
-      
-      await updateOrganizationProcess(orgId, currentBusinessUnitId, String(selectedProcess.id), body);
-      
+
+      await updateOrganizationProcess(
+        orgId,
+        currentBusinessUnitId,
+        String(selectedProcess.id),
+        body
+      );
+
       setIsEditOpen(false);
       setSelectedProcess(null);
-      
+
       // Refresh the list
       await fetchOrganizationProcesses(currentBusinessUnitId);
-      
+
       setSuccessMessage("Success! Process has been updated.");
       setShowSuccessMessage(true);
       setErrorMessage(null);
     } catch (err: any) {
       console.error("Failed to update process:", err);
-      setErrorMessage(err.message || "Failed to update process. Please try again.");
+      setErrorMessage(
+        err.message || "Failed to update process. Please try again."
+      );
       setShowSuccessMessage(false);
     }
   };
@@ -449,9 +566,12 @@ function ProcessesPage() {
     setShowSuccessMessage(false);
   };
 
-  const toggleDescription = (processId: string | number, event: React.MouseEvent) => {
+  const toggleDescription = (
+    processId: string | number,
+    event: React.MouseEvent
+  ) => {
     event.stopPropagation();
-    setExpandedDescriptions(prev => {
+    setExpandedDescriptions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(processId)) {
         newSet.delete(processId);
@@ -463,12 +583,21 @@ function ProcessesPage() {
   };
 
   // Filter processes based on search term
-  const filteredProcesses = processes.filter(process =>
-    process.processName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    process.processDescription.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProcesses = processes.filter(
+    (process) =>
+      process.processName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      process.processDescription
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
-  if (loading || (isInitialLoad && isLoading && currentBusinessUnitId && typeof currentBusinessUnitId === 'string')) {
+  if (
+    loading ||
+    (isInitialLoad &&
+      isLoading &&
+      currentBusinessUnitId &&
+      typeof currentBusinessUnitId === "string")
+  ) {
     return (
       <Box
         sx={{
@@ -487,7 +616,9 @@ function ProcessesPage() {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error">Error loading organization: {error}</Typography>
+        <Typography color="error">
+          Error loading organization: {error}
+        </Typography>
       </Box>
     );
   }
@@ -574,72 +705,76 @@ function ProcessesPage() {
       </Stack>
 
       {/* Show message if no business units available */}
-      {!loadingBusinessUnits && businessUnits.length === 0 && orgId && typeof orgId === 'string' && (
-        <Box
-          sx={{
-            height: "calc(100vh - 95px)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "#F0F2FB",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1000,
-          }}
-        >
+      {!loadingBusinessUnits &&
+        businessUnits.length === 0 &&
+        orgId &&
+        typeof orgId === "string" && (
           <Box
             sx={{
-              textAlign: "center",
-              p: 4,
-              maxWidth: "600px",
+              height: "calc(100vh - 95px)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "#F0F2FB",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1000,
             }}
           >
-            <Typography
-              variant="h6"
+            <Box
               sx={{
-                mb: 3,
-                color: "#484848",
-                fontWeight: 500,
-                fontSize: "18px",
+                textAlign: "center",
+                p: 4,
+                maxWidth: "600px",
               }}
             >
-              No business units found for this organization. Please create a business unit first to select process.
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={() => router.push(`/orgManagement/${orgId}?tab=2`)}
-              sx={{
-                backgroundColor: "#04139A",
-                color: "#FFFFFF",
-                textTransform: "none",
-                fontWeight: 500,
-                p: "12px 40px",
-                borderRadius: "4px",
-                "&:hover": {
-                  backgroundColor: "#030d6b",
-                },
-              }}
-            >
-              Create Business Unit
-            </Button>
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 3,
+                  color: "#484848",
+                  fontWeight: 500,
+                  fontSize: "18px",
+                }}
+              >
+                No business units found for this organization. Please create a
+                business unit first to select process.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => router.push(`/orgManagement/${orgId}?tab=2`)}
+                sx={{
+                  backgroundColor: "#04139A",
+                  color: "#FFFFFF",
+                  textTransform: "none",
+                  fontWeight: 500,
+                  p: "12px 40px",
+                  borderRadius: "4px",
+                  "&:hover": {
+                    backgroundColor: "#030d6b",
+                  },
+                }}
+              >
+                Create Business Unit
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      )}
+        )}
 
       {/* Success Toast */}
       <Snackbar
         open={showSuccessMessage}
         autoHideDuration={4000}
         onClose={handleCloseSuccessMessage}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={handleCloseSuccessMessage}
           severity="success"
           sx={{
-            width: '100%',
+            width: "100%",
             backgroundColor: "#E8F5E8",
             color: "#2E7D32",
             border: "1px solid #4CAF50",
@@ -662,13 +797,13 @@ function ProcessesPage() {
           open={!!errorMessage}
           autoHideDuration={6000}
           onClose={() => setErrorMessage(null)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert
             onClose={() => setErrorMessage(null)}
             severity="error"
             sx={{
-              width: '100%',
+              width: "100%",
             }}
           >
             {errorMessage}
@@ -677,17 +812,26 @@ function ProcessesPage() {
       )}
 
       {/* Main Content */}
-      <Box sx={{
-        flex: 1,
-        px: 3,
-        pb: 3,
-        display: "flex",
-        flexDirection: "column",
-        minHeight: 0, // Important for flex children to shrink
-      }}>
+      <Box
+        sx={{
+          flex: 1,
+          px: 3,
+          pb: 3,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0, // Important for flex children to shrink
+        }}
+      >
         {processes.length === 0 ? (
           // Empty state
-          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
             <Box
               sx={{
                 width: "100%",
@@ -720,13 +864,25 @@ function ProcessesPage() {
               </Box>
 
               <Typography variant="h6" sx={{ mb: 2, color: "#484848" }}>
-                Looks like there are no processes added yet. <br /> Click on &apos;Add Processes&apos; to start adding processes.
+                Looks like there are no processes added yet. <br /> Click on
+                &apos;Add Processes&apos; to start adding processes.
               </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 2,
+                }}
+              >
                 <Button
                   variant="contained"
                   onClick={handleAddProcesses}
-                  disabled={!currentBusinessUnitId || typeof currentBusinessUnitId !== 'string' || businessUnits.length === 0}
+                  disabled={
+                    !currentBusinessUnitId ||
+                    typeof currentBusinessUnitId !== "string" ||
+                    businessUnits.length === 0
+                  }
                   sx={{
                     backgroundColor: "#04139A",
                     color: "#FFFFFF",
@@ -807,10 +963,27 @@ function ProcessesPage() {
           </Box>
         ) : (
           // Main content with processes
-          <Box sx={{ mx: "auto", height: "100%", display: "flex", flexDirection: "column", pl: "40px", pr: "40px", mt: "10px" }}>
+          <Box
+            sx={{
+              mx: "auto",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              pl: "40px",
+              pr: "40px",
+              mt: "10px",
+            }}
+          >
             {/* Fixed Header */}
             <Box sx={{ mb: 1, flexShrink: 0 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 3,
+                }}
+              >
                 <Typography
                   variant="h4"
                   sx={{
@@ -880,7 +1053,16 @@ function ProcessesPage() {
               </Box>
 
               {/* Search Bar and Action Buttons Row */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 3, width: "1100px" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  mb: 3,
+                  width: "1100px",
+                }}
+              >
                 <TextField
                   placeholder="Search by keywords"
                   value={searchTerm}
@@ -914,7 +1096,10 @@ function ProcessesPage() {
                 <Button
                   variant="contained"
                   onClick={handleAddProcesses}
-                  disabled={!currentBusinessUnitId || typeof currentBusinessUnitId !== 'string'}
+                  disabled={
+                    !currentBusinessUnitId ||
+                    typeof currentBusinessUnitId !== "string"
+                  }
                   sx={{
                     backgroundColor: "#04139A",
                     color: "#FFFFFF",
@@ -1009,16 +1194,18 @@ function ProcessesPage() {
             </Box>
 
             {/* Scrollable Processes Grid */}
-            <Box sx={{
-              flex: 1,
-              overflow: "auto",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
-              scrollbarWidth: "none", // Firefox
-              msOverflowStyle: "none", // IE and Edge
-              mb: 4,
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+                overflow: "auto",
+                "&::-webkit-scrollbar": {
+                  display: "none",
+                },
+                scrollbarWidth: "none", // Firefox
+                msOverflowStyle: "none", // IE and Edge
+                mb: 4,
+              }}
+            >
               <Grid container spacing={2}>
                 {filteredProcesses.map((process) => {
                   const isExpanded = expandedDescriptions.has(process.id);
@@ -1063,7 +1250,14 @@ function ProcessesPage() {
                             />
                           }
                           label={
-                            <Box sx={{ flex: 1, pr: 4, display: "flex", flexDirection: "column" }}>
+                            <Box
+                              sx={{
+                                flex: 1,
+                                pr: 4,
+                                display: "flex",
+                                flexDirection: "column",
+                              }}
+                            >
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -1085,10 +1279,16 @@ function ProcessesPage() {
                                     lineHeight: "20px",
                                     fontWeight: 400,
                                     overflow: isExpanded ? "visible" : "hidden",
-                                    display: isExpanded ? "block" : "-webkit-box",
+                                    display: isExpanded
+                                      ? "block"
+                                      : "-webkit-box",
                                     WebkitLineClamp: isExpanded ? undefined : 2,
-                                    WebkitBoxOrient: isExpanded ? undefined : "vertical",
-                                    textOverflow: isExpanded ? "clip" : "ellipsis",
+                                    WebkitBoxOrient: isExpanded
+                                      ? undefined
+                                      : "vertical",
+                                    textOverflow: isExpanded
+                                      ? "clip"
+                                      : "ellipsis",
                                     maxHeight: isExpanded ? "none" : "40px",
                                     wordBreak: "break-word",
                                   }}
@@ -1097,7 +1297,9 @@ function ProcessesPage() {
                                 </Typography>
                                 {shouldShowToggle && (
                                   <Button
-                                    onClick={(e) => toggleDescription(process.id, e)}
+                                    onClick={(e) =>
+                                      toggleDescription(process.id, e)
+                                    }
                                     sx={{
                                       textTransform: "none",
                                       color: "#04139A",
@@ -1144,10 +1346,13 @@ function ProcessesPage() {
                                 icon: <EditOutlined fontSize="small" />,
                               },
                               {
-                                onAction: () => handleDeleteSingleProcess(process.id),
+                                onAction: () =>
+                                  handleDeleteSingleProcess(process.id),
                                 color: "#CD0303",
                                 action: "Delete",
-                                icon: <DeleteOutlineOutlined fontSize="small" />,
+                                icon: (
+                                  <DeleteOutlineOutlined fontSize="small" />
+                                ),
                               },
                             ]}
                           />
@@ -1170,7 +1375,7 @@ function ProcessesPage() {
         title="Add Processes"
         service={ProcessLibraryService}
         itemType="processes"
-        alreadyAddedIds={processes.map(process => process.id)}
+        alreadyAddedIds={processes.map((process) => process.id)}
         orgId={orgId}
         initialBusinessUnitId={currentBusinessUnitId}
       />

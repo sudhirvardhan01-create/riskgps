@@ -60,6 +60,40 @@ router.get("/:id", async (req, res) => {
  * @description Get all processes for a given organization + business unit (both mandatory)
  */
 router.get(
+  "/:orgId/process-for-listing",
+  async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      const businessUnitId = req.query.buId ?? null;
+      if (!orgId) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message:
+            "Organization ID is required in the URL",
+        });
+      }
+
+      const processes = await OrganizationService.getOrganizationProcessesForListing(
+        orgId,
+        businessUnitId
+      );
+
+      res.status(HttpStatus.OK).json({
+        data: processes,
+        msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
+      });
+    } catch (err) {
+      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+        error: err.message || Messages.GENERAL.SERVER_ERROR,
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /organization/:orgId/business-unit/:businessUnitId/processes
+ * @description Get all processes for a given organization + business unit (both mandatory)
+ */
+router.get(
   "/:orgId/business-unit/:businessUnitId/processes",
   async (req, res) => {
     try {
