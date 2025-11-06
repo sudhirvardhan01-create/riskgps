@@ -29,9 +29,16 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
   }, []);
 
   const links = [
-    { name: "Library", path: "/library", icon: <LibraryIcon /> },
-    { name: "Assessment", path: "/assessment", icon: <AssessmentIcon /> },
-    { name: "Reports", path: "/reports", icon: <ReportsIcon /> },
+    {
+      name: user?.role === "Admin" ? "Assessments" : "My Assessments",
+      path: "/assessment",
+      icon: <AssessmentIcon />,
+    },
+    {
+      name: user?.role === "Admin" ? "Reports" : "My Reports",
+      path: "/reports",
+      icon: <ReportsIcon />,
+    },
     {
       name: user?.role === "Admin" ? "Org Management" : "My Org",
       path:
@@ -48,6 +55,7 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
             path: "/userManagement",
             icon: <UserManagementIcon />,
           },
+          { name: "Library", path: "/library", icon: <LibraryIcon /> },
         ]
       : []),
   ];
