@@ -366,7 +366,7 @@ function AssetsPage() {
           values: attr.values || [],
         })) || [],
       relatedProcesses:
-        fullAsset.related_processes?.map((p: any) => {
+        fullAsset.processes?.map((p: any) => {
           // Handle different formats: object with id, string, or number
           if (typeof p === "object" && p?.id) {
             return p.id;
