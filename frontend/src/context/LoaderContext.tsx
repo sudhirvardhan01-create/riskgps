@@ -65,8 +65,8 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({
             borderRadius: "50%",
             overflow: "hidden",
             background:
-              "radial-gradient(circle at center, rgba(0,255,170,0.15) 0%, rgba(0,0,0,0.9) 80%)",
-            boxShadow: "0 0 40px 5px rgba(0,255,170,0.2)",
+              "radial-gradient(circle at center, rgba(4, 19, 154, 0.15) 0%, rgba(255,255,255,0.9) 80%)",
+            boxShadow: "0 0 40px 5px rgba(4, 19, 154,0.2)",
           }}
         >
           {/* Grid Lines */}
@@ -76,7 +76,7 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({
               sx={{
                 position: "absolute",
                 inset: 0,
-                border: `1px solid rgba(0,255,170,${0.1 + i * 0.05})`,
+                border: `1px solid rgba(4, 19, 154,${0.1 + i * 0.05})`,
                 borderRadius: "50%",
                 transform: `scale(${(i + 1) / 6})`,
               }}
@@ -91,7 +91,7 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({
               left: 0,
               width: "100%",
               height: "1px",
-              backgroundColor: "rgba(0,255,170,0.15)",
+              backgroundColor: "rgba(4, 19, 154,0.15)",
             }}
           />
           <Box

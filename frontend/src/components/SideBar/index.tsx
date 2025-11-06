@@ -58,7 +58,7 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
       aria-label="Main sidebar"
       sx={{
         position: "relative",
-        bgcolor: "#fff",
+        bgcolor: "inherit",
         color: "primary.main",
         width: collapsed ? "80px" : "120px",
         minHeight: "calc(100vh - 71px)",
@@ -116,14 +116,6 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
                 transition: "all 200ms ease",
                 "&:hover": {
                   backgroundColor: !isActive ? HOVER_BG : ACTIVE_BG,
-                },
-                "& svg path": {
-                  fill: "currentcolor",
-                },
-                "& svg": {
-                  color: "primary.main",
-                  height: 24,
-                  width: 24,
                 },
               }}
             >
