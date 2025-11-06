@@ -197,6 +197,7 @@ const LibraryPage = () => {
                   borderRadius: 2,
                   boxShadow: "0px 4px 4px 0px #D9D9D98F",
                   cursor: "pointer",
+                  backgroundColor: "#FFFFFF",
                 }}
                 onClick={() => {
                   router.push(lib.href);
