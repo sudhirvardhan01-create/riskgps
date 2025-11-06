@@ -9,102 +9,101 @@ module.exports = (sequelize) => {
         type: DataTypes.UUID,
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
-        field: "id"
+        field: "id",
       },
       autoIncrementId: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         unique: true,
-        field: "auto_increment_id"
-
+        field: "auto_increment_id",
       },
       assetCode: {
         unique: true,
         type: DataTypes.STRING,
-        field: "asset_code"
+        field: "asset_code",
       },
       applicationName: {
         unique: true,
         type: DataTypes.STRING,
         allowNull: false,
-        field: "application_name"
+        field: "application_name",
       },
       applicationOwner: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "application_owner"
+        field: "application_owner",
       },
       applicationItOwner: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "application_it_owner"
+        field: "application_it_owner",
       },
       isThirdPartyManagement: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
-        field: "is_third_party_management"
+        field: "is_third_party_management",
       },
       thirdPartyName: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "third_party_name"
+        field: "third_party_name",
       },
       thirdPartyLocation: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "third_party_location"
+        field: "third_party_location",
       },
       hosting: {
         type: DataTypes.ENUM(...ASSETS.HOSTING_SUPPORTED_VALUES),
         allowNull: true,
-        field: "hosting"
+        field: "hosting",
       },
       hostingFacility: {
         type: DataTypes.ENUM(...ASSETS.HOSTING_FACILITY_SUPPORTED_VALUES),
         allowNull: true,
-        field: "hosting_facility"
+        field: "hosting_facility",
       },
       cloudServiceProvider: {
         type: DataTypes.ARRAY(
           DataTypes.ENUM(...ASSETS.CLOUD_SERVICE_PROVIDERS_SUPPORTED_VALUES)
         ),
         allowNull: true,
-        field: "cloud_service_provider"
+        field: "cloud_service_provider",
       },
       geographicLocation: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "geographic_location"
+        field: "geographic_location",
       },
       hasRedundancy: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
-        field: "has_redundancy"
+        field: "has_redundancy",
       },
       databases: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "databases"
+        field: "databases",
       },
       hasNetworkSegmentation: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
-        field: "has_network_segmentation"
+        field: "has_network_segmentation",
       },
       networkName: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "network_name"
+        field: "network_name",
       },
       assetCategory: {
         type: DataTypes.ENUM(...ASSETS.ASSET_CATEGORY),
         allowNull: false,
-        field: "asset_category"
+        field: "asset_category",
       },
       assetDescription: {
         type: DataTypes.TEXT,
         allowNull: true,
-        field: "asset_description"
+        field: "asset_description",
       },
 
       status: {
