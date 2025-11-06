@@ -93,7 +93,7 @@ export const tooltips = {
   userEmail: "Enter email",
   userPhone: "Enter phone",
   userCommunicationPreference: "Select Communication preference",
-  password: "Enter password",
+  password: "Password",
   confirmPassword: "Confirm Password",
   userType: "Select User Type",
   userCompany: "Enter Company Name",
