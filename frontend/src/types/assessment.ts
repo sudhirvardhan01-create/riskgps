@@ -64,6 +64,9 @@ export interface Asset {
   assessmentProcessAssetId?: string;
   applicationName: string;
   assetCategory: string;
+  geographicLocation?: string;
+  networkName?: string;
+  thirdPartyName?: string;
   questionnaire: Questionnaire[];
 }
 

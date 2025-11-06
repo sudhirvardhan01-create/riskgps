@@ -2,8 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Box, Paper, useTheme } from "@mui/material";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+  Paper,
+  Stack,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import type { LatLngExpression } from "leaflet";
+import { Asset } from "@/types/assessment";
 
 // ✅ Dynamic imports to avoid SSR errors
 const MapContainer = dynamic(
@@ -29,9 +39,13 @@ export interface LocationData {
 
 interface GreyWorldMapProps {
   data?: LocationData[];
+  tooltipData?: Asset[];
 }
 
-const GreyWorldMap: React.FC<GreyWorldMapProps> = ({ data = [] }) => {
+const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
+  data = [],
+  tooltipData = [],
+}) => {
   const theme = useTheme();
   const [mounted, setMounted] = useState(false);
   const [L, setL] = useState<typeof import("leaflet") | null>(null);
@@ -80,8 +94,8 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({ data = [] }) => {
     const maxAbsVal = Math.max(...mapData.map((d) => Math.abs(d.value))) || 1;
 
     const normalized = Math.abs(v) / maxAbsVal; // range 0 → 1
-    const minSize = 10; // smallest bubble
-    const maxSize = 35; // largest bubble
+    const minSize = 5; // smallest bubble
+    const maxSize = 20; // largest bubble
 
     return minSize + normalized * (maxSize - minSize);
   };
@@ -167,11 +181,32 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({ data = [] }) => {
               }}
             >
               <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                <Box textAlign="center">
-                  <strong>{item.name}</strong>
-                  <br />
-                  Value: {item.value}
-                </Box>
+                <Stack
+                  direction={"column"}
+                  sx={{ display: "flex", alignItems: "start" }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="bold"
+                    gutterBottom
+                    sx={{ pl: 2 }}
+                  >
+                    {item.name}
+                  </Typography>
+
+                  <List dense sx={{ py: 0, maxHeight: 150, overflowY: "auto" }}>
+                    {tooltipData
+                      .filter((asset) => asset.geographicLocation === item.name)
+                      .map((x, index) => (
+                        <ListItem key={index} sx={{ py: 0.25 }}>
+                          <ListItemText
+                            primary={x.applicationName}
+                            primaryTypographyProps={{ fontSize: "0.8rem" }}
+                          />
+                        </ListItem>
+                      ))}
+                  </List>
+                </Stack>
               </Tooltip>
             </Marker>
           );
