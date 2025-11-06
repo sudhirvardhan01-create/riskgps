@@ -94,8 +94,8 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
     const maxAbsVal = Math.max(...mapData.map((d) => Math.abs(d.value))) || 1;
 
     const normalized = Math.abs(v) / maxAbsVal; // range 0 → 1
-    const minSize = 5; // smallest bubble
-    const maxSize = 20; // largest bubble
+    const minSize = 10; // smallest bubble
+    const maxSize = 35; // largest bubble
 
     return minSize + normalized * (maxSize - minSize);
   };
