@@ -112,7 +112,43 @@ export const fetchProcessesForListing = async () => {
     throw new Error("Failed to process data");
   }
   const res = await response.json();
-  res.data.data = transformProcessData(res.data.data);
+  res.data.data = transformProcessData(res.data.data ?? []);
+
+  return res.data;
+};
+
+export const fetchOrganizationProcessesForListing = async (orgId: string) => {
+  console.log(orgId)
+
+  if (!orgId) {
+    throw new Error("Ord ID Required")
+  }
+
+  const transformProcessData = (data: any[]): ProcessData[] => {
+    return data.map((item) => ({
+      id: item.id,
+      processCode: item.processCode,
+      processName: item.processName,
+    }));
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/process-for-listing`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  console.log(response)
+  if (!response.ok) {
+    throw new Error("Failed to process data");
+  }
+  const res = await response.json();
+  console.log(res.data)
+  res.data.data = transformProcessData(res.data ?? []);
 
   return res.data;
 };
