@@ -39,6 +39,17 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
       path: "/reports",
       icon: <ReportsIcon />,
     },
+    ...(user?.role === "Admin"
+      ? [
+          { name: "Library", path: "/library", icon: <LibraryIcon /> },
+          { name: "Meta Data", path: "/metadata", icon: <MetaDataIcon /> },
+          {
+            name: "User Management",
+            path: "/userManagement",
+            icon: <UserManagementIcon />,
+          },
+        ]
+      : []),
     {
       name: user?.role === "Admin" ? "Org Management" : "My Org",
       path:
@@ -47,17 +58,6 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
           : `/orgManagement/${user.orgId}`,
       icon: <OrgManagementIcon />,
     },
-    ...(user?.role === "Admin"
-      ? [
-          { name: "Meta Data", path: "/metadata", icon: <MetaDataIcon /> },
-          {
-            name: "User Management",
-            path: "/userManagement",
-            icon: <UserManagementIcon />,
-          },
-          { name: "Library", path: "/library", icon: <LibraryIcon /> },
-        ]
-      : []),
   ];
 
   return (
