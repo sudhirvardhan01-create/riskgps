@@ -11,7 +11,7 @@ const PieChartComponent = dynamic(() => import("./PieChart"), {
 });
 
 // ----- Component -----
-export default function RiskDashboard({ assetData }: any) {
+export default function RiskDashboard({ assetData, tooltipData }: any) {
   const { asset_data, vendor_data, network_data, cityData } =
     transformAssetData(assetData);
 
@@ -44,7 +44,7 @@ export default function RiskDashboard({ assetData }: any) {
               overflow: "hidden",
             }}
           >
-            <WorldMap data={cityData} />
+            <WorldMap data={cityData} tooltipData={assetData} />
           </Box>
         </Paper>
       </Grid>
@@ -111,6 +111,8 @@ export default function RiskDashboard({ assetData }: any) {
                         },
                       ]}
                       outerData={vendor_data}
+                      tooltipData={assetData}
+                      tooltipKey="thirdPartyName"
                     />
                   </Box>
                 </Paper>
@@ -145,6 +147,8 @@ export default function RiskDashboard({ assetData }: any) {
                         },
                       ]}
                       outerData={network_data}
+                      tooltipData={assetData}
+                      tooltipKey="networkName"
                     />
                   </Box>
                 </Paper>

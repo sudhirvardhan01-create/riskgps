@@ -215,7 +215,7 @@ const AssessmentTable: React.FC<Props> = ({
       : data;
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", maxHeight: 420, overflow: "auto" }}>
       {/* Header + Body in same scroll container */}
       <Box
         sx={{

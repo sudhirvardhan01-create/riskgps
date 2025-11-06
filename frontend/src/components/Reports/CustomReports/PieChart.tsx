@@ -1,5 +1,7 @@
 "use client";
 
+import { Asset } from "@/types/assessment";
+import { List, ListItem, ListItemText, Paper, Typography } from "@mui/material";
 import React, { useState } from "react";
 import {
   PieChart,
@@ -8,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  TooltipProps,
 } from "recharts";
 
 export interface Data extends Record<string, unknown> {
@@ -18,7 +21,15 @@ export interface Data extends Record<string, unknown> {
 interface DualDonutChartProps {
   innerData: Data[];
   outerData: Data[];
-  title?: string;
+  tooltipData: Asset[];
+  tooltipKey: string;
+}
+
+interface CustomPayloadItem {
+  name: string;
+  value: number;
+  tooltipData?: { applicationName: string }[];
+  fill?: string;
 }
 
 const COLORS_OUTER = [
@@ -39,7 +50,8 @@ const COLORS_INNER = ["#CBD5E1", "#94A3B8", "#64748B"];
 const DualDonutChart: React.FC<DualDonutChartProps> = ({
   innerData,
   outerData,
-  title,
+  tooltipData,
+  tooltipKey,
 }) => {
   const [activeOuterIndex, setActiveOuterIndex] = useState<number | null>(null);
   const [activeInnerIndex, setActiveInnerIndex] = useState<number | null>(null);
@@ -48,13 +60,65 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
     return <p className="text-gray-500 text-center">No data available</p>;
   }
 
+  // ✅ Calculate inner total
+  const innerTotal = innerData.reduce((sum, item) => sum + item.value, 0);
+
+  const CustomPieTooltip: React.FC<TooltipProps<number, string>> = (props) => {
+    const { active, payload } = props as TooltipProps<number, string> & {
+      payload?: { payload: CustomPayloadItem }[];
+    };
+
+    if (active && payload && payload.length) {
+      const item = payload[0].payload;
+
+      return (
+        <Paper
+          elevation={3}
+          sx={{
+            p: 1.5,
+            borderRadius: "12px",
+            border: "1px solid #ddd",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            minWidth: 180,
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            fontWeight="bold"
+            sx={{ mb: 0.5, textAlign: "left", pl: 2 }}
+          >
+            {`${item.name} (${item.value} dependencies)`}
+          </Typography>
+
+          {tooltipData.length > 0 && (
+            <List dense sx={{ py: 0, maxHeight: 150, overflowY: "auto" }}>
+              {tooltipData
+                .filter(
+                  (asset) => asset[tooltipKey as keyof Asset] === item.name
+                )
+                .map((x, index) => (
+                  <ListItem key={index} sx={{ py: 0.25 }}>
+                    <ListItemText
+                      primary={x.applicationName}
+                      primaryTypographyProps={{ fontSize: "0.8rem" }}
+                    />
+                  </ListItem>
+                ))}
+            </List>
+          )}
+        </Paper>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="w-full bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-center gap-6">
-      {/* Chart Section */}
       <div className="w-full md:w-2/3 h-[400px]">
         <ResponsiveContainer width="100%" aspect={1}>
           <PieChart>
-            {/* Outer ring (Vendors) */}
+            {/* Outer Ring */}
             <Pie
               data={outerData}
               cx="50%"
@@ -88,7 +152,7 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
               })}
             </Pie>
 
-            {/* Inner ring (Totals) */}
+            {/* Inner Ring */}
             <Pie
               data={innerData}
               cx="50%"
@@ -120,26 +184,43 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
               })}
             </Pie>
 
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "white",
-                borderRadius: "12px",
-                border: "1px solid #ddd",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            {/* ✅ Center Text for Inner Total */}
+            <text
+              x="50%"
+              y="42%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              style={{
+                fontSize: "20px",
+                fontWeight: "600",
+                fill: "#1E293B",
+                fontFamily: "Inter, sans-serif",
               }}
-              formatter={(value: number, name: string) => [
-                `${value} dependencies`,
-                name,
-              ]}
-            />
+            >
+              {innerTotal}
+            </text>
+
+            <text
+              x="50%"
+              y="47%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              style={{
+                fontSize: "8px",
+                fill: "#1E293B",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              processes
+            </text>
+
+            <Tooltip content={<CustomPieTooltip />} />
             <Legend
               verticalAlign="bottom"
               iconType="circle"
               wrapperStyle={{
                 fontSize: "12px",
-                fontFamily: ["Inter", "Helvetica", "Arial", "sans-serif"].join(
-                  ","
-                ),
+                fontFamily: "Inter, Helvetica, Arial, sans-serif",
               }}
             />
           </PieChart>
