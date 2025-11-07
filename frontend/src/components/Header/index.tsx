@@ -8,6 +8,7 @@ import {
   MenuItem,
   Stack,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import React from "react";
 import NotificationIcon from "@/icons/notification.svg";
@@ -74,10 +75,39 @@ const Header = () => {
           anchorEl={anchorEl}
           open={open}
           onClose={() => setAnchorEl(null)}
+          slotProps={{
+            paper: {
+              elevation: 0,
+              sx: {
+                overflow: "visible",
+                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                mt: 1.5,
+                "&::before": {
+                  content: '""',
+                  display: "block",
+                  position: "absolute",
+                  top: 0,
+                  right: 14,
+                  width: 10,
+                  height: 10,
+                  bgcolor: "background.paper",
+                  transform: "translateY(-50%) rotate(45deg)",
+                  zIndex: 0,
+                },
+              },
+            },
+          }}
+          transformOrigin={{ horizontal: "right", vertical: "top" }}
+          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         >
           <MenuItem sx={{ cursor: "default" }}>
-            <Avatar /> &nbsp;
-            {user?.name as string}
+            <Stack direction={"row"} gap={1}>
+              <Avatar sx={{ width: 48, height: 48 }} />
+              <Stack direction={"column"} justifyContent={"center"}>
+                <Typography variant="body1">{user?.name as string}</Typography>
+                <Typography variant="body2">{user?.email as string}</Typography>
+              </Stack>
+            </Stack>
           </MenuItem>
           <Divider />
           <MenuItem onClick={() => handleLogout()}>

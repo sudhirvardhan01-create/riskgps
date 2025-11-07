@@ -42,7 +42,7 @@ export default function AssetStrength({
         selectedAsset?.assetCategory &&
         q.assetCategories.includes(selectedAsset?.assetCategory)
     );
-    return a.questionnaire.length === filterQuestions.length;
+    return a.questionnaire?.length === filterQuestions?.length;
   };
 
   return (

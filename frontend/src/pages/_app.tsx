@@ -51,46 +51,43 @@ export default function App({ Component, pageProps }: AppProps) {
                         </Grid>
                       )}
 
-                      <Grid
-                        container
-                        sx={{ height: "100vh", overflow: "hidden" }}
-                      >
-                        {/* Header */}
-                        <Grid size={12}>{!isLoginPage && <Header />}</Grid>
-                        {/* Main Content Row */}
-                        {!isLoginPage && (
-                          <>
-                            <Grid
-                              sx={{
-                                transition: "width 0.3s ease",
-                                width: collapsed ? "80px" : "120px", // match sidebar width
-                                flexShrink: 0,
-                              }}
-                            >
-                              <SideBar
-                                collapsed={collapsed}
-                                setCollapsed={setCollapsed}
-                              />
-                            </Grid>
+                      {!isLoginPage && (
+                        <Grid
+                          container
+                          sx={{ height: "100vh", overflow: "hidden" }}
+                        >
+                          {/* Header */}
+                          <Grid size={12}>{!isLoginPage && <Header />}</Grid>
+                          {/* Main Content Row */}
 
-                            <Grid
-                              sx={{
-                                flexGrow: 1,
-                                transition: "width 0.3s ease",
-                                width: `calc(100% - ${
-                                  collapsed ? "80px" : "220px"
-                                })`,
-                                overflowY: "auto",
-                              }}
-                            >
-                              <Component {...pageProps} />
-                              {!isLoginPage && !isAssessmentProcess && (
-                                <Footer />
-                              )}
-                            </Grid>
-                          </>
-                        )}
-                      </Grid>
+                          <Grid
+                            sx={{
+                              transition: "width 0.3s ease",
+                              width: collapsed ? "80px" : "120px", // match sidebar width
+                              flexShrink: 0,
+                            }}
+                          >
+                            <SideBar
+                              collapsed={collapsed}
+                              setCollapsed={setCollapsed}
+                            />
+                          </Grid>
+
+                          <Grid
+                            sx={{
+                              flexGrow: 1,
+                              transition: "width 0.3s ease",
+                              width: `calc(100% - ${
+                                collapsed ? "80px" : "220px"
+                              })`,
+                              overflowY: "auto",
+                            }}
+                          >
+                            <Component {...pageProps} />
+                            {!isLoginPage && !isAssessmentProcess && <Footer />}
+                          </Grid>
+                        </Grid>
+                      )}
                     </ThemeProvider>
                   </>
                 )}
