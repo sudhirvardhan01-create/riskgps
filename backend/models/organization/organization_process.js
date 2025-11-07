@@ -38,7 +38,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       processName: {
         type: DataTypes.STRING,
-        unique: true,
         allowNull: false,
         field: "process_name",
       },

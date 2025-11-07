@@ -35,7 +35,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: DataTypes.TEXT,
         field: "risk_scenario",
-        unique: true,
       },
       riskDescription: {
         allowNull: true,
