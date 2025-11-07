@@ -15,6 +15,7 @@
   OrganizationProcessAttribute,
   OrganizationProcessRelationship,
   OrganizationThreat,
+  MitreThreatControl,
   sequelize,
 } = require("../models");
 const { Op } = Sequelize;
@@ -125,10 +126,13 @@ class OrganizationService {
     }
   }
 
-    /**
+  /**
    * Get processes for an organization + business unit (both mandatory)
    */
-  static async getOrganizationProcessesForListing(orgId, businessUnitId = null) {
+  static async getOrganizationProcessesForListing(
+    orgId,
+    businessUnitId = null
+  ) {
     try {
       if (!orgId) {
         throw new CustomError(
@@ -137,9 +141,9 @@ class OrganizationService {
         );
       }
       const whereClause = {
-          organizationId: orgId,
-          isDeleted: false,
-      }
+        organizationId: orgId,
+        isDeleted: false,
+      };
       if (businessUnitId) {
         whereClause.orgBusinessUnitId = businessUnitId;
       }
@@ -936,6 +940,64 @@ class OrganizationService {
     }
   }
 
+  static async getOrganizationAssetById(id, orgId) {
+    const asset = await OrganizationAsset.findOne({
+      where: {
+        organizationId: orgId,
+        id: id,
+      },
+      include: [
+        {
+          model: OrganizationProcess,
+          as: "processes",
+          attributes: [
+            "id",
+            "processCode",
+            "processName",
+            "processDescription",
+            "status",
+          ],
+          include: [],
+          through: { attributes: [] },
+        },
+        {
+          model: OrganizationAssetAttribute,
+          as: "attributes",
+          include: [{ model: MetaData, as: "metaData" }],
+        },
+      ],
+    });
+
+    if (!asset) {
+      console.log("Asset not found with id", id);
+      throw new CustomError(Messages.ASSET.NOT_FOUND(id), HttpStatus.NOT_FOUND);
+    }
+    const assetData = asset.toJSON();
+    const assetCategory = assetData.assetCategory;
+    if (assetCategory) {
+      const mitreThreatControls = await MitreThreatControl.findAll({
+        where: {
+          platforms: {
+            [Op.contains]: [assetCategory],
+          },
+        },
+        attributes: [
+          "id",
+          "platforms",
+          "mitreTechniqueId",
+          "mitreTechniqueName",
+          "subTechniqueId",
+          "subTechniqueName",
+          "mitreControlId",
+          "mitreControlName",
+          "controlPriority",
+        ],
+      });
+      assetData.mitreControls = mitreThreatControls;
+    }
+
+    return assetData;
+  }
   /**
    * Get all assets for a given organization
    */
