@@ -32,7 +32,7 @@ interface Tag {
 
 interface BusinessContextData {
   industryVertical: string;
-  regionOfOperation: string;
+  regionOfOperation: string[];
   numberOfEmployees: string;
   cisoName: string;
   cisoEmail: string;
@@ -105,7 +105,7 @@ function CreateNewOrgPage() {
   });
   const [businessContext, setBusinessContext] = useState<BusinessContextData>({
     industryVertical: "",
-    regionOfOperation: "",
+    regionOfOperation: [],
     numberOfEmployees: "",
     cisoName: "",
     cisoEmail: "",
@@ -235,7 +235,7 @@ function CreateNewOrgPage() {
           tags: tags,
           businessContext: {
             industryVertical: businessContext.industryVertical,
-            regionOfOperation: businessContext.regionOfOperation,
+            regionOfOperation: businessContext.regionOfOperation.join(", "),
             numberOfEmployees: businessContext.numberOfEmployees,
             cisoName: businessContext.cisoName,
             cisoEmail: businessContext.cisoEmail,
@@ -333,7 +333,7 @@ function CreateNewOrgPage() {
                   createdBy: userId || ""
                 },
                 {
-                  name: "Medium",
+                  name: "Moderate",
                   minRange: formatRange(mediumValue),
                   maxRange: formatRange(highValue),
                   color: "#E3B52A",
@@ -381,7 +381,7 @@ function CreateNewOrgPage() {
                   createdBy: userId || ""
                 },
                 {
-                  name: "Medium",
+                  name: "Moderate",
                   minRange: formatRange(mediumValue),
                   maxRange: formatRange(highValue),
                   color: "#E3B52A",
@@ -429,7 +429,7 @@ function CreateNewOrgPage() {
                   createdBy: userId || ""
                 },
                 {
-                  name: "Medium",
+                  name: "Moderate",
                   minRange: formatRange(mediumValue),
                   maxRange: formatRange(highValue),
                   color: "#E3B52A",
@@ -477,7 +477,7 @@ function CreateNewOrgPage() {
                   createdBy: userId || ""
                 },
                 {
-                  name: "Medium",
+                  name: "Moderate",
                   minRange: formatRange(mediumValue),
                   maxRange: formatRange(highValue),
                   color: "#E3B52A",

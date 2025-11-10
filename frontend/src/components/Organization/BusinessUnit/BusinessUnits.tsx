@@ -10,6 +10,7 @@ import ToastComponent from "../../ToastComponent";
 import { Add as AddIcon } from "@mui/icons-material";
 import { getBusinessUnits, createBusinessUnit, updateBusinessUnit } from "@/services/businessUnitService";
 import { BusinessUnitFormData, BusinessUnitData } from "@/types/business-unit";
+import { getOrganizationProcessDetails } from "@/pages/api/organization";
 
 const BusinessUnits: React.FC = () => {
   const router = useRouter();
@@ -30,6 +31,8 @@ const BusinessUnits: React.FC = () => {
 
   // State for business units from API
   const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([]);
+  // State for process counts mapped by business unit ID
+  const [processCounts, setProcessCounts] = useState<Record<string, number>>({});
   
   // Ref to track when we're entering edit mode (to avoid React state batching issues)
   const isEnteringEditModeRef = useRef(false);
@@ -55,6 +58,33 @@ const BusinessUnits: React.FC = () => {
       }
     };
     fetchBusinessUnits();
+  }, [orgId]);
+
+  // Fetch process counts for all business units
+  useEffect(() => {
+    const fetchProcessCounts = async () => {
+      if (!orgId || typeof orgId !== 'string') return;
+
+      try {
+        const response = await getOrganizationProcessDetails(orgId);
+        if (response?.data?.businessUnits && Array.isArray(response.data.businessUnits)) {
+          // Create a map of business unit ID to process count
+          const countsMap: Record<string, number> = {};
+          response.data.businessUnits.forEach((bu: any) => {
+            const buId = bu.orgBusinessUnitId;
+            if (buId) {
+              countsMap[buId] = Array.isArray(bu.processes) ? bu.processes.length : 0;
+            }
+          });
+          setProcessCounts(countsMap);
+        }
+      } catch (err) {
+        console.error("Failed to fetch process counts:", err);
+        setProcessCounts({});
+      }
+    };
+
+    fetchProcessCounts();
   }, [orgId]);
 
   const handleCreateBusinessUnit = () => {
@@ -486,6 +516,7 @@ const BusinessUnits: React.FC = () => {
                 onEdit={handleEditBusinessUnit}
                 onStatusChange={handleStatusChange}
                 onClick={handleBusinessUnitClick}
+                processCount={processCounts[businessUnit.id] || 0}
               />
             ))}
           </Box>

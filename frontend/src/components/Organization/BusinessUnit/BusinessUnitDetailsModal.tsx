@@ -456,7 +456,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
               </Box>
 
               {/* Tags Section */}
-              {businessUnit.tags && businessUnit.tags.length > 0 && (
+              {/* {businessUnit.tags && businessUnit.tags.length > 0 && (
                 <Box
                   sx={{
                     backgroundColor: "#E7E7E84D",
@@ -544,7 +544,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                     ))}
                   </Box>
                 </Box>
-              )}
+              )} */}
             </Box>
           </TabPanel>
 
