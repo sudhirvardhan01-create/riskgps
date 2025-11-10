@@ -59,9 +59,30 @@ const ProcessList: React.FC<Props> = ({
                 status={item.status ?? ""}
                 lastUpdated={item.lastUpdated ?? ""}
                 tagItems={[
-                  { label: "Dependant Processes", value:item.processDependency?.length },
-                  { label: "Follows", value: item.processDependency?.filter((pd) => (pd.relationshipType === "follows" && item.id === pd.sourceProcessId) || (pd.relationshipType === "precedes" && item.id === pd.targetProcessId))?.length },
-                  { label: "Precedes", value: item.processDependency?.filter((pd) => (pd.relationshipType === "precedes" && item.id === pd.sourceProcessId) || (pd.relationshipType === "follows" && item.id === pd.targetProcessId))?.length },
+                  {
+                    label: "Dependent Processes",
+                    value: item.processDependency?.length,
+                  },
+                  {
+                    label: "Follows",
+                    value: item.processDependency?.filter(
+                      (pd) =>
+                        (pd.relationshipType === "follows" &&
+                          item.id === pd.sourceProcessId) ||
+                        (pd.relationshipType === "precedes" &&
+                          item.id === pd.targetProcessId)
+                    )?.length,
+                  },
+                  {
+                    label: "Precedes",
+                    value: item.processDependency?.filter(
+                      (pd) =>
+                        (pd.relationshipType === "precedes" &&
+                          item.id === pd.sourceProcessId) ||
+                        (pd.relationshipType === "follows" &&
+                          item.id === pd.targetProcessId)
+                    )?.length,
+                  },
                 ]}
                 module="Process"
                 footerChipKey="Users"
