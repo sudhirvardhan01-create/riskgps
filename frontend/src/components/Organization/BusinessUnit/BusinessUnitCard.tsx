@@ -9,6 +9,7 @@ interface BusinessUnitCardProps {
   onEdit: (businessUnit: BusinessUnitData) => void;
   onStatusChange: (id: string, status: 'active' | 'disable') => void;
   onClick: (businessUnit: BusinessUnitData) => void;
+  processCount: number;
 }
 
 const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
@@ -16,6 +17,7 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
   onEdit,
   onStatusChange,
   onClick,
+  processCount,
 }) => {
   const [showDisableModal, setShowDisableModal] = useState(false);
   
@@ -142,7 +144,7 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
           </Box>
           •
           <Box component="span" sx={{ ml: 1, mr: 1 }}>
-            BU Size: {businessUnit.buSize}
+            Processes: {processCount}
           </Box>
           •
           <Box component="span" sx={{ ml: 1 }}>
@@ -151,10 +153,10 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
         </Typography>
       </Box>
 
-      {businessUnit.tags && businessUnit.tags.length > 0 && <Divider sx={{ mb: 1.5 }} />}
+      {/* {businessUnit.tags && businessUnit.tags.length > 0 && <Divider sx={{ mb: 1.5 }} />} */}
 
       {/* Tags */}
-      {businessUnit.tags && businessUnit.tags.length > 0 && (
+      {/* {businessUnit.tags && businessUnit.tags.length > 0 && (
         <Box
           sx={{
             display: 'flex',
@@ -182,7 +184,7 @@ const BusinessUnitCard: React.FC<BusinessUnitCardProps> = ({
             />
           ))}
         </Box>
-      )}
+      )} */}
       
       <DisableConfirmationModal
         open={showDisableModal}

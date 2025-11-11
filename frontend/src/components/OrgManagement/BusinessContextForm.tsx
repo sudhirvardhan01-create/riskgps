@@ -9,11 +9,12 @@ import {
 } from "@mui/material";
 import TextFieldStyled from "@/components/TextFieldStyled";
 import SelectStyled from "@/components/SelectStyled";
-import { COMPLIANCE_FRAMEWORKS, RECORD_TYPES, COUNTRIES } from "@/constants/constant";
+import { useConfig } from "@/context/ConfigContext";
+import { formatNumberWithCommas, getRawNumericValue } from "@/utils/utility";
 
 interface BusinessContextData {
   industryVertical: string;
-  regionOfOperation: string;
+  regionOfOperation: string[];
   numberOfEmployees: string;
   cisoName: string;
   cisoEmail: string;
@@ -49,6 +50,28 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
   currentStep,
   mandatoryFields
 }) => {
+  const { fetchMetadataByKey } = useConfig();
+  const industryVerticalMeta = fetchMetadataByKey("Industry Vertical");
+  const industryVerticalOptions = industryVerticalMeta?.supported_values || [];
+
+  // Get Region of Operation metadata (simple strings for multiselect)
+  const regionOfOperationMeta = fetchMetadataByKey("Region of Operation");
+  const regionOfOperationOptions = regionOfOperationMeta?.supported_values || [];
+
+  // Get Record type metadata
+  const recordTypeMeta = fetchMetadataByKey("Record type");
+  const recordTypeOptions = recordTypeMeta?.supported_values || [];
+
+  // Get Certification metadata
+  const certificationMeta = fetchMetadataByKey("Certification");
+  const certificationOptions = certificationMeta?.supported_values || [];
+
+  // Handler for numeric fields that formats display but stores raw value
+  const handleNumericFieldChange = (field: keyof BusinessContextData, value: string) => {
+    const rawValue = getRawNumericValue(value);
+    onFieldChange(field, rawValue);
+  };
+
   return (
     <>
       {currentStep === 1 ? (<Box sx={{ width: "100%", mb: 4 }}>
@@ -68,28 +91,40 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
             {/* First row → 2 inputs */}
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 6 }}>
-                <TextFieldStyled
+                <SelectStyled
                   label="Industry Vertical"
                   required={mandatoryFields.industryVertical}
-                  placeholder="Financial Services, Healthcare"
                   value={businessContext.industryVertical}
                   onChange={(e) =>
-                    onFieldChange("industryVertical", e.target.value)
+                    onFieldChange("industryVertical", e.target.value as string)
                   }
-                />
+                >
+                  {industryVerticalOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </SelectStyled>
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <SelectStyled
                   label="Region of Operation"
                   required={mandatoryFields.regionOfOperation}
-                  value={businessContext.regionOfOperation}
+                  multiple
+                  value={businessContext.regionOfOperation || []}
                   onChange={(e) =>
-                    onFieldChange("regionOfOperation", e.target.value as string)
+                    onFieldChange("regionOfOperation", e.target.value as string[])
                   }
+                  renderValue={(selected: any) => {
+                    if (!selected || selected.length === 0) {
+                      return <Typography variant="body1" sx={{ color: "#9E9FA5" }}>Select Region of Operation</Typography>;
+                    }
+                    return (selected as string[]).join(", ");
+                  }}
                 >
-                  {COUNTRIES.map((country) => (
-                    <MenuItem key={country.value} value={country.value}>
-                      {country.label}
+                  {regionOfOperationOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
                     </MenuItem>
                   ))}
                 </SelectStyled>
@@ -103,9 +138,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="Number of employees globally"
                   required={mandatoryFields.numberOfEmployees}
                   placeholder="100"
-                  value={businessContext.numberOfEmployees}
+                  value={formatNumberWithCommas(businessContext.numberOfEmployees)}
                   onChange={(e) =>
-                    onFieldChange("numberOfEmployees", e.target.value)
+                    handleNumericFieldChange("numberOfEmployees", e.target.value)
                   }
                 />
               </Grid>
@@ -186,8 +221,8 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="Estimated Annual Revenue"
                   required={mandatoryFields.annualRevenue}
                   placeholder="$ Enter amount in dollars"
-                  value={businessContext.annualRevenue}
-                  onChange={(e) => onFieldChange("annualRevenue", e.target.value)}
+                  value={formatNumberWithCommas(businessContext.annualRevenue)}
+                  onChange={(e) => handleNumericFieldChange("annualRevenue", e.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -195,8 +230,8 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="Risk Appetite"
                   required={mandatoryFields.riskAppetite}
                   placeholder="$ Enter amount in dollars"
-                  value={businessContext.riskAppetite}
-                  onChange={(e) => onFieldChange("riskAppetite", e.target.value)}
+                  value={formatNumberWithCommas(businessContext.riskAppetite)}
+                  onChange={(e) => handleNumericFieldChange("riskAppetite", e.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -204,8 +239,8 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="Allocated budget for cybersecurity operations"
                   required={mandatoryFields.cybersecurityBudget}
                   placeholder="$ Enter amount in dollars"
-                  value={businessContext.cybersecurityBudget}
-                  onChange={(e) => onFieldChange("cybersecurityBudget", e.target.value)}
+                  value={formatNumberWithCommas(businessContext.cybersecurityBudget)}
+                  onChange={(e) => handleNumericFieldChange("cybersecurityBudget", e.target.value)}
                 />
               </Grid>
             </Grid>
@@ -240,8 +275,8 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="Insurance - Current Coverage"
                   required={mandatoryFields.insuranceCoverage}
                   placeholder="$ Enter amount in dollars"
-                  value={businessContext.insuranceCoverage}
-                  onChange={(e) => onFieldChange("insuranceCoverage", e.target.value)}
+                  value={formatNumberWithCommas(businessContext.insuranceCoverage)}
+                  onChange={(e) => handleNumericFieldChange("insuranceCoverage", e.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -258,8 +293,8 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="No. of claims (made in last 12 months)"
                   required={mandatoryFields.numberOfClaims}
                   placeholder="Enter no. of claims"
-                  value={businessContext.numberOfClaims}
-                  onChange={(e) => onFieldChange("numberOfClaims", e.target.value)}
+                  value={formatNumberWithCommas(businessContext.numberOfClaims)}
+                  onChange={(e) => handleNumericFieldChange("numberOfClaims", e.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -267,8 +302,8 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="Claims Value (made in last 12 months)"
                   required={mandatoryFields.claimsValue}
                   placeholder="$ Enter amount in dollars"
-                  value={businessContext.claimsValue}
-                  onChange={(e) => onFieldChange("claimsValue", e.target.value)}
+                  value={formatNumberWithCommas(businessContext.claimsValue)}
+                  onChange={(e) => handleNumericFieldChange("claimsValue", e.target.value)}
                 />
               </Grid>
             </Grid>
@@ -376,7 +411,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               >
                 RECORDS
               </Typography>
-              
+
               <Typography
                 variant="body1"
                 sx={{
@@ -388,7 +423,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
               </Typography>
 
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {RECORD_TYPES.map((recordType) => {
+                {recordTypeOptions.map((recordType) => {
                   const isSelected = businessContext.recordTypes?.includes(recordType) || false;
                   return (
                     <Button
@@ -554,7 +589,7 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                 2. Did the organization obtain PCI DSS, ISO 27001, or SOC2 certification in the past year? Please check the appropriate boxes if any.
               </Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {COMPLIANCE_FRAMEWORKS.map((certification) => {
+                {certificationOptions.map((certification) => {
                   const isSelected = businessContext.certifications?.includes(certification) || false;
                   return (
                     <Button

@@ -449,109 +449,111 @@ const CreateBusinessUnitForm: React.FC<CreateBusinessUnitFormProps> = ({
           </Box>
 
           {/* Tags Section */}
-          <Box>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                color: '#121212',
-                mb: 2,
-              }}
-            >
-              Tags
-            </Typography>
+          {false && (
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                  color: '#121212',
+                  mb: 2,
+                }}
+              >
+                Tags
+              </Typography>
 
-            {formData.tags.map((tag, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <SelectStyled
-                      label="Key"
-                      value={tag.key}
-                      onChange={(e) => handleTagChange(index, 'key', e.target.value as string)}
-                      name={`tag-key-${index}`}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          height: 52,
-                        }
-                      }}
-                    >
-                      <MenuItem value="">
-                        <em>Select key</em>
-                      </MenuItem>
-                      <MenuItem value="department">Department</MenuItem>
-                      <MenuItem value="location">Location</MenuItem>
-                      <MenuItem value="priority">Priority</MenuItem>
-                      <MenuItem value="category">Category</MenuItem>
-                    </SelectStyled>
-                  </Box>
-
-                  {/* Horizontal Divider */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      height: '52px',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        height: '1px',
-                        width: '32px',
-                        backgroundColor: '#CECFD2',
-                      }}
-                    />
-                  </Box>
-
-                  <Box sx={{ flex: 1 }}>
-                    <TextFieldStyled
-                      label="Value"
-                      value={tag.value}
-                      onChange={(e) => handleTagChange(index, 'value', e.target.value)}
-                      placeholder="Enter Value"
-                    />
-                  </Box>
-
-                  {formData.tags.length > 1 && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => removeTag(index)}
+              {formData.tags.map((tag, index) => (
+                <Box key={index} sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <SelectStyled
+                        label="Key"
+                        value={tag.key}
+                        onChange={(e) => handleTagChange(index, 'key', e.target.value as string)}
+                        name={`tag-key-${index}`}
                         sx={{
-                          minWidth: 'auto',
-                          p: 0.5,
-                          '&:hover': {
-                            backgroundColor: '#ffebee',
+                          '& .MuiOutlinedInput-root': {
+                            height: 52,
                           }
                         }}
                       >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
+                        <MenuItem value="">
+                          <em>Select key</em>
+                        </MenuItem>
+                        <MenuItem value="department">Department</MenuItem>
+                        <MenuItem value="location">Location</MenuItem>
+                        <MenuItem value="priority">Priority</MenuItem>
+                        <MenuItem value="category">Category</MenuItem>
+                      </SelectStyled>
                     </Box>
-                  )}
-                </Box>
-              </Box>
-            ))}
 
-            <Button
-              variant="text"
-              startIcon={<AddIcon />}
-              onClick={addNewTag}
-              sx={{
-                color: '#04139A',
-                textTransform: 'none',
-                fontWeight: 400,
-                p: 0,
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  textDecoration: 'underline',
-                },
-              }}
-            >
-              Add New Key
-            </Button>
-          </Box>
+                    {/* Horizontal Divider */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        height: '52px',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          height: '1px',
+                          width: '32px',
+                          backgroundColor: '#CECFD2',
+                        }}
+                      />
+                    </Box>
+
+                    <Box sx={{ flex: 1 }}>
+                      <TextFieldStyled
+                        label="Value"
+                        value={tag.value}
+                        onChange={(e) => handleTagChange(index, 'value', e.target.value)}
+                        placeholder="Enter Value"
+                      />
+                    </Box>
+
+                    {formData.tags.length > 1 && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => removeTag(index)}
+                          sx={{
+                            minWidth: 'auto',
+                            p: 0.5,
+                            '&:hover': {
+                              backgroundColor: '#ffebee',
+                            }
+                          }}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              ))}
+
+              <Button
+                variant="text"
+                startIcon={<AddIcon />}
+                onClick={addNewTag}
+                sx={{
+                  color: '#04139A',
+                  textTransform: 'none',
+                  fontWeight: 400,
+                  p: 0,
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    textDecoration: 'underline',
+                  },
+                }}
+              >
+                Add New Key
+              </Button>
+            </Box>
+          )}
         </Box>
       </DialogContent>
 

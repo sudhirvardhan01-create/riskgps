@@ -141,6 +141,47 @@ export const formatDate = (dateString: Date | string) => {
   return `${day} ${month}, ${year}`;
 };
 
+/**
+ * Formats a number string with commas using Indian numbering system
+ * (last 3 digits, then groups of 2)
+ * @param value - The numeric string to format
+ * @returns Formatted string with commas
+ */
+export const formatNumberWithCommas = (value: string): string => {
+  if (!value) return "";
+  // Remove all non-digit characters
+  const numericValue = value.replace(/\D/g, "");
+  if (!numericValue) return "";
+  
+  // Indian numbering system: last 3 digits, then groups of 2
+  if (numericValue.length <= 3) {
+    return numericValue;
+  }
+  
+  // Get last 3 digits
+  const lastThree = numericValue.slice(-3);
+  // Get remaining digits
+  const remaining = numericValue.slice(0, -3);
+  
+  // Group remaining digits in groups of 2 from right to left
+  const reversedRemaining = remaining.split("").reverse().join("");
+  const groupedRemaining = reversedRemaining.replace(/(\d{2})(?=\d)/g, "$1,");
+  const formattedRemaining = groupedRemaining.split("").reverse().join("");
+  
+  return formattedRemaining ? `${formattedRemaining},${lastThree}` : lastThree;
+};
+
+/**
+ * Extracts raw numeric value from a string (removes all non-digit characters)
+ * @param value - The string to extract numeric value from
+ * @returns Raw numeric string without any formatting
+ */
+export const getRawNumericValue = (value: string): string => {
+  if (!value) return "";
+  // Remove all non-digit characters
+  return value.replace(/\D/g, "");
+};
+
 export function transformAssetData(apiData: RawAsset[]) {
   // 1️⃣ Asset bar chart data
   const asset_data: AssetData[] = apiData.map((item) => ({
