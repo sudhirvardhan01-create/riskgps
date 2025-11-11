@@ -20,7 +20,7 @@ interface BusinessImpact {
   operational: number;
 }
 
-interface ImpactScale { 
+interface ImpactScale {
   id: number;
   label: string;
   value: number;
@@ -30,8 +30,8 @@ interface ImpactScale {
 const Scales: React.FC = () => {
   const [businessImpacts, setBusinessImpacts] = useState<BusinessImpact>({
     financial: 40,
-    regulatory: 30,
-    operational: 20,
+    operational: 30,
+    regulatory: 20,
     reputational: 10,
   });
 
@@ -39,24 +39,26 @@ const Scales: React.FC = () => {
   const [isLabelsModalOpen, setIsLabelsModalOpen] = useState(false);
   const [weightageInputs, setWeightageInputs] = useState<BusinessImpact>({
     financial: 40,
-    regulatory: 30,
-    operational: 20,
+    operational: 30,
+    regulatory: 20,
     reputational: 10,
   });
   const [labelsInputs, setLabelsInputs] = useState<ImpactScale[]>([
-    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' },
-    { id: 2, label: 'Low', value: 2, color: '#3366CC' },
-    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' },
-    { id: 4, label: 'High', value: 4, color: '#DA7706' },
     { id: 5, label: 'Critical', value: 5, color: '#B90D0D' },
+    { id: 4, label: 'High', value: 4, color: '#DA7706' },
+    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' },
+    { id: 2, label: 'Low', value: 2, color: '#3366CC' },
+    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' },
+
   ]);
 
   const [impactScales, setImpactScales] = useState<ImpactScale[]>([
-    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' }, // Green
-    { id: 2, label: 'Low', value: 2, color: '#3366CC' }, // Blue
-    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' }, // Yellow
-    { id: 4, label: 'High', value: 4, color: '#DA7706' }, // Orange
     { id: 5, label: 'Critical', value: 5, color: '#B90D0D' }, // Red
+    { id: 4, label: 'High', value: 4, color: '#DA7706' }, // Orange
+    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' }, // Yellow
+    { id: 2, label: 'Low', value: 2, color: '#3366CC' }, // Blue
+    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' }, // Green
+
   ]);
 
   const [toast, setToast] = useState({
@@ -82,8 +84,8 @@ const Scales: React.FC = () => {
   };
 
   const handleScaleLabelChange = (id: number, newLabel: string) => {
-    setImpactScales(prev => 
-      prev.map(scale => 
+    setImpactScales(prev =>
+      prev.map(scale =>
         scale.id === id ? { ...scale, label: newLabel } : scale
       )
     );
@@ -93,9 +95,9 @@ const Scales: React.FC = () => {
     // Prefill with existing values if they exist, otherwise reset to empty state
     setWeightageInputs({
       financial: businessImpacts.financial || 0,
+      operational: businessImpacts.operational || 0,
       regulatory: businessImpacts.regulatory || 0,
       reputational: businessImpacts.reputational || 0,
-      operational: businessImpacts.operational || 0,
     });
     setIsWeightageModalOpen(true);
   };
@@ -167,8 +169,8 @@ const Scales: React.FC = () => {
   };
 
   const handleLabelsInputChange = (id: number, newLabel: string) => {
-    setLabelsInputs(prev => 
-      prev.map(scale => 
+    setLabelsInputs(prev =>
+      prev.map(scale =>
         scale.id === id ? { ...scale, label: newLabel } : scale
       )
     );
@@ -190,13 +192,13 @@ const Scales: React.FC = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', mx: 'auto', mb:6 }}>
+    <Box sx={{ width: '100%', mx: 'auto', mb: 6 }}>
       <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
         {/* Business Impacts Section */}
         <Box sx={{ flex: 1 }}>
-          <Paper 
-            elevation={0} 
-            sx={{ 
+          <Paper
+            elevation={0}
+            sx={{
               height: '100%',
               border: '1px solid #E4E4E4',
               borderRadius: 2,
@@ -239,12 +241,12 @@ const Scales: React.FC = () => {
               <Typography variant="body1" color="#91939A" sx={{ mb: 3 }}>
                 Add weightage for different types of business Impact:
               </Typography>
-              
+
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 7 }}>
                 {[
                   { key: 'financial', label: 'Financial' },
-                  { key: 'regulatory', label: 'Regulatory' },
                   { key: 'operational', label: 'Operational' },
+                  { key: 'regulatory', label: 'Regulatory' },
                   { key: 'reputational', label: 'Reputational' }
                 ].map(({ key, label }) => (
                   <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -271,9 +273,9 @@ const Scales: React.FC = () => {
 
         {/* Impact Scale Section */}
         <Box sx={{ flex: 1 }}>
-          <Paper 
-            elevation={0} 
-            sx={{ 
+          <Paper
+            elevation={0}
+            sx={{
               height: '100%',
               border: '1px solid #E4E4E4',
               borderRadius: 2,
@@ -316,7 +318,7 @@ const Scales: React.FC = () => {
               <Typography variant="body1" color="#91939A" sx={{ mb: 3 }}>
                 Add labels for impact scale
               </Typography>
-              
+
               {/* Horizontal Impact Scale Bar */}
               <Box
                 sx={{
@@ -377,7 +379,7 @@ const Scales: React.FC = () => {
                       }}
                       placeholder="Label"
                       inputProps={{
-                        style: { 
+                        style: {
                           textAlign: 'center',
                           minWidth: '60px',
                           maxWidth: '80px'
@@ -442,7 +444,7 @@ const Scales: React.FC = () => {
               sx={{
                 color: '#04139A',
                 '&::hover': {
-                  backgroundColor: 'rgba(92, 120, 246, 0.1)',   
+                  backgroundColor: 'rgba(92, 120, 246, 0.1)',
                 },
               }}
             >
@@ -452,9 +454,9 @@ const Scales: React.FC = () => {
 
           {/* Modal Content */}
           <Box sx={{ pt: 2 }}>
-            <Typography 
-              variant="body2" 
-              color="#91939A" 
+            <Typography
+              variant="body2"
+              color="#91939A"
               sx={{ mb: 3, fontSize: '0.875rem' }}
             >
               Please ensure that the total sum of all fields equals 100
@@ -464,14 +466,14 @@ const Scales: React.FC = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {[
                 { key: 'financial', label: 'Financial' },
+                { key: 'operational', label: 'Operational' },
                 { key: 'regulatory', label: 'Regulatory' },
                 { key: 'reputational', label: 'Reputational' },
-                { key: 'operational', label: 'Operational' }
               ].map(({ key, label }) => (
                 <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <Typography 
-                    variant="body1" 
-                    color="#484848" 
+                  <Typography
+                    variant="body1"
+                    color="#484848"
                     sx={{ width: "120px", fontWeight: 400 }}
                   >
                     {label}:
@@ -483,8 +485,8 @@ const Scales: React.FC = () => {
                     variant="outlined"
                     size="small"
                     placeholder="00"
-                    inputProps={{ 
-                      min: 0, 
+                    inputProps={{
+                      min: 0,
                       max: 100,
                       style: { textAlign: 'center' }
                     }}
@@ -596,7 +598,7 @@ const Scales: React.FC = () => {
               sx={{
                 color: '#04139A',
                 '&:hover': {
-                  backgroundColor: 'rgba(4, 19, 154, 0.1)',   
+                  backgroundColor: 'rgba(4, 19, 154, 0.1)',
                 },
               }}
             >
@@ -607,9 +609,9 @@ const Scales: React.FC = () => {
           {/* Modal Content */}
           <Box sx={{ pt: 2 }}>
             {/* Impact Scale Inputs */}
-            <Box 
-              sx={{ 
-                display: 'flex', 
+            <Box
+              sx={{
+                display: 'flex',
                 width: '100%',
                 borderRadius: 1,
                 overflow: 'hidden',
@@ -669,7 +671,7 @@ const Scales: React.FC = () => {
                       }
                     }}
                     inputProps={{
-                      style: { 
+                      style: {
                         textAlign: 'center',
                         minWidth: '140px',
                         maxWidth: '161px'
