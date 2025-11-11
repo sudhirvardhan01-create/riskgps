@@ -289,7 +289,7 @@ class AssessmentService {
       const offset = (page - 1) * limit;
 
         const { count, rows } = await Assessment.findAndCountAll({
-        where: { isDelete: false },
+        where: { isDeleted: false },
         limit,
         offset,
       });
