@@ -103,6 +103,7 @@ class AssessmentService {
         startDate: new Date(),
         createdBy: userId,
         createdDate: new Date(),
+        modifiedDate: new Date()
       });
 
       return assessment;
@@ -565,7 +566,7 @@ class AssessmentService {
   static async getAllAssessmentsWithDetails({
     page = 1,
     limit = 10,
-    sortBy = "createdDate",
+    sortBy = "modifiedDate",
     sortOrder = "DESC",
   }) {
     try {
@@ -644,7 +645,7 @@ class AssessmentService {
 
       const assessments = await Assessment.findAll({
         where: whereClause,
-        order: [["createdDate", "DESC"]],
+        order: [["modifiedDate", "DESC"]],
       });
 
       return assessments;
@@ -702,7 +703,83 @@ class AssessmentService {
         err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
-  }
+    }
+
+    /**
+* Soft delete an assessment and all its related nested records
+* @param {string} assessmentId
+* @param {string} userId
+*/
+    static async softDeleteAssessment(assessmentId, userId) {
+        const {
+            Assessment,
+            AssessmentProcess,
+            AssessmentProcessAsset,
+            AssessmentProcessRiskScenario,
+            AssessmentRiskScenarioBusinessImpact,
+            AssessmentRiskTaxonomy,
+            AssessmentQuestionaire,
+        } = require("../models");
+
+        if (!assessmentId) {
+            throw new CustomError("Assessment ID is required", HttpStatus.BAD_REQUEST);
+        }
+
+        // Check if the assessment exists
+        const assessment = await Assessment.findByPk(assessmentId);
+        if (!assessment) {
+            throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
+        }
+
+        const updatePayload = {
+            isDeleted: true,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+        };
+
+        try {
+            // Soft delete questionaires
+            await AssessmentQuestionaire.update(updatePayload, {
+                where: { assessmentId },
+            });
+
+            // Soft delete risk-related entities
+            await AssessmentRiskScenarioBusinessImpact.update(updatePayload, {
+                where: { assessmentId },
+            });
+            await AssessmentRiskTaxonomy.update(updatePayload, {
+                where: { assessmentId },
+            });
+            await AssessmentProcessRiskScenario.update(updatePayload, {
+                where: { assessmentId },
+            });
+
+            // Soft delete assets and processes
+            await AssessmentProcessAsset.update(updatePayload, {
+                where: { assessmentId },
+            });
+            await AssessmentProcess.update(updatePayload, {
+                where: { assessmentId },
+            });
+
+            // Finally, soft delete the main assessment
+            await Assessment.update(updatePayload, {
+                where: { assessmentId },
+            });
+
+            return {
+                assessmentId,
+                modifiedBy: userId,
+                modifiedDate: updatePayload.modifiedDate,
+            };
+        } catch (err) {
+            console.error("Soft delete failed:", err);
+            throw new CustomError(
+                err.message || "Failed to soft delete assessment and nested entities",
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 }
 
 module.exports = AssessmentService;

@@ -229,4 +229,33 @@ router.post("/assessment-questionaire", async (req, res) => {
   }
 });
 
+/**
+ * @route DELETE /assessments/:id
+ * @desc Soft delete assessment and all related nested entities
+ */
+router.delete("/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userId } = req.query;
+
+        if (!userId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "userId is required (as query param)",
+            });
+        }
+
+        const result = await AssessmentService.softDeleteAssessment(id, userId);
+
+        res.status(HttpStatus.OK).json({
+            message: "Assessment and all related records soft deleted successfully",
+            data: result,
+        });
+    } catch (error) {
+        console.error("Error deleting assessment:", error);
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Failed to delete assessment",
+        });
+    }
+});
+
 module.exports = router;
