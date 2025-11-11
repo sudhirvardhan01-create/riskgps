@@ -482,6 +482,34 @@ router.get("/:orgId/taxonomies", async (req, res) => {
 });
 
 /**
+ * @route GET /organization/:orgId/assets/:assetid
+ * @description Get all assets for a given organization
+ */
+router.get("/:orgId/assets/:assetId", async (req, res) => {
+  try {
+    const { orgId, assetId } = req.params;
+
+    if (!orgId || !assetId) {
+      return res.status(400).json({
+        message: "Organization ID and asset is required",
+      });
+    }
+
+    const assets = await OrganizationService.getOrganizationAssetById(assetId, orgId);
+
+    res.status(200).json({
+      message: "Organization asset fetched successfully",
+      data: assets,
+    });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({
+      error: err.message || "Failed to fetch organization asset",
+    });
+  }
+});
+
+
+/**
  * @route GET /organization/:orgId/assets
  * @description Get all assets for a given organization
  */

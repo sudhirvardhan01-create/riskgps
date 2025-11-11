@@ -32,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
         field: "asset_code",
       },
       applicationName: {
-        unique: true,
         type: DataTypes.STRING,
         allowNull: false,
         field: "application_name",

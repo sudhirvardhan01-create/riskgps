@@ -67,6 +67,7 @@ class OrganizationAssetService {
 
   static handleAssetDataColumnMapping(data) {
     const fields = [
+      "id",
       "parentObjectId",
       "applicationName",
       "applicationOwner",

@@ -98,6 +98,7 @@ class OrganizationProcessService {
 
   static handleProcessDataColumnMapping(data) {
     const fields = [
+      "id",
       "parentObjectId",
       "processName",
       "processDescription",
