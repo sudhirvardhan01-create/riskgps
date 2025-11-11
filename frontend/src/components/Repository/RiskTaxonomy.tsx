@@ -489,21 +489,26 @@ const RiskTaxonomy: React.FC = () => {
     }).format(value);
   };
 
-  // Format currency with K (1000) and L (100000) abbreviations
-  // K = 1,000 (for values 1,000 to 99,999)
-  // L = 100,000 (for values >= 100,000)
-  // Examples: 5,000 = $5K, 10,000 = $10K, 50,000 = $50K, 100,000 = $1L, 1,000,000 = $10L, 5,000,000 = $50L
+  // Format currency with K (thousand), M (million), and B (billion) abbreviations
+  // K = 1,000 (for values 1,000 to 999,999)
+  // M = 1,000,000 (for values 1,000,000 to 999,999,999)
+  // B = 1,000,000,000 (for values >= 1,000,000,000)
+  // Examples: 5,000 = $5K, 10,000 = $10K, 500,000 = $500K, 1,000,000 = $1M, 5,000,000 = $5M, 1,000,000,000 = $1B
   const formatCurrencyCompact = (value: number): string => {
-    if (value >= 100000) {
-      // For values >= 100,000, use L (Lakhs) where 1L = 100,000
-      // So 100,000 = 1L, 1,000,000 = 10L, 5,000,000 = 50L
-      const lakhs = value / 100000;
+    if (value >= 1000000000) {
+      // For values >= 1,000,000,000, use B (Billions) where 1B = 1,000,000,000
+      const billions = value / 1000000000;
       // Round to 1 decimal place if needed, otherwise show as whole number
-      const formattedLakhs = lakhs % 1 === 0 ? Math.round(lakhs).toString() : lakhs.toFixed(1);
-      return `$${formattedLakhs}L`;
+      const formattedBillions = billions % 1 === 0 ? Math.round(billions).toString() : billions.toFixed(1);
+      return `$${formattedBillions}B`;
+    } else if (value >= 1000000) {
+      // For values >= 1,000,000 and < 1,000,000,000, use M (Millions) where 1M = 1,000,000
+      const millions = value / 1000000;
+      // Round to 1 decimal place if needed, otherwise show as whole number
+      const formattedMillions = millions % 1 === 0 ? Math.round(millions).toString() : millions.toFixed(1);
+      return `$${formattedMillions}M`;
     } else if (value >= 1000) {
-      // For values >= 1,000 and < 100,000, use K (Thousands) where 1K = 1,000
-      // So 5,000 = 5K, 10,000 = 10K, 50,000 = 50K
+      // For values >= 1,000 and < 1,000,000, use K (Thousands) where 1K = 1,000
       const thousands = value / 1000;
       // Round to 1 decimal place if needed, otherwise show as whole number
       const formattedThousands = thousands % 1 === 0 ? Math.round(thousands).toString() : thousands.toFixed(1);

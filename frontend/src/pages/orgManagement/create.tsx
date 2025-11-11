@@ -24,6 +24,7 @@ import { createOrganization, CreateOrganizationRequest, saveTaxonomies } from "@
 import ToastComponent from "@/components/ToastComponent";
 import Image from "next/image";
 import Cookies from "js-cookie";
+import { getRawNumericValue } from "@/utils/utility";
 
 interface Tag {
   key: string;
@@ -236,7 +237,7 @@ function CreateNewOrgPage() {
           businessContext: {
             industryVertical: businessContext.industryVertical,
             regionOfOperation: businessContext.regionOfOperation.join(", "),
-            numberOfEmployees: businessContext.numberOfEmployees,
+            numberOfEmployees: getRawNumericValue(businessContext.numberOfEmployees),
             cisoName: businessContext.cisoName,
             cisoEmail: businessContext.cisoEmail,
             annualRevenue: businessContext.annualRevenue,

@@ -138,9 +138,9 @@ const BusinessContextForm: React.FC<BusinessContextFormProps> = ({
                   label="Number of employees globally"
                   required={mandatoryFields.numberOfEmployees}
                   placeholder="100"
-                  value={businessContext.numberOfEmployees}
+                  value={formatNumberWithCommas(businessContext.numberOfEmployees)}
                   onChange={(e) =>
-                    onFieldChange("numberOfEmployees", e.target.value)
+                    handleNumericFieldChange("numberOfEmployees", e.target.value)
                   }
                 />
               </Grid>

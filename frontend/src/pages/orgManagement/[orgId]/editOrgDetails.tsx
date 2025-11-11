@@ -119,7 +119,7 @@ function EditOrgDetailsPage() {
           name: apiResponse.data.name,
           orgId: apiResponse.data.organizationId,
           orgCode: apiResponse.data.orgCode || apiResponse.data.organizationId, // Use orgCode from API or fallback to orgId
-          orgImage: "/orgImage.png", // Default image since API doesn't provide this
+          orgImage: "/org-image-icon.png", // Default image since API doesn't provide this
           tags: (() => {
             // Convert API tags array to object format
             const tagsObject: { [key: string]: string } = {};
@@ -425,7 +425,7 @@ function EditOrgDetailsPage() {
         businessContext: {
           industryVertical: formData.industryVertical,
           regionOfOperation: formatRegionOfOperation(formData.regionOfOperation),
-          numberOfEmployees: formData.numberOfEmployees,
+          numberOfEmployees: getRawNumericValue(formData.numberOfEmployees),
           cisoName: formData.cisoName,
           cisoEmail: formData.cisoEmail,
           annualRevenue: cleanFinancialValue(formData.annualRevenue),
@@ -831,7 +831,16 @@ function EditOrgDetailsPage() {
               <Box sx={{ p: 2 }}>
                 {/* Organization Logo */}
                 <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-                  <Box sx={{ position: "relative", width: 80, height: 80 }}>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: 80,
+                      height: 80,
+                      opacity: 0.6,
+                      pointerEvents: "none",
+                      cursor: "not-allowed"
+                    }}
+                  >
                     <Avatar
                       sx={{
                         width: 80,
@@ -843,13 +852,13 @@ function EditOrgDetailsPage() {
                       <Image
                         src={organization.orgImage}
                         alt="org-logo"
-                        width={80}
-                        height={80}
+                        width={32}
+                        height={32}
                         style={{ borderRadius: "50%" }}
                       />
                     </Avatar>
                     {/* Gradient overlay */}
-                    <Box
+                    {/* <Box
                       sx={{
                         position: "absolute",
                         top: 0,
@@ -860,7 +869,7 @@ function EditOrgDetailsPage() {
                         background: "linear-gradient(135deg, #0000001F 0%, #0000003F 100%)",
                         pointerEvents: "none"
                       }}
-                    />
+                    /> */}
                     <IconButton
                       sx={{
                         position: "absolute",
@@ -1112,8 +1121,8 @@ function EditOrgDetailsPage() {
                         label="Number of employees globally"
                         required
                         placeholder="100"
-                        value={formData.numberOfEmployees}
-                        onChange={(e) => handleInputChange("numberOfEmployees", e.target.value)}
+                        value={formatNumberWithCommas(formData.numberOfEmployees)}
+                        onChange={(e) => handleNumericFieldChange("numberOfEmployees", e.target.value)}
                       />
                     </Grid>
                   </Grid>
