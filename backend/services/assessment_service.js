@@ -8,6 +8,7 @@
   OrganizationBusinessUnit,
   AssessmentProcessAsset,
   AssessmentQuestionaire,
+  User
 } = require("../models");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
@@ -287,7 +288,8 @@ class AssessmentService {
     try {
       const offset = (page - 1) * limit;
 
-      const { count, rows } = await Assessment.findAndCountAll({
+        const { count, rows } = await Assessment.findAndCountAll({
+        where: { isDelete: false },
         limit,
         offset,
       });
@@ -319,7 +321,10 @@ class AssessmentService {
       }
 
       const assessment = await Assessment.findOne({
-        where: { assessmentId },
+          where: {
+              assessmentId,
+              isDeleted: false
+          },
         include: [
           {
             model: AssessmentProcess,
@@ -515,7 +520,10 @@ class AssessmentService {
 
         if (a.assessmentProcessAssetId) {
           existingAsset = await AssessmentProcessAsset.findOne({
-            where: { assessmentProcessAssetId: a.assessmentProcessAssetId },
+              where: {
+                  assessmentProcessAssetId: a.assessmentProcessAssetId,
+                  isDeleted: false
+              },
           });
         }
 
@@ -543,17 +551,67 @@ class AssessmentService {
         }
       }
 
-      if (status) {
-        await Assessment.update(
-          {
-            status,
-            progress: progress,
-            modifiedBy: userId,
-            modifiedDate: new Date(),
-          },
-          { where: { assessmentId } }
-        );
-      }
+        // Step 2️ - Extract unique asset categories from payload
+        const uniqueCategories = [
+            ...new Set(assets.map((a) => a.assetCategory)),
+        ];
+
+        // Step 3️ - Fetch OrganizationThreats where any platform matches these categories
+        // To get orgId, we'll need to derive it from assessment or its linked organization
+        const assessment = await Assessment.findOne({
+            where: { assessmentId, isDeleted: false },
+            attributes: ["organizationId"],
+        });
+
+        const orgId = assessment.organizationId;
+        const threats = await OrganizationThreat.findAll({
+            where: {
+                organizationId: orgId,
+                platforms: {
+                    [Op.overlap]: uniqueCategories, // ARRAY overlap operator in Postgres
+                },
+                isDeleted: false,
+            },
+        });
+
+        // Step 4️ - Prepare AssessmentThreat entries
+        const threatRecords = threats.map((t) => ({
+            assessmentThreatId: uuidv4(),
+            assessmentId: assessmentId,
+            platforms: t.platforms,
+            mitreTechniqueId: t.mitreTechniqueId,
+            mitreTechniqueName: t.mitreTechniqueName,
+            ciaMapping: t.ciaMapping,
+            mitreControlId: t.mitreControlId,
+            mitreControlName: t.mitreControlName,
+            mitreControlDescription: t.mitreControlDescription,
+            createdBy: userId,
+            createdDate: new Date(),
+            isDeleted: false,
+        }));
+
+        // Step 5️ - Insert new AssessmentThreats
+        if (threatRecords.length > 0) {
+            await AssessmentThreat.bulkCreate(threatRecords);
+        }
+
+        // Step 6️ - Update Assessment status if provided
+        if (status) {
+            await Assessment.update(
+                {
+                    status,
+                    progress,
+                    modifiedBy: userId,
+                    modifiedDate: new Date()
+                },
+                { where: { assessmentId } }
+            );
+        }
+
+        // Step 7️ - Return updated data
+        const updatedAssets = await AssessmentProcessAsset.findAll({
+            where: { assessmentId, isDeleted: false },
+        });
 
       return {
         message: "Assets saved successfully",
