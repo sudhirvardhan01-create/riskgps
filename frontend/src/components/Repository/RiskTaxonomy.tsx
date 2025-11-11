@@ -106,14 +106,14 @@ const RiskTaxonomy: React.FC = () => {
       isEnabled: true,
     },
     {
-      id: 'regulatory',
-      name: 'Regulatory',
+      id: 'operational',
+      name: 'Operational',
       isSelected: false,
       isEnabled: true,
     },
     {
-      id: 'operational',
-      name: 'Operational',
+      id: 'regulatory',
+      name: 'Regulatory',
       isSelected: false,
       isEnabled: true,
     },
