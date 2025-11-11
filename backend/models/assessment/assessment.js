@@ -107,11 +107,16 @@ module.exports = (sequelize, DataTypes) => {
             as: "processes",
         });
 
-        //Assessment.belongsTo(models.User, {
-        //    foreignKey: "createdBy",      // This maps to the createdBy column in Assessment
-        //    targetKey: "userId",          // This matches the userId in User model
-        //    as: "users",
-        //});
+        try {
+            Assessment.belongsTo(models.User, {
+                foreignKey: "createdBy",
+                targetKey: "userId",
+                as: "users",
+                constraints: false, // avoids Sequelize trying to auto-create foreign key constraint
+            });
+        } catch (err) {
+            console.warn("Skipping User association in Assessment:", err.message);
+        }
     };
 
     return Assessment;

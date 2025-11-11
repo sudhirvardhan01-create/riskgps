@@ -303,14 +303,14 @@ class AssessmentService {
 
             const { count, rows } = await Assessment.findAndCountAll({
                 where: { isDeleted: false },
-                //include: [
-                //    {
-                //        model: User,
-                //        as: "users",
-                //        attributes: ["userId", "name"],
-                //        required: false,
-                //    },
-                //],
+                include: [
+                    {
+                        model: User,
+                        as: "users",
+                        attributes: ["userId", "name"],
+                        required: false,
+                    },
+                ],
                 limit,
                 offset,
                 order: [["modifiedDate", "DESC"]],
@@ -321,7 +321,8 @@ class AssessmentService {
                 const plain = a.toJSON();
                 return {
                     ...plain,
-                    //createdByName: plain.createdByUser ? plain.createdByUser.name : null
+                    createdByName: plain.users ? plain.users.name : null,
+                    users: undefined, // Remove users object
                 };
             });
 
@@ -389,12 +390,12 @@ class AssessmentService {
                             },
                         ],
                     },
-                    //{
-                    //    model: User,
-                    //    as: "users",
-                    //    attributes: ["userId", "name"],
-                    //    required: false,
-                    //},
+                    {
+                        model: User,
+                        as: "users",
+                        attributes: ["userId", "name"],
+                        required: false,
+                    },
                 ],
             });
 
@@ -406,9 +407,7 @@ class AssessmentService {
 
             const formattedAssessment = {
                 ...plainAssessment,
-                //createdByName: plainAssessment.users
-                //    ? plainAssessment.users.name
-                //    : null,
+                createdByName: plainAssessment.users ? plainAssessment.users.name : null,
                 processes: (plainAssessment.processes || []).map((process) => ({
                     ...process,
                     risks: (process.risks || []).map((risk) => ({
