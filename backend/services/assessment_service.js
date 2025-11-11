@@ -351,7 +351,14 @@ class AssessmentService {
                 ],
               },
             ],
-          },
+            },
+            // Include the User who created the assessment
+            {
+                model: User,
+                as: "createdByUser",
+                attributes: ["userId", "name", "email"],
+                required: false,
+            },
         ],
       });
 
@@ -359,34 +366,38 @@ class AssessmentService {
         throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
       }
 
-      // 🔹 Convert to plain JSON immediately to remove Sequelize circular refs
+      // Convert to plain JSON immediately to remove Sequelize circular refs
       const plainAssessment = assessment.toJSON();
 
-      // 🔹 Transform output
-      const formattedAssessment = {
-        ...plainAssessment,
-        processes: (plainAssessment.processes || []).map((process) => ({
-          ...process,
-          risks: (process.risks || []).map((risk) => ({
-            ...risk,
-            taxonomy: (risk.taxonomy || []).map((t) => ({
-              assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
-              taxonomyId: t.taxonomyId,
-              name: t.taxonomyName,
-              orgId: plainAssessment.orgId,
-              weightage: t.weightage,
-              severityDetails: {
-                name: t.severityName,
-                minRange: t.severityMinRange,
-                maxRange: t.severityMaxRange,
-                color: t.color,
-                severityId: t.severityId,
-              },
+        // 🔹 Transform output
+        const formattedAssessment = {
+            ...plainAssessment,
+            createdByName: plainAssessment.createdByUser
+                ? plainAssessment.createdByUser.name
+                : null,
+            processes: (plainAssessment.processes || []).map((process) => ({
+                ...process,
+                risks: (process.risks || []).map((risk) => ({
+                    ...risk,
+                    taxonomy: (risk.taxonomy || []).map((t) => ({
+                        assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
+                        taxonomyId: t.taxonomyId,
+                        name: t.taxonomyName,
+                        orgId: plainAssessment.orgId,
+                        weightage: t.weightage,
+                        severityDetails: {
+                            name: t.severityName,
+                            minRange: t.severityMinRange,
+                            maxRange: t.severityMaxRange,
+                            color: t.color,
+                            severityId: t.severityId,
+                        },
             })),
           })),
         })),
       };
 
+      delete formattedAssessment.createdByUser;
       return formattedAssessment;
     } catch (err) {
       throw new CustomError(
