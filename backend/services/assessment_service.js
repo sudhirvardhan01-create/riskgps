@@ -351,7 +351,14 @@ class AssessmentService {
                 ],
               },
             ],
-          },
+            },
+            // Include the User who created the assessment
+            {
+                model: User,
+                as: "createdByUser",
+                attributes: ["userId", "name", "email"],
+                required: false,
+            },
         ],
       });
 
@@ -359,34 +366,38 @@ class AssessmentService {
         throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
       }
 
-      // 🔹 Convert to plain JSON immediately to remove Sequelize circular refs
+      // Convert to plain JSON immediately to remove Sequelize circular refs
       const plainAssessment = assessment.toJSON();
 
-      // 🔹 Transform output
-      const formattedAssessment = {
-        ...plainAssessment,
-        processes: (plainAssessment.processes || []).map((process) => ({
-          ...process,
-          risks: (process.risks || []).map((risk) => ({
-            ...risk,
-            taxonomy: (risk.taxonomy || []).map((t) => ({
-              assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
-              taxonomyId: t.taxonomyId,
-              name: t.taxonomyName,
-              orgId: plainAssessment.orgId,
-              weightage: t.weightage,
-              severityDetails: {
-                name: t.severityName,
-                minRange: t.severityMinRange,
-                maxRange: t.severityMaxRange,
-                color: t.color,
-                severityId: t.severityId,
-              },
+        // 🔹 Transform output
+        const formattedAssessment = {
+            ...plainAssessment,
+            createdByName: plainAssessment.createdByUser
+                ? plainAssessment.createdByUser.name
+                : null,
+            processes: (plainAssessment.processes || []).map((process) => ({
+                ...process,
+                risks: (process.risks || []).map((risk) => ({
+                    ...risk,
+                    taxonomy: (risk.taxonomy || []).map((t) => ({
+                        assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
+                        taxonomyId: t.taxonomyId,
+                        name: t.taxonomyName,
+                        orgId: plainAssessment.orgId,
+                        weightage: t.weightage,
+                        severityDetails: {
+                            name: t.severityName,
+                            minRange: t.severityMinRange,
+                            maxRange: t.severityMaxRange,
+                            color: t.color,
+                            severityId: t.severityId,
+                        },
             })),
           })),
         })),
       };
 
+      delete formattedAssessment.createdByUser;
       return formattedAssessment;
     } catch (err) {
       throw new CustomError(
@@ -658,51 +669,68 @@ class AssessmentService {
     }
   }
 
-  /**
-   * Create one or multiple assessment questionaire entries
-   * @param {Array} questionaires
-   * @param {string} userId
-   */
-  static async createQuestionaires(
-    assessmentId,
-    questionaires,
-    status,
-    userId
-  ) {
-    try {
-      const recordsToInsert = questionaires.map((q) => ({
-        assessmentQuestionaireId: uuidv4(),
-        assessmentId: assessmentId,
-        assessmentProcessAssetId: q.assessmentProcessAssetId,
-        questionnaireId: q.questionnaireId,
-        question: q.question,
-        responseValue: q.responseValue || null,
-        createdBy: userId,
-        createdDate: new Date(),
-        isDeleted: false,
-      }));
+    /**
+         * Create or update assessment questionnaire entries
+         * @param {string} assessmentId
+         * @param {Array} questionaires
+         * @param {string} status
+         * @param {string} userId
+         */
+    static async createQuestionaires(assessmentId, questionaires, status, userId) {
+        try {
+            for (const q of questionaires) {
+                const existingRecord = await AssessmentQuestionaire.findOne({
+                    where: {
+                        assessmentId: assessmentId,
+                        assessmentProcessAssetId: q.assessmentProcessAssetId,
+                        questionnaireId: q.questionnaireId,
+                        isDeleted: false
+                    },
+                });
 
-      await AssessmentQuestionaire.bulkCreate(recordsToInsert);
+                if (existingRecord) {
+                    // Update existing record
+                    await existingRecord.update({
+                        question: q.question,
+                        responseValue: q.responseValue || null,
+                        modifiedBy: userId,
+                        modifiedDate: new Date()
+                    });
+                } else {
+                    // Create new record
+                    await AssessmentQuestionaire.create({
+                        assessmentQuestionaireId: uuidv4(),
+                        assessmentId: assessmentId,
+                        assessmentProcessAssetId: q.assessmentProcessAssetId,
+                        questionnaireId: q.questionnaireId,
+                        question: q.question,
+                        responseValue: q.responseValue || null,
+                        createdBy: userId,
+                        createdDate: new Date()
+                    });
+                }
+            }
 
-      if (status) {
-        await Assessment.update(
-          {
-            status: status,
-            progress: 100,
-            modifiedBy: userId,
-            modifiedDate: new Date(),
-          },
-          { where: { assessmentId } }
-        );
-      }
+            // Optionally update assessment status
+            if (status) {
+                await Assessment.update(
+                    {
+                        status: status,
+                        progress: 100,
+                        modifiedBy: userId,
+                        modifiedDate: new Date(),
+                    },
+                    { where: { assessmentId } }
+                );
+            }
 
-      return recordsToInsert;
-    } catch (err) {
-      throw new CustomError(
-        err.message || "Failed to create assessment questionaire",
-        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-      );
-    }
+            return { success: true, message: "Questionnaires upserted successfully" };
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to create or update assessment questionnaire",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
     /**
@@ -734,7 +762,7 @@ class AssessmentService {
         const updatePayload = {
             isDeleted: true,
             modifiedBy: userId,
-            modifiedDate: new Date(),
+            modifiedDate: new Date()
         };
 
         try {
