@@ -17,7 +17,8 @@ import {
 import { CheckCircle, TrendingUp, ShowChart, Save } from '@mui/icons-material';
 import { useOrganization } from "@/hooks/useOrganization";
 import { useRouter } from 'next/router';
-import { getTaxonomies, Taxonomy } from '@/services/organizationService';
+import { getTaxonomies, saveTaxonomies, Taxonomy } from '@/services/organizationService';
+import Cookies from 'js-cookie';
 
 interface ImpactCategory {
   id: string;
@@ -48,6 +49,7 @@ const RiskTaxonomy: React.FC = () => {
   const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]);
   const [loadingTaxonomies, setLoadingTaxonomies] = useState<boolean>(false);
   const [maxRangeFromAPI, setMaxRangeFromAPI] = useState<number>(0);
+  const [focusedInput, setFocusedInput] = useState<'min' | 'max' | null>(null);
 
   // Helper function to map taxonomy name to category ID
   const mapTaxonomyNameToCategoryId = (name: string): string => {
@@ -447,7 +449,7 @@ const RiskTaxonomy: React.FC = () => {
     // Allow empty string for user to clear and input new values
     if (value === '') {
       const newRange = [...currentRange];
-      newRange[index] = -1; // Use -1 to indicate empty/cleared state
+      newRange[index] = 0;
       setCurrentRange(newRange);
 
       setCategoryDetails(prev => ({
@@ -461,7 +463,18 @@ const RiskTaxonomy: React.FC = () => {
       return;
     }
 
-    const numValue = parseInt(value.replace(/[^0-9]/g, ''));
+    // Remove all non-digit characters to get raw number
+    const cleanedValue = value.replace(/[^0-9]/g, '');
+    
+    // If cleaned value is empty, set to 0
+    if (cleanedValue === '') {
+      const newRange = [...currentRange];
+      newRange[index] = 0;
+      setCurrentRange(newRange);
+      return;
+    }
+
+    const numValue = parseInt(cleanedValue, 10);
 
     // Only update if we have a valid number (including 0)
     if (!isNaN(numValue) && numValue >= 0) {
@@ -519,29 +532,108 @@ const RiskTaxonomy: React.FC = () => {
   };
 
   const handleSaveImpactScale = async (categoryId: string) => {
+    if (!orgId || typeof orgId !== 'string') {
+      console.error('Organization ID is required');
+      return;
+    }
+
     setSavingStates(prev => ({ ...prev, [categoryId]: true }));
 
     try {
+      // Get current user ID from cookies
+      const user = JSON.parse(Cookies.get("user") ?? "{}");
+      const userId = user.id;
+
+      if (!userId) {
+        throw new Error("User ID not found. Please login again.");
+      }
+
       // Get current range for the category
       const currentRange = getCurrentRange();
 
-      // Prepare the data to save
-      const impactScaleData = {
-        categoryId,
-        range: currentRange,
-        gradientType,
-        thresholds: {
-          minimum: currentRange[0],
-          maximum: currentRange[1],
-        },
-        timestamp: new Date().toISOString(),
+      if (currentRange[0] <= 0 || currentRange[1] <= 0) {
+        throw new Error("Please set valid minimum and maximum values");
+      }
+
+      // Find the existing taxonomy for this category
+      const existingTaxonomy = taxonomies.find(t =>
+        mapTaxonomyNameToCategoryId(t.name) === categoryId
+      );
+
+      // Get severity levels for current category
+      const severityLevels = getCurrentCategorySeverityLevels();
+
+      if (severityLevels.length === 0) {
+        throw new Error("No severity levels found for this category");
+      }
+
+      // Calculate ranges for each severity level
+      const totalSeverities = severityLevels.length;
+      const updatedSeverityLevels = severityLevels.map((severity, index) => {
+        const severityRange = calculateSeverityRange(index, totalSeverities);
+        const isLast = index === totalSeverities - 1;
+
+        // Convert raw numeric values to strings (no formatting)
+        let minRangeStr: string;
+        let maxRangeStr: string;
+
+        if (index === 0) {
+          // First level: minRange is the actual min value (raw number as string)
+          minRangeStr = Math.round(severityRange.min).toString();
+        } else {
+          // Other levels: minRange is the previous level's max (raw number as string)
+          const prevRange = calculateSeverityRange(index - 1, totalSeverities);
+          minRangeStr = Math.round(prevRange.max).toString();
+        }
+
+        if (isLast) {
+          // Last level: maxRange is the actual max value (raw number as string)
+          maxRangeStr = Math.round(severityRange.max).toString();
+        } else {
+          // Other levels: maxRange is the calculated max (raw number as string)
+          maxRangeStr = Math.round(severityRange.max).toString();
+        }
+
+        return {
+          severityId: severity.severityId, // Include for update
+          name: severity.name,
+          minRange: minRangeStr,
+          maxRange: maxRangeStr,
+          color: severity.color,
+          order: severity.order,
+          createdBy: userId,
+        };
+      });
+
+      // Get category name (with " Risk" suffix if needed)
+      const categoryName = impactCategories.find(cat => cat.id === categoryId)?.name || '';
+      const taxonomyName = categoryName.includes(' Risk') ? categoryName : `${categoryName} Risk`;
+
+      // Prepare taxonomy data for API
+      const taxonomyData = {
+        taxonomyId: existingTaxonomy?.taxonomyId, // Include for update
+        name: taxonomyName,
+        weightage: existingTaxonomy?.weightage || 0,
+        order: existingTaxonomy?.order || 0,
+        createdBy: userId,
+        severityLevels: updatedSeverityLevels,
       };
 
-      // Simulate API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the API to save/update taxonomy
+      await saveTaxonomies(orgId, [taxonomyData]);
 
       // Update saved state
       setSavedStates(prev => ({ ...prev, [categoryId]: true }));
+
+      // Optionally refresh taxonomies to get updated data
+      try {
+        const response = await getTaxonomies(orgId);
+        if (response.data && response.data.length > 0) {
+          setTaxonomies(response.data);
+        }
+      } catch (refreshError) {
+        console.warn('Failed to refresh taxonomies after save:', refreshError);
+      }
 
       // Reset saving state
       setSavingStates(prev => ({ ...prev, [categoryId]: false }));
@@ -549,6 +641,10 @@ const RiskTaxonomy: React.FC = () => {
     } catch (error) {
       console.error('Error saving Impact Scale:', error);
       setSavingStates(prev => ({ ...prev, [categoryId]: false }));
+
+      // You might want to show an error toast here
+      // For now, we'll just log the error
+      alert(error instanceof Error ? error.message : 'Failed to save impact scale');
     }
   };
 
@@ -752,8 +848,13 @@ const RiskTaxonomy: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="Minimum"
-                    value={getCurrentRange()[0] > 0 ? formatCurrency(getCurrentRange()[0]) : ''}
+                    value={focusedInput === 'min' 
+                      ? (getCurrentRange()[0] > 0 ? getCurrentRange()[0].toString() : '')
+                      : (getCurrentRange()[0] > 0 ? formatCurrency(getCurrentRange()[0]) : '')
+                    }
                     onChange={(e) => handleDollarInputChange(0, e.target.value)}
+                    onFocus={() => setFocusedInput('min')}
+                    onBlur={() => setFocusedInput(null)}
                     variant="outlined"
                     size="small"
                     placeholder="Enter minimum value"
@@ -810,8 +911,13 @@ const RiskTaxonomy: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="Maximum"
-                    value={getCurrentRange()[1] > 0 ? formatCurrency(getCurrentRange()[1]) : ''}
+                    value={focusedInput === 'max' 
+                      ? (getCurrentRange()[1] > 0 ? getCurrentRange()[1].toString() : '')
+                      : (getCurrentRange()[1] > 0 ? formatCurrency(getCurrentRange()[1]) : '')
+                    }
                     onChange={(e) => handleDollarInputChange(1, e.target.value)}
+                    onFocus={() => setFocusedInput('max')}
+                    onBlur={() => setFocusedInput(null)}
                     variant="outlined"
                     size="small"
                     placeholder="Enter maximum value"
@@ -1107,7 +1213,7 @@ const RiskTaxonomy: React.FC = () => {
                         const totalSeverities = getCurrentCategorySeverityLevels().length;
                         const severityRange = calculateSeverityRange(index, totalSeverities);
                         const isLast = index === totalSeverities - 1;
-                        
+
                         return (
                           <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
                             {isLast ? (
