@@ -445,9 +445,9 @@ function OrgDetailsPage() {
           >
             <Typography variant="body1" sx={{ color: "#484848" }}>
               #
-              {organization.orgCode.length > 15
+              {organization.orgCode && organization.orgCode.length > 15
                 ? organization.orgCode.substring(0, 15) + "..."
-                : organization.orgCode}
+                : organization.orgCode || organization.orgId || "-"}
             </Typography>
             <Box
               sx={{
@@ -458,7 +458,7 @@ function OrgDetailsPage() {
               }}
             />
             <Typography variant="body1" sx={{ color: "#484848" }}>
-              Org Size: {organization.details?.employeeCount || 100} employees
+              Org Size: {(organization.details?.employeeCount ?? 100).toLocaleString()} employees
             </Typography>
             <Box
               sx={{
@@ -619,7 +619,8 @@ function OrgDetailsPage() {
                   <OrgDetailsTypography>Industry Vertical</OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
                     {organization.details?.industryVertical ||
-                      organization.tags.industry}
+                      organization.tags?.industry ||
+                      "-"}
                   </OrgDetailsTypography>
                 </Box>
                 <Box>
@@ -635,7 +636,7 @@ function OrgDetailsPage() {
                     Number of employees globally
                   </OrgDetailsTypography>
                   <OrgDetailsTypography variant="value">
-                    {organization.details?.employeeCount || 100}
+                    {(organization.details?.employeeCount ?? 100).toLocaleString()}
                   </OrgDetailsTypography>
                 </Box>
               </Box>

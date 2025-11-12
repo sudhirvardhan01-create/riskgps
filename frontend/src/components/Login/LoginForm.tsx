@@ -150,7 +150,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ setCurrentForm }) => {
             </Box>
 
             <Box sx={{ textAlign: "right", mb: 4 }}>
-              <Link href="/forgot-password" passHref>
+              <Link href="#" passHref>
                 <Typography
                   component="span"
                   variant="body1"

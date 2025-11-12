@@ -144,6 +144,14 @@ export const fetchOrganizationProcessesForListing = async (orgId: string) => {
 
   console.log(response)
   if (!response.ok) {
+    // Check if it's a 404 with "No processes found" - this is a valid case, not an error
+    if (response.status === 404) {
+      const errorData = await response.json().catch(() => ({}));
+      if (errorData.error === "No processes found for given organization") {
+        // Return empty data structure instead of throwing error
+        return { data: [] };
+      }
+    }
     throw new Error("Failed to process data");
   }
   const res = await response.json();

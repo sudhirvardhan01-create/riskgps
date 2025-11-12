@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -29,7 +29,8 @@ import SelectStyled from "@/components/SelectStyled";
 import ToastComponent from "@/components/ToastComponent";
 import { getOrganizationById, updateOrganization, getTaxonomies, saveTaxonomies } from "@/services/organizationService";
 import Cookies from "js-cookie";
-import { COUNTRIES } from "@/constants/constant";
+import { useConfig } from "@/context/ConfigContext";
+import { formatNumberWithCommas, getRawNumericValue } from "@/utils/utility";
 
 
 interface Tag {
@@ -40,6 +41,7 @@ interface Tag {
 function EditOrgDetailsPage() {
   const router = useRouter();
   const { orgId, orgName, tags, businessContext } = router.query;
+  const { fetchMetadataByKey } = useConfig();
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [isFormReady, setIsFormReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,10 +51,27 @@ function EditOrgDetailsPage() {
     message: "",
     severity: "success" as "error" | "warning" | "info" | "success"
   });
+
+  // Fetch metadata for Industry Vertical
+  const industryVerticalMeta = fetchMetadataByKey("Industry Vertical");
+  const industryVerticalOptions = industryVerticalMeta?.supported_values || [];
+
+  // Get Region of Operation metadata (simple strings for multiselect)
+  const regionOfOperationMeta = fetchMetadataByKey("Region of Operation");
+  const regionOfOperationOptions = regionOfOperationMeta?.supported_values || [];
+
+  // Get Record type metadata
+  const recordTypeMeta = fetchMetadataByKey("Record type");
+  const recordTypeOptions = recordTypeMeta?.supported_values || [];
+
+  // Get Certification metadata
+  const certificationMeta = fetchMetadataByKey("Certification");
+  const certificationOptions = certificationMeta?.supported_values || [];
+
   const [formData, setFormData] = useState({
     orgName: "",
     industryVertical: "",
-    regionOfOperation: "",
+    regionOfOperation: [] as string[],
     numberOfEmployees: "",
     cisoName: "",
     cisoEmail: "",
@@ -100,7 +119,7 @@ function EditOrgDetailsPage() {
           name: apiResponse.data.name,
           orgId: apiResponse.data.organizationId,
           orgCode: apiResponse.data.orgCode || apiResponse.data.organizationId, // Use orgCode from API or fallback to orgId
-          orgImage: "/orgImage.png", // Default image since API doesn't provide this
+          orgImage: "/org-image-icon.png", // Default image since API doesn't provide this
           tags: (() => {
             // Convert API tags array to object format
             const tagsObject: { [key: string]: string } = {};
@@ -177,36 +196,55 @@ function EditOrgDetailsPage() {
         setOrganization(transformedOrg);
 
         // Set form data based on the organization data
-        // Convert country name to country code if needed
-        const getCountryCode = (countryName: string): string => {
-          if (!countryName) return "";
-          const country = COUNTRIES.find(c => c.label === countryName);
-          return country ? country.value : countryName;
+        // Convert regionOfOperation string to array
+        const parseRegionOfOperation = (regionValue: string | string[] | undefined): string[] => {
+          if (!regionValue || regionValue === "-") return [];
+          // If it's already an array (from API), return it
+          if (Array.isArray(regionValue)) return regionValue;
+          // If it's a comma-separated string, split it
+          if (typeof regionValue === 'string' && regionValue.includes(',')) {
+            return regionValue.split(',').map(r => r.trim()).filter(r => r);
+          }
+          // Single value, return as array
+          return [regionValue.trim()].filter(r => r);
+        };
+
+        // Normalize industryVertical to match metadata options
+        const normalizeIndustryVertical = (value: string): string => {
+          if (!value) return "";
+          const trimmedValue = value.trim();
+          // Try to find exact match first
+          const exactMatch = industryVerticalOptions.find(opt => opt.trim() === trimmedValue);
+          if (exactMatch) return exactMatch;
+          // Try case-insensitive match
+          const caseInsensitiveMatch = industryVerticalOptions.find(opt => opt.toLowerCase().trim() === trimmedValue.toLowerCase());
+          return caseInsensitiveMatch || trimmedValue;
         };
 
         const newFormData = {
           orgName: transformedOrg.name,
-          industryVertical: transformedOrg.details?.industryVertical || "",
-          regionOfOperation: getCountryCode(transformedOrg.details?.regionOfOperation || ""),
+          industryVertical: normalizeIndustryVertical(transformedOrg.details?.industryVertical || ""),
+          regionOfOperation: parseRegionOfOperation(transformedOrg.details?.regionOfOperation || ""),
           numberOfEmployees: transformedOrg.details?.employeeCount?.toString() || "",
           cisoName: transformedOrg.details?.cisoName || "",
           cisoEmail: transformedOrg.details?.cisoEmail || "",
-          annualRevenue: transformedOrg.details?.annualRevenue || "",
-          riskAppetite: transformedOrg.details?.riskAppetite || "",
-          cybersecurityBudget: transformedOrg.details?.cybersecurityBudget || "",
-          insuranceCoverage: transformedOrg.details?.insuranceCoverage || "",
+          // Use raw API values for numeric fields (not formatted display values)
+          annualRevenue: apiResponse.data.annualRevenue?.toString() || "",
+          riskAppetite: apiResponse.data.riskAppetite?.toString() || "",
+          cybersecurityBudget: apiResponse.data.cybersecurityBudget?.toString() || "",
+          insuranceCoverage: apiResponse.data.insuranceCoverage?.toString() || "",
           insuranceCarrier: transformedOrg.details?.insuranceCarrier || "",
-          numberOfClaims: transformedOrg.details?.claimsCount || "",
-          claimsValue: transformedOrg.details?.claimsValue || "",
+          numberOfClaims: apiResponse.data.numberOfClaims?.toString() || "",
+          claimsValue: apiResponse.data.claimsValue?.toString() || "",
           regulators: transformedOrg.details?.regulators || "",
           regulatoryRequirements: transformedOrg.details?.regulatoryRequirements || "",
           additionalInformation: transformedOrg.details?.additionalInformation || "",
-          recordTypes: transformedOrg.details?.recordTypes || [],
+          recordTypes: filterPlaceholders(transformedOrg.details?.recordTypes),
           piiRecordsCount: transformedOrg.details?.piiRecordsCount || "",
           pfiRecordsCount: transformedOrg.details?.pfiRecordsCount || "",
           phiRecordsCount: transformedOrg.details?.phiRecordsCount || "",
           governmentRecordsCount: transformedOrg.details?.governmentRecordsCount || "",
-          certifications: transformedOrg.details?.certifications || [],
+          certifications: filterPlaceholders(transformedOrg.details?.certifications),
           intellectualPropertyPercentage: transformedOrg.details?.intellectualPropertyPercentage || "",
           tags: Object.entries(transformedOrg.tags).map(([key, value]) => ({
             key: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize first letter
@@ -228,6 +266,12 @@ function EditOrgDetailsPage() {
 
     fetchOrganization();
   }, [orgId, router, orgName, tags, businessContext]);
+
+  // Helper function to filter out "-" placeholder values from arrays
+  const filterPlaceholders = (arr: string[] | undefined): string[] => {
+    if (!arr || !Array.isArray(arr)) return [];
+    return arr.filter(item => item !== "-");
+  };
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}`);
@@ -270,6 +314,12 @@ function EditOrgDetailsPage() {
     }));
   };
 
+  // Handler for numeric fields that formats display but stores raw value
+  const handleNumericFieldChange = (field: string, value: string) => {
+    const rawValue = getRawNumericValue(value);
+    handleInputChange(field, rawValue);
+  };
+
   // Helper function to remove dollar signs and clean financial values
   const cleanFinancialValue = (value: string): string => {
     if (!value) return value;
@@ -307,6 +357,9 @@ function EditOrgDetailsPage() {
 
     const missingFields = requiredFields.filter(field => {
       const value = formData[field.key as keyof typeof formData];
+      if (Array.isArray(value)) {
+        return value.length === 0;
+      }
       return !value || (typeof value === 'string' && value.trim() === '');
     });
 
@@ -358,11 +411,10 @@ function EditOrgDetailsPage() {
       const modifiedBy = user.id;
 
       // Prepare the data in the format expected by the API
-      // Convert country code to country name for API
-      const getCountryName = (countryCode: string): string => {
-        if (!countryCode) return "";
-        const country = COUNTRIES.find(c => c.value === countryCode);
-        return country ? country.label : countryCode;
+      // Convert regionOfOperation array to comma-separated string for API
+      const formatRegionOfOperation = (regions: string[]): string => {
+        if (!regions || regions.length === 0) return "";
+        return regions.join(", ");
       };
 
       const updateData = {
@@ -372,8 +424,8 @@ function EditOrgDetailsPage() {
         modifiedBy: modifiedBy, // Add the modifiedBy field
         businessContext: {
           industryVertical: formData.industryVertical,
-          regionOfOperation: getCountryName(formData.regionOfOperation),
-          numberOfEmployees: formData.numberOfEmployees,
+          regionOfOperation: formatRegionOfOperation(formData.regionOfOperation),
+          numberOfEmployees: getRawNumericValue(formData.numberOfEmployees),
           cisoName: formData.cisoName,
           cisoEmail: formData.cisoEmail,
           annualRevenue: cleanFinancialValue(formData.annualRevenue),
@@ -386,12 +438,12 @@ function EditOrgDetailsPage() {
           regulators: formData.regulators,
           regulatoryRequirements: formData.regulatoryRequirements,
           additionalInformation: formData.additionalInformation,
-          recordTypes: formData.recordTypes,
+          recordTypes: filterPlaceholders(formData.recordTypes),
           piiRecordsCount: formData.piiRecordsCount,
           pfiRecordsCount: formData.pfiRecordsCount,
           phiRecordsCount: formData.phiRecordsCount,
           governmentRecordsCount: formData.governmentRecordsCount,
-          certifications: formData.certifications,
+          certifications: filterPlaceholders(formData.certifications),
           intellectualPropertyPercentage: formData.intellectualPropertyPercentage
         }
       };
@@ -471,7 +523,7 @@ function EditOrgDetailsPage() {
                 createdBy: userId || ""
               },
               {
-                name: "Medium",
+                name: "Moderate",
                 minRange: formatRange(mediumValue),
                 maxRange: formatRange(highValue),
                 color: "#E3B52A",
@@ -519,7 +571,7 @@ function EditOrgDetailsPage() {
                 createdBy: userId || ""
               },
               {
-                name: "Medium",
+                name: "Moderate",
                 minRange: formatRange(mediumValue),
                 maxRange: formatRange(highValue),
                 color: "#E3B52A",
@@ -567,7 +619,7 @@ function EditOrgDetailsPage() {
                 createdBy: userId || ""
               },
               {
-                name: "Medium",
+                name: "Moderate",
                 minRange: formatRange(mediumValue),
                 maxRange: formatRange(highValue),
                 color: "#E3B52A",
@@ -615,7 +667,7 @@ function EditOrgDetailsPage() {
                 createdBy: userId || ""
               },
               {
-                name: "Medium",
+                name: "Moderate",
                 minRange: formatRange(mediumValue),
                 maxRange: formatRange(highValue),
                 color: "#E3B52A",
@@ -779,7 +831,16 @@ function EditOrgDetailsPage() {
               <Box sx={{ p: 2 }}>
                 {/* Organization Logo */}
                 <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-                  <Box sx={{ position: "relative", width: 80, height: 80 }}>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: 80,
+                      height: 80,
+                      opacity: 0.6,
+                      pointerEvents: "none",
+                      cursor: "not-allowed"
+                    }}
+                  >
                     <Avatar
                       sx={{
                         width: 80,
@@ -791,13 +852,13 @@ function EditOrgDetailsPage() {
                       <Image
                         src={organization.orgImage}
                         alt="org-logo"
-                        width={80}
-                        height={80}
+                        width={32}
+                        height={32}
                         style={{ borderRadius: "50%" }}
                       />
                     </Avatar>
                     {/* Gradient overlay */}
-                    <Box
+                    {/* <Box
                       sx={{
                         position: "absolute",
                         top: 0,
@@ -808,7 +869,7 @@ function EditOrgDetailsPage() {
                         background: "linear-gradient(135deg, #0000001F 0%, #0000003F 100%)",
                         pointerEvents: "none"
                       }}
-                    />
+                    /> */}
                     <IconButton
                       sx={{
                         position: "absolute",
@@ -1006,29 +1067,47 @@ function EditOrgDetailsPage() {
                   {/* First row → 2 inputs */}
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 12, md: 6 }}>
-                      <TextFieldStyled
+                      <SelectStyled
                         label="Industry Vertical"
                         required
-                        placeholder="Financial Services, Healthcare"
+                        displayEmpty
                         value={formData.industryVertical}
-                        onChange={(e) => handleInputChange("industryVertical", e.target.value)}
-                      />
+                        onChange={(e) => handleInputChange("industryVertical", e.target.value as string)}
+                        renderValue={(value) => {
+                          if (!value || value === "") {
+                            return <Typography variant="body1" sx={{ color: "#9E9FA5" }}>Select Industry Vertical</Typography>;
+                          }
+                          // Check if value exists in metadata options (case-insensitive and trimmed)
+                          const normalizedValue = (value as string).trim();
+                          const option = industryVerticalOptions.find(opt => opt.trim() === normalizedValue || opt.toLowerCase().trim() === normalizedValue.toLowerCase());
+                          return option ? option : normalizedValue;
+                        }}
+                      >
+                        {industryVerticalOptions.map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        ))}
+                      </SelectStyled>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <SelectStyled
                         label="Region of Operation"
                         required
                         name="regionOfOperation"
-                        value={formData.regionOfOperation}
-                        onChange={(e) => handleInputChange("regionOfOperation", e.target.value as string)}
-                        renderValue={(value) => {
-                          const option = COUNTRIES.find(opt => opt.value === value);
-                          return option ? option.label : (value as string);
+                        multiple
+                        value={formData.regionOfOperation || []}
+                        onChange={(e) => handleArrayFieldChange("regionOfOperation", e.target.value as string[])}
+                        renderValue={(selected: any) => {
+                          if (!selected || selected.length === 0) {
+                            return <Typography variant="body1" sx={{ color: "#9E9FA5" }}>Select Region of Operation</Typography>;
+                          }
+                          return (selected as string[]).join(", ");
                         }}
                       >
-                        {COUNTRIES.map((country) => (
-                          <MenuItem key={country.value} value={country.value}>
-                            {country.label}
+                        {regionOfOperationOptions.map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
                           </MenuItem>
                         ))}
                       </SelectStyled>
@@ -1042,8 +1121,8 @@ function EditOrgDetailsPage() {
                         label="Number of employees globally"
                         required
                         placeholder="100"
-                        value={formData.numberOfEmployees}
-                        onChange={(e) => handleInputChange("numberOfEmployees", e.target.value)}
+                        value={formatNumberWithCommas(formData.numberOfEmployees)}
+                        onChange={(e) => handleNumericFieldChange("numberOfEmployees", e.target.value)}
                       />
                     </Grid>
                   </Grid>
@@ -1123,8 +1202,8 @@ function EditOrgDetailsPage() {
                         label="Estimated Annual Revenue"
                         required
                         placeholder="$ Enter amount in dollars"
-                        value={formData.annualRevenue}
-                        onChange={(e) => handleInputChange("annualRevenue", e.target.value)}
+                        value={formatNumberWithCommas(formData.annualRevenue)}
+                        onChange={(e) => handleNumericFieldChange("annualRevenue", e.target.value)}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -1132,8 +1211,8 @@ function EditOrgDetailsPage() {
                         label="Risk Appetite"
                         required
                         placeholder="$ Enter amount in dollars"
-                        value={formData.riskAppetite}
-                        onChange={(e) => handleInputChange("riskAppetite", e.target.value)}
+                        value={formatNumberWithCommas(formData.riskAppetite)}
+                        onChange={(e) => handleNumericFieldChange("riskAppetite", e.target.value)}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -1141,8 +1220,8 @@ function EditOrgDetailsPage() {
                         label="Allocated budget for cybersecurity operations"
                         required
                         placeholder="$ Enter amount in dollars"
-                        value={formData.cybersecurityBudget}
-                        onChange={(e) => handleInputChange("cybersecurityBudget", e.target.value)}
+                        value={formatNumberWithCommas(formData.cybersecurityBudget)}
+                        onChange={(e) => handleNumericFieldChange("cybersecurityBudget", e.target.value)}
                       />
                     </Grid>
                   </Grid>
@@ -1177,8 +1256,8 @@ function EditOrgDetailsPage() {
                         label="Insurance - Current Coverage"
                         required
                         placeholder="$ Enter amount in dollars"
-                        value={formData.insuranceCoverage}
-                        onChange={(e) => handleInputChange("insuranceCoverage", e.target.value)}
+                        value={formatNumberWithCommas(formData.insuranceCoverage)}
+                        onChange={(e) => handleNumericFieldChange("insuranceCoverage", e.target.value)}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -1195,8 +1274,8 @@ function EditOrgDetailsPage() {
                         label="No. of claims (made in last 12 months)"
                         required
                         placeholder="Enter no. of claims"
-                        value={formData.numberOfClaims}
-                        onChange={(e) => handleInputChange("numberOfClaims", e.target.value)}
+                        value={formatNumberWithCommas(formData.numberOfClaims)}
+                        onChange={(e) => handleNumericFieldChange("numberOfClaims", e.target.value)}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -1204,8 +1283,8 @@ function EditOrgDetailsPage() {
                         label="Claims Value (made in last 12 months)"
                         required
                         placeholder="$ Enter amount in dollars"
-                        value={formData.claimsValue}
-                        onChange={(e) => handleInputChange("claimsValue", e.target.value)}
+                        value={formatNumberWithCommas(formData.claimsValue)}
+                        onChange={(e) => handleNumericFieldChange("claimsValue", e.target.value)}
                       />
                     </Grid>
                   </Grid>
@@ -1288,14 +1367,7 @@ function EditOrgDetailsPage() {
                   </Typography>
 
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                    {[
-                      "PII",
-                      "PIII",
-                      "PFI",
-                      "PHI",
-                      "Intellectual Property",
-                      "Government Records"
-                    ].map((recordType) => {
+                    {recordTypeOptions.map((recordType) => {
                       const isSelected = formData.recordTypes?.includes(recordType) || false;
                       return (
                         <Button
@@ -1461,11 +1533,7 @@ function EditOrgDetailsPage() {
                     2. Did the organization obtain PCI DSS, ISO 27001, or SOC2 certification in the past year? Please check the appropriate boxes if any.
                   </Typography>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                    {[
-                      "PCI DSS",
-                      "ISO 27001",
-                      "SOC 2",
-                    ].map((certification) => {
+                    {certificationOptions.map((certification) => {
                       const isSelected = formData.certifications?.includes(certification) || false;
                       return (
                         <Button
