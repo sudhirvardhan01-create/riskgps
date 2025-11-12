@@ -8,6 +8,7 @@ module.exports = {
     FETCHED_BY_ID: "User fetched by id successfully.",
     UPDATED_STATUS: "User status updated successfully",
     RESET_PASSWORD: "User password reset successfully",
+    ONBOARDED_USER: "User onboarded successfully",
   },
   AUTH: {
     UNAUTHORIZED: "Unauthorized access.",
@@ -156,6 +157,6 @@ module.exports = {
     FETCHED: "Organizations fetched successfully",
     FETCHED_BY_ID: "Organization fetched by ID successfully",
     NOT_FOUND: "Organization not found",
-    PROCESSES_FETCHED: "Fetched Organization Process"
+    PROCESSES_FETCHED: "Fetched Organization Process",
   },
 };
