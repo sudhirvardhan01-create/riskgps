@@ -69,25 +69,27 @@ const AssessmentRow: React.FC<{
 
       <Box>
         <Typography fontWeight={600}>{assessment.assessmentName}</Typography>
-        <Typography variant="caption">
-          <span style={{ color: "#484848", fontWeight: 600 }}>
-            Description:{" "}
-          </span>
-          <span style={{ color: "#91939A", textWrap: "wrap" }}>
-            {displayedText}{" "}
-          </span>
-          {isLong && (
-            <span
-              style={{ color: "#1976d2", cursor: "pointer" }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(!expanded);
-              }}
-            >
-              {expanded ? "read less" : "read more"}
+        {displayedText && (
+          <Typography variant="caption">
+            <span style={{ color: "#484848", fontWeight: 600 }}>
+              Description:{" "}
             </span>
-          )}
-        </Typography>
+            <span style={{ color: "#91939A", textWrap: "wrap" }}>
+              {displayedText}{" "}
+            </span>
+            {isLong && (
+              <span
+                style={{ color: "#1976d2", cursor: "pointer" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpanded(!expanded);
+                }}
+              >
+                {expanded ? "read less" : "read more"}
+              </span>
+            )}
+          </Typography>
+        )}
       </Box>
 
       <Typography variant="body2" textAlign="center">
@@ -113,7 +115,7 @@ const AssessmentRow: React.FC<{
         }}
       >
         <Avatar src={userData?.avatar} sx={{ width: 24, height: 24 }} />
-        <Typography variant="body2">{userData?.name}</Typography>
+        <Typography variant="body2">{assessment?.createdByName}</Typography>
       </Box>
 
       <Box textAlign="center">

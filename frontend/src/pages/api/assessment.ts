@@ -124,3 +124,14 @@ export const saveAssetQuestionnaire = async (data: any) => {
   const res = await apiClient.post(`/assessment/assessment-questionaire`, data);
   return res.data;
 };
+
+/**
+ * Delete Assessment
+ */
+export const deleteAssessment = async (
+  id: string | undefined,
+  userId: string
+) => {
+  const res = await apiClient.delete(`/assessment/${id}?userId=${userId}`);
+  return res.data;
+};

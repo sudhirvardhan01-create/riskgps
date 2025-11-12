@@ -12,7 +12,7 @@ import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 
 const ACTIVE_BG = "#00000014";
-const HOVER_BG = "#0000000A";
+const HOVER_BG = "#EEF2FF";
 
 interface SideBarProps {
   collapsed: boolean;
@@ -66,7 +66,7 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
       aria-label="Main sidebar"
       sx={{
         position: "relative",
-        bgcolor: "inherit",
+        bgcolor: "#F9FAFB",
         color: "primary.main",
         width: collapsed ? "80px" : "120px",
         minHeight: "calc(100vh - 71px)",

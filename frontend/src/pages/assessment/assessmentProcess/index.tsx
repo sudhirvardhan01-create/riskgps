@@ -302,7 +302,7 @@ function BUProcessMappingPage() {
                 ...asset,
                 questionnaire: asset.questionnaire.map((question) => {
                   // Find a matching question entry from resultQues.questionnaire
-                  const match = resultQues.data.find(
+                  const match = resultQues.data.questionnaire.find(
                     (obj: any) =>
                       obj.questionnaireId === question.questionnaireId
                   );
