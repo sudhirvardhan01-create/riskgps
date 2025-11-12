@@ -8,8 +8,8 @@
   OrganizationBusinessUnit,
   AssessmentProcessAsset,
   AssessmentQuestionaire,
-    User,
-    OrganizationThreat
+  User,
+  OrganizationThreat,
 } = require("../models");
 const CustomError = require("../utils/CustomError");
 const HttpStatus = require("../constants/httpStatusCodes");
@@ -80,7 +80,7 @@ class AssessmentService {
                 : assessment.endDate,
             lastActivity: new Date(),
             modifiedBy: userId,
-            modifiedDate: new Date()
+            modifiedDate: new Date(),
           });
 
           return assessment;
@@ -106,7 +106,7 @@ class AssessmentService {
         startDate: new Date(),
         createdBy: userId,
         createdDate: new Date(),
-        modifiedDate: new Date()
+        modifiedDate: new Date(),
       });
 
       return assessment;
@@ -118,100 +118,100 @@ class AssessmentService {
     }
   }
 
-    /**
-     * Add processes and update status
-     */
-    static async addProcessesAndUpdateStatus(
-        assessmentId,
-        processes,
-        status,
-        userId
-    ) {
-        try {
-            if (!assessmentId) {
-                throw new CustomError(
-                    "Assessment ID is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
+  /**
+   * Add processes and update status
+   */
+  static async addProcessesAndUpdateStatus(
+    assessmentId,
+    processes,
+    status,
+    userId
+  ) {
+    try {
+      if (!assessmentId) {
+        throw new CustomError(
+          "Assessment ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
 
-            //Step 1: Verify parent assessment exists
-            const assessment = await Assessment.findOne({
-                where: { assessmentId, isDeleted: false },
-            });
+      //Step 1: Verify parent assessment exists
+      const assessment = await Assessment.findOne({
+        where: { assessmentId, isDeleted: false },
+      });
 
-            if (!assessment) {
-                throw new CustomError(
-                    "Assessment not found. Cannot create processes.",
-                    HttpStatus.NOT_FOUND
-                );
-            }
+      if (!assessment) {
+        throw new CustomError(
+          "Assessment not found. Cannot create processes.",
+          HttpStatus.NOT_FOUND
+        );
+      }
 
-            let progress;
+      let progress;
 
-            //Step 2: Loop processes and ensure FK correctness
-            for (const proc of processes) {
-                let existingProcess = null;
+      //Step 2: Loop processes and ensure FK correctness
+      for (const proc of processes) {
+        let existingProcess = null;
 
-                if (proc.assessmentProcessId) {
-                    existingProcess = await AssessmentProcess.findOne({
-                        where: { assessmentProcessId: proc.assessmentProcessId },
-                    });
-                }
-
-                if (existingProcess) {
-                    await existingProcess.update({
-                        processName: proc.processName,
-                        processDescription: proc.processDescription || null,
-                        order: proc.order,
-                        modifiedBy: userId,
-                        modifiedDate: new Date(),
-                    });
-                } else {
-                    //Step 3: Create only if parent exists
-                    await AssessmentProcess.create({
-                        assessmentProcessId: uuidv4(),
-                        assessmentId: assessment.assessmentId, // ✅ ensure correct parent FK
-                        processName: proc.processName,
-                        processDescription: proc.processDescription || null,
-                        order: proc.order,
-                        createdBy: userId,
-                        modifiedBy: userId,
-                        createdDate: new Date(),
-                        modifiedDate: new Date(),
-                    });
-
-                    progress = 20;
-                }
-            }
-
-            //Step 4: Update assessment status/progress if needed
-            if (status) {
-                await assessment.update({
-                    status,
-                    progress: progress || assessment.progress,
-                    modifiedBy: userId,
-                    modifiedDate: new Date(),
-                });
-            }
-
-            //Step 5: Return updated process list
-            const updatedProcesses = await AssessmentProcess.findAll({
-                where: { assessmentId },
-            });
-
-            return {
-                message: "Processes saved and status updated successfully",
-                processes: updatedProcesses,
-            };
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to save processes",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
+        if (proc.assessmentProcessId) {
+          existingProcess = await AssessmentProcess.findOne({
+            where: { assessmentProcessId: proc.assessmentProcessId },
+          });
         }
-    }
 
+        if (existingProcess) {
+          await existingProcess.update({
+            processName: proc.processName,
+            processDescription: proc.processDescription || null,
+            order: proc.order,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          });
+        } else {
+          //Step 3: Create only if parent exists
+          await AssessmentProcess.create({
+            assessmentProcessId: uuidv4(),
+            assessmentId: assessment.assessmentId, // ✅ ensure correct parent FK
+            id: proc.id,
+            processName: proc.processName,
+            processDescription: proc.processDescription || null,
+            order: proc.order,
+            createdBy: userId,
+            modifiedBy: userId,
+            createdDate: new Date(),
+            modifiedDate: new Date(),
+          });
+
+          progress = 20;
+        }
+      }
+
+      //Step 4: Update assessment status/progress if needed
+      if (status) {
+        await assessment.update({
+          status,
+          progress: progress || assessment.progress,
+          modifiedBy: userId,
+          modifiedDate: new Date(),
+        });
+      }
+
+      //Step 5: Return updated process list
+      const updatedProcesses = await AssessmentProcess.findAll({
+        where: { assessmentId },
+      });
+
+      return {
+        message: "Processes saved and status updated successfully",
+        processes: updatedProcesses,
+      };
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to save processes",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 
   /**
    * Save risk scenarios for an assessment process and update assessment status
@@ -294,151 +294,152 @@ class AssessmentService {
     }
   }
 
-    /**
-    * Get all assessments with pagination, search, and sorting
-    */
-    static async getAllAssessments(page = 1, limit = 10) {
-        try {
-            const offset = (page - 1) * limit;
+  /**
+   * Get all assessments with pagination, search, and sorting
+   */
+  static async getAllAssessments(page = 1, limit = 10) {
+    try {
+      const offset = (page - 1) * limit;
 
-            const { count, rows } = await Assessment.findAndCountAll({
-                where: { isDeleted: false },
-                include: [
-                    {
-                        model: User,
-                        as: "users",
-                        attributes: ["userId", "name"],
-                        required: false,
-                    },
-                ],
-                limit,
-                offset,
-                order: [["modifiedDate", "DESC"]],
-            });
+      const { count, rows } = await Assessment.findAndCountAll({
+        where: { isDeleted: false },
+        include: [
+          {
+            model: User,
+            as: "users",
+            attributes: ["userId", "name"],
+            required: false,
+          },
+        ],
+        limit,
+        offset,
+        order: [["modifiedDate", "DESC"]],
+      });
 
-            // Convert to plain JSON and clean up
-            const formattedData = rows.map((a) => {
-                const plain = a.toJSON();
-                return {
-                    ...plain,
-                    createdByName: plain.users ? plain.users.name : null,
-                    users: undefined, // Remove users object
-                };
-            });
+      // Convert to plain JSON and clean up
+      const formattedData = rows.map((a) => {
+        const plain = a.toJSON();
+        return {
+          ...plain,
+          createdByName: plain.users ? plain.users.name : null,
+          users: undefined, // Remove users object
+        };
+      });
 
-            return {
-                total: count,
-                page,
-                limit,
-                data: formattedData,
-            };
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to fetch assessments",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
+      return {
+        total: count,
+        page,
+        limit,
+        data: formattedData,
+      };
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch assessments",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
+  }
 
+  /**
+   * Get assessment by ID (new JSON structure)
+   */
+  static async getAssessmentById(assessmentId) {
+    try {
+      if (!assessmentId) {
+        throw new CustomError(
+          "Assessment ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
 
-    /**
-     * Get assessment by ID (new JSON structure)
-     */
-    static async getAssessmentById(assessmentId) {
-        try {
-            if (!assessmentId) {
-                throw new CustomError(
-                    "Assessment ID is required",
-                    HttpStatus.BAD_REQUEST
-                );
-            }
-
-            const assessment = await Assessment.findOne({
-                where: {
-                    assessmentId,
-                    isDeleted: false,
-                },
+      const assessment = await Assessment.findOne({
+        where: {
+          assessmentId,
+          isDeleted: false,
+        },
+        include: [
+          {
+            model: AssessmentProcess,
+            as: "processes",
+            required: false,
+            include: [
+              {
+                model: AssessmentProcessAsset,
+                as: "assets",
+                required: false,
                 include: [
-                    {
-                        model: AssessmentProcess,
-                        as: "processes",
-                        required: false,
-                        include: [
-                            {
-                                model: AssessmentProcessAsset,
-                                as: "assets",
-                                required: false,
-                                include: [
-                                    {
-                                        model: AssessmentQuestionaire,
-                                        as: "questionnaire",
-                                        required: false,
-                                    },
-                                ],
-                            },
-                            {
-                                model: AssessmentProcessRiskScenario,
-                                as: "risks",
-                                required: false,
-                                include: [
-                                    {
-                                        model: AssessmentRiskTaxonomy,
-                                        as: "taxonomy",
-                                        required: false,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        model: User,
-                        as: "users",
-                        attributes: ["userId", "name"],
-                        required: false,
-                    },
+                  {
+                    model: AssessmentQuestionaire,
+                    as: "questionnaire",
+                    required: false,
+                  },
                 ],
-            });
+              },
+              {
+                model: AssessmentProcessRiskScenario,
+                as: "risks",
+                required: false,
+                include: [
+                  {
+                    model: AssessmentRiskTaxonomy,
+                    as: "taxonomy",
+                    required: false,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: User,
+            as: "users",
+            attributes: ["userId", "name"],
+            required: false,
+          },
+        ],
+      });
 
-            if (!assessment) {
-                throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
-            }
+      if (!assessment) {
+        throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
+      }
 
-            const plainAssessment = assessment.toJSON();
+      const plainAssessment = assessment.toJSON();
 
-            const formattedAssessment = {
-                ...plainAssessment,
-                createdByName: plainAssessment.users ? plainAssessment.users.name : null,
-                processes: (plainAssessment.processes || []).map((process) => ({
-                    ...process,
-                    risks: (process.risks || []).map((risk) => ({
-                        ...risk,
-                        taxonomy: (risk.taxonomy || []).map((t) => ({
-                            assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
-                            taxonomyId: t.taxonomyId,
-                            name: t.taxonomyName,
-                            orgId: plainAssessment.orgId,
-                            weightage: t.weightage,
-                            severityDetails: {
-                                name: t.severityName,
-                                minRange: t.severityMinRange,
-                                maxRange: t.severityMaxRange,
-                                color: t.color,
-                                severityId: t.severityId,
-                            },
-                        })),
-                    })),
-                })),
-            };
+      const formattedAssessment = {
+        ...plainAssessment,
+        createdByName: plainAssessment.users
+          ? plainAssessment.users.name
+          : null,
+        processes: (plainAssessment.processes || []).map((process) => ({
+          ...process,
+          risks: (process.risks || []).map((risk) => ({
+            ...risk,
+            taxonomy: (risk.taxonomy || []).map((t) => ({
+              assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
+              taxonomyId: t.taxonomyId,
+              name: t.taxonomyName,
+              orgId: plainAssessment.orgId,
+              weightage: t.weightage,
+              severityDetails: {
+                name: t.severityName,
+                minRange: t.severityMinRange,
+                maxRange: t.severityMaxRange,
+                color: t.color,
+                severityId: t.severityId,
+              },
+            })),
+          })),
+        })),
+      };
 
-            //delete formattedAssessment.createdByUser;
-            return formattedAssessment;
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to fetch assessment",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
+      //delete formattedAssessment.createdByUser;
+      return formattedAssessment;
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to fetch assessment",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
+  }
 
   /**
    * Save business impacts & taxonomies for an assessment process risk
@@ -548,10 +549,10 @@ class AssessmentService {
 
         if (a.assessmentProcessAssetId) {
           existingAsset = await AssessmentProcessAsset.findOne({
-              where: {
-                  assessmentProcessAssetId: a.assessmentProcessAssetId,
-                  isDeleted: false
-              },
+            where: {
+              assessmentProcessAssetId: a.assessmentProcessAssetId,
+              isDeleted: false,
+            },
           });
         }
 
@@ -579,69 +580,69 @@ class AssessmentService {
         }
       }
 
-        // Step 2️ - Extract unique asset categories from payload
-        const uniqueCategories = [
-            ...new Set(assets.map((a) => a.assetCategory)),
-        ];
+      // Step 2️ - Extract unique asset categories from payload
+      const uniqueCategories = [...new Set(assets.map((a) => a.assetCategory))];
+      console.log("uniqueCategories:", uniqueCategories);
 
-        // Step 3️ - Fetch OrganizationThreats where any platform matches these categories
-        // To get orgId, we'll need to derive it from assessment or its linked organization
-        const assessment = await Assessment.findOne({
-            where: { assessmentId, isDeleted: false },
-            attributes: ["organizationId"],
-        });
+      // Step 3️ - Fetch OrganizationThreats where any platform matches these categories
+      // To get orgId, we'll need to derive it from assessment or its linked organization
+      const assessment = await Assessment.findOne({
+        where: { assessmentId, isDeleted: false },
+        attributes: ["organizationId"],
+      });
 
-        const orgId = assessment.organizationId;
-        const threats = await OrganizationThreat.findAll({
-            where: {
-                organizationId: orgId,
-                platforms: {
-                    [Op.overlap]: uniqueCategories, // ARRAY overlap operator in Postgres
-                },
-                isDeleted: false,
-            },
-        });
+      const orgId = assessment.organizationId;
+      const threats = await OrganizationThreat.findAll({
+        where: {
+          organizationId: orgId,
+          platforms: {
+            [Op.overlap]: uniqueCategories, // ARRAY overlap operator in Postgres
+          },
+          isDeleted: false,
+        },
+      });
 
-        console.log("Number of threats found:", threats.length);
+      console.log("Number of threats found:", threats.length);
 
-        // Step 4️ - Prepare AssessmentThreat entries
-        const threatRecords = threats.map((t) => ({
-            assessmentThreatId: uuidv4(),
-            assessmentId: assessmentId,
-            platforms: t.platforms,
-            mitreTechniqueId: t.mitreTechniqueId,
-            mitreTechniqueName: t.mitreTechniqueName,
-            ciaMapping: t.ciaMapping,
-            mitreControlId: t.mitreControlId,
-            mitreControlName: t.mitreControlName,
-            mitreControlDescription: t.mitreControlDescription,
-            createdBy: userId,
-            createdDate: new Date(),
-            isDeleted: false,
-        }));
+      // Step 4️ - Prepare AssessmentThreat entries
+      const threatRecords = threats.map((t) => ({
+        assessmentThreatId: uuidv4(),
+        assessmentId: assessmentId,
+        id: t.id,
+        platforms: t.platforms,
+        mitreTechniqueId: t.mitreTechniqueId,
+        mitreTechniqueName: t.mitreTechniqueName,
+        ciaMapping: t.ciaMapping,
+        mitreControlId: t.mitreControlId,
+        mitreControlName: t.mitreControlName,
+        mitreControlDescription: t.mitreControlDescription,
+        createdBy: userId,
+        createdDate: new Date(),
+        isDeleted: false,
+      }));
 
-        // Step 5️ - Insert new AssessmentThreats
-        if (threatRecords.length > 0) {
-            await AssessmentThreat.bulkCreate(threatRecords);
-        }
+      // Step 5️ - Insert new AssessmentThreats
+      if (threatRecords.length > 0) {
+        await AssessmentThreat.bulkCreate(threatRecords);
+      }
 
-        // Step 6️ - Update Assessment status if provided
-        if (status) {
-            await Assessment.update(
-                {
-                    status,
-                    progress,
-                    modifiedBy: userId,
-                    modifiedDate: new Date()
-                },
-                { where: { assessmentId } }
-            );
-        }
+      // Step 6️ - Update Assessment status if provided
+      if (status) {
+        await Assessment.update(
+          {
+            status,
+            progress,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          },
+          { where: { assessmentId } }
+        );
+      }
 
-        // Step 7️ - Return updated data
-        const updatedAssets = await AssessmentProcessAsset.findAll({
-            where: { assessmentId, isDeleted: false },
-        });
+      // Step 7️ - Return updated data
+      const updatedAssets = await AssessmentProcessAsset.findAll({
+        where: { assessmentId, isDeleted: false },
+      });
 
       return {
         message: "Assets saved successfully",
@@ -757,145 +758,160 @@ class AssessmentService {
     }
   }
 
-    /**
-         * Create or update assessment questionnaire entries
-         * @param {string} assessmentId
-         * @param {Array} questionaires
-         * @param {string} status
-         * @param {string} userId
-         */
-    static async createQuestionaires(assessmentId, questionaires, status, userId) {
-        try {
-            for (const q of questionaires) {
-                const existingRecord = await AssessmentQuestionaire.findOne({
-                    where: {
-                        assessmentId: assessmentId,
-                        assessmentProcessAssetId: q.assessmentProcessAssetId,
-                        questionnaireId: q.questionnaireId,
-                        isDeleted: false
-                    },
-                });
+  /**
+   * Create or update assessment questionnaire entries
+   * @param {string} assessmentId
+   * @param {Array} questionaires
+   * @param {string} status
+   * @param {string} userId
+   */
+  static async createQuestionaires(
+    assessmentId,
+    questionaires,
+    status,
+    userId
+  ) {
+    try {
+      for (const q of questionaires) {
+        const existingRecord = await AssessmentQuestionaire.findOne({
+          where: {
+            assessmentId: assessmentId,
+            assessmentProcessAssetId: q.assessmentProcessAssetId,
+            questionnaireId: q.questionnaireId,
+            isDeleted: false,
+          },
+        });
 
-                if (existingRecord) {
-                    // Update existing record
-                    await existingRecord.update({
-                        question: q.question,
-                        responseValue: q.responseValue || null,
-                        modifiedBy: userId,
-                        modifiedDate: new Date()
-                    });
-                } else {
-                    // Create new record
-                    await AssessmentQuestionaire.create({
-                        assessmentQuestionaireId: uuidv4(),
-                        assessmentId: assessmentId,
-                        assessmentProcessAssetId: q.assessmentProcessAssetId,
-                        questionnaireId: q.questionnaireId,
-                        question: q.question,
-                        responseValue: q.responseValue || null,
-                        createdBy: userId,
-                        createdDate: new Date()
-                    });
-                }
-            }
-
-            // Optionally update assessment status
-            if (status) {
-                await Assessment.update(
-                    {
-                        status: status,
-                        progress: 100,
-                        modifiedBy: userId,
-                        modifiedDate: new Date(),
-                    },
-                    { where: { assessmentId } }
-                );
-            }
-
-            return { success: true, message: "Questionnaires upserted successfully" };
-        } catch (err) {
-            throw new CustomError(
-                err.message || "Failed to create or update assessment questionnaire",
-                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
-    /**
-* Soft delete an assessment and all its related nested records
-* @param {string} assessmentId
-* @param {string} userId
-*/
-    static async softDeleteAssessment(assessmentId, userId) {
-        const {
-            Assessment,
-            AssessmentProcess,
-            AssessmentProcessAsset,
-            AssessmentProcessRiskScenario,
-            AssessmentRiskScenarioBusinessImpact,
-            AssessmentRiskTaxonomy,
-            AssessmentQuestionaire,
-        } = require("../models");
-
-        if (!assessmentId) {
-            throw new CustomError("Assessment ID is required", HttpStatus.BAD_REQUEST);
-        }
-
-        // Check if the assessment exists
-        const assessment = await Assessment.findByPk(assessmentId);
-        if (!assessment) {
-            throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
-        }
-
-        const updatePayload = {
-            isDeleted: true,
+        if (existingRecord) {
+          // Update existing record
+          await existingRecord.update({
+            question: q.question,
+            responseValue: q.responseValue || null,
             modifiedBy: userId,
-            modifiedDate: new Date()
-        };
-
-        try {
-            // Soft delete questionaires
-            await AssessmentQuestionaire.update(updatePayload, {
-                where: { assessmentId },
-            });
-
-            // Soft delete risk-related entities
-            await AssessmentRiskScenarioBusinessImpact.update(updatePayload, {
-                where: { assessmentId },
-            });
-            await AssessmentRiskTaxonomy.update(updatePayload, {
-                where: { assessmentId },
-            });
-            await AssessmentProcessRiskScenario.update(updatePayload, {
-                where: { assessmentId },
-            });
-
-            // Soft delete assets and processes
-            await AssessmentProcessAsset.update(updatePayload, {
-                where: { assessmentId },
-            });
-            await AssessmentProcess.update(updatePayload, {
-                where: { assessmentId },
-            });
-
-            // Finally, soft delete the main assessment
-            await Assessment.update(updatePayload, {
-                where: { assessmentId },
-            });
-
-            return {
-                assessmentId,
-                modifiedBy: userId,
-                modifiedDate: updatePayload.modifiedDate,
-            };
-        } catch (err) {
-            console.error("Soft delete failed:", err);
-            throw new CustomError(
-                err.message || "Failed to soft delete assessment and nested entities",
-                HttpStatus.INTERNAL_SERVER_ERROR
-            );
+            modifiedDate: new Date(),
+          });
+        } else {
+          // Create new record
+          await AssessmentQuestionaire.create({
+            assessmentQuestionaireId: uuidv4(),
+            assessmentId: assessmentId,
+            assessmentProcessAssetId: q.assessmentProcessAssetId,
+            questionnaireId: q.questionnaireId,
+            question: q.question,
+            responseValue: q.responseValue || null,
+            createdBy: userId,
+            createdDate: new Date(),
+          });
         }
+      }
+
+      // Optionally update assessment status
+      if (status) {
+        await Assessment.update(
+          {
+            status: status,
+            progress: 100,
+            modifiedBy: userId,
+            modifiedDate: new Date(),
+          },
+          { where: { assessmentId } }
+        );
+      }
+
+      return {
+        message: "Questionnaires upserted successfully",
+        questionnaire: await AssessmentQuestionaire.findAll({
+          where: {
+            assessmentId: assessmentId,
+          },
+        }),
+      };
+    } catch (err) {
+      throw new CustomError(
+        err.message || "Failed to create or update assessment questionnaire",
+        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
+  }
+
+  /**
+   * Soft delete an assessment and all its related nested records
+   * @param {string} assessmentId
+   * @param {string} userId
+   */
+  static async softDeleteAssessment(assessmentId, userId) {
+    const {
+      Assessment,
+      AssessmentProcess,
+      AssessmentProcessAsset,
+      AssessmentProcessRiskScenario,
+      AssessmentRiskScenarioBusinessImpact,
+      AssessmentRiskTaxonomy,
+      AssessmentQuestionaire,
+    } = require("../models");
+
+    if (!assessmentId) {
+      throw new CustomError(
+        "Assessment ID is required",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    // Check if the assessment exists
+    const assessment = await Assessment.findByPk(assessmentId);
+    if (!assessment) {
+      throw new CustomError("Assessment not found", HttpStatus.NOT_FOUND);
+    }
+
+    const updatePayload = {
+      isDeleted: true,
+      modifiedBy: userId,
+      modifiedDate: new Date(),
+    };
+
+    try {
+      // Soft delete questionaires
+      await AssessmentQuestionaire.update(updatePayload, {
+        where: { assessmentId },
+      });
+
+      // Soft delete risk-related entities
+      await AssessmentRiskScenarioBusinessImpact.update(updatePayload, {
+        where: { assessmentId },
+      });
+      await AssessmentRiskTaxonomy.update(updatePayload, {
+        where: { assessmentId },
+      });
+      await AssessmentProcessRiskScenario.update(updatePayload, {
+        where: { assessmentId },
+      });
+
+      // Soft delete assets and processes
+      await AssessmentProcessAsset.update(updatePayload, {
+        where: { assessmentId },
+      });
+      await AssessmentProcess.update(updatePayload, {
+        where: { assessmentId },
+      });
+
+      // Finally, soft delete the main assessment
+      await Assessment.update(updatePayload, {
+        where: { assessmentId },
+      });
+
+      return {
+        assessmentId,
+        modifiedBy: userId,
+        modifiedDate: updatePayload.modifiedDate,
+      };
+    } catch (err) {
+      console.error("Soft delete failed:", err);
+      throw new CustomError(
+        err.message || "Failed to soft delete assessment and nested entities",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 }
 
 module.exports = AssessmentService;

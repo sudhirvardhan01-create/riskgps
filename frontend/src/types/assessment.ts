@@ -20,6 +20,7 @@ export interface Assessment {
   modifiedDate: string;
   isDeleted: boolean;
   organizationId: string | null;
+  createdByName: string;
 }
 
 export interface Organisation {

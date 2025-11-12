@@ -4,6 +4,7 @@ import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
 import { Box, Button, Menu, MenuItem, Typography } from "@mui/material";
 import React, { useContext, useEffect, useState } from "react";
 import {
+  deleteAssessment,
   getAssessment,
   getAssessmentById,
   saveAssessment,
@@ -36,13 +37,14 @@ const AssessmentDashboard = () => {
   const { setAssessment } = useAssessment();
 
   useEffect(() => {
-    const getAssessments = async () => {
-      const response = await getAssessment();
-      setAssessments(response.data);
-      setAssessmentStatusFilter(response.data);
-    };
     getAssessments();
   }, []);
+
+  const getAssessments = async () => {
+    const response = await getAssessment();
+    setAssessments(response.data);
+    setAssessmentStatusFilter(response.data);
+  };
 
   const handleMenuClick = (
     event: React.MouseEvent<HTMLElement>,
@@ -59,7 +61,7 @@ const AssessmentDashboard = () => {
     router.push("/assessment/assessmentProcess");
   };
 
-  const handleMenuOptionClick = (option: string) => {
+  const handleMenuOptionClick = async (option: string) => {
     switch (option) {
       case "publish":
         onSubmit("completed");
@@ -68,6 +70,7 @@ const AssessmentDashboard = () => {
         onSubmit("closed");
         break;
       case "delete":
+        deleteAssessmentRow();
         break;
     }
     handleMenuClose();
@@ -121,6 +124,21 @@ const AssessmentDashboard = () => {
       status: status,
       userId: JSON.parse(Cookies.get("user") ?? "")?.id,
     });
+
+    getAssessments();
+  };
+
+  const deleteAssessmentRow = async () => {
+    const assess = assessments.find(
+      (item) => item.runId === selectedAssessment
+    );
+
+    await deleteAssessment(
+      assess?.assessmentId,
+      JSON.parse(Cookies.get("user") ?? "")?.id
+    );
+
+    getAssessments();
   };
 
   return (
@@ -223,7 +241,9 @@ const AssessmentDashboard = () => {
           >
             Close
           </MenuItem>
-          <MenuItem onClick={handleMenuClose}>Delete</MenuItem>
+          <MenuItem onClick={() => handleMenuOptionClick("delete")}>
+            Delete
+          </MenuItem>
         </Menu>
       </Box>
 

@@ -25,6 +25,9 @@ export default function RiskDashboard({ assetData, tooltipData }: any) {
             p: 2,
             backgroundColor: "#fafafa",
             height: "100%",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            borderRadius: "10px",
+            border: "1px solid #E5E7EB",
           }}
         >
           <Typography
@@ -60,6 +63,9 @@ export default function RiskDashboard({ assetData, tooltipData }: any) {
                 p: 2,
                 backgroundColor: "#fafafa",
                 height: "100%",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                borderRadius: "10px",
+                border: "1px solid #E5E7EB",
               }}
             >
               <Typography
@@ -88,6 +94,9 @@ export default function RiskDashboard({ assetData, tooltipData }: any) {
                     p: 2,
                     backgroundColor: "#fafafa",
                     height: "100%",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                    borderRadius: "10px",
+                    border: "1px solid #E5E7EB",
                   }}
                 >
                   <Typography
@@ -124,6 +133,9 @@ export default function RiskDashboard({ assetData, tooltipData }: any) {
                     p: 2,
                     backgroundColor: "#fafafa",
                     height: "100%",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                    borderRadius: "10px",
+                    border: "1px solid #E5E7EB",
                   }}
                 >
                   <Typography
