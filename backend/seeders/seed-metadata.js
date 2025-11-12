@@ -77,6 +77,67 @@ module.exports = {
         created_at: now,
         updated_at: now,
       },
+      {
+        name: "Industry Vertical",
+        label: "Industry Vertical",
+        input_type: "select",
+        supported_values: [
+          "Banking",
+          "Finance",
+          "Technology",
+          "Retail",
+          "Healthcare",
+        ],
+        applies_to: ["all"],
+        description: "",
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        name: "Region of Operation",
+        label: "Region of Operation",
+        input_type: "multiselect",
+        supported_values: [
+          "United States",
+          "United Kingdom",
+          "India"
+        ],
+        applies_to: ["all"],
+        description: "",
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        name: "Record type",
+        label: "Record type",
+        input_type: "multiselect",
+        supported_values: [
+          "PII",
+          "PIII",
+          "PFI",
+          "PHI",
+          "Intellectual Property",
+          "Government Records"
+        ],
+        applies_to: ["all"],
+        description: null,
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        name: "Certification",
+        label: "Certification",
+        input_type: "multiselect",
+        supported_values: [
+          "PCI DSS",
+          "ISO 27001",
+          "SOC 2"
+        ],
+        applies_to: ["all"],
+        description: null,
+        created_at: now,
+        updated_at: now,
+      },
     ];
 
     await sequelize.transaction(async (t) => {
