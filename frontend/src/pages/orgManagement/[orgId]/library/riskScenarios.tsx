@@ -27,7 +27,7 @@ import {
 import withAuth from "@/hoc/withAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import Image from "next/image";
-import { RiskScenarioData } from "@/types/risk-scenario";
+import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { RiskScenarioLibraryService } from "@/services/orgLibraryService/riskScenarioLibraryService";
 import {
@@ -51,6 +51,16 @@ interface RiskScenario {
   riskScenario: string;
   riskStatement: string;
 }
+
+const initialRiskData: RiskScenarioData = {
+  riskScenario: "",
+  riskStatement: "",
+  riskDescription: "",
+  ciaMapping: [],
+  riskField1: "",
+  riskField2: "",
+  attributes: [] as RiskScenarioAttributes[],
+};
 
 function RiskScenariosPage() {
   const router = useRouter();
@@ -77,6 +87,9 @@ function RiskScenariosPage() {
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+  const [formData, setFormData] = useState<RiskScenarioData>(initialRiskData);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -444,6 +457,84 @@ function RiskScenariosPage() {
       scenario.riskStatement.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleOpenCreateRiskScenarios = () => {
+    setFormData(initialRiskData);
+    setIsAddOpen(true);
+  };
+
+  // Create risk scenario
+  const handleCreate = async (status: string) => {
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // Transform formData to match the API format
+      const formattedData = [{
+        riskScenario: formData.riskScenario,
+        riskDescription: formData.riskDescription || "",
+        riskStatement: formData.riskStatement || "",
+        ciaMapping: formData.ciaMapping || [],
+        status: status,
+        riskField1: formData.riskField1 || "",
+        riskField2: formData.riskField2 || "",
+        related_processes: formData.related_processes?.map((p: any) => String(p)) || [],
+        attributes: formData.attributes?.map((attr: any) => ({
+          meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
+          values: attr.values || [],
+        })) || [],
+      }];
+
+      await createOrganizationRiskScenarios(orgId, formattedData);
+
+      // Reset form and close modal
+      setFormData(initialRiskData);
+      setIsAddOpen(false);
+
+      // Refresh the list
+      await fetchOrganizationRiskScenarios();
+
+      setSuccessMessage(`Success! Risk scenario ${status === "published" ? "published" : "saved as draft"}`);
+      setShowSuccessMessage(true);
+    } catch (err: any) {
+      console.error("Failed to create risk scenario:", err);
+      setErrorMessage(err.message || "Failed to create risk scenario. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Form validation before create
+  const handleFormValidation = async (status: string) => {
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      // Check if risk scenario with same name already exists in organization
+      const existingScenarios = orgRiskScenarios.filter(
+        (rs: any) => rs.riskScenario?.trim().toLowerCase() === formData.riskScenario.trim().toLowerCase()
+      );
+
+      if (existingScenarios.length > 0) {
+        setErrorMessage("Risk Scenario already exists in this organization");
+        setShowSuccessMessage(false);
+      } else {
+        handleCreate(status);
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Failed to validate risk scenario");
+      setShowSuccessMessage(false);
+    }
+  };
+
   if (loading || (isInitialLoad && isLoading)) {
     return (
       <Box
@@ -664,7 +755,7 @@ function RiskScenariosPage() {
                 scenarios.
               </Typography>
 
-              <Button
+              {/*<Button
                 variant="contained"
                 onClick={handleAddRiskScenarios}
                 sx={{
@@ -681,6 +772,24 @@ function RiskScenariosPage() {
                 }}
               >
                 Add Risk Scenarios
+              </Button>*/}
+              <Button
+                variant="contained"
+                onClick={handleOpenCreateRiskScenarios}
+                sx={{
+                  backgroundColor: "#04139A",
+                  color: "#FFFFFF",
+                  p: "12px, 40px",
+                  height: "40px",
+                  borderRadius: "4px",
+                  textTransform: "none",
+                  fontWeight: 500,
+                  "&:hover": {
+                    backgroundColor: "#030d6b",
+                  },
+                }}
+              >
+                Create Risk Scenarios
               </Button>
             </Box>
           </Box>
@@ -773,7 +882,7 @@ function RiskScenariosPage() {
                     },
                   }}
                 />
-                <Button
+                {/* <Button
                   variant="contained"
                   onClick={handleAddRiskScenarios}
                   sx={{
@@ -789,6 +898,23 @@ function RiskScenariosPage() {
                   }}
                 >
                   Add Risk Scenarios
+                </Button> */}
+                <Button
+                  variant="contained"
+                  onClick={handleOpenCreateRiskScenarios}
+                  sx={{
+                    backgroundColor: "#04139A",
+                    color: "#FFFFFF",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    p: "12px 40px",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      backgroundColor: "#030d6b",
+                    },
+                  }}
+                >
+                  Create Risk Scenarios
                 </Button>
               </Box>
 
@@ -1050,6 +1176,20 @@ function RiskScenariosPage() {
         orgItems={orgRiskScenarios}
       />
 
+      {/* Add Risk Scenario Modal */}
+      {isAddOpen && (
+        <RiskScenarioFormModal
+          operation="create"
+          open={isAddOpen}
+          riskData={formData}
+          setRiskData={setFormData}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleFormValidation}
+          onClose={() => setIsAddConfirmOpen(true)}
+        />
+      )}
+
       {/* Edit Risk Scenario Modal */}
       {isEditOpen && selectedRiskScenario && (
         <RiskScenarioFormModal
@@ -1069,6 +1209,21 @@ function RiskScenariosPage() {
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
+
+      {/* Confirm Dialog for Add Cancellation */}
+      <ConfirmDialog
+        open={isAddConfirmOpen}
+        onClose={() => setIsAddConfirmOpen(false)}
+        title="Cancel Risk Scenario Creation?"
+        description="Are you sure you want to cancel the risk scenario creation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsAddConfirmOpen(false);
+          setFormData(initialRiskData);
+          setIsAddOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
 
       {/* Confirm Dialog for Edit Cancellation */}
       <ConfirmDialog
