@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
             },
             platforms: {
                 allowNull: false,
-                type: DataTypes.STRING,
+                type: DataTypes.ARRAY(DataTypes.ENUM(...ASSETS.ASSET_CATEGORY)),
                 field: "platforms",
             },
             mitreTechniqueId: {
@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
             },
             ciaMapping: {
                 allowNull: false,
-                type: DataTypes.STRING,
+                type: DataTypes.ARRAY(DataTypes.ENUM(...GENERAL.CIA_MAPPING_VALUES)),
                 field: "cia_mapping",
             },
             mitreControlId: {
