@@ -399,7 +399,7 @@ class ProcessService {
             row.organizational_revenue_impact_percentage,
           "Financial Materiality": row.financial_materiality,
           "Third Party Involvement": row.third_party_involvement,
-          Users: row.users_customers,
+          "Users": (row.users_customers ?? []).join(","),
           "Regulatory and Compliance": row.regulatory_and_compliance,
           "Criticality Of Data Processed": row.criticality_of_data_processed,
           "Data Processed": (row.data_processed ?? []).join(","),
@@ -448,6 +448,10 @@ class ProcessService {
       if (!value) return [];
       return value.split(",");
     }
+    function parseUsersAndCustomers(value) {
+      if (!value) return [];
+      return value.split(",");
+    }
 
     function parseIndustry(value) {
       if (!value) return [];
@@ -484,7 +488,7 @@ class ProcessService {
             ),
             financialMateriality: parseBoolean(row["Financial Materiality"]),
             thirdPartyInvolvement: parseBoolean(row["Third Party Involvement"]),
-            usersCustomers: row["Users"],
+            usersCustomers: parseUsersAndCustomers(row["Users"]),
             regulatoryAndCompliance: parseRegulatoryAndCompliance(
               row["Regulatory and Compliance"]
             ),
