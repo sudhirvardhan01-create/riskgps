@@ -377,7 +377,7 @@ class AssessmentService {
               },
               {
                 model: AssessmentProcessRiskScenario,
-                as: "risks",
+                as: "riskScenarios",
                 required: false,
                 include: [
                   {
@@ -411,7 +411,7 @@ class AssessmentService {
           : null,
         processes: (plainAssessment.processes || []).map((process) => ({
           ...process,
-          risks: (process.risks || []).map((risk) => ({
+          riskScenarios: (process.riskScenarios || []).map((risk) => ({
             ...risk,
             taxonomy: (risk.taxonomy || []).map((t) => ({
               assessmentRiskTaxonomyId: t.assessmentRiskTaxonomyId,
@@ -698,7 +698,7 @@ class AssessmentService {
               },
               {
                 model: AssessmentProcessRiskScenario,
-                as: "risks",
+                as: "riskScenarios",
                 include: [
                   {
                     model: AssessmentRiskScenarioBusinessImpact,

@@ -35,10 +35,12 @@ const DragDropRiskScenarios = () => {
 
       // 🔹 Collect all risk IDs already in the assessment
       const existingRiskIds = new Set(
-        assessment?.processes?.flatMap((p) => p?.risks?.map((r) => r.id)) || []
+        assessment?.processes?.flatMap((p) =>
+          p?.riskScenarios?.map((r) => r.id)
+        ) || []
       );
 
-      // 🔹 Filter out risks already present in assessment
+      // 🔹 Filter out riskScenarios already present in assessment
       const filteredRisks = res.data.filter(
         (risk: any) => !existingRiskIds.has(risk.id)
       );
@@ -61,7 +63,9 @@ const DragDropRiskScenarios = () => {
         p.id === processId
           ? {
               ...p,
-              risks: p.risks.filter((r) => !selectedRisks.includes(r.id)),
+              riskScenarios: p.riskScenarios.filter(
+                (r) => !selectedRisks.includes(r.id)
+              ),
             }
           : p
       )
@@ -72,7 +76,7 @@ const DragDropRiskScenarios = () => {
     const deletedRisks =
       processes
         ?.find((p) => p.id === processId)
-        ?.risks.filter((r) => selectedRisks.includes(r.id)) || [];
+        ?.riskScenarios.filter((r) => selectedRisks.includes(r.id)) || [];
 
     if (deletedRisks.length > 0) {
       setRiskPool((prev) => [...prev, ...deletedRisks]);
@@ -85,14 +89,14 @@ const DragDropRiskScenarios = () => {
         p.id === processId
           ? {
               ...p,
-              risks: p.risks.filter((r) => r.id !== riskId),
+              riskScenarios: p.riskScenarios.filter((r) => r.id !== riskId),
             }
           : p
       )
     );
     const deletedRisk = processes
       ?.find((p) => p.id === processId)
-      ?.risks.find((r) => r.id === riskId);
+      ?.riskScenarios.find((r) => r.id === riskId);
     if (deletedRisk) {
       setRiskPool((prev) => [...prev, deletedRisk]);
     }
@@ -113,21 +117,23 @@ const DragDropRiskScenarios = () => {
       const fromProcess = prev?.find((p) => p.id === fromProcessId);
       if (!fromProcess) return prev;
 
-      const movingRisks = fromProcess.risks.filter((r: { id: string }) =>
-        selectedRisks.includes(r.id)
+      const movingRisks = fromProcess.riskScenarios.filter(
+        (r: { id: string }) => selectedRisks.includes(r.id)
       );
 
       return prev?.map((p) => {
         if (p.id === fromProcessId) {
           return {
             ...p,
-            risks: p.risks.filter((r) => !selectedRisks.includes(r.id)),
+            riskScenarios: p.riskScenarios.filter(
+              (r) => !selectedRisks.includes(r.id)
+            ),
           };
         }
         if (p.id === toProcessId) {
           return {
             ...p,
-            risks: [...(p.risks ?? []), ...(movingRisks ?? [])],
+            riskScenarios: [...(p.riskScenarios ?? []), ...(movingRisks ?? [])],
           };
         }
         return p;
@@ -151,7 +157,7 @@ const DragDropRiskScenarios = () => {
       setProcesses((prev) =>
         prev?.map((p) =>
           p.id === over.id
-            ? { ...p, risks: [...(p.risks ?? []), draggedRisk] }
+            ? { ...p, riskScenarios: [...(p.riskScenarios ?? []), draggedRisk] }
             : p
         )
       );

@@ -198,7 +198,7 @@ export default function AssessmentPreviewModal({
 
             <AccordionDetails sx={{ bgcolor: "#fff" }}>
               {/* Risks */}
-              {process.risks?.length > 0 && (
+              {process.riskScenarios?.length > 0 && (
                 <>
                   <Typography
                     variant="subtitle1"
@@ -207,7 +207,7 @@ export default function AssessmentPreviewModal({
                   >
                     Risk Scenarios
                   </Typography>
-                  {process.risks.map((risk: any) => (
+                  {process.riskScenarios.map((risk: any) => (
                     <Box
                       key={risk.assessmentProcessRiskId}
                       sx={{ pl: 2, mb: 2 }}
