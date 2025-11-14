@@ -30,6 +30,7 @@ import TextFieldStyled from "@/components/TextFieldStyled";
 import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
 import SelectStyled from "@/components/SelectStyled";
+import { useConfig } from "@/context/ConfigContext";
 
 interface RiskScenarioFormModalProps {
   operation: "create" | "edit";
@@ -60,7 +61,15 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
   metaDatas,
   onSubmit,
 }) => {
-  const ciaMappingItems = ["Confidentiality", "Integrity", "Availability"];
+  const { fetchMetadataByKey } = useConfig();
+  const ciaArray = fetchMetadataByKey("CIA Mapping")?.supported_values.map(
+    (item) => JSON.parse(item)
+  );
+  const ciaMappingItems = [
+    { label: "Confidentiality", value: "C" },
+    { label: "Integrity", value: "I" },
+    { label: "Availability", value: "A" },
+  ];
 
   // State for related processes
   const [newRelatedProcess, setNewRelatedProcess] = React.useState<
@@ -281,29 +290,27 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
                         textTransform: "capitalize",
                       }}
                     >
-                      {selected.join(", ")}
+                      {selected
+                        .map(
+                          (item: any) =>
+                            ciaArray?.find((i) => i?.value === item)?.label
+                        )
+                        .join(", ")}
                     </Typography>
                   );
                 }
               }}
             >
-              {metaDatas?.find((item) => item.name === "CIA Mapping")
-                ?.supported_values &&
-              metaDatas?.find((item) => item.name === "CIA Mapping")
-                ?.supported_values?.length > 0
-                ? metaDatas
-                    ?.find((item) => item.name === "CIA Mapping")
-                    ?.supported_values?.map(
-                      (metaData: string, index: number) => (
-                        <MenuItem value={metaData[0]} key={index}>
-                          {metaData}
-                        </MenuItem>
-                      )
-                    )
+              {ciaArray && ciaArray.length > 0
+                ? ciaArray.map((item) => (
+                    <MenuItem key={item?.value} value={item?.value}>
+                      {item?.label}
+                    </MenuItem>
+                  ))
                 : ciaMappingItems.map((item) => {
                     return (
-                      <MenuItem value={item[0]} key={item}>
-                        {item}
+                      <MenuItem value={item.value} key={item.value}>
+                        {item.label}
                       </MenuItem>
                     );
                   })}
@@ -616,7 +623,9 @@ const RiskScenarioFormModal: React.FC<RiskScenarioFormModalProps> = ({
             onClick={() => {
               onSubmit("published");
             }}
-            disabled={riskData.riskScenario === "" || riskData.ciaMapping?.length === 0}
+            disabled={
+              riskData.riskScenario === "" || riskData.ciaMapping?.length === 0
+            }
             disableRipple
           >
             <Typography variant="body1" color="#F4F4F4" fontWeight={600}>

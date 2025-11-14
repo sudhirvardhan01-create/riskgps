@@ -36,6 +36,7 @@ import { tooltips } from "@/utils/tooltips";
 import { labels } from "@/utils/labels";
 import { RelatedControlForm, ThreatForm } from "@/types/threat";
 import RelatedControlFormModal from "./RelatedControlFormModal";
+import { useConfig } from "@/context/ConfigContext";
 
 interface ThreatFormModalProps {
   operation: "create" | "edit";
@@ -126,7 +127,15 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
     "iOS",
   ];
 
-  const ciaMappingItems = ["Confidentiality", "Integrity", "Availability"];
+  const { fetchMetadataByKey } = useConfig();
+  const ciaArray = fetchMetadataByKey("CIA Mapping")?.supported_values.map(
+    (item) => JSON.parse(item)
+  );
+  const ciaMappingItems = [
+    { label: "Confidentiality", value: "C" },
+    { label: "Integrity", value: "I" },
+    { label: "Availability", value: "A" },
+  ];
 
   const handleChange = useCallback(
     (field: keyof ThreatForm, value: any) => {
@@ -387,29 +396,27 @@ const ThreatFormModal: React.FC<ThreatFormModalProps> = ({
                           color: "text.primary",
                         }}
                       >
-                        {selected.join(", ")}
+                        {selected
+                          .map(
+                            (item: any) =>
+                              ciaArray?.find((i) => i?.value === item)?.label
+                          )
+                          .join(", ")}
                       </Typography>
                     );
                   }
                 }}
               >
-                {metaDatas?.find((item) => item.name === "CIA Mapping")
-                  ?.supported_values &&
-                metaDatas?.find((item) => item.name === "CIA Mapping")
-                  ?.supported_values?.length > 0
-                  ? metaDatas
-                      ?.find((item) => item.name === "CIA Mapping")
-                      ?.supported_values?.map(
-                        (metaData: string, index: number) => (
-                          <MenuItem value={metaData[0]} key={index}>
-                            {metaData}
-                          </MenuItem>
-                        )
-                      )
+                {ciaArray && ciaArray.length > 0
+                  ? ciaArray.map((item) => (
+                      <MenuItem key={item?.value} value={item?.value}>
+                        {item?.label}
+                      </MenuItem>
+                    ))
                   : ciaMappingItems.map((item) => {
                       return (
-                        <MenuItem value={item[0]} key={item}>
-                          {item}
+                        <MenuItem value={item.value} key={item.value}>
+                          {item.label}
                         </MenuItem>
                       );
                     })}
