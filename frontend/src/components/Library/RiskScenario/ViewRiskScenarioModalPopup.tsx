@@ -15,6 +15,7 @@ import {
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { RiskScenarioData } from "@/types/risk-scenario";
 import { formatDate } from "@/utils/utility";
+import { useConfig } from "@/context/ConfigContext";
 
 interface ViewRiskScenarioModalProps {
   open: boolean;
@@ -27,13 +28,6 @@ interface ViewRiskScenarioModalProps {
   >;
   onClose: () => void;
 }
-type CIAKey = "C" | "I" | "A";
-
-const ciaKeyValueMapping: Record<CIAKey, string> = {
-  C: "Confidentiality",
-  I: "Integrity",
-  A: "Availability",
-};
 
 const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
   open,
@@ -44,6 +38,10 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
   setSelectedRiskScenario,
   onClose,
 }: ViewRiskScenarioModalProps) => {
+  const { fetchMetadataByKey } = useConfig();
+  const ciaArray = fetchMetadataByKey("CIA Mapping")?.supported_values.map(
+    (item) => JSON.parse(item)
+  );
   const getStatusComponent = () => {
     if (
       riskScenarioData.status === "published" ||
@@ -189,8 +187,8 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
                 {riskScenarioData.ciaMapping.length > 0
-                  ? (riskScenarioData.ciaMapping as CIAKey[])
-                      .map((val: CIAKey) => ciaKeyValueMapping[val])
+                  ? riskScenarioData.ciaMapping
+                      .map((i) => ciaArray?.find((a) => a.value === i)?.label)
                       .join(", ")
                   : "-"}
               </Typography>
@@ -291,7 +289,9 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {riskScenarioData.createdAt ? formatDate(riskScenarioData.createdAt) : "-"}
+                {riskScenarioData.createdAt
+                  ? formatDate(riskScenarioData.createdAt)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -301,7 +301,9 @@ const ViewRiskScenarioModal: React.FC<ViewRiskScenarioModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {riskScenarioData.lastUpdated ? formatDate(riskScenarioData.lastUpdated) : "-"}
+                {riskScenarioData.lastUpdated
+                  ? formatDate(riskScenarioData.lastUpdated)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>

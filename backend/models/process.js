@@ -81,7 +81,7 @@ module.exports = (sequelize) => {
         field: "third_party_involvement"
       },
       usersCustomers: {
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: true,
         field: "users_customers"
       },
