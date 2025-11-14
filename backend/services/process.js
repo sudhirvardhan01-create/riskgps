@@ -352,7 +352,7 @@ class ProcessService {
         "Oraganizational Revenue Impact Percentage in number eg: 20",
       "Financial Materiality": "Yes / No",
       "Third Party Involvement": "Yes / No",
-      Users: "Users Type Internal Users / External Users / Third Party Users",
+      "Users": "Users Type Internal Users / External Users / Third Party Users Separated by Comma Eg:user1,user2",
       "Regulatory and Compliance": "regulations",
       "Criticality Of Data Processed": "Criticality Of Data Processed",
       "Data Processed":
@@ -507,6 +507,7 @@ class ProcessService {
                 returning: true,
                 ignoreDuplicates: true,
               });
+              console.log(inserted.length, "LOGGING THIS")
 
               // Insert metadata
               const metaRows = inserted.map((process) => {
@@ -520,9 +521,9 @@ class ProcessService {
                   values: match ? match.industry : null, // safe in case no match
                 };
               });
-              if (metaRows.length > 0) {
-                await ProcessAttribute.bulkCreate(metaRows);
-              }
+              // if (metaRows.length > 0) {
+              //   await ProcessAttribute.bulkCreate(metaRows);
+              // }
 
               totalInserted += inserted.length;
               batch = []; // reset
@@ -544,6 +545,7 @@ class ProcessService {
               });
 
               // Insert metadata
+              console.log(inserted.length, "LOGGING THIS")
 
               const metaRows = inserted.map((process) => {
                 const match = batch.find(
@@ -556,9 +558,9 @@ class ProcessService {
                   values: match ? match.industry : null, // safe in case no match
                 };
               });
-              if (metaRows.length > 0) {
-                await ProcessAttribute.bulkCreate(metaRows);
-              }
+              // if (metaRows.length > 0) {
+              //   await ProcessAttribute.bulkCreate(metaRows);
+              // }
 
               totalInserted += inserted.length;
             }
