@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import { useRouter } from "next/router";
 import ToastComponent from "@/components/ToastComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import OrgManagementHeader from "@/components/Organization/OrgManagementHeader";
 import OrgList from "@/components/Organization/OrgList";
 import { Organization } from "@/types/organization";
 import { getOrganizations, transformApiResponseToFrontend, deleteOrganization } from "@/services/organizationService";
@@ -167,46 +168,26 @@ export default function OrgManagementContainer() {
       />
 
       {/* Page content */}
-      <Box sx={{
-        pt: 3,
-        pr: 4,
-        pb: 2,
-        pl: 4,
-        height: "calc(100vh - 120px)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden"
-      }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-          <Typography
-            variant="h4"
-            sx={{ fontWeight: 600, color: "#121212" }}>
-            Org Management
-          </Typography>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#04139A",
-              color: "#FFFFFF",
-              borderRadius: "4px",
-              textTransform: "none",
-              fontWeight: 500,
-              fontSize: "14px",
-              lineHeight: "100%",
-              letterSpacing: "0%",
-              padding: "12px 32px",
-              "&:hover": {
-                backgroundColor: "#04139A",
-                opacity: 0.9,
-              },
-            }}
-            onClick={() => {
-              router.push('/orgManagement/create');
-            }}
-          >
-            Create New Org
-          </Button>
-        </Box>
+      <Box
+        sx={{
+          pt: 5,
+          px: 5,
+          pb: 2,
+          height: "calc(100vh - 120px)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <OrgManagementHeader
+          onAddOrg={() => {
+            router.push("/orgManagement/create");
+          }}
+          localSearch={searchPattern}
+          handleSearchChange={handleSearchChange}
+          statusFilter={statusFilter}
+          handleStatusChange={handleStatusChange}
+        />
 
         <Box sx={{ flex: 1, overflow: "hidden" }}>
           <OrgList
@@ -221,10 +202,6 @@ export default function OrgManagementContainer() {
             onSort={handleSort}
             sortField={sortField}
             sortDirection={sortDirection}
-            localSearch={searchPattern}
-            handleSearchChange={handleSearchChange}
-            statusFilter={statusFilter}
-            handleStatusChange={handleStatusChange}
             onEditOrganization={handleEditOrganization}
           />
         </Box>

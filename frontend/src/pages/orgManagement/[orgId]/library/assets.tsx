@@ -52,6 +52,27 @@ interface Asset {
   assetDescription: string;
 }
 
+const initialAssetsData: AssetForm = {
+  assetCategory: "",
+  assetDescription: "",
+  applicationName: "",
+  applicationOwner: "",
+  applicationITOwner: "",
+  isThirdPartyManagement: null,
+  thirdPartyName: "",
+  thirdPartyLocation: "",
+  hosting: "",
+  hostingFacility: "",
+  cloudServiceProvider: [],
+  geographicLocation: "",
+  hasRedundancy: null,
+  databases: "",
+  hasNetworkSegmentation: null,
+  networkName: "",
+  attributes: [],
+  relatedProcesses: [],
+};
+
 function AssetsPage() {
   const router = useRouter();
   const { orgId } = router.query;
@@ -76,6 +97,9 @@ function AssetsPage() {
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+  const [formData, setFormData] = useState<AssetForm>(initialAssetsData);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -133,7 +157,7 @@ function AssetsPage() {
       (async () => {
         try {
           const [processes] = await Promise.all([
-            fetchOrganizationProcessesForListing(orgId as string)          
+            fetchOrganizationProcessesForListing(orgId as string)
           ]);
           setProcessesData(processes.data ?? []);
         } catch (err) {
@@ -459,6 +483,94 @@ function AssetsPage() {
       asset.assetDescription.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleOpenCreateAssets = () => {
+    setFormData(initialAssetsData);
+    setIsAddOpen(true);
+  };
+
+  // Create asset
+  const handleCreate = async (status: string) => {
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // Transform formData to match the API format (same format as handleAddAssetsFromModal)
+      const formattedData = [{
+        applicationName: formData.applicationName,
+        assetCategory: formData.assetCategory || "",
+        assetDescription: formData.assetDescription || "",
+        applicationOwner: formData.applicationOwner || null,
+        applicationItOwner: formData.applicationITOwner || null,
+        isThirdPartyManagement: formData.isThirdPartyManagement ?? null,
+        thirdPartyName: formData.thirdPartyName || null,
+        thirdPartyLocation: formData.thirdPartyLocation || null,
+        hosting: formData.hosting || null,
+        hostingFacility: formData.hostingFacility || null,
+        cloudServiceProvider: formData.cloudServiceProvider || null,
+        geographicLocation: formData.geographicLocation || null,
+        hasRedundancy: formData.hasRedundancy ?? null,
+        databases: formData.databases || null,
+        hasNetworkSegmentation: formData.hasNetworkSegmentation ?? null,
+        networkName: formData.networkName || null,
+        status: status,
+        related_processes: formData.relatedProcesses?.map((p: any) => String(p)) || [],
+        attributes: formData.attributes?.map((attr: any) => ({
+          meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
+          values: attr.values || [],
+        })) || [],
+      }];
+
+      await createOrganizationAssets(orgId, formattedData);
+
+      // Reset form and close modal
+      setFormData(initialAssetsData);
+      setIsAddOpen(false);
+
+      // Refresh the list
+      await fetchOrganizationAssets();
+
+      setSuccessMessage(`Success! Asset ${status === "published" ? "published" : "saved as draft"}`);
+      setShowSuccessMessage(true);
+    } catch (err: any) {
+      console.error("Failed to create asset:", err);
+      setErrorMessage(err.message || "Failed to create asset. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Form validation before create
+  const handleFormValidation = async (status: string) => {
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      // Check if asset with same name already exists in organization
+      const existingAssets = orgAssets.filter(
+        (asset: any) => asset.applicationName?.trim().toLowerCase() === formData.applicationName.trim().toLowerCase()
+      );
+
+      if (existingAssets.length > 0) {
+        setErrorMessage("Asset already exists in this organization");
+        setShowSuccessMessage(false);
+      } else {
+        handleCreate(status);
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Failed to validate asset");
+      setShowSuccessMessage(false);
+    }
+  };
+
   if (loading || (isInitialLoad && isLoading)) {
     return (
       <Box
@@ -679,7 +791,7 @@ function AssetsPage() {
                 &apos;Add Assets&apos; to start adding assets.
               </Typography>
 
-              <Button
+              {/* <Button
                 variant="contained"
                 onClick={handleAddAssets}
                 sx={{
@@ -696,6 +808,24 @@ function AssetsPage() {
                 }}
               >
                 Add Assets
+              </Button> */}
+              <Button
+                variant="contained"
+                onClick={handleOpenCreateAssets}
+                sx={{
+                  backgroundColor: "#04139A",
+                  color: "#FFFFFF",
+                  p: "12px, 40px",
+                  height: "40px",
+                  borderRadius: "4px",
+                  textTransform: "none",
+                  fontWeight: 500,
+                  "&:hover": {
+                    backgroundColor: "#030d6b",
+                  },
+                }}
+              >
+                Create Assets
               </Button>
             </Box>
           </Box>
@@ -788,7 +918,7 @@ function AssetsPage() {
                     },
                   }}
                 />
-                <Button
+                {/* <Button
                   variant="contained"
                   onClick={handleAddAssets}
                   sx={{
@@ -804,6 +934,23 @@ function AssetsPage() {
                   }}
                 >
                   Add Assets
+                </Button> */}
+                <Button
+                  variant="contained"
+                  onClick={handleOpenCreateAssets}
+                  sx={{
+                    backgroundColor: "#04139A",
+                    color: "#FFFFFF",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    p: "12px 40px",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      backgroundColor: "#030d6b",
+                    },
+                  }}
+                >
+                  Create Assets
                 </Button>
               </Box>
 
@@ -1065,6 +1212,20 @@ function AssetsPage() {
         orgItems={orgAssets}
       />
 
+      {/* Add Asset Modal */}
+      {isAddOpen && (
+        <AssetFormModal
+          operation="create"
+          open={isAddOpen}
+          assetFormData={formData}
+          setAssetFormData={setFormData}
+          processes={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleFormValidation}
+          onClose={() => setIsAddConfirmOpen(true)}
+        />
+      )}
+
       {/* Edit Asset Modal */}
       {isEditOpen && selectedAsset && (
         <AssetFormModal
@@ -1084,6 +1245,21 @@ function AssetsPage() {
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
+
+      {/* Confirm Dialog for Add Cancellation */}
+      <ConfirmDialog
+        open={isAddConfirmOpen}
+        onClose={() => setIsAddConfirmOpen(false)}
+        title="Cancel Asset Creation?"
+        description="Are you sure you want to cancel the asset creation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsAddConfirmOpen(false);
+          setFormData(initialAssetsData);
+          setIsAddOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
 
       {/* Confirm Dialog for Edit Cancellation */}
       <ConfirmDialog

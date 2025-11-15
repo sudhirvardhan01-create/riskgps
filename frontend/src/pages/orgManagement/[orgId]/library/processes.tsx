@@ -58,6 +58,26 @@ interface Process {
   processDescription: string;
 }
 
+const initialProcessData: ProcessData = {
+  processName: "",
+  processDescription: "",
+  seniorExecutiveOwnerName: "",
+  seniorExecutiveOwnerEmail: "",
+  operationsOwnerName: "",
+  operationsOwnerEmail: "",
+  technologyOwnerName: "",
+  technologyOwnerEmail: "",
+  organizationalRevenueImpactPercentage: 0,
+  financialMateriality: false,
+  thirdPartyInvolvement: false,
+  users: "",
+  requlatoryAndCompliance: [],
+  criticalityOfDataProcessed: "",
+  dataProcessed: [],
+  processDependency: [],
+  attributes: [],
+};
+
 function ProcessesPage() {
   const router = useRouter();
   const { orgId, businessUnitId } = router.query;
@@ -91,6 +111,9 @@ function ProcessesPage() {
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+  const [formData, setFormData] = useState<ProcessData>(initialProcessData);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -591,6 +614,111 @@ function ProcessesPage() {
         .includes(searchTerm.toLowerCase())
   );
 
+  const handleOpenCreateProcesses = () => {
+    if (!currentBusinessUnitId || typeof currentBusinessUnitId !== "string") {
+      setErrorMessage("Please select a business unit before creating a process.");
+      return;
+    }
+    setFormData(initialProcessData);
+    setIsAddOpen(true);
+  };
+
+  // Create process
+  const handleCreate = async (status: string) => {
+    if (
+      !orgId ||
+      typeof orgId !== "string" ||
+      !currentBusinessUnitId ||
+      typeof currentBusinessUnitId !== "string"
+    ) {
+      setErrorMessage("Organization ID and Business Unit ID are required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // Transform formData to match the API format (same format as handleAddProcessesFromModal)
+      const formattedData = [{
+        processName: formData.processName,
+        processDescription: formData.processDescription || "",
+        seniorExecutiveOwnerName: formData.seniorExecutiveOwnerName || "",
+        seniorExecutiveOwnerEmail: formData.seniorExecutiveOwnerEmail || null,
+        operationsOwnerName: formData.operationsOwnerName || "",
+        operationsOwnerEmail: formData.operationsOwnerEmail || "",
+        technologyOwnerName: formData.technologyOwnerName || "",
+        technologyOwnerEmail: formData.technologyOwnerEmail || "",
+        organizationalRevenueImpactPercentage: formData.organizationalRevenueImpactPercentage || null,
+        financialMateriality: formData.financialMateriality || false,
+        thirdPartyInvolvement: formData.thirdPartyInvolvement || false,
+        usersCustomers: formData.users || "",
+        regulatoryAndCompliance: formData.requlatoryAndCompliance || null,
+        criticalityOfDataProcessed: formData.criticalityOfDataProcessed || "",
+        dataProcessed: formData.dataProcessed || null,
+        status: status,
+        process_dependency: formData.processDependency?.map((dep: any) => ({
+          sourceProcessId: dep.sourceProcessId,
+          targetProcessId: dep.targetProcessId,
+          relationshipType: dep.relationshipType,
+        })) || [],
+        attributes: formData.attributes?.map((attr: any) => ({
+          meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
+          values: attr.values || [],
+        })) || [],
+      }];
+
+      await createOrganizationProcesses(orgId, currentBusinessUnitId, formattedData);
+
+      // Reset form and close modal
+      setFormData(initialProcessData);
+      setIsAddOpen(false);
+
+      // Refresh the list
+      await fetchOrganizationProcesses(currentBusinessUnitId);
+
+      setSuccessMessage(`Success! Process ${status === "published" ? "published" : "saved as draft"}`);
+      setShowSuccessMessage(true);
+    } catch (err: any) {
+      console.error("Failed to create process:", err);
+      setErrorMessage(err.message || "Failed to create process. Please try again.");
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Form validation before create
+  const handleFormValidation = async (status: string) => {
+    if (
+      !orgId ||
+      typeof orgId !== "string" ||
+      !currentBusinessUnitId ||
+      typeof currentBusinessUnitId !== "string"
+    ) {
+      setErrorMessage("Organization ID and Business Unit ID are required");
+      return;
+    }
+
+    try {
+      // Check if process with same name already exists in organization
+      const existingProcesses = orgProcesses.filter(
+        (p: any) => p.processName?.trim().toLowerCase() === formData.processName.trim().toLowerCase()
+      );
+
+      if (existingProcesses.length > 0) {
+        setErrorMessage("Process already exists in this organization");
+        setShowSuccessMessage(false);
+      } else {
+        handleCreate(status);
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Failed to validate process");
+      setShowSuccessMessage(false);
+    }
+  };
+
   if (
     loading ||
     (isInitialLoad &&
@@ -875,7 +1003,7 @@ function ProcessesPage() {
                   gap: 2,
                 }}
               >
-                <Button
+                {/* <Button
                   variant="contained"
                   onClick={handleAddProcesses}
                   disabled={
@@ -901,6 +1029,33 @@ function ProcessesPage() {
                   }}
                 >
                   Add Processes
+                </Button> */}
+                <Button
+                  variant="contained"
+                  onClick={handleOpenCreateProcesses}
+                  disabled={
+                    !currentBusinessUnitId ||
+                    typeof currentBusinessUnitId !== "string" ||
+                    businessUnits.length === 0
+                  }
+                  sx={{
+                    backgroundColor: "#04139A",
+                    color: "#FFFFFF",
+                    p: "12px, 40px",
+                    height: "40px",
+                    borderRadius: "4px",
+                    textTransform: "none",
+                    fontWeight: 500,
+                    "&:hover": {
+                      backgroundColor: "#030d6b",
+                    },
+                    "&:disabled": {
+                      backgroundColor: "#E7E7E8",
+                      color: "#91939A",
+                    },
+                  }}
+                >
+                  Create Processes
                 </Button>
 
                 {/* Business Unit Selection */}
@@ -1093,7 +1248,7 @@ function ProcessesPage() {
                     },
                   }}
                 />
-                <Button
+                {/* <Button
                   variant="contained"
                   onClick={handleAddProcesses}
                   disabled={
@@ -1117,6 +1272,31 @@ function ProcessesPage() {
                   }}
                 >
                   Add Processes
+                </Button> */}
+                <Button
+                  variant="contained"
+                  onClick={handleOpenCreateProcesses}
+                  disabled={
+                    !currentBusinessUnitId ||
+                    typeof currentBusinessUnitId !== "string"
+                  }
+                  sx={{
+                    backgroundColor: "#04139A",
+                    color: "#FFFFFF",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    p: "12px 40px",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      backgroundColor: "#030d6b",
+                    },
+                    "&:disabled": {
+                      backgroundColor: "#E7E7E8",
+                      color: "#91939A",
+                    },
+                  }}
+                >
+                  Create Processes
                 </Button>
               </Box>
 
@@ -1380,6 +1560,21 @@ function ProcessesPage() {
         initialBusinessUnitId={currentBusinessUnitId}
       />
 
+      {/* Add Process Modal */}
+      {isAddOpen && (
+        <ProcessFormModal
+          operation="create"
+          open={isAddOpen}
+          processData={formData}
+          setProcessData={setFormData}
+          processes={processesData}
+          processForListing={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleFormValidation}
+          onClose={() => setIsAddConfirmOpen(true)}
+        />
+      )}
+
       {/* Edit Process Modal */}
       {isEditOpen && selectedProcess && (
         <ProcessFormModal
@@ -1400,6 +1595,21 @@ function ProcessesPage() {
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
+
+      {/* Confirm Dialog for Add Cancellation */}
+      <ConfirmDialog
+        open={isAddConfirmOpen}
+        onClose={() => setIsAddConfirmOpen(false)}
+        title="Cancel Process Creation?"
+        description="Are you sure you want to cancel the process creation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsAddConfirmOpen(false);
+          setFormData(initialProcessData);
+          setIsAddOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
 
       {/* Confirm Dialog for Edit Cancellation */}
       <ConfirmDialog
