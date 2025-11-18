@@ -584,14 +584,15 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
           <Grid mt={1} size={{ xs: 6 }}>
             <SelectStyled
-              value={processData.users}
+              value={processData.users || []}
               label={labels.users}
               isTooltipRequired={true}
               tooltipTitle={tooltips.users}
+              multiple
               displayEmpty
               onChange={(e) => handleChange("users", e.target.value as string)}
               renderValue={(selected: any) => {
-                if (!selected) {
+                if (!selected || selected?.length === 0) {
                   return (
                     <Typography
                       variant="body1"
@@ -612,7 +613,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                         textTransform: "capitalize",
                       }}
                     >
-                      {selected}
+                      {selected.join(", ")}
                     </Typography>
                   );
                 }
