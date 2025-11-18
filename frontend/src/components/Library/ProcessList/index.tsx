@@ -86,7 +86,7 @@ const ProcessList: React.FC<Props> = ({
                 ]}
                 module="Process"
                 footerChipKey="Users"
-                footerChipValue={item.users ? item.users : "Not Defined"}
+                footerChipValue={item.users ? item.users.join(", ") : "Not Defined"}
               />
             </div>
           ))

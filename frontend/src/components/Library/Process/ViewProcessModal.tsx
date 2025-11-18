@@ -303,7 +303,7 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
                 Users
               </Typography>
               <Typography variant="body1" color="text.primary" fontWeight={500}>
-                {processData.users}
+                {processData.users ? processData.users?.join(", ") : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -395,7 +395,9 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {processData.createdAt ? formatDate(processData.createdAt) : "-"}
+                {processData.createdAt
+                  ? formatDate(processData.createdAt)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -405,7 +407,9 @@ const ViewProcessModal: React.FC<ViewProcessModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {processData.lastUpdated ? formatDate(processData.lastUpdated) : "-"}
+                {processData.lastUpdated
+                  ? formatDate(processData.lastUpdated)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
