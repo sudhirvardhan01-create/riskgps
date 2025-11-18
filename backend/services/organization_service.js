@@ -1840,111 +1840,143 @@ class OrganizationService {
       modifiedDate: new Date(),
     });
 
-    return { message: "Business unit deleted successfully" };
-  }
-  /**
-   * Save or update taxonomies with severity levels for an organization
-   */
-  static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
-    try {
-      if (!orgId) {
-        throw new CustomError(
-          "Organization ID is required",
-          HttpStatus.BAD_REQUEST
-        );
-      }
+        return { message: "Business unit deleted successfully" };
+    }
+
+    /**
+     * Save or update taxonomies with severity levels for an organization (Option B)
+     */
+    static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
+        try {
+            if (!orgId) {
+                throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
+            }
 
       const savedTaxonomies = [];
 
-      for (const taxonomyData of taxonomies) {
-        const {
-          taxonomyId, // if provided, indicates update
-          name,
-          weightage,
-          createdBy,
-          order,
-          severityLevels = [],
-        } = taxonomyData;
+            for (const taxonomyData of taxonomies) {
+                const {
+                    taxonomyId,
+                    name,
+                    weightage,
+                    createdBy,
+                    order,
+                    isEdited,
+                    isActive,
+                    severityLevels = [],
+                } = taxonomyData;
 
-        // Check if taxonomy exists
-        let taxonomy = await Taxonomy.findOne({
-          where: {
-            organizationId: orgId,
-            name: name.trim(),
-            isDeleted: false,
-          },
-        });
+                let taxonomy;
 
-        if (taxonomy) {
-          // Update existing taxonomy
-          await taxonomy.update({
-            weightage,
-            order: order ?? taxonomy.order,
-            modifiedBy: createdBy,
-            modifiedDate: new Date(),
-          });
-        } else {
-          // Create new taxonomy
-          taxonomy = await Taxonomy.create({
-            name,
-            weightage,
-            organizationId: orgId,
-            createdBy,
-            createdDate: new Date(),
-            isDeleted: false,
-            order: order ?? 0,
-          });
-        }
+                if (taxonomyId) {
+                    taxonomy = await Taxonomy.findOne({
+                        where: {
+                            taxonomyId,
+                            organizationId: orgId,
+                            isDeleted: false,
+                        },
+                    });
+
+                    if (taxonomy) {
+                        await taxonomy.update({
+                            name,
+                            weightage,
+                            order: order ?? taxonomy.order,
+                            isEdited: isEdited ?? true,
+                            isActive: isActive ?? taxonomy.isActive,
+                            modifiedBy: createdBy,
+                            modifiedDate: new Date()
+                        });
+                    } else {
+                        taxonomy = await Taxonomy.create({
+                            name,
+                            weightage,
+                            organizationId: orgId,
+                            createdBy,
+                            createdDate: new Date(),
+                            isEdited: isEdited ?? false,
+                            isActive: isActive ?? true,
+                            order: order ?? 0
+                        });
+                    }
+
+                } else {
+                    taxonomy = await Taxonomy.create({
+                        name,
+                        weightage,
+                        organizationId: orgId,
+                        createdBy,
+                        createdDate: new Date(),
+                        isEdited: isEdited ?? false,
+                        isActive: isActive ?? true,
+                        order: order ?? 0,
+                    });
+                }
 
         const savedSeverities = [];
 
-        for (const level of severityLevels) {
-          const {
-            severityId, // optional if existing
-            name,
-            minRange,
-            maxRange,
-            color,
-            createdBy,
-            order,
-          } = level;
+                for (const level of severityLevels) {
+                    const {
+                        severityId,
+                        name,
+                        minRange,
+                        maxRange,
+                        color,
+                        createdBy,
+                        order,
+                    } = level;
 
-          // Check if severity already exists for this taxonomy by name
-          let severity = await SeverityLevel.findOne({
-            where: {
-              taxonomyId: taxonomy.taxonomyId,
-              name: name.trim(),
-              isDeleted: false,
-            },
-          });
+                    let severity;
 
-          if (severity) {
-            // Update existing severity
-            await severity.update({
-              minRange,
-              maxRange,
-              color,
-              order: order ?? severity.order,
-              modifiedBy: createdBy,
-              modifiedDate: new Date(),
-            });
-          } else {
-            // Create new severity
-            severity = await SeverityLevel.create({
-              taxonomyId: taxonomy.taxonomyId,
-              name,
-              minRange,
-              maxRange,
-              color,
-              createdBy,
-              createdDate: new Date(),
-              isDeleted: false,
-              order: order ?? 0,
-            });
-          }
+                    if (severityId) {
+                        severity = await SeverityLevel.findOne({
+                            where: {
+                                severityId,
+                                taxonomyId: taxonomy.taxonomyId,
+                                isDeleted: false,
+                            },
+                        });
 
-          savedSeverities.push(severity);
-        }
+                        if (severity) {
+                            await severity.update({
+                                name,
+                                minRange,
+                                maxRange,
+                                color,
+                                order: order ?? severity.order,
+                                modifiedBy: createdBy,
+                                modifiedDate: new Date()
+                            });
+                        } else {
+                            severity = await SeverityLevel.create({
+                                taxonomyId: taxonomy.taxonomyId,
+                                name,
+                                minRange,
+                                maxRange,
+                                color,
+                                createdBy,
+                                createdDate: new Date(),
+                                isEdited: isEdited ?? false,
+                                isActive: isActive ?? true,
+                                order: order ?? 0,
+                            });
+                        }
+
+                    } else {
+                        severity = await SeverityLevel.create({
+                            taxonomyId: taxonomy.taxonomyId,
+                            name,
+                            minRange,
+                            maxRange,
+                            color,
+                            createdBy,
+                            createdDate: new Date(),
+                            order: order ?? 0
+                        });
+                    }
+
+                    savedSeverities.push(severity);
+                }
 
         savedTaxonomies.push({
           ...taxonomy.get({ plain: true }),
@@ -1952,15 +1984,18 @@ class OrganizationService {
         });
       }
 
-      return savedTaxonomies;
-    } catch (err) {
-      throw new CustomError(
-        err.message ||
-          "Failed to save or update taxonomies with severity levels",
-        err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
-      );
+            return savedTaxonomies;
+
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to save or update taxonomies with severity levels",
+                err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
-  }
+
+
+
 }
 
 module.exports = OrganizationService;
