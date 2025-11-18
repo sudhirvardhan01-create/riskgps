@@ -1656,8 +1656,9 @@ class OrganizationService {
 
         return { message: "Business unit deleted successfully" };
     }
+
     /**
-     * Save or update taxonomies with severity levels for an organization
+     * Save or update taxonomies with severity levels for an organization (Option B)
      */
     static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
         try {
@@ -1669,40 +1670,59 @@ class OrganizationService {
 
             for (const taxonomyData of taxonomies) {
                 const {
-                    taxonomyId, // if provided, indicates update
+                    taxonomyId,
                     name,
                     weightage,
                     createdBy,
                     order,
+                    isEdited,
+                    isActive,
                     severityLevels = [],
                 } = taxonomyData;
 
-                // Check if taxonomy exists
-                let taxonomy = await Taxonomy.findOne({
-                    where: {
-                        organizationId: orgId,
-                        name: name.trim(),
-                        isDeleted: false,
-                    },
-                });
+                let taxonomy;
 
-                if (taxonomy) {
-                    // Update existing taxonomy
-                    await taxonomy.update({
-                        weightage,
-                        order: order ?? taxonomy.order,
-                        modifiedBy: createdBy,
-                        modifiedDate: new Date(),
+                if (taxonomyId) {
+                    taxonomy = await Taxonomy.findOne({
+                        where: {
+                            taxonomyId,
+                            organizationId: orgId,
+                            isDeleted: false,
+                        },
                     });
+
+                    if (taxonomy) {
+                        await taxonomy.update({
+                            name,
+                            weightage,
+                            order: order ?? taxonomy.order,
+                            isEdited: isEdited ?? true,
+                            isActive: isActive ?? taxonomy.isActive,
+                            modifiedBy: createdBy,
+                            modifiedDate: new Date()
+                        });
+                    } else {
+                        taxonomy = await Taxonomy.create({
+                            name,
+                            weightage,
+                            organizationId: orgId,
+                            createdBy,
+                            createdDate: new Date(),
+                            isEdited: isEdited ?? false,
+                            isActive: isActive ?? true,
+                            order: order ?? 0
+                        });
+                    }
+
                 } else {
-                    // Create new taxonomy
                     taxonomy = await Taxonomy.create({
                         name,
                         weightage,
                         organizationId: orgId,
                         createdBy,
                         createdDate: new Date(),
-                        isDeleted: false,
+                        isEdited: isEdited ?? false,
+                        isActive: isActive ?? true,
                         order: order ?? 0,
                     });
                 }
@@ -1711,7 +1731,7 @@ class OrganizationService {
 
                 for (const level of severityLevels) {
                     const {
-                        severityId, // optional if existing
+                        severityId,
                         name,
                         minRange,
                         maxRange,
@@ -1720,27 +1740,43 @@ class OrganizationService {
                         order,
                     } = level;
 
-                    // Check if severity already exists for this taxonomy by name
-                    let severity = await SeverityLevel.findOne({
-                        where: {
-                            taxonomyId: taxonomy.taxonomyId,
-                            name: name.trim(),
-                            isDeleted: false,
-                        },
-                    });
+                    let severity;
 
-                    if (severity) {
-                        // Update existing severity
-                        await severity.update({
-                            minRange,
-                            maxRange,
-                            color,
-                            order: order ?? severity.order,
-                            modifiedBy: createdBy,
-                            modifiedDate: new Date(),
+                    if (severityId) {
+                        severity = await SeverityLevel.findOne({
+                            where: {
+                                severityId,
+                                taxonomyId: taxonomy.taxonomyId,
+                                isDeleted: false,
+                            },
                         });
+
+                        if (severity) {
+                            await severity.update({
+                                name,
+                                minRange,
+                                maxRange,
+                                color,
+                                order: order ?? severity.order,
+                                modifiedBy: createdBy,
+                                modifiedDate: new Date()
+                            });
+                        } else {
+                            severity = await SeverityLevel.create({
+                                taxonomyId: taxonomy.taxonomyId,
+                                name,
+                                minRange,
+                                maxRange,
+                                color,
+                                createdBy,
+                                createdDate: new Date(),
+                                isEdited: isEdited ?? false,
+                                isActive: isActive ?? true,
+                                order: order ?? 0,
+                            });
+                        }
+
                     } else {
-                        // Create new severity
                         severity = await SeverityLevel.create({
                             taxonomyId: taxonomy.taxonomyId,
                             name,
@@ -1749,8 +1785,7 @@ class OrganizationService {
                             color,
                             createdBy,
                             createdDate: new Date(),
-                            isDeleted: false,
-                            order: order ?? 0,
+                            order: order ?? 0
                         });
                     }
 
@@ -1764,6 +1799,7 @@ class OrganizationService {
             }
 
             return savedTaxonomies;
+
         } catch (err) {
             throw new CustomError(
                 err.message || "Failed to save or update taxonomies with severity levels",
@@ -1771,6 +1807,8 @@ class OrganizationService {
             );
         }
     }
+
+
 
 }
 
