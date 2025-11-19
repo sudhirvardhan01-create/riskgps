@@ -279,6 +279,33 @@ class UserService {
     return updatedUser;
   }
 
+  static async onboardUser(id, orgId) {
+    if (!id) {
+      throw new CustomError(
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: id`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    if (!orgId) {
+      throw new CustomError(
+        `${Messages.GENERAL.REQUIRED_FIELD_MISSING}: Organization Id`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new CustomError(
+        "No user found with the provided id",
+        HttpStatus.NOT_FOUND
+      );
+    }
+    const onboardedUser = await user.update({
+      organizationId: orgId,
+      modifiedDate: new Date(),
+    });
+    return onboardedUser;
+  }
+
   static async resetPassword(id, password) {
     if (!id) {
       throw new CustomError(

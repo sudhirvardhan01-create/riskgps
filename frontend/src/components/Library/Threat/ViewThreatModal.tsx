@@ -23,6 +23,7 @@ import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { ThreatForm } from "@/types/threat";
 import { formatDate } from "@/utils/utility";
 import { labels } from "@/utils/labels";
+import { useConfig } from "@/context/ConfigContext";
 
 interface ViewThreatModalProps {
   open: boolean;
@@ -38,11 +39,10 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
   setSelectedThreat,
   onClose,
 }: ViewThreatModalProps) => {
-  const ciaMappingItems = [
-    { value: "C", label: "Confidentiality" },
-    { value: "I", label: "Integrity" },
-    { value: "A", label: "Availability" },
-  ];
+  const { fetchMetadataByKey } = useConfig();
+  const ciaArray = fetchMetadataByKey("CIA Mapping")?.supported_values.map(
+    (item) => JSON.parse(item)
+  );
 
   const getStatusComponent = () => {
     if (
@@ -188,11 +188,7 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
               <Typography variant="body1" color="text.primary" fontWeight={500}>
                 {threatData.ciaMapping
                   ? threatData.ciaMapping
-                      ?.map((selectedItem) => {
-                        return ciaMappingItems.find(
-                          (item) => item.value === selectedItem
-                        )?.label;
-                      })
+                      ?.map((i) => ciaArray?.find((a) => a.value === i)?.label)
                       .join(", ")
                   : "-"}
               </Typography>
@@ -258,7 +254,9 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                             {control.bluOceanControlDescription}
                           </TableCell>
                           <TableCell>
-                            {control?.controlPriority ? control?.controlPriority : "-" }
+                            {control?.controlPriority
+                              ? control?.controlPriority
+                              : "-"}
                           </TableCell>
                         </TableRow>
                       );
@@ -297,7 +295,9 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Created On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {threatData.created_at ? formatDate(threatData.created_at) : "-"}
+                {threatData.created_at
+                  ? formatDate(threatData.created_at)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>
@@ -307,7 +307,9 @@ const ViewThreatModal: React.FC<ViewThreatModalProps> = ({
                 Last Updated On
               </Typography>
               <Typography variant="body1" fontWeight={500} color="text.primary">
-                {threatData.updated_at? formatDate(threatData.updated_at) : "-"}
+                {threatData.updated_at
+                  ? formatDate(threatData.updated_at)
+                  : "-"}
               </Typography>
             </Box>
           </Grid>

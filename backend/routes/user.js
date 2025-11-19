@@ -4,6 +4,7 @@ const Messages = require("../constants/messages");
 const HttpStatus = require("../constants/httpStatusCodes");
 const CustomError = require("../utils/CustomError");
 const UserService = require("../services/userService");
+const messages = require("../constants/messages");
 
 router.post("/", async (req, res) => {
   try {
@@ -137,6 +138,26 @@ router.patch("/reset-password/:id", async (req, res) => {
     res.status(HttpStatus.OK).json({
       data: user,
       message: Messages.USER.RESET_PASSWORD,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(HttpStatus.NOT_FOUND).json({
+      error: err.message,
+    });
+  }
+});
+
+router.patch("/onboard-user/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const orgId = req.body.orgId;
+    const user = await UserService.onboardUser(id, orgId);
+    res.status(HttpStatus.OK).json({
+      data: {
+        name: user.name,
+        email: user.email,
+      },
+      message: Messages.USER.ONBOARDED_USER,
     });
   } catch (err) {
     console.log(err);

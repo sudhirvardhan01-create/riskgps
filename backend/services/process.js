@@ -352,7 +352,7 @@ class ProcessService {
         "Oraganizational Revenue Impact Percentage in number eg: 20",
       "Financial Materiality": "Yes / No",
       "Third Party Involvement": "Yes / No",
-      Users: "Users Type Internal Users / External Users / Third Party Users",
+      "Users": "Users Type Internal Users / External Users / Third Party Users Separated by Comma Eg:user1,user2",
       "Regulatory and Compliance": "regulations",
       "Criticality Of Data Processed": "Criticality Of Data Processed",
       "Data Processed":
@@ -399,7 +399,7 @@ class ProcessService {
             row.organizational_revenue_impact_percentage,
           "Financial Materiality": row.financial_materiality,
           "Third Party Involvement": row.third_party_involvement,
-          Users: row.users_customers,
+          "Users": (row.users_customers ?? []).join(","),
           "Regulatory and Compliance": row.regulatory_and_compliance,
           "Criticality Of Data Processed": row.criticality_of_data_processed,
           "Data Processed": (row.data_processed ?? []).join(","),
@@ -448,6 +448,10 @@ class ProcessService {
       if (!value) return [];
       return value.split(",");
     }
+    function parseUsersAndCustomers(value) {
+      if (!value) return [];
+      return value.split(",");
+    }
 
     function parseIndustry(value) {
       if (!value) return [];
@@ -484,7 +488,7 @@ class ProcessService {
             ),
             financialMateriality: parseBoolean(row["Financial Materiality"]),
             thirdPartyInvolvement: parseBoolean(row["Third Party Involvement"]),
-            usersCustomers: row["Users"],
+            usersCustomers: parseUsersAndCustomers(row["Users"]),
             regulatoryAndCompliance: parseRegulatoryAndCompliance(
               row["Regulatory and Compliance"]
             ),
@@ -503,6 +507,7 @@ class ProcessService {
                 returning: true,
                 ignoreDuplicates: true,
               });
+              console.log(inserted.length, "LOGGING THIS")
 
               // Insert metadata
               const metaRows = inserted.map((process) => {
@@ -516,9 +521,9 @@ class ProcessService {
                   values: match ? match.industry : null, // safe in case no match
                 };
               });
-              if (metaRows.length > 0) {
-                await ProcessAttribute.bulkCreate(metaRows);
-              }
+              // if (metaRows.length > 0) {
+              //   await ProcessAttribute.bulkCreate(metaRows);
+              // }
 
               totalInserted += inserted.length;
               batch = []; // reset
@@ -540,6 +545,7 @@ class ProcessService {
               });
 
               // Insert metadata
+              console.log(inserted.length, "LOGGING THIS")
 
               const metaRows = inserted.map((process) => {
                 const match = batch.find(
@@ -552,9 +558,9 @@ class ProcessService {
                   values: match ? match.industry : null, // safe in case no match
                 };
               });
-              if (metaRows.length > 0) {
-                await ProcessAttribute.bulkCreate(metaRows);
-              }
+              // if (metaRows.length > 0) {
+              //   await ProcessAttribute.bulkCreate(metaRows);
+              // }
 
               totalInserted += inserted.length;
             }
