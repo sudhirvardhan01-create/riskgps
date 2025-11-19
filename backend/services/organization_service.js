@@ -1032,6 +1032,8 @@ class OrganizationService {
           "modifiedDate",
           "weightage",
           "order",
+          "isEdited",
+          "isActive",
         ],
         include: [
           {

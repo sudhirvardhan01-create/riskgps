@@ -239,15 +239,20 @@ const Scales: React.FC = () => {
       // Update taxonomies with new weightages
       const updatedTaxonomies = taxonomies.map(taxonomy => {
         const categoryKey = mapTaxonomyNameToCategoryKey(taxonomy.name);
+        const taxonomyId = taxonomy.taxonomyId;
+        
         if (categoryKey && weightageInputs[categoryKey] !== undefined) {
           return {
-            taxonomyId: taxonomy.taxonomyId,
+            ...(taxonomyId && { taxonomyId }),
             name: taxonomy.name,
             weightage: weightageInputs[categoryKey],
-            order: taxonomy.order,
+            order: taxonomy.order || 0,
             createdBy: userId,
+            isEdited: taxonomy.isEdited !== undefined ? taxonomy.isEdited : false,
+            isActive: taxonomy.isActive !== undefined ? taxonomy.isActive : true,
             severityLevels: taxonomy.severityLevels.map(severity => ({
-              severityId: severity.severityId,
+              ...(severity.severityId && { severityId: severity.severityId }),
+              ...(taxonomyId && { taxonomyId }),
               name: severity.name,
               minRange: severity.minRange,
               maxRange: severity.maxRange,
@@ -258,13 +263,16 @@ const Scales: React.FC = () => {
           };
         }
         return {
-          taxonomyId: taxonomy.taxonomyId,
+          ...(taxonomyId && { taxonomyId }),
           name: taxonomy.name,
-          weightage: taxonomy.weightage,
-          order: taxonomy.order,
+          weightage: taxonomy.weightage || 0,
+          order: taxonomy.order || 0,
           createdBy: userId,
+          isEdited: taxonomy.isEdited !== undefined ? taxonomy.isEdited : false,
+          isActive: taxonomy.isActive !== undefined ? taxonomy.isActive : true,
           severityLevels: taxonomy.severityLevels.map(severity => ({
-            severityId: severity.severityId,
+            ...(severity.severityId && { severityId: severity.severityId }),
+            ...(taxonomyId && { taxonomyId }),
             name: severity.name,
             minRange: severity.minRange,
             maxRange: severity.maxRange,
@@ -360,18 +368,22 @@ const Scales: React.FC = () => {
       const updatedTaxonomies = taxonomies.map(taxonomy => {
         // Sort severity levels by order to match with labelsInputs
         const sortedSeverityLevels = [...taxonomy.severityLevels].sort((a, b) => a.order - b.order);
+        const taxonomyId = taxonomy.taxonomyId;
         
         return {
-          taxonomyId: taxonomy.taxonomyId,
+          ...(taxonomyId && { taxonomyId }),
           name: taxonomy.name,
-          weightage: taxonomy.weightage,
-          order: taxonomy.order,
+          weightage: taxonomy.weightage || 0,
+          order: taxonomy.order || 0,
           createdBy: userId,
+          isEdited: taxonomy.isEdited !== undefined ? taxonomy.isEdited : false,
+          isActive: taxonomy.isActive !== undefined ? taxonomy.isActive : true,
           severityLevels: sortedSeverityLevels.map((severity, index) => {
             // Find matching label input by order
             const matchingLabel = labelsInputs.find(label => label.id === severity.order);
             return {
-              severityId: severity.severityId,
+              ...(severity.severityId && { severityId: severity.severityId }),
+              ...(taxonomyId && { taxonomyId }),
               name: matchingLabel ? matchingLabel.label : severity.name,
               minRange: severity.minRange,
               maxRange: severity.maxRange,

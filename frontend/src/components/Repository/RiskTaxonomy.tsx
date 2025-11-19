@@ -155,6 +155,7 @@ const RiskTaxonomy: React.FC = () => {
                 return taxonomy ? {
                   ...category,
                   name: taxonomy.name.replace(' Risk', ''), // Remove " Risk" suffix
+                  isEnabled: taxonomy.isActive !== undefined ? taxonomy.isActive : category.isEnabled, // Set isEnabled from API isActive field
                 } : category;
               });
             });
@@ -348,6 +349,14 @@ const RiskTaxonomy: React.FC = () => {
       return [...taxonomy.severityLevels].sort((a, b) => a.order - b.order);
     }
     return [];
+  };
+
+  // Helper function to check if a taxonomy is edited based on categoryId
+  const isTaxonomyEdited = (categoryId: string): boolean => {
+    const taxonomy = taxonomies.find(t =>
+      mapTaxonomyNameToCategoryId(t.name) === categoryId
+    );
+    return taxonomy?.isEdited ?? false;
   };
 
   // Helper function to calculate Impact Scale range for a severity level
@@ -567,6 +576,9 @@ const RiskTaxonomy: React.FC = () => {
         throw new Error("No severity levels found for this category");
       }
 
+      // Check if taxonomyId exists in existing taxonomy
+      const taxonomyId = existingTaxonomy?.taxonomyId;
+
       // Calculate ranges for each severity level
       const totalSeverities = severityLevels.length;
       const updatedSeverityLevels = severityLevels.map((severity, index) => {
@@ -594,8 +606,17 @@ const RiskTaxonomy: React.FC = () => {
           maxRangeStr = Math.round(severityRange.max).toString();
         }
 
+        // Find existing severity level by name and order within the taxonomy
+        const existingSeverity = existingTaxonomy?.severityLevels?.find(
+          (sev: any) => sev.name === severity.name && sev.order === severity.order
+        );
+
+        // Check if severityId exists in existing severity levels
+        const severityId = existingSeverity?.severityId;
+
         return {
-          severityId: severity.severityId, // Include for update
+          ...(severityId && { severityId }),
+          ...(taxonomyId && { taxonomyId }),
           name: severity.name,
           minRange: minRangeStr,
           maxRange: maxRangeStr,
@@ -609,23 +630,25 @@ const RiskTaxonomy: React.FC = () => {
       const categoryName = impactCategories.find(cat => cat.id === categoryId)?.name || '';
       const taxonomyName = categoryName.includes(' Risk') ? categoryName : `${categoryName} Risk`;
 
+      // Get isEnabled state for the current category (toggle on/off state)
+      const isActive = impactCategories.find(cat => cat.id === categoryId)?.isEnabled ?? true;
+
       // Prepare taxonomy data for API
       const taxonomyData = {
-        taxonomyId: existingTaxonomy?.taxonomyId, // Include for update
+        ...(taxonomyId && { taxonomyId }),
         name: taxonomyName,
         weightage: existingTaxonomy?.weightage || 0,
         order: existingTaxonomy?.order || 0,
         createdBy: userId,
+        isEdited: true,
+        isActive: isActive,
         severityLevels: updatedSeverityLevels,
       };
 
       // Call the API to save/update taxonomy
       await saveTaxonomies(orgId, [taxonomyData]);
 
-      // Update saved state
-      setSavedStates(prev => ({ ...prev, [categoryId]: true }));
-
-      // Optionally refresh taxonomies to get updated data
+      // Refresh taxonomies to get updated data including isEdited status
       try {
         const response = await getTaxonomies(orgId);
         if (response.data && response.data.length > 0) {
@@ -747,7 +770,7 @@ const RiskTaxonomy: React.FC = () => {
                   >
                     {category.name}
                   </Typography>
-                  <CheckCircle sx={{ color: savedStates[category.id] ? '#0CA512' : '#B3B3B3', fontSize: 16 }} />
+                  <CheckCircle sx={{ color: isTaxonomyEdited(category.id) ? '#0CA512' : '#B3B3B3', fontSize: 16 }} />
                 </Box>
               ))}
             </Stack>
@@ -1352,7 +1375,7 @@ const RiskTaxonomy: React.FC = () => {
                 variant="contained"
                 startIcon={<Save />}
                 onClick={() => handleSaveImpactScale(selectedCategory)}
-                disabled={savingStates[selectedCategory] || !isCurrentCategoryEnabled()}
+                disabled={savingStates[selectedCategory]}
                 sx={{
                   backgroundColor: '#04139A',
                   color: 'white',

@@ -392,6 +392,8 @@ export interface Taxonomy {
   modifiedDate: string;
   weightage: number;
   order: number;
+  isEdited?: boolean;
+  isActive?: boolean;
   severityLevels: Array<{
     severityId: string;
     taxonomyId: string;
