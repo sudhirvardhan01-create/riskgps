@@ -36,6 +36,7 @@ import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModa
 import { ProcessLibraryService } from "@/services/orgLibraryService/processLibraryService";
 import {
   getOrganizationProcess,
+  createOrganizationProcess,
   createOrganizationProcesses,
   updateOrganizationProcess,
   deleteOrganizationProcess,
@@ -70,7 +71,7 @@ const initialProcessData: ProcessData = {
   organizationalRevenueImpactPercentage: 0,
   financialMateriality: false,
   thirdPartyInvolvement: false,
-  users: "",
+  users: [],
   requlatoryAndCompliance: [],
   criticalityOfDataProcessed: "",
   dataProcessed: [],
@@ -508,7 +509,13 @@ function ProcessesPage() {
           typeof fullProcess.thirdPartyInvolvement === "boolean"
             ? fullProcess.thirdPartyInvolvement
             : fullProcess.thirdPartyInvolvement === "true",
-        users: fullProcess.usersCustomers || "",
+        users: fullProcess.usersCustomers 
+          ? (Array.isArray(fullProcess.usersCustomers) 
+              ? fullProcess.usersCustomers 
+              : typeof fullProcess.usersCustomers === 'string' 
+                ? fullProcess.usersCustomers.split(", ").filter(Boolean)
+                : [])
+          : [],
         requlatoryAndCompliance: fullProcess.regulatoryAndCompliance || [],
         criticalityOfDataProcessed:
           fullProcess.criticalityOfDataProcessed || "",
@@ -639,8 +646,8 @@ function ProcessesPage() {
       setIsLoading(true);
       setErrorMessage(null);
 
-      // Transform formData to match the API format (same format as handleAddProcessesFromModal)
-      const formattedData = [{
+      // Transform formData to match the API format (single object, not array)
+      const formattedData = {
         processName: formData.processName,
         processDescription: formData.processDescription || "",
         seniorExecutiveOwnerName: formData.seniorExecutiveOwnerName || "",
@@ -652,7 +659,7 @@ function ProcessesPage() {
         organizationalRevenueImpactPercentage: formData.organizationalRevenueImpactPercentage || null,
         financialMateriality: formData.financialMateriality || false,
         thirdPartyInvolvement: formData.thirdPartyInvolvement || false,
-        usersCustomers: formData.users || "",
+        usersCustomers: Array.isArray(formData.users) ? formData.users.join(", ") : (formData.users || ""),
         regulatoryAndCompliance: formData.requlatoryAndCompliance || null,
         criticalityOfDataProcessed: formData.criticalityOfDataProcessed || "",
         dataProcessed: formData.dataProcessed || null,
@@ -666,9 +673,9 @@ function ProcessesPage() {
           meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
           values: attr.values || [],
         })) || [],
-      }];
+      };
 
-      await createOrganizationProcesses(orgId, currentBusinessUnitId, formattedData);
+      await createOrganizationProcess(orgId, currentBusinessUnitId, formattedData);
 
       // Reset form and close modal
       setFormData(initialProcessData);

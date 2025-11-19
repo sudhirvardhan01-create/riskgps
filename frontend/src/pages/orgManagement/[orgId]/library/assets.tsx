@@ -30,6 +30,7 @@ import Image from "next/image";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { AssetLibraryService } from "@/services/orgLibraryService/assetLibraryService";
 import {
+  createOrganizationAsset,
   createOrganizationAssets,
   getOrganizationAssets,
   updateOrganizationAsset,
@@ -499,8 +500,8 @@ function AssetsPage() {
       setIsLoading(true);
       setErrorMessage(null);
 
-      // Transform formData to match the API format (same format as handleAddAssetsFromModal)
-      const formattedData = [{
+      // Transform formData to match the API format (single object, not array)
+      const formattedData = {
         applicationName: formData.applicationName,
         assetCategory: formData.assetCategory || "",
         assetDescription: formData.assetDescription || "",
@@ -523,9 +524,9 @@ function AssetsPage() {
           meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
           values: attr.values || [],
         })) || [],
-      }];
+      };
 
-      await createOrganizationAssets(orgId, formattedData);
+      await createOrganizationAsset(orgId, formattedData);
 
       // Reset form and close modal
       setFormData(initialAssetsData);

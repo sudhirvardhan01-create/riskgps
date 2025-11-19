@@ -53,6 +53,77 @@ export const getOrganizationProcess = async (
   return response.json();
 };
 
+export const createOrganizationProcess = async (
+  orgId: string | undefined,
+  buId: string | undefined,
+  processData: any
+) => {
+  if (!orgId || !buId) {
+    throw new Error("Organization ID and Business Unit ID are required");
+  }
+
+  // Transform the data to match backend expectations
+  // Map attributes from meta_data_key_id to metaDataKeyId
+  const attributes = processData.attributes?.map((attr: any) => ({
+    metaDataKeyId: attr.meta_data_key_id || attr.metaDataKeyId,
+    values: attr.values || [],
+  })) || [];
+
+  // Map process_dependency to processDependency
+  const processDependency = processData.process_dependency?.map((dep: any) => ({
+    sourceProcessId: dep.sourceProcessId || dep.source_process_id,
+    targetProcessId: dep.targetProcessId || dep.target_process_id,
+    relationshipType: dep.relationshipType || dep.relationship_type,
+  })) || [];
+
+  // Helper function to convert empty strings to null (matching backend behavior)
+  const emptyToNull = (value: any) => (value === "" ? null : value);
+
+  const transformedData: any = {
+    // Optional fields for updates
+    ...(processData.id && { id: processData.id }),
+    ...(processData.parentObjectId && { parentObjectId: processData.parentObjectId }),
+    // Required field
+    processName: processData.processName,
+    // All other fields - convert empty strings to null to match backend
+    processDescription: emptyToNull(processData.processDescription),
+    seniorExecutiveOwnerName: emptyToNull(processData.seniorExecutiveOwnerName),
+    seniorExecutiveOwnerEmail: emptyToNull(processData.seniorExecutiveOwnerEmail),
+    operationsOwnerName: emptyToNull(processData.operationsOwnerName),
+    operationsOwnerEmail: emptyToNull(processData.operationsOwnerEmail),
+    technologyOwnerName: emptyToNull(processData.technologyOwnerName),
+    technologyOwnerEmail: emptyToNull(processData.technologyOwnerEmail),
+    organizationalRevenueImpactPercentage: emptyToNull(processData.organizationalRevenueImpactPercentage),
+    financialMateriality: emptyToNull(processData.financialMateriality),
+    thirdPartyInvolvement: processData.thirdPartyInvolvement ?? null,
+    usersCustomers: emptyToNull(processData.usersCustomers),
+    regulatoryAndCompliance: emptyToNull(processData.regulatoryAndCompliance),
+    criticalityOfDataProcessed: emptyToNull(processData.criticalityOfDataProcessed),
+    dataProcessed: emptyToNull(processData.dataProcessed),
+    status: processData.status || "published",
+    processDependency: processDependency,
+    attributes: attributes,
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/add-process`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to create organization process");
+  }
+
+  return response.json();
+};
+
 export const createOrganizationProcesses = async (
   orgId: string | undefined,
   buId: string | undefined,
@@ -226,6 +297,67 @@ export const getOrganizationAssets = async (orgId: string | undefined) => {
   return response.json();
 };
 
+export const createOrganizationAsset = async (
+  orgId: string | undefined,
+  asset: any
+) => {
+  if (!orgId) {
+    throw new Error("Organization ID is required");
+  }
+
+  // Transform the data to match backend expectations
+  // Map attributes from meta_data_key_id to metaDataKeyId
+  const attributes = asset.attributes?.map((attr: any) => ({
+    metaDataKeyId: attr.meta_data_key_id || attr.metaDataKeyId,
+    values: attr.values || [],
+  })) || [];
+
+  // Map related_processes to relatedProcesses
+  const relatedProcesses = asset.related_processes?.map((processId: string | number) => 
+    typeof processId === 'string' ? processId : String(processId)
+  ) || [];
+
+  const transformedData = {
+    applicationName: asset.applicationName,
+    assetDescription: asset.assetDescription || "",
+    assetCategory: asset.assetCategory || "",
+    applicationOwner: asset.applicationOwner || null,
+    applicationItOwner: asset.applicationItOwner || null,
+    isThirdPartyManagement: asset.isThirdPartyManagement || null,
+    thirdPartyName: asset.thirdPartyName || null,
+    thirdPartyLocation: asset.thirdPartyLocation || null,
+    hosting: asset.hosting || null,
+    hostingFacility: asset.hostingFacility || null,
+    cloudServiceProvider: asset.cloudServiceProvider || null,
+    geographicLocation: asset.geographicLocation || null,
+    hasRedundancy: asset.hasRedundancy || null,
+    databases: asset.databases || null,
+    hasNetworkSegmentation: asset.hasNetworkSegmentation || null,
+    networkName: asset.networkName || null,
+    status: asset.status || "published",
+    relatedProcesses: relatedProcesses,
+    attributes: attributes,
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/add-asset`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to create organization asset");
+  }
+
+  return response.json();
+};
+
 export const createOrganizationAssets = async (
   orgId: string | undefined,
   assets: any[]
@@ -391,6 +523,58 @@ export const getOrganizationTaxonomy = async (orgId: string | undefined) => {
   if (!response.ok) {
     throw new Error("Failed to fetch login data");
   }
+  return response.json();
+};
+
+export const createOrganizationRiskScenario = async (
+  orgId: string | undefined,
+  riskScenario: any
+) => {
+  if (!orgId) {
+    throw new Error("Organization ID is required");
+  }
+
+  // Transform the data to match backend expectations
+  // Map attributes from meta_data_key_id to metaDataKeyId
+  const attributes = riskScenario.attributes?.map((attr: any) => ({
+    metaDataKeyId: attr.meta_data_key_id || attr.metaDataKeyId,
+    values: attr.values || [],
+  })) || [];
+
+  // Map related_processes to relatedProcesses
+  const relatedProcesses = riskScenario.related_processes?.map((processId: string) => 
+    typeof processId === 'string' ? processId : String(processId)
+  ) || [];
+
+  const transformedData = {
+    riskScenario: riskScenario.riskScenario,
+    riskDescription: riskScenario.riskDescription || "",
+    riskStatement: riskScenario.riskStatement || "",
+    ciaMapping: riskScenario.ciaMapping || [],
+    status: riskScenario.status || "published",
+    riskField1: riskScenario.riskField1 || "",
+    riskField2: riskScenario.riskField2 || "",
+    relatedProcesses: relatedProcesses,
+    attributes: attributes,
+    parentObjectId: riskScenario.id,
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/add-risk-scenarios`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to create organization risk scenario");
+  }
+
   return response.json();
 };
 

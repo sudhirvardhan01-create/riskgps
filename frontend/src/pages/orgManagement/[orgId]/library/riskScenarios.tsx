@@ -31,6 +31,7 @@ import { RiskScenarioData, RiskScenarioAttributes } from "@/types/risk-scenario"
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { RiskScenarioLibraryService } from "@/services/orgLibraryService/riskScenarioLibraryService";
 import {
+  createOrganizationRiskScenario,
   createOrganizationRiskScenarios,
   getOrganizationRisks,
   updateOrganizationRiskScenario,
@@ -473,8 +474,8 @@ function RiskScenariosPage() {
       setIsLoading(true);
       setErrorMessage(null);
 
-      // Transform formData to match the API format
-      const formattedData = [{
+      // Transform formData to match the API format (single object, not array)
+      const formattedData = {
         riskScenario: formData.riskScenario,
         riskDescription: formData.riskDescription || "",
         riskStatement: formData.riskStatement || "",
@@ -487,9 +488,9 @@ function RiskScenariosPage() {
           meta_data_key_id: attr.meta_data_key_id || attr.metaDataKeyId || null,
           values: attr.values || [],
         })) || [],
-      }];
+      };
 
-      await createOrganizationRiskScenarios(orgId, formattedData);
+      await createOrganizationRiskScenario(orgId, formattedData);
 
       // Reset form and close modal
       setFormData(initialRiskData);
