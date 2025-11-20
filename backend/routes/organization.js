@@ -156,6 +156,37 @@ router.get(
 );
 
 router.post(
+  "/:orgId/business-unit/:businessUnitId/add-process",
+  async (req, res) => {
+    try {
+      const { orgId, businessUnitId } = req.params;
+      console.log({ orgId, businessUnitId })
+      if (!orgId || !businessUnitId) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message:
+            "Organization ID and Business unit ID is required in the URL",
+        });
+      }
+
+      const scenarios = await OrganizationService.addProcessByOrgIdAndBuId(
+        orgId,
+        businessUnitId,
+        req.body
+      );
+
+      res.status(HttpStatus.OK).json({
+        message: "Organization process created successfully",
+        data: scenarios,
+      });
+    } catch (err) {
+      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+        error: err.message || "Failed to create organization process",
+      });
+    }
+  }
+);
+
+router.post(
   "/:orgId/business-unit/:businessUnitId/process",
   async (req, res) => {
     try {
@@ -304,6 +335,35 @@ router.get("/:orgId/risk-scenarios-v2", async (req, res) => {
     });
   }
 });
+
+
+
+router.post("/:orgId/add-risk-scenarios", async (req, res) => {
+  try {
+    const { orgId } = req.params;
+
+    if (!orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "Organization ID is required in the URL",
+      });
+    }
+
+    const scenarios = await OrganizationService.addRiskScenariosByOrgId(
+      orgId,
+      req.body
+    );
+
+    res.status(HttpStatus.OK).json({
+      message: "Organization risk scenarios created successfully",
+      data: scenarios,
+    });
+  } catch (err) {
+    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || "Failed to create organization risk scenarios",
+    });
+  }
+});
+
 
 /**
  * @route GET /organization/:orgId/risk-scenarios
@@ -562,6 +622,33 @@ router.get("/:orgId/assets-v2", async (req, res) => {
     });
   }
 });
+
+router.post("/:orgId/add-asset", async (req, res) => {
+  try {
+    const { orgId } = req.params;
+
+    if (!orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "Organization ID is required in the URL",
+      });
+    }
+
+    const scenarios = await OrganizationService.addAssetByOrgId(
+      orgId,
+      req.body
+    );
+
+    res.status(HttpStatus.OK).json({
+      message: "Organization asset created successfully",
+      data: scenarios,
+    });
+  } catch (err) {
+    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: err.message || "Failed to created org asset",
+    });
+  }
+});
+
 
 router.post("/:orgId/asset", async (req, res) => {
   try {

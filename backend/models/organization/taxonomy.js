@@ -30,6 +30,18 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 field: "order_no",
             },
+            isEdited: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+                field: "is_edited",
+            },
+            isActive: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+                field: "is_active",
+            },
 
             ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
         },
