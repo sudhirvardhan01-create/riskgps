@@ -5,7 +5,13 @@ const {
   OrganizationRiskScenario,
   OrganizationProcessRelationship,
   OrganizationAsset,
+  sequelize,
+  Assessment,
+  AssessmentProcessAsset,
+  ReportsMaster,
+  ReportsActive
 } = require("../models");
+const { fetchDataFromAssessment, createFlatAssessmentMatrixFromProcesses, insertBusinessAssetRisks, generateCSV } = require("./reports_helper");
 class ReportsService {
   static async getOrganizationalDependencyData(orgId = null) {
     console.log("Fetching all Organization Dependecy map details");
@@ -149,6 +155,29 @@ class ReportsService {
     }
     return processes;
   }
+
+
+static async syncupReportsMasterTable(orgId, assessmentIds = [], active = false, flatten = true, updateReportRecords = false, clearOldRecords = false) {
+  const assessmentProcesses = await fetchDataFromAssessment(orgId, assessmentIds, active)
+  if (flatten == false && updateReportRecords == false) return assessmentProcesses;
+
+  const flatRecords = createFlatAssessmentMatrixFromProcesses(assessmentProcesses);
+
+  if (updateReportRecords) {
+    const insertRecords = await insertBusinessAssetRisks(flatRecords, ReportsMaster, clearOldRecords);
+    // const csv = await generateCSV(flatRecords)
+  }
+
+  return flatRecords;
+}
+
+static async syncupReportsActiveTable(orgId, assessmentId = null, active = true, flatten = true) {
+    const assessmentProcesses = await fetchDataFromAssessment(orgId, active);
+    if (flatten == false) return assessmentProcesses;
+    const flatRecords = createFlatAssessmentMatrixFromProcesses(assessmentProcesses);
+    return flatRecords;
+}
+
 }
 
 module.exports = ReportsService;

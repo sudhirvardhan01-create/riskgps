@@ -1,8 +1,8 @@
 const commonFields = require("../common_fields");
 
 module.exports = (sequelize, DataTypes) => {
-  const AssetControlScore = sequelize.define(
-    "AssetControlScore",
+  const OrganizationControlScore = sequelize.define(
+    "OrganizationControlScore",
     {
       id: {
         type: DataTypes.UUID,
@@ -10,15 +10,30 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         field: "id",
       },
+            orgId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        field: "org_id",
+      },
       orgAssetId: {
         type: DataTypes.UUID,
         allowNull: true,
         field: "org_asset_id",
       },
-      controlId: {
+      controlRecordRef: {
         type: DataTypes.UUID,
         allowNull: true,
+        field: "control_record_ref",
+      },
+      controlId: {
+        type: DataTypes.TEXT,
+        allowNull: true,
         field: "control_id",
+      },
+      controlName: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        field: "control_name",
       },
       ciaMapping: {
         type: DataTypes.TEXT,
@@ -39,11 +54,11 @@ module.exports = (sequelize, DataTypes) => {
       ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, etc.
     },
     {
-      tableName: "asset_control_score",
+      tableName: "reports_organization_control_score",
       schema: "public",
       timestamps: false,
     }
   );
 
-  return AssetControlScore;
+  return OrganizationControlScore;
 };

@@ -57,6 +57,11 @@ module.exports = (sequelize, DataTypes) => {
       as: "assessment",
     });
 
+    AssessmentProcessRiskScenario.belongsTo(models.OrganizationRiskScenario, {
+      foreignKey: "id",
+      as: "orgRiskScenario",
+    });
+
     AssessmentProcessRiskScenario.hasMany(
       models.AssessmentRiskScenarioBusinessImpact,
       {

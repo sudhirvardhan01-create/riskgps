@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         field: "id",
       },
+            orgId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        field: "org_id",
+      },
       orgAssetId: {
         type: DataTypes.UUID,
         allowNull: true,
@@ -39,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
       ...commonFields, // includes createdBy, modifiedBy, createdDate, modifiedDate, isDeleted, etc.
     },
     {
-      tableName: "prot_det_mitre_control",
+      tableName: "reports_prot_det_mitre_control",
       schema: "public",
       timestamps: false,
     }

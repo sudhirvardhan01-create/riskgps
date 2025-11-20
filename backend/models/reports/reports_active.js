@@ -1,7 +1,7 @@
 // models/ReportsActive.js
 module.exports = (sequelize, DataTypes) => {
-  const ReportsMaster = sequelize.define(
-    "ReportsMaster",
+  const ReportsActive = sequelize.define(
+    "ReportsActive",
     {
       id: {
         type: DataTypes.UUID,
@@ -152,10 +152,10 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      tableName: "eports_master",
+      tableName: "reports_active",
       timestamps: true,
     }
   );
 
-  return ReportsMaster;
+  return ReportsActive;
 };
