@@ -428,6 +428,7 @@ async function fetchDataFromAssessment(
 
   const Op = models.Sequelize.Op;
   let latestAssessmentIds = [];
+  let organizationAssessmentsIds = [];
 
   if (!orgId) {
     throw new Error("Organization ID (orgId) is required.");
@@ -486,6 +487,43 @@ async function fetchDataFromAssessment(
     }
 
     where.assessmentId = { [Op.in]: latestAssessmentIds };
+  } else {
+   const organizationAssessmentsQuery = `
+      SELECT "assessment_id"
+      FROM public."assessment"
+      WHERE 
+          "org_id" = :orgId
+          AND "is_deleted" = FALSE
+          AND "assessment_id" IS NOT NULL;
+    `;
+
+    const rawQueryResult = await models.sequelize.query(
+      organizationAssessmentsQuery,
+      {
+        replacements: { orgId: orgId },
+        type: models.sequelize.QueryTypes.SELECT,
+      }
+    );
+
+    // Handle the different return formats of raw queries to ensure we have an array
+    const queryResults =
+      Array.isArray(rawQueryResult) && Array.isArray(rawQueryResult[0])
+        ? rawQueryResult[0]
+        : rawQueryResult;
+
+    if (!Array.isArray(queryResults)) {
+      console.error("Raw SQL query did not return a map-able array.");
+      return [];
+    }
+
+    organizationAssessmentsIds = queryResults.map((r) => r.assessment_id);
+
+    if (organizationAssessmentsIds.length === 0) {
+      console.log(`No latest assessments found for organization ID: ${orgId}`);
+      return [];
+    }
+
+    where.assessmentId = { [Op.in]: organizationAssessmentsIds };
   }
 
   // --- 2. Fetch all required nested data based on the latest IDs ---

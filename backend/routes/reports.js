@@ -29,12 +29,15 @@ router.get("/process-details/:orgId", async (req, res) => {
 router.get("/reports-v1/:orgId", async (req, res) => {
   try {
     const { orgId } = req.params;
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
     const businessUnitId = req.query.businessUnitId ?? null;
     if (!orgId) {
         throw new Error("Org id not found")
     }
     const data = await generateFlatAssessmentMatrix(
-      "bc1b9a89-64f8-469f-bc02-b3417a06c6a4"
+      orgId
     );
     res.status(HttpStatusCodes.OK).json({
       data: data,
@@ -51,6 +54,9 @@ router.post("/reports-syncup-master/:orgId", async (req, res) => {
   try {
     
     const { orgId } = req.params;  // bc1b9a89-64f8-469f-bc02-b3417a06c6a4"
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
     const flatten = req.query.flatten?.toLowerCase() === "false" ? false : true;
     const clearOldRecords = req.query.clearOldRecords?.toLowerCase() === "true" ? true : false;
     const updateReportRecords = req.query.updateReportRecords?.toLowerCase() === "true" ? true : false;
@@ -80,15 +86,18 @@ router.post("/reports-syncup-master/:orgId", async (req, res) => {
   }
 });
 
-router.get("/reports-syncup-active/:orgId", async (req, res) => {
+router.post("/reports-syncup-active/:orgId", async (req, res) => {
   try {
     const { orgId } = req.params;
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
     const businessUnitId = req.query.businessUnitId ?? null;
     if (!orgId) {
         throw new Error("Org id not found")
     }
     const data = await ReportsService.syncupReportsMasterTable(
-      "bc1b9a89-64f8-469f-bc02-b3417a06c6a4",
+      orgId,
       false
     );
     res.status(HttpStatusCodes.OK).json({
