@@ -257,7 +257,6 @@ module.exports = {
           "organizationalRevenueImpactPercentage",
         financial_materiality: "financialMateriality",
         third_party_involvement: "thirdPartyInvolvement",
-        users_customers: "usersCustomers",
         regulatory_and_compliance: "regulatoryAndCompliance",
         criticality_of_data_processed: "criticalityOfDataProcessed",
         data_processed: "dataProcessed",

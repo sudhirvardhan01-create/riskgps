@@ -25,7 +25,7 @@ const initialProcessData: ProcessData = {
   organizationalRevenueImpactPercentage: 0,
   financialMateriality: false,
   thirdPartyInvolvement: false,
-  users: "",
+  users: [],
   requlatoryAndCompliance: [],
   criticalityOfDataProcessed: "",
   dataProcessed: [],
@@ -42,7 +42,6 @@ const sortItems = [
   { label: "Updated (Oldest to Latest)", value: "updated_at:asc" },
   { label: "Process Name (Ascending)", value: "processName:asc" },
   { label: "Process Name (Descending)", value: "processName:desc" },
-
 ];
 
 const breadcrumbItems = [
