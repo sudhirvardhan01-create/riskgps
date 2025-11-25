@@ -46,6 +46,7 @@ function EditOrgDetailsPage() {
   const [isFormReady, setIsFormReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasTaxonomies, setHasTaxonomies] = useState<boolean | null>(null);
+  const [existingTaxonomies, setExistingTaxonomies] = useState<any[]>([]);
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -105,9 +106,11 @@ function EditOrgDetailsPage() {
           const taxonomiesResponse = await getTaxonomies(orgId as string);
           const taxonomiesData = taxonomiesResponse?.data || [];
           setHasTaxonomies(taxonomiesData.length > 0);
+          setExistingTaxonomies(taxonomiesData);
         } catch (taxonomyError) {
           // If getTaxonomies fails (e.g., 404), assume no taxonomies exist
           setHasTaxonomies(false);
+          setExistingTaxonomies([]);
         }
 
         // First try to fetch from API
@@ -327,6 +330,106 @@ function EditOrgDetailsPage() {
     return value.replace(/[$,\s]/g, '');
   };
 
+  // Function to calculate severity levels based on annualRevenue
+  const calculateSeverityLevels = (annualRevenueValue: number) => {
+    // Set default dollar range to 25% and 75% of annual revenue
+    const defaultMin = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.25) : 0;
+    const defaultMax = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.75) : 0;
+    const range = defaultMax - defaultMin;
+
+    // Calculate impact based on percentage
+    const calculateImpact = (percentage: number): number => {
+      if (defaultMin > 0 && defaultMax > 0) {
+        const normalizedValue = percentage / 100;
+        return defaultMin + (normalizedValue * range);
+      }
+      return 0;
+    };
+
+    const formatRange = (value: number): string => {
+      return Math.round(value).toString();
+    };
+
+    // Calculate Low, Medium, and High values
+    const lowValue = calculateImpact(25);
+    const mediumValue = calculateImpact(50);
+    const highValue = calculateImpact(75);
+
+    return {
+      defaultMin,
+      defaultMax,
+      lowValue,
+      mediumValue,
+      highValue,
+      formatRange
+    };
+  };
+
+  // Update severity levels when annualRevenue changes
+  useEffect(() => {
+    if (!isFormReady || !formData.annualRevenue) return;
+
+    const annualRevenueValue = parseInt(cleanFinancialValue(formData.annualRevenue));
+    if (!annualRevenueValue || annualRevenueValue <= 0) return;
+
+    const { defaultMin, defaultMax, lowValue, mediumValue, highValue, formatRange } = 
+      calculateSeverityLevels(annualRevenueValue);
+
+    // Update existingTaxonomies with new severity level ranges
+    setExistingTaxonomies(prevTaxonomies => {
+      if (!prevTaxonomies || prevTaxonomies.length === 0) {
+        // If no taxonomies exist yet, return empty array (they'll be created on save)
+        return [];
+      }
+
+      return prevTaxonomies.map(taxonomy => {
+        const updatedSeverityLevels = taxonomy.severityLevels?.map((severity: any) => {
+          let newMinRange = "";
+          let newMaxRange = "";
+
+          // Update ranges based on severity level name and order
+          switch (severity.name) {
+            case "Very Low":
+              newMinRange = formatRange(defaultMin);
+              newMaxRange = formatRange(lowValue);
+              break;
+            case "Low":
+              newMinRange = formatRange(lowValue);
+              newMaxRange = formatRange(mediumValue);
+              break;
+            case "Moderate":
+              newMinRange = formatRange(mediumValue);
+              newMaxRange = formatRange(highValue);
+              break;
+            case "High":
+              newMinRange = formatRange(highValue);
+              newMaxRange = formatRange(defaultMax);
+              break;
+            case "Critical":
+              newMinRange = "";
+              newMaxRange = formatRange(defaultMax);
+              break;
+            default:
+              // Keep existing values if name doesn't match
+              newMinRange = severity.minRange || "";
+              newMaxRange = severity.maxRange || "";
+          }
+
+          return {
+            ...severity,
+            minRange: newMinRange,
+            maxRange: newMaxRange
+          };
+        });
+
+        return {
+          ...taxonomy,
+          severityLevels: updatedSeverityLevels
+        };
+      });
+    });
+  }, [formData.annualRevenue, isFormReady]);
+
   const handleSave = async () => {
     if (!orgId) return;
 
@@ -451,250 +554,121 @@ function EditOrgDetailsPage() {
       // Call the update API
       const response = await updateOrganization(orgId as string, updateData);
 
-      // Check if taxonomies don't exist and create them if needed
-      if (response.data.organizationId && !hasTaxonomies) {
+      // Always save/update taxonomies (create if not exist, update if exist)
+      if (response.data.organizationId) {
         // Get user ID from cookies for createdBy
         const userCookie = Cookies.get("user");
         const user = userCookie ? JSON.parse(userCookie) : null;
         const userId = user?.userId || user?.id || response.data.createdBy || null;
 
-        // Extract numeric value from annualRevenue (remove any formatting) - same as RiskTaxonomy.tsx
+        // Extract numeric value from annualRevenue (remove any formatting)
         const annualRevenueValue = formData.annualRevenue
           ? parseInt(cleanFinancialValue(formData.annualRevenue))
           : 0;
 
-        // Set default dollar range to 25% and 75% of annual revenue (same as RiskTaxonomy.tsx)
-        const defaultMin = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.25) : 0;
-        const defaultMax = annualRevenueValue > 0 ? Math.round(annualRevenueValue * 0.75) : 0;
-        const range = defaultMax - defaultMin;
+        // Calculate severity levels using the shared function
+        const { defaultMin, defaultMax, lowValue, mediumValue, highValue, formatRange } = 
+          calculateSeverityLevels(annualRevenueValue);
 
-        // Calculate impact based on percentage (same formula as RiskTaxonomy.tsx calculateImpact)
-        // Using linear calculation: userMin + (normalizedValue * range)
-        const calculateImpact = (percentage: number): number => {
-          if (defaultMin > 0 && defaultMax > 0) {
-            const normalizedValue = percentage / 100;
-            return defaultMin + (normalizedValue * range);
-          }
-          return 0;
-        };
-
-        // Compute severity ranges same as RiskTaxonomy.tsx:
-        // Very Low: defaultMin to calculateImpact(25)
-        // Low: calculateImpact(25) to calculateImpact(50)
-        // Medium: calculateImpact(50) to calculateImpact(75)
-        // High: calculateImpact(75) to calculateImpact(100) = defaultMax
-        // Critical: calculateImpact(100) = defaultMax, and since RiskTaxonomy.tsx shows "> calculateImpact(100)",
-        // we extend Critical beyond defaultMax. The maxRange extends proportionally beyond the defaultMax.
-        // Extending Critical from defaultMax (75%) to a value that maintains the range proportion.
-        const formatRange = (value: number): string => {
-          return Math.round(value).toString();
-        };
-
-        // Calculate Low, Medium, and High values based on defaultMin (Very Low) and defaultMax (Critical)
-        // Low: 25% of the range from defaultMin to defaultMax
-        // Medium: 50% of the range from defaultMin to defaultMax  
-        // High: 75% of the range from defaultMin to defaultMax
-        const lowValue = calculateImpact(25);   // 25% point between defaultMin and defaultMax
-        const mediumValue = calculateImpact(50); // 50% point between defaultMin and defaultMax
-        const highValue = calculateImpact(75);   // 75% point between defaultMin and defaultMax
-
-        // Create taxonomies payload with severity levels
-        const taxonomiesPayload = [
+        // Define taxonomy templates
+        const taxonomyTemplates = [
           {
             name: "Financial Risk",
             weightage: 40,
             order: 1,
-            createdBy: userId || "",
             severityLevels: [
-              {
-                name: "Very Low",
-                minRange: formatRange(defaultMin),
-                maxRange: formatRange(lowValue),
-                color: "#3BB966",
-                order: 1,
-                createdBy: userId || ""
-              },
-              {
-                name: "Low",
-                minRange: formatRange(lowValue),
-                maxRange: formatRange(mediumValue),
-                color: "#3366CC",
-                order: 2,
-                createdBy: userId || ""
-              },
-              {
-                name: "Moderate",
-                minRange: formatRange(mediumValue),
-                maxRange: formatRange(highValue),
-                color: "#E3B52A",
-                order: 3,
-                createdBy: userId || ""
-              },
-              {
-                name: "High",
-                minRange: formatRange(highValue),
-                maxRange: formatRange(defaultMax),
-                color: "#DA7706",
-                order: 4,
-                createdBy: userId || ""
-              },
-              {
-                name: "Critical",
-                minRange: "",
-                maxRange: formatRange(defaultMax),
-                color: "#B90D0D",
-                order: 5,
-                createdBy: userId || ""
-              }
+              { name: "Very Low", minRange: formatRange(defaultMin), maxRange: formatRange(lowValue), color: "#3BB966", order: 1 },
+              { name: "Low", minRange: formatRange(lowValue), maxRange: formatRange(mediumValue), color: "#3366CC", order: 2 },
+              { name: "Moderate", minRange: formatRange(mediumValue), maxRange: formatRange(highValue), color: "#E3B52A", order: 3 },
+              { name: "High", minRange: formatRange(highValue), maxRange: formatRange(defaultMax), color: "#DA7706", order: 4 },
+              { name: "Critical", minRange: "", maxRange: formatRange(defaultMax), color: "#B90D0D", order: 5 }
             ]
           },
           {
             name: "Regulatory Risk",
             weightage: 30,
             order: 2,
-            createdBy: userId || "",
             severityLevels: [
-              {
-                name: "Very Low",
-                minRange: formatRange(defaultMin),
-                maxRange: formatRange(lowValue),
-                color: "#3BB966",
-                order: 1,
-                createdBy: userId || ""
-              },
-              {
-                name: "Low",
-                minRange: formatRange(lowValue),
-                maxRange: formatRange(mediumValue),
-                color: "#3366CC",
-                order: 2,
-                createdBy: userId || ""
-              },
-              {
-                name: "Moderate",
-                minRange: formatRange(mediumValue),
-                maxRange: formatRange(highValue),
-                color: "#E3B52A",
-                order: 3,
-                createdBy: userId || ""
-              },
-              {
-                name: "High",
-                minRange: formatRange(highValue),
-                maxRange: formatRange(defaultMax),
-                color: "#DA7706",
-                order: 4,
-                createdBy: userId || ""
-              },
-              {
-                name: "Critical",
-                minRange: "",
-                maxRange: formatRange(defaultMax),
-                color: "#B90D0D",
-                order: 5,
-                createdBy: userId || ""
-              }
+              { name: "Very Low", minRange: formatRange(defaultMin), maxRange: formatRange(lowValue), color: "#3BB966", order: 1 },
+              { name: "Low", minRange: formatRange(lowValue), maxRange: formatRange(mediumValue), color: "#3366CC", order: 2 },
+              { name: "Moderate", minRange: formatRange(mediumValue), maxRange: formatRange(highValue), color: "#E3B52A", order: 3 },
+              { name: "High", minRange: formatRange(highValue), maxRange: formatRange(defaultMax), color: "#DA7706", order: 4 },
+              { name: "Critical", minRange: "", maxRange: formatRange(defaultMax), color: "#B90D0D", order: 5 }
             ]
           },
           {
             name: "Operational Risk",
             weightage: 20,
             order: 3,
-            createdBy: userId || "",
             severityLevels: [
-              {
-                name: "Very Low",
-                minRange: formatRange(defaultMin),
-                maxRange: formatRange(lowValue),
-                color: "#3BB966",
-                order: 1,
-                createdBy: userId || ""
-              },
-              {
-                name: "Low",
-                minRange: formatRange(lowValue),
-                maxRange: formatRange(mediumValue),
-                color: "#3366CC",
-                order: 2,
-                createdBy: userId || ""
-              },
-              {
-                name: "Moderate",
-                minRange: formatRange(mediumValue),
-                maxRange: formatRange(highValue),
-                color: "#E3B52A",
-                order: 3,
-                createdBy: userId || ""
-              },
-              {
-                name: "High",
-                minRange: formatRange(highValue),
-                maxRange: formatRange(defaultMax),
-                color: "#DA7706",
-                order: 4,
-                createdBy: userId || ""
-              },
-              {
-                name: "Critical",
-                minRange: "",
-                maxRange: formatRange(defaultMax),
-                color: "#B90D0D",
-                order: 5,
-                createdBy: userId || ""
-              }
+              { name: "Very Low", minRange: formatRange(defaultMin), maxRange: formatRange(lowValue), color: "#3BB966", order: 1 },
+              { name: "Low", minRange: formatRange(lowValue), maxRange: formatRange(mediumValue), color: "#3366CC", order: 2 },
+              { name: "Moderate", minRange: formatRange(mediumValue), maxRange: formatRange(highValue), color: "#E3B52A", order: 3 },
+              { name: "High", minRange: formatRange(highValue), maxRange: formatRange(defaultMax), color: "#DA7706", order: 4 },
+              { name: "Critical", minRange: "", maxRange: formatRange(defaultMax), color: "#B90D0D", order: 5 }
             ]
           },
           {
             name: "Reputational Risk",
             weightage: 10,
             order: 4,
-            createdBy: userId || "",
             severityLevels: [
-              {
-                name: "Very Low",
-                minRange: formatRange(defaultMin),
-                maxRange: formatRange(lowValue),
-                color: "#3BB966",
-                order: 1,
-                createdBy: userId || ""
-              },
-              {
-                name: "Low",
-                minRange: formatRange(lowValue),
-                maxRange: formatRange(mediumValue),
-                color: "#3366CC",
-                order: 2,
-                createdBy: userId || ""
-              },
-              {
-                name: "Moderate",
-                minRange: formatRange(mediumValue),
-                maxRange: formatRange(highValue),
-                color: "#E3B52A",
-                order: 3,
-                createdBy: userId || ""
-              },
-              {
-                name: "High",
-                minRange: formatRange(highValue),
-                maxRange: formatRange(defaultMax),
-                color: "#DA7706",
-                order: 4,
-                createdBy: userId || ""
-              },
-              {
-                name: "Critical",
-                minRange: "",
-                maxRange: formatRange(defaultMax),
-                color: "#B90D0D",
-                order: 5,
-                createdBy: userId || ""
-              }
+              { name: "Very Low", minRange: formatRange(defaultMin), maxRange: formatRange(lowValue), color: "#3BB966", order: 1 },
+              { name: "Low", minRange: formatRange(lowValue), maxRange: formatRange(mediumValue), color: "#3366CC", order: 2 },
+              { name: "Moderate", minRange: formatRange(mediumValue), maxRange: formatRange(highValue), color: "#E3B52A", order: 3 },
+              { name: "High", minRange: formatRange(highValue), maxRange: formatRange(defaultMax), color: "#DA7706", order: 4 },
+              { name: "Critical", minRange: "", maxRange: formatRange(defaultMax), color: "#B90D0D", order: 5 }
             ]
           }
         ];
 
-        // Save taxonomies for the organization
+        // Build taxonomies payload - include taxonomyId and severityId if they exist
+        // Ensure every taxonomy has all 5 severity levels: Very Low, Low, Moderate, High, Critical
+        const taxonomiesPayload = taxonomyTemplates.map(template => {
+          // Find existing taxonomy by name to get its taxonomyId
+          const existingTaxonomy = existingTaxonomies.find(
+            tax => tax.name === template.name
+          );
+
+          // Check if taxonomyId exists in existing taxonomies
+          const taxonomyId = existingTaxonomy?.taxonomyId;
+
+          // Build severity levels - ensure all 5 levels are included for every taxonomy
+          // Each severity level should include both severityId and taxonomyId when they exist
+          const severityLevels = template.severityLevels.map(levelTemplate => {
+            // Find existing severity level by name and order within the taxonomy
+            const existingSeverity = existingTaxonomy?.severityLevels?.find(
+              (sev: any) => sev.name === levelTemplate.name && sev.order === levelTemplate.order
+            );
+
+            // Check if severityId exists in existing severity levels
+            const severityId = existingSeverity?.severityId;
+
+            return {
+              ...(severityId && { severityId }),
+              ...(taxonomyId && { taxonomyId }),
+              name: levelTemplate.name,
+              minRange: levelTemplate.minRange,
+              maxRange: levelTemplate.maxRange,
+              color: levelTemplate.color,
+              order: levelTemplate.order,
+              createdBy: userId || ""
+            };
+          });
+
+          return {
+            ...(taxonomyId && { taxonomyId }),
+            name: template.name,
+            weightage: template.weightage,
+            order: template.order,
+            createdBy: userId || "",
+            isEdited: existingTaxonomy?.isEdited ?? false,
+            isActive: existingTaxonomy?.isActive ?? true,
+            severityLevels
+          };
+        });
+
+        // Save/Update taxonomies for the organization
         try {
           await saveTaxonomies(response.data.organizationId, taxonomiesPayload);
         } catch (taxonomyError) {
