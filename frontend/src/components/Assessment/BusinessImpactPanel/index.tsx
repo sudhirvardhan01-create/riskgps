@@ -202,17 +202,23 @@ export default function BusinessImpactPanel({
             </Box>
 
             {/* Impacts */}
-            {taxonomies.map((item: any, ind: number) => (
-              <ImpactSelector
-                key={item.taxonomyId}
-                label={item.name}
-                severityLevels={item.severityLevels}
-                value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
-                onChange={(val) =>
-                  setTaxonomy(item.taxonomyId, item.name, ind, val)
-                }
-              />
-            ))}
+            {taxonomies.length > 0 ? (
+              taxonomies.map((item: any, ind: number) => (
+                <ImpactSelector
+                  key={item.taxonomyId}
+                  label={item.name}
+                  severityLevels={item.severityLevels}
+                  value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
+                  onChange={(val) =>
+                    setTaxonomy(item.taxonomyId, item.name, ind, val)
+                  }
+                />
+              ))
+            ) : (
+              <Box>
+                <Typography>No taxonomy added in the organization</Typography>
+              </Box>
+            )}
           </Box>
         </TabPanel>
       </TabContext>
