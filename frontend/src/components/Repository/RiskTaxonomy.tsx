@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -13,12 +13,17 @@ import {
   CardContent,
   Switch,
   FormControlLabel,
-} from '@mui/material';
-import { CheckCircle, TrendingUp, ShowChart, Save } from '@mui/icons-material';
+} from "@mui/material";
+import { CheckCircle, TrendingUp, ShowChart, Save } from "@mui/icons-material";
 import { useOrganization } from "@/hooks/useOrganization";
-import { useRouter } from 'next/router';
-import { getTaxonomies, saveTaxonomies, Taxonomy } from '@/services/organizationService';
-import Cookies from 'js-cookie';
+import { useRouter } from "next/router";
+import {
+  getTaxonomies,
+  saveTaxonomies,
+  Taxonomy,
+} from "@/services/organizationService";
+import Cookies from "js-cookie";
+import { formatCurrencyCompact } from "@/utils/utility";
 
 interface ImpactCategory {
   id: string;
@@ -41,32 +46,34 @@ const RiskTaxonomy: React.FC = () => {
   const { orgId } = router.query;
   const { organization } = useOrganization(orgId);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('financial');
-  const [gradientType, setGradientType] = useState<'linear' | 'quadratic'>('linear');
+  const [selectedCategory, setSelectedCategory] = useState<string>("financial");
+  const [gradientType, setGradientType] = useState<"linear" | "quadratic">(
+    "linear"
+  );
   const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
   const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
   const [saveStates, setSaveStates] = useState<Record<string, boolean>>({});
   const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]);
   const [loadingTaxonomies, setLoadingTaxonomies] = useState<boolean>(false);
   const [maxRangeFromAPI, setMaxRangeFromAPI] = useState<number>(0);
-  const [focusedInput, setFocusedInput] = useState<'min' | 'max' | null>(null);
+  const [focusedInput, setFocusedInput] = useState<"min" | "max" | null>(null);
 
   // Helper function to map taxonomy name to category ID
   const mapTaxonomyNameToCategoryId = (name: string): string => {
     const nameLower = name.toLowerCase();
-    if (nameLower.includes('financial')) return 'financial';
-    if (nameLower.includes('regulatory')) return 'regulatory';
-    if (nameLower.includes('operational')) return 'operational';
-    if (nameLower.includes('reputational')) return 'reputational';
-    return 'financial'; // Default fallback
+    if (nameLower.includes("financial")) return "financial";
+    if (nameLower.includes("regulatory")) return "regulatory";
+    if (nameLower.includes("operational")) return "operational";
+    if (nameLower.includes("reputational")) return "reputational";
+    return "financial"; // Default fallback
   };
 
   // Helper function to parse range values from API (handles "50k", "100k", ">1000k" formats)
   const parseRangeValue = (value: string): number => {
-    if (!value || value.trim() === '') return 0;
+    if (!value || value.trim() === "") return 0;
 
     // Remove ">" prefix if present
-    const cleanedValue = value.replace(/^>/, '').trim();
+    const cleanedValue = value.replace(/^>/, "").trim();
 
     // Extract number and multiplier (k, m, etc.)
     const match = cleanedValue.match(/^([\d.]+)([km]?)$/i);
@@ -75,9 +82,9 @@ const RiskTaxonomy: React.FC = () => {
     const numValue = parseFloat(match[1]);
     const multiplier = match[2].toLowerCase();
 
-    if (multiplier === 'k') {
+    if (multiplier === "k") {
       return Math.round(numValue * 1000);
-    } else if (multiplier === 'm') {
+    } else if (multiplier === "m") {
       return Math.round(numValue * 1000000);
     }
 
@@ -86,60 +93,74 @@ const RiskTaxonomy: React.FC = () => {
 
   // Get annual revenue from organization data (with fallback for calculations)
   const annualRevenue = organization?.details?.annualRevenue
-    ? parseInt(organization.details.annualRevenue.replace(/[^0-9]/g, ''))
+    ? parseInt(organization.details.annualRevenue.replace(/[^0-9]/g, ""))
     : 0;
 
   // Set default dollar range to 25% and 75% of annual revenue (only if we have data)
   const defaultMin = annualRevenue > 0 ? Math.round(annualRevenue * 0.25) : 0;
   const defaultMax = annualRevenue > 0 ? Math.round(annualRevenue * 0.75) : 0;
 
-  const [financialRange, setFinancialRange] = useState<number[]>([defaultMin, defaultMax]);
+  const [financialRange, setFinancialRange] = useState<number[]>([
+    defaultMin,
+    defaultMax,
+  ]);
 
   // Separate ranges for each category
-  const [regulatoryRange, setRegulatoryRange] = useState<number[]>([defaultMin, defaultMax]);
-  const [reputationalRange, setReputationalRange] = useState<number[]>([defaultMin, defaultMax]);
-  const [operationalRange, setOperationalRange] = useState<number[]>([defaultMin, defaultMax]);
+  const [regulatoryRange, setRegulatoryRange] = useState<number[]>([
+    defaultMin,
+    defaultMax,
+  ]);
+  const [reputationalRange, setReputationalRange] = useState<number[]>([
+    defaultMin,
+    defaultMax,
+  ]);
+  const [operationalRange, setOperationalRange] = useState<number[]>([
+    defaultMin,
+    defaultMax,
+  ]);
 
   const [impactCategories, setImpactCategories] = useState<ImpactCategory[]>([
     {
-      id: 'financial',
-      name: 'Financial',
+      id: "financial",
+      name: "Financial",
       isSelected: true,
       isEnabled: true,
     },
     {
-      id: 'operational',
-      name: 'Operational',
+      id: "operational",
+      name: "Operational",
       isSelected: false,
       isEnabled: true,
     },
     {
-      id: 'regulatory',
-      name: 'Regulatory',
+      id: "regulatory",
+      name: "Regulatory",
       isSelected: false,
       isEnabled: true,
     },
     {
-      id: 'reputational',
-      name: 'Reputational',
+      id: "reputational",
+      name: "Reputational",
       isSelected: false,
       isEnabled: true,
     },
   ]);
 
-  const [categoryDetails, setCategoryDetails] = useState<ImpactCategoryDetails>({
-    name: 'Financial',
-    description: 'Financial losses, or damage to operational assets',
-    thresholds: {
-      minimum: defaultMin,
-      maximum: defaultMax,
-    },
-  });
+  const [categoryDetails, setCategoryDetails] = useState<ImpactCategoryDetails>(
+    {
+      name: "Financial",
+      description: "Financial losses, or damage to operational assets",
+      thresholds: {
+        minimum: defaultMin,
+        maximum: defaultMax,
+      },
+    }
+  );
 
   // Fetch taxonomies from API when orgId is available
   useEffect(() => {
     const fetchTaxonomies = async () => {
-      if (orgId && typeof orgId === 'string') {
+      if (orgId && typeof orgId === "string") {
         setLoadingTaxonomies(true);
         try {
           const response = await getTaxonomies(orgId);
@@ -147,26 +168,36 @@ const RiskTaxonomy: React.FC = () => {
             setTaxonomies(response.data);
 
             // Update impact categories from API data
-            setImpactCategories(prevCategories => {
-              return prevCategories.map(category => {
-                const taxonomy = response.data.find(t =>
-                  mapTaxonomyNameToCategoryId(t.name) === category.id
+            setImpactCategories((prevCategories) => {
+              return prevCategories.map((category) => {
+                const taxonomy = response.data.find(
+                  (t) => mapTaxonomyNameToCategoryId(t.name) === category.id
                 );
-                return taxonomy ? {
-                  ...category,
-                  name: taxonomy.name.replace(' Risk', ''), // Remove " Risk" suffix
-                  isEnabled: taxonomy.isActive !== undefined ? taxonomy.isActive : category.isEnabled, // Set isEnabled from API isActive field
-                } : category;
+                return taxonomy
+                  ? {
+                      ...category,
+                      name: taxonomy.name.replace(" Risk", ""), // Remove " Risk" suffix
+                      isEnabled:
+                        taxonomy.isActive !== undefined
+                          ? taxonomy.isActive
+                          : category.isEnabled, // Set isEnabled from API isActive field
+                    }
+                  : category;
               });
             });
 
             // Update ranges from API data based on severity levels
             let globalMaxRange = 0;
-            response.data.forEach(taxonomy => {
+            response.data.forEach((taxonomy) => {
               const categoryId = mapTaxonomyNameToCategoryId(taxonomy.name);
-              if (taxonomy.severityLevels && taxonomy.severityLevels.length > 0) {
+              if (
+                taxonomy.severityLevels &&
+                taxonomy.severityLevels.length > 0
+              ) {
                 // Get the first severity level's minRange and last severity level's maxRange
-                const sortedSeverity = [...taxonomy.severityLevels].sort((a, b) => a.order - b.order);
+                const sortedSeverity = [...taxonomy.severityLevels].sort(
+                  (a, b) => a.order - b.order
+                );
                 const minRange = parseRangeValue(sortedSeverity[0].minRange);
                 // For maxRange, handle ">1000k" format - use the value after ">"
                 const lastSeverity = sortedSeverity[sortedSeverity.length - 1];
@@ -180,21 +211,23 @@ const RiskTaxonomy: React.FC = () => {
                 // Only update if we have valid ranges
                 if (minRange > 0 && maxRange > 0) {
                   switch (categoryId) {
-                    case 'financial':
+                    case "financial":
                       setFinancialRange([minRange, maxRange]);
                       break;
-                    case 'regulatory':
+                    case "regulatory":
                       setRegulatoryRange([minRange, maxRange]);
                       break;
-                    case 'operational':
+                    case "operational":
                       setOperationalRange([minRange, maxRange]);
                       break;
-                    case 'reputational':
+                    case "reputational":
                       setReputationalRange([minRange, maxRange]);
                       break;
                   }
                 } else {
-                  console.warn(`Invalid ranges for ${taxonomy.name}: min=${minRange}, max=${maxRange}`);
+                  console.warn(
+                    `Invalid ranges for ${taxonomy.name}: min=${minRange}, max=${maxRange}`
+                  );
                 }
               }
             });
@@ -205,7 +238,7 @@ const RiskTaxonomy: React.FC = () => {
             }
           }
         } catch (error) {
-          console.error('Error fetching taxonomies:', error);
+          console.error("Error fetching taxonomies:", error);
         } finally {
           setLoadingTaxonomies(false);
         }
@@ -218,7 +251,9 @@ const RiskTaxonomy: React.FC = () => {
   // Update state when organization data loads
   useEffect(() => {
     if (organization?.details?.annualRevenue && taxonomies.length === 0) {
-      const newAnnualRevenue = parseInt(organization.details.annualRevenue.replace(/[^0-9]/g, ''));
+      const newAnnualRevenue = parseInt(
+        organization.details.annualRevenue.replace(/[^0-9]/g, "")
+      );
       const newDefaultMin = Math.round(newAnnualRevenue * 0.25);
       const newDefaultMax = Math.round(newAnnualRevenue * 0.75);
 
@@ -226,7 +261,7 @@ const RiskTaxonomy: React.FC = () => {
       setRegulatoryRange([newDefaultMin, newDefaultMax]);
       setReputationalRange([newDefaultMin, newDefaultMax]);
       setOperationalRange([newDefaultMin, newDefaultMax]);
-      setCategoryDetails(prev => ({
+      setCategoryDetails((prev) => ({
         ...prev,
         thresholds: {
           minimum: newDefaultMin,
@@ -239,18 +274,22 @@ const RiskTaxonomy: React.FC = () => {
   // Show loading state until organization data is loaded or taxonomies are loading
   if (!organization?.details?.annualRevenue || loadingTaxonomies) {
     return (
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '400px',
-        flexDirection: 'column',
-        gap: 2
-      }}>
-        <Typography variant="h6" sx={{ color: '#484848' }}>
-          {loadingTaxonomies ? 'Loading taxonomies...' : 'Loading organization data...'}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "400px",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <Typography variant="h6" sx={{ color: "#484848" }}>
+          {loadingTaxonomies
+            ? "Loading taxonomies..."
+            : "Loading organization data..."}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#91939A' }}>
+        <Typography variant="body2" sx={{ color: "#91939A" }}>
           Please wait while we fetch your data
         </Typography>
       </Box>
@@ -269,13 +308,13 @@ const RiskTaxonomy: React.FC = () => {
   // Helper functions to get current range based on selected category
   const getCurrentRange = () => {
     switch (selectedCategory) {
-      case 'financial':
+      case "financial":
         return financialRange;
-      case 'regulatory':
+      case "regulatory":
         return regulatoryRange;
-      case 'reputational':
+      case "reputational":
         return reputationalRange;
-      case 'operational':
+      case "operational":
         return operationalRange;
       default:
         return financialRange;
@@ -284,16 +323,16 @@ const RiskTaxonomy: React.FC = () => {
 
   const setCurrentRange = (newRange: number[]) => {
     switch (selectedCategory) {
-      case 'financial':
+      case "financial":
         setFinancialRange(newRange);
         break;
-      case 'regulatory':
+      case "regulatory":
         setRegulatoryRange(newRange);
         break;
-      case 'reputational':
+      case "reputational":
         setReputationalRange(newRange);
         break;
-      case 'operational':
+      case "operational":
         setOperationalRange(newRange);
         break;
     }
@@ -303,15 +342,17 @@ const RiskTaxonomy: React.FC = () => {
     setSelectedCategory(categoryId);
 
     // Update selection state
-    setImpactCategories(prev =>
-      prev.map(category => ({
+    setImpactCategories((prev) =>
+      prev.map((category) => ({
         ...category,
         isSelected: category.id === categoryId,
       }))
     );
 
     // Update category details
-    const selectedCategoryData = impactCategories.find(cat => cat.id === categoryId);
+    const selectedCategoryData = impactCategories.find(
+      (cat) => cat.id === categoryId
+    );
     if (selectedCategoryData) {
       setCategoryDetails({
         name: selectedCategoryData.name,
@@ -324,26 +365,35 @@ const RiskTaxonomy: React.FC = () => {
     }
   };
 
-  const handleSwitchToggle = (categoryId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSwitchToggle = (
+    categoryId: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     event.stopPropagation(); // Prevent category selection when toggling switch
 
-    setImpactCategories(prev =>
-      prev.map(category => ({
+    setImpactCategories((prev) =>
+      prev.map((category) => ({
         ...category,
-        isEnabled: category.id === categoryId ? event.target.checked : category.isEnabled,
+        isEnabled:
+          category.id === categoryId
+            ? event.target.checked
+            : category.isEnabled,
       }))
     );
   };
 
   // Helper function to check if current category is enabled
   const isCurrentCategoryEnabled = () => {
-    return impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled || false;
+    return (
+      impactCategories.find((cat) => cat.id === selectedCategory)?.isEnabled ||
+      false
+    );
   };
 
   // Helper function to get severity levels for current category
   const getCurrentCategorySeverityLevels = () => {
-    const taxonomy = taxonomies.find(t =>
-      mapTaxonomyNameToCategoryId(t.name) === selectedCategory
+    const taxonomy = taxonomies.find(
+      (t) => mapTaxonomyNameToCategoryId(t.name) === selectedCategory
     );
     if (taxonomy && taxonomy.severityLevels) {
       return [...taxonomy.severityLevels].sort((a, b) => a.order - b.order);
@@ -353,14 +403,17 @@ const RiskTaxonomy: React.FC = () => {
 
   // Helper function to check if a taxonomy is edited based on categoryId
   const isTaxonomyEdited = (categoryId: string): boolean => {
-    const taxonomy = taxonomies.find(t =>
-      mapTaxonomyNameToCategoryId(t.name) === categoryId
+    const taxonomy = taxonomies.find(
+      (t) => mapTaxonomyNameToCategoryId(t.name) === categoryId
     );
     return taxonomy?.isEdited ?? false;
   };
 
   // Helper function to calculate Impact Scale range for a severity level
-  const calculateSeverityRange = (severityIndex: number, totalSeverities: number) => {
+  const calculateSeverityRange = (
+    severityIndex: number,
+    totalSeverities: number
+  ) => {
     const currentRange = getCurrentRange();
     if (currentRange[0] <= 0 || currentRange[1] <= 0 || totalSeverities === 0) {
       return { min: 0, max: 0 };
@@ -391,7 +444,10 @@ const RiskTaxonomy: React.FC = () => {
 
     // Apply gradient type to calculate actual dollar values
     // For first level, min is always the actual min range
-    const minValue = severityIndex === 0 ? currentRange[0] : calculateImpact(minSliderValue, gradientType);
+    const minValue =
+      severityIndex === 0
+        ? currentRange[0]
+        : calculateImpact(minSliderValue, gradientType);
 
     // For Critical (last level), maxValue should be the actual max range
     // For other levels, calculate based on gradient type
@@ -407,10 +463,13 @@ const RiskTaxonomy: React.FC = () => {
     return { min: minValue, max: maxValue };
   };
 
-  const handleThresholdChange = (field: 'minimum' | 'maximum', value: string) => {
+  const handleThresholdChange = (
+    field: "minimum" | "maximum",
+    value: string
+  ) => {
     // Allow empty string for user to clear and input new values
-    if (value === '') {
-      setCategoryDetails(prev => ({
+    if (value === "") {
+      setCategoryDetails((prev) => ({
         ...prev,
         thresholds: {
           ...prev.thresholds,
@@ -420,11 +479,11 @@ const RiskTaxonomy: React.FC = () => {
       return;
     }
 
-    const numValue = parseInt(value.replace(/[^0-9]/g, ''));
+    const numValue = parseInt(value.replace(/[^0-9]/g, ""));
 
     // Only update if we have a valid number
     if (!isNaN(numValue) && numValue >= 0) {
-      setCategoryDetails(prev => {
+      setCategoryDetails((prev) => {
         const newThresholds = {
           ...prev.thresholds,
           [field]: numValue,
@@ -438,11 +497,14 @@ const RiskTaxonomy: React.FC = () => {
     }
   };
 
-  const handleDollarRangeChange = (event: Event, newValue: number | number[]) => {
+  const handleDollarRangeChange = (
+    event: Event,
+    newValue: number | number[]
+  ) => {
     const [min, max] = newValue as number[];
     setCurrentRange([min, max]);
 
-    setCategoryDetails(prev => ({
+    setCategoryDetails((prev) => ({
       ...prev,
       thresholds: {
         ...prev.thresholds,
@@ -456,12 +518,12 @@ const RiskTaxonomy: React.FC = () => {
     const currentRange = getCurrentRange();
 
     // Allow empty string for user to clear and input new values
-    if (value === '') {
+    if (value === "") {
       const newRange = [...currentRange];
       newRange[index] = 0;
       setCurrentRange(newRange);
 
-      setCategoryDetails(prev => ({
+      setCategoryDetails((prev) => ({
         ...prev,
         thresholds: {
           ...prev.thresholds,
@@ -473,10 +535,10 @@ const RiskTaxonomy: React.FC = () => {
     }
 
     // Remove all non-digit characters to get raw number
-    const cleanedValue = value.replace(/[^0-9]/g, '');
-    
+    const cleanedValue = value.replace(/[^0-9]/g, "");
+
     // If cleaned value is empty, set to 0
-    if (cleanedValue === '') {
+    if (cleanedValue === "") {
       const newRange = [...currentRange];
       newRange[index] = 0;
       setCurrentRange(newRange);
@@ -491,7 +553,7 @@ const RiskTaxonomy: React.FC = () => {
       newRange[index] = numValue;
       setCurrentRange(newRange);
 
-      setCategoryDetails(prev => ({
+      setCategoryDetails((prev) => ({
         ...prev,
         thresholds: {
           ...prev.thresholds,
@@ -503,50 +565,21 @@ const RiskTaxonomy: React.FC = () => {
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
   };
 
-  // Format currency with K (thousand), M (million), and B (billion) abbreviations
-  // K = 1,000 (for values 1,000 to 999,999)
-  // M = 1,000,000 (for values 1,000,000 to 999,999,999)
-  // B = 1,000,000,000 (for values >= 1,000,000,000)
-  // Examples: 5,000 = $5K, 10,000 = $10K, 500,000 = $500K, 1,000,000 = $1M, 5,000,000 = $5M, 1,000,000,000 = $1B
-  const formatCurrencyCompact = (value: number): string => {
-    if (value >= 1000000000) {
-      // For values >= 1,000,000,000, use B (Billions) where 1B = 1,000,000,000
-      const billions = value / 1000000000;
-      // Round to 1 decimal place if needed, otherwise show as whole number
-      const formattedBillions = billions % 1 === 0 ? Math.round(billions).toString() : billions.toFixed(1);
-      return `$${formattedBillions}B`;
-    } else if (value >= 1000000) {
-      // For values >= 1,000,000 and < 1,000,000,000, use M (Millions) where 1M = 1,000,000
-      const millions = value / 1000000;
-      // Round to 1 decimal place if needed, otherwise show as whole number
-      const formattedMillions = millions % 1 === 0 ? Math.round(millions).toString() : millions.toFixed(1);
-      return `$${formattedMillions}M`;
-    } else if (value >= 1000) {
-      // For values >= 1,000 and < 1,000,000, use K (Thousands) where 1K = 1,000
-      const thousands = value / 1000;
-      // Round to 1 decimal place if needed, otherwise show as whole number
-      const formattedThousands = thousands % 1 === 0 ? Math.round(thousands).toString() : thousands.toFixed(1);
-      return `$${formattedThousands}K`;
-    }
-    // For values < 1,000, show as is
-    return `$${Math.round(value)}`;
-  };
-
   const handleSaveImpactScale = async (categoryId: string) => {
-    if (!orgId || typeof orgId !== 'string') {
-      console.error('Organization ID is required');
+    if (!orgId || typeof orgId !== "string") {
+      console.error("Organization ID is required");
       return;
     }
 
-    setSavingStates(prev => ({ ...prev, [categoryId]: true }));
+    setSavingStates((prev) => ({ ...prev, [categoryId]: true }));
 
     try {
       // Get current user ID from cookies
@@ -565,8 +598,8 @@ const RiskTaxonomy: React.FC = () => {
       }
 
       // Find the existing taxonomy for this category
-      const existingTaxonomy = taxonomies.find(t =>
-        mapTaxonomyNameToCategoryId(t.name) === categoryId
+      const existingTaxonomy = taxonomies.find(
+        (t) => mapTaxonomyNameToCategoryId(t.name) === categoryId
       );
 
       // Get severity levels for current category
@@ -608,7 +641,8 @@ const RiskTaxonomy: React.FC = () => {
 
         // Find existing severity level by name and order within the taxonomy
         const existingSeverity = existingTaxonomy?.severityLevels?.find(
-          (sev: any) => sev.name === severity.name && sev.order === severity.order
+          (sev: any) =>
+            sev.name === severity.name && sev.order === severity.order
         );
 
         // Check if severityId exists in existing severity levels
@@ -627,11 +661,16 @@ const RiskTaxonomy: React.FC = () => {
       });
 
       // Get category name (with " Risk" suffix if needed)
-      const categoryName = impactCategories.find(cat => cat.id === categoryId)?.name || '';
-      const taxonomyName = categoryName.includes(' Risk') ? categoryName : `${categoryName} Risk`;
+      const categoryName =
+        impactCategories.find((cat) => cat.id === categoryId)?.name || "";
+      const taxonomyName = categoryName.includes(" Risk")
+        ? categoryName
+        : `${categoryName} Risk`;
 
       // Get isEnabled state for the current category (toggle on/off state)
-      const isActive = impactCategories.find(cat => cat.id === categoryId)?.isEnabled ?? true;
+      const isActive =
+        impactCategories.find((cat) => cat.id === categoryId)?.isEnabled ??
+        true;
 
       // Prepare taxonomy data for API
       const taxonomyData = {
@@ -655,47 +694,44 @@ const RiskTaxonomy: React.FC = () => {
           setTaxonomies(response.data);
         }
       } catch (refreshError) {
-        console.warn('Failed to refresh taxonomies after save:', refreshError);
+        console.warn("Failed to refresh taxonomies after save:", refreshError);
       }
 
       // Reset saving state
-      setSavingStates(prev => ({ ...prev, [categoryId]: false }));
-
+      setSavingStates((prev) => ({ ...prev, [categoryId]: false }));
     } catch (error) {
-      console.error('Error saving Impact Scale:', error);
-      setSavingStates(prev => ({ ...prev, [categoryId]: false }));
+      console.error("Error saving Impact Scale:", error);
+      setSavingStates((prev) => ({ ...prev, [categoryId]: false }));
 
       // You might want to show an error toast here
       // For now, we'll just log the error
-      alert(error instanceof Error ? error.message : 'Failed to save impact scale');
+      alert(
+        error instanceof Error ? error.message : "Failed to save impact scale"
+      );
     }
   };
 
-
-
-
-
-  const calculateImpact = (sliderValue: number, type: 'linear' | 'quadratic') => {
+  const calculateImpact = (
+    sliderValue: number,
+    type: "linear" | "quadratic"
+  ) => {
     const currentRange = getCurrentRange();
     if (currentRange[0] > 0 && currentRange[1] > 0) {
-      const userMin = currentRange[0];    // User's minimum
-      const userMax = currentRange[1];    // User's maximum
+      const userMin = currentRange[0]; // User's minimum
+      const userMax = currentRange[1]; // User's maximum
       const range = userMax - userMin;
       const normalizedValue = sliderValue / 100;
-      const impactValue = type === 'linear'
-        ? userMin + (normalizedValue * range)
-        : userMin + (normalizedValue * normalizedValue * range);
+      const impactValue =
+        type === "linear"
+          ? userMin + normalizedValue * range
+          : userMin + normalizedValue * normalizedValue * range;
       return impactValue;
     }
     return 0;
   };
 
-
-
-
-
   // Generate graph data with proper scaling for all categories
-  const generateGraphData = (type: 'linear' | 'quadratic') => {
+  const generateGraphData = (type: "linear" | "quadratic") => {
     const currentRange = getCurrentRange();
     if (currentRange[0] <= 0 || currentRange[1] <= 0) {
       // Return empty array if no range set
@@ -709,9 +745,10 @@ const RiskTaxonomy: React.FC = () => {
 
     for (let i = 0; i <= 100; i += 5) {
       const normalizedValue = i / 100;
-      const impactValue = type === 'linear'
-        ? userMin + (normalizedValue * range)
-        : userMin + (normalizedValue * normalizedValue * range);
+      const impactValue =
+        type === "linear"
+          ? userMin + normalizedValue * range
+          : userMin + normalizedValue * normalizedValue * range;
 
       // Scale the value to 0-100 for display
       const scaledY = ((impactValue - userMin) / range) * 100;
@@ -722,20 +759,24 @@ const RiskTaxonomy: React.FC = () => {
 
   // Get severity level labels for X-axis from API
   const severityLevels = getCurrentCategorySeverityLevels();
-  const firstSeverityLabel = severityLevels.length > 0 ? severityLevels[0].name : 'Very Low';
-  const lastSeverityLabel = severityLevels.length > 0 ? severityLevels[severityLevels.length - 1].name : 'Critical';
+  const firstSeverityLabel =
+    severityLevels.length > 0 ? severityLevels[0].name : "Very Low";
+  const lastSeverityLabel =
+    severityLevels.length > 0
+      ? severityLevels[severityLevels.length - 1].name
+      : "Critical";
 
   return (
-    <Box sx={{ width: '100%', height: '100%' }}>
+    <Box sx={{ width: "100%", height: "100%" }}>
       <Grid container spacing={3} sx={{ mb: 6 }}>
         {/* Left Panel - Impact Categories */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Paper
             elevation={1}
             sx={{
-              border: '1px solid #9E9FA540',
+              border: "1px solid #9E9FA540",
               borderRadius: "4px",
-              boxShadow: "#0000000A"
+              boxShadow: "#0000000A",
             }}
           >
             <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, p: 2 }}>
@@ -749,28 +790,39 @@ const RiskTaxonomy: React.FC = () => {
                   onClick={() => handleCategoryClick(category.id)}
                   sx={{
                     p: 2,
-                    cursor: 'pointer',
-                    backgroundColor: category.isSelected ? '#EDF3FCA3' : 'white',
-                    borderColor: category.isSelected ? '#04139A' : '#E4E4E4',
-                    '&:hover': {
-                      backgroundColor: category.isSelected ? '#EDF3FCA3' : '#F5F5F5',
+                    cursor: "pointer",
+                    backgroundColor: category.isSelected
+                      ? "#EDF3FCA3"
+                      : "white",
+                    borderColor: category.isSelected ? "#04139A" : "#E4E4E4",
+                    "&:hover": {
+                      backgroundColor: category.isSelected
+                        ? "#EDF3FCA3"
+                        : "#F5F5F5",
                     },
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    height: "48px"
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    height: "48px",
                   }}
                 >
                   <Typography
                     variant="body1"
                     sx={{
                       fontWeight: 400,
-                      color: '#484848',
+                      color: "#484848",
                     }}
                   >
                     {category.name}
                   </Typography>
-                  <CheckCircle sx={{ color: isTaxonomyEdited(category.id) ? '#0CA512' : '#B3B3B3', fontSize: 16 }} />
+                  <CheckCircle
+                    sx={{
+                      color: isTaxonomyEdited(category.id)
+                        ? "#0CA512"
+                        : "#B3B3B3",
+                      fontSize: 16,
+                    }}
+                  />
                 </Box>
               ))}
             </Stack>
@@ -780,34 +832,54 @@ const RiskTaxonomy: React.FC = () => {
         {/* Right Panel - Category Details */}
         <Grid size={{ xs: 12, md: 8 }}>
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mb: 2,
+              }}
+            >
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 {categoryDetails.name}
               </Typography>
               <FormControlLabel
                 control={
                   <Switch
-                    checked={impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled || false}
+                    checked={
+                      impactCategories.find(
+                        (cat) => cat.id === selectedCategory
+                      )?.isEnabled || false
+                    }
                     onChange={(e) => handleSwitchToggle(selectedCategory, e)}
                     sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: '#04139A',
-                        '& + .MuiSwitch-track': {
-                          backgroundColor: '#04139A',
+                      "& .MuiSwitch-switchBase.Mui-checked": {
+                        color: "#04139A",
+                        "& + .MuiSwitch-track": {
+                          backgroundColor: "#04139A",
                         },
                       },
                     }}
                   />
                 }
-                label={impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled ? "ON" : "OFF"}
+                label={
+                  impactCategories.find((cat) => cat.id === selectedCategory)
+                    ?.isEnabled
+                    ? "ON"
+                    : "OFF"
+                }
                 sx={{
                   margin: 0,
-                  '& .MuiFormControlLabel-label': {
-                    fontSize: '14px',
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: "14px",
                     fontWeight: 500,
-                    color: impactCategories.find(cat => cat.id === selectedCategory)?.isEnabled ? '#04139A' : '#91939A',
-                    marginLeft: 1
-                  }
+                    color: impactCategories.find(
+                      (cat) => cat.id === selectedCategory
+                    )?.isEnabled
+                      ? "#04139A"
+                      : "#91939A",
+                    marginLeft: 1,
+                  },
                 }}
               />
             </Box>
@@ -817,23 +889,25 @@ const RiskTaxonomy: React.FC = () => {
               elevation={1}
               sx={{
                 p: 3,
-                border: '1px solid #1363DF',
+                border: "1px solid #1363DF",
                 borderRadius: 2,
                 boxShadow: "#0000000A",
                 mb: 3,
                 opacity: isCurrentCategoryEnabled() ? 1 : 0.5,
-                pointerEvents: isCurrentCategoryEnabled() ? 'auto' : 'none',
-                transition: 'opacity 0.3s ease',
+                pointerEvents: isCurrentCategoryEnabled() ? "auto" : "none",
+                transition: "opacity 0.3s ease",
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
+              >
                 <Typography
                   variant="body1"
                   sx={{
-                    letterSpacing: '0%',
-                    verticalAlign: 'middle',
-                    color: '#91939A',
-                    minWidth: '200px'
+                    letterSpacing: "0%",
+                    verticalAlign: "middle",
+                    color: "#91939A",
+                    minWidth: "200px",
                   }}
                 >
                   Define {categoryDetails.name} threshold:
@@ -846,51 +920,76 @@ const RiskTaxonomy: React.FC = () => {
                   sx={{
                     mb: 3,
                     fontWeight: 500,
-                    letterSpacing: '0%',
-                    verticalAlign: 'middle',
-                    color: '#484848'
+                    letterSpacing: "0%",
+                    verticalAlign: "middle",
+                    color: "#484848",
                   }}
                 >
-                  Impact {selectedCategory === 'financial' ? 'dollar' : ''} value: <span style={{
-                    fontWeight: 400,
-                    letterSpacing: '0%',
-                    verticalAlign: 'middle',
-                    color: '#91939A'
-                  }}>
-                    {formatCurrency(getCurrentRange()[0])} - {formatCurrency(getCurrentRange()[1])}
+                  Impact {selectedCategory === "financial" ? "dollar" : ""}{" "}
+                  value:{" "}
+                  <span
+                    style={{
+                      fontWeight: 400,
+                      letterSpacing: "0%",
+                      verticalAlign: "middle",
+                      color: "#91939A",
+                    }}
+                  >
+                    {formatCurrency(getCurrentRange()[0])} -{" "}
+                    {formatCurrency(getCurrentRange()[1])}
                     {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                      <span style={{ marginLeft: '8px', color: '#04139A', fontWeight: 600 }}>
-                        (Mid: {formatCurrency(calculateImpact(50, gradientType))})
+                      <span
+                        style={{
+                          marginLeft: "8px",
+                          color: "#04139A",
+                          fontWeight: 600,
+                        }}
+                      >
+                        (Mid:{" "}
+                        {formatCurrency(calculateImpact(50, gradientType))})
                       </span>
                     )}
                   </span>
                 </Typography>
               )}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 3, mb: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  mt: 3,
+                  mb: 2,
+                }}
+              >
                 {/* Left input field - Minimum */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                   <TextField
                     label="Minimum"
-                    value={focusedInput === 'min' 
-                      ? (getCurrentRange()[0] > 0 ? getCurrentRange()[0].toString() : '')
-                      : (getCurrentRange()[0] > 0 ? formatCurrency(getCurrentRange()[0]) : '')
+                    value={
+                      focusedInput === "min"
+                        ? getCurrentRange()[0] > 0
+                          ? getCurrentRange()[0].toString()
+                          : ""
+                        : getCurrentRange()[0] > 0
+                        ? formatCurrency(getCurrentRange()[0])
+                        : ""
                     }
                     onChange={(e) => handleDollarInputChange(0, e.target.value)}
-                    onFocus={() => setFocusedInput('min')}
+                    onFocus={() => setFocusedInput("min")}
                     onBlur={() => setFocusedInput(null)}
                     variant="outlined"
                     size="small"
                     placeholder="Enter minimum value"
                     sx={{
-                      width: '120px',
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: 'white',
-                        borderColor: '#E4E4E4',
-                        color: getCurrentRange()[0] > 0 ? '#000000' : '#000000',
+                      width: "120px",
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: "white",
+                        borderColor: "#E4E4E4",
+                        color: getCurrentRange()[0] > 0 ? "#000000" : "#000000",
                       },
-                      '& .MuiInputBase-input': {
-                        color: '#000000',
-                      }
+                      "& .MuiInputBase-input": {
+                        color: "#000000",
+                      },
                     }}
                   />
                 </Box>
@@ -901,29 +1000,29 @@ const RiskTaxonomy: React.FC = () => {
                     value={getCurrentRange()}
                     onChange={handleDollarRangeChange}
                     valueLabelDisplay="off"
-                    min={0}                    // Minimum is 0
-                    max={getSliderMax()}       // Maximum is the higher of annualRevenue or maxRangeFromAPI (with 20% buffer)
+                    min={0} // Minimum is 0
+                    max={getSliderMax()} // Maximum is the higher of annualRevenue or maxRangeFromAPI (with 20% buffer)
                     step={1}
                     sx={{
-                      color: '#04139A',
-                      '& .MuiSlider-track': {
-                        backgroundColor: '#04139A',
-                        border: 'none',
+                      color: "#04139A",
+                      "& .MuiSlider-track": {
+                        backgroundColor: "#04139A",
+                        border: "none",
                       },
-                      '& .MuiSlider-thumb': {
-                        backgroundColor: 'white',
-                        border: '2px solid #04139A',
+                      "& .MuiSlider-thumb": {
+                        backgroundColor: "white",
+                        border: "2px solid #04139A",
                         width: 20,
                         height: 20,
-                        '&:hover': {
-                          boxShadow: '0px 0px 0px 8px rgba(4, 19, 154, 0.16)',
+                        "&:hover": {
+                          boxShadow: "0px 0px 0px 8px rgba(4, 19, 154, 0.16)",
                         },
-                        '&.Mui-focusVisible': {
-                          boxShadow: '0px 0px 0px 8px rgba(4, 19, 154, 0.16)',
+                        "&.Mui-focusVisible": {
+                          boxShadow: "0px 0px 0px 8px rgba(4, 19, 154, 0.16)",
                         },
                       },
-                      '& .MuiSlider-rail': {
-                        backgroundColor: '#E4E4E4',
+                      "& .MuiSlider-rail": {
+                        backgroundColor: "#E4E4E4",
                         opacity: 1,
                       },
                     }}
@@ -931,36 +1030,41 @@ const RiskTaxonomy: React.FC = () => {
                 </Box>
 
                 {/* Right input field - Maximum */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                   <TextField
                     label="Maximum"
-                    value={focusedInput === 'max' 
-                      ? (getCurrentRange()[1] > 0 ? getCurrentRange()[1].toString() : '')
-                      : (getCurrentRange()[1] > 0 ? formatCurrency(getCurrentRange()[1]) : '')
+                    value={
+                      focusedInput === "max"
+                        ? getCurrentRange()[1] > 0
+                          ? getCurrentRange()[1].toString()
+                          : ""
+                        : getCurrentRange()[1] > 0
+                        ? formatCurrency(getCurrentRange()[1])
+                        : ""
                     }
                     onChange={(e) => handleDollarInputChange(1, e.target.value)}
-                    onFocus={() => setFocusedInput('max')}
+                    onFocus={() => setFocusedInput("max")}
                     onBlur={() => setFocusedInput(null)}
                     variant="outlined"
                     size="small"
                     placeholder="Enter maximum value"
                     sx={{
-                      width: '120px',
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: 'white',
-                        borderColor: '#E4E4E4',
-                        color: getCurrentRange()[1] > 0 ? '#000000' : '#000000',
+                      width: "120px",
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: "white",
+                        borderColor: "#E4E4E4",
+                        color: getCurrentRange()[1] > 0 ? "#000000" : "#000000",
                       },
-                      '& .MuiInputBase-input': {
-                        color: '#000000',
-                      }
+                      "& .MuiInputBase-input": {
+                        color: "#000000",
+                      },
                     }}
                   />
                 </Box>
               </Box>
 
               {/* Gradient Configuration Row */}
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
                 {/* Left side - Gradient Configuration */}
                 <Box sx={{ flex: 0.4 }}>
                   <Typography
@@ -968,8 +1072,8 @@ const RiskTaxonomy: React.FC = () => {
                     sx={{
                       mb: 2,
                       fontWeight: 600,
-                      letterSpacing: '0%',
-                      color: '#484848'
+                      letterSpacing: "0%",
+                      color: "#484848",
                     }}
                   >
                     Gradient Configuration
@@ -982,40 +1086,56 @@ const RiskTaxonomy: React.FC = () => {
                       sx={{
                         mb: 2,
                         fontWeight: 500,
-                        color: '#484848'
+                        color: "#484848",
                       }}
                     >
                       Select Gradient Type:
                     </Typography>
                     <ButtonGroup variant="outlined" size="small">
                       <Button
-                        variant={gradientType === 'linear' ? 'contained' : 'outlined'}
-                        onClick={() => setGradientType('linear')}
+                        variant={
+                          gradientType === "linear" ? "contained" : "outlined"
+                        }
+                        onClick={() => setGradientType("linear")}
                         startIcon={<TrendingUp />}
                         sx={{
-                          backgroundColor: gradientType === 'linear' ? '#04139A' : 'white',
-                          color: gradientType === 'linear' ? 'white' : '#04139A',
-                          borderColor: '#04139A',
-                          '&:hover': {
-                            backgroundColor: gradientType === 'linear' ? '#04139A' : '#EDF3FCA3',
-                            borderColor: '#04139A',
-                          }
+                          backgroundColor:
+                            gradientType === "linear" ? "#04139A" : "white",
+                          color:
+                            gradientType === "linear" ? "white" : "#04139A",
+                          borderColor: "#04139A",
+                          "&:hover": {
+                            backgroundColor:
+                              gradientType === "linear"
+                                ? "#04139A"
+                                : "#EDF3FCA3",
+                            borderColor: "#04139A",
+                          },
                         }}
                       >
                         Linear
                       </Button>
                       <Button
-                        variant={gradientType === 'quadratic' ? 'contained' : 'outlined'}
-                        onClick={() => setGradientType('quadratic')}
+                        variant={
+                          gradientType === "quadratic"
+                            ? "contained"
+                            : "outlined"
+                        }
+                        onClick={() => setGradientType("quadratic")}
                         startIcon={<ShowChart />}
                         sx={{
-                          backgroundColor: gradientType === 'quadratic' ? '#04139A' : 'white',
-                          color: gradientType === 'quadratic' ? 'white' : '#04139A',
-                          borderColor: '#04139A',
-                          '&:hover': {
-                            backgroundColor: gradientType === 'quadratic' ? '#04139A' : '#EDF3FCA3',
-                            borderColor: '#04139A',
-                          }
+                          backgroundColor:
+                            gradientType === "quadratic" ? "#04139A" : "white",
+                          color:
+                            gradientType === "quadratic" ? "white" : "#04139A",
+                          borderColor: "#04139A",
+                          "&:hover": {
+                            backgroundColor:
+                              gradientType === "quadratic"
+                                ? "#04139A"
+                                : "#EDF3FCA3",
+                            borderColor: "#04139A",
+                          },
                         }}
                       >
                         Quadratic
@@ -1026,22 +1146,36 @@ const RiskTaxonomy: React.FC = () => {
 
                 {/* Right side - Graph Visualization */}
                 <Box sx={{ flex: 0.6 }}>
-                  <Card sx={{ backgroundColor: '#FAFAFA' }}>
+                  <Card sx={{ backgroundColor: "#FAFAFA" }}>
                     <CardContent>
                       <Typography
                         variant="body2"
                         sx={{
                           mb: 1,
                           fontWeight: 500,
-                          color: '#484848'
+                          color: "#484848",
                         }}
                       >
-                        {gradientType === 'linear' ? 'Linear' : 'Quadratic'} Function Graph
+                        {gradientType === "linear" ? "Linear" : "Quadratic"}{" "}
+                        Function Graph
                       </Typography>
 
                       {/* Simple SVG Graph */}
-                      <Box sx={{ position: 'relative', height: 180, width: '100%' }}>
-                        <svg width="100%" height="180" style={{ border: '1px solid #E4E4E4', borderRadius: '4px' }}>
+                      <Box
+                        sx={{
+                          position: "relative",
+                          height: 180,
+                          width: "100%",
+                        }}
+                      >
+                        <svg
+                          width="100%"
+                          height="180"
+                          style={{
+                            border: "1px solid #E4E4E4",
+                            borderRadius: "4px",
+                          }}
+                        >
                           {/* Main border lines */}
                           <line
                             x1="40"
@@ -1109,11 +1243,13 @@ const RiskTaxonomy: React.FC = () => {
 
                           {/* Graph line - properly aligned with Very Low and Critical nodes */}
                           <polyline
-                            points={generateGraphData(gradientType).map((point, index) => {
-                              const x = 40 + (point.x / 100) * (360 - 40); // Start at 40, end at 360
-                              const y = 130 - (point.y / 100) * 100;
-                              return `${x},${y}`;
-                            }).join(' ')}
+                            points={generateGraphData(gradientType)
+                              .map((point, index) => {
+                                const x = 40 + (point.x / 100) * (360 - 40); // Start at 40, end at 360
+                                const y = 130 - (point.y / 100) * 100;
+                                return `${x},${y}`;
+                              })
+                              .join(" ")}
                             fill="none"
                             stroke="#04139A"
                             strokeWidth="3"
@@ -1121,12 +1257,23 @@ const RiskTaxonomy: React.FC = () => {
 
                           {/* Current slider position indicator */}
                           <circle
-                            cx={getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
-                              ? 40 + (50 / 100) * (360 - 40)
-                              : 40}
-                            cy={130 - (getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
-                              ? ((calculateImpact(50, gradientType) - getCurrentRange()[0]) / (getCurrentRange()[1] - getCurrentRange()[0])) * 100
-                              : 0)}
+                            cx={
+                              getCurrentRange()[0] > 0 &&
+                              getCurrentRange()[1] > 0
+                                ? 40 + (50 / 100) * (360 - 40)
+                                : 40
+                            }
+                            cy={
+                              130 -
+                              (getCurrentRange()[0] > 0 &&
+                              getCurrentRange()[1] > 0
+                                ? ((calculateImpact(50, gradientType) -
+                                    getCurrentRange()[0]) /
+                                    (getCurrentRange()[1] -
+                                      getCurrentRange()[0])) *
+                                  100
+                                : 0)
+                            }
                             r="6"
                             fill="#FF6B6B"
                             stroke="white"
@@ -1134,53 +1281,97 @@ const RiskTaxonomy: React.FC = () => {
                           />
 
                           {/* Impact value display */}
-                          {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                            <text
-                              x={getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
-                                ? 40 + (50 / 100) * (360 - 40)
-                                : 40}
-                              y={130 - (getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
-                                ? ((calculateImpact(50, gradientType) - getCurrentRange()[0]) / (getCurrentRange()[1] - getCurrentRange()[0])) * 100
-                                : 0) - 15}
-                              fontSize="12"
-                              fill="#04139A"
-                              textAnchor="middle"
-                              fontWeight="bold"
-                            >
-                              {formatCurrency(calculateImpact(50, gradientType))}
-                            </text>
-                          )}
-
+                          {getCurrentRange()[0] > 0 &&
+                            getCurrentRange()[1] > 0 && (
+                              <text
+                                x={
+                                  getCurrentRange()[0] > 0 &&
+                                  getCurrentRange()[1] > 0
+                                    ? 40 + (50 / 100) * (360 - 40)
+                                    : 40
+                                }
+                                y={
+                                  130 -
+                                  (getCurrentRange()[0] > 0 &&
+                                  getCurrentRange()[1] > 0
+                                    ? ((calculateImpact(50, gradientType) -
+                                        getCurrentRange()[0]) /
+                                        (getCurrentRange()[1] -
+                                          getCurrentRange()[0])) *
+                                      100
+                                    : 0) -
+                                  15
+                                }
+                                fontSize="12"
+                                fill="#04139A"
+                                textAnchor="middle"
+                                fontWeight="bold"
+                              >
+                                {formatCurrency(
+                                  calculateImpact(50, gradientType)
+                                )}
+                              </text>
+                            )}
 
                           {/* Y-axis labels (Min and Max only) - properly aligned */}
-                          <text x="15" y="135" fontSize="12" fill="#91939A" textAnchor="middle">Min</text>
-                          <text x="15" y="35" fontSize="12" fill="#91939A" textAnchor="middle">Max</text>
+                          <text
+                            x="15"
+                            y="135"
+                            fontSize="12"
+                            fill="#91939A"
+                            textAnchor="middle"
+                          >
+                            Min
+                          </text>
+                          <text
+                            x="15"
+                            y="35"
+                            fontSize="12"
+                            fill="#91939A"
+                            textAnchor="middle"
+                          >
+                            Max
+                          </text>
 
                           {/* X-axis labels (First and Last severity levels from API) */}
-                          <text x="40" y="150" fontSize="12" fill="#91939A" textAnchor="start">{firstSeverityLabel}</text>
-                          <text x="360" y="150" fontSize="12" fill="#91939A" textAnchor="end">{lastSeverityLabel}</text>
+                          <text
+                            x="40"
+                            y="150"
+                            fontSize="12"
+                            fill="#91939A"
+                            textAnchor="start"
+                          >
+                            {firstSeverityLabel}
+                          </text>
+                          <text
+                            x="360"
+                            y="150"
+                            fontSize="12"
+                            fill="#91939A"
+                            textAnchor="end"
+                          >
+                            {lastSeverityLabel}
+                          </text>
                         </svg>
                       </Box>
                     </CardContent>
                   </Card>
                 </Box>
               </Box>
-
             </Paper>
-
 
             {/* Right Panel - Impact Scale */}
             <Paper
               elevation={1}
               sx={{
                 p: 2,
-                border: '1px solid #1363DF',
+                border: "1px solid #1363DF",
                 borderRadius: 2,
                 boxShadow: "#0000000A",
                 mb: 2,
                 opacity: isCurrentCategoryEnabled() ? 1 : 0.5,
-                pointerEvents: isCurrentCategoryEnabled() ? 'auto' : 'none',
-                transition: 'opacity 0.3s ease',
+                pointerEvents: isCurrentCategoryEnabled() ? "auto" : "none",
+                transition: "opacity 0.3s ease",
               }}
             >
               <Typography
@@ -1188,22 +1379,27 @@ const RiskTaxonomy: React.FC = () => {
                 sx={{
                   mb: 1,
                   fontWeight: 600,
-                  letterSpacing: '0%',
-                  color: '#484848'
+                  letterSpacing: "0%",
+                  color: "#484848",
                 }}
               >
                 Impact Scale
               </Typography>
 
               {/* Segmented Impact Scale Bar */}
-              <Box sx={{
-                display: 'flex',
-                width: '100%',
-                height: getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 ? '80px' : '60px',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                border: '1px solid #E4E4E4'
-              }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  width: "100%",
+                  height:
+                    getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0
+                      ? "80px"
+                      : "60px",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  border: "1px solid #E4E4E4",
+                }}
+              >
                 {getCurrentCategorySeverityLevels().length > 0 ? (
                   getCurrentCategorySeverityLevels().map((severity, index) => (
                     <Box
@@ -1211,156 +1407,307 @@ const RiskTaxonomy: React.FC = () => {
                       sx={{
                         flex: 1,
                         backgroundColor: severity.color,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
                         fontWeight: 600,
-                        fontSize: '14px',
-                        borderRight: index < getCurrentCategorySeverityLevels().length - 1 ? '1px solid rgba(255, 255, 255, 0.3)' : 'none',
-                        '&:first-of-type': {
-                          borderTopLeftRadius: '8px',
-                          borderBottomLeftRadius: '8px',
+                        fontSize: "14px",
+                        borderRight:
+                          index < getCurrentCategorySeverityLevels().length - 1
+                            ? "1px solid rgba(255, 255, 255, 0.3)"
+                            : "none",
+                        "&:first-of-type": {
+                          borderTopLeftRadius: "8px",
+                          borderBottomLeftRadius: "8px",
                         },
-                        '&:last-of-type': {
-                          borderTopRightRadius: '8px',
-                          borderBottomRightRadius: '8px',
-                        }
+                        "&:last-of-type": {
+                          borderTopRightRadius: "8px",
+                          borderBottomRightRadius: "8px",
+                        },
                       }}
                     >
-                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "14px",
+                        }}
+                      >
                         {severity.name}
                       </Typography>
-                      {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (() => {
-                        const totalSeverities = getCurrentCategorySeverityLevels().length;
-                        const severityRange = calculateSeverityRange(index, totalSeverities);
-                        const isLast = index === totalSeverities - 1;
+                      {getCurrentRange()[0] > 0 &&
+                        getCurrentRange()[1] > 0 &&
+                        (() => {
+                          const totalSeverities =
+                            getCurrentCategorySeverityLevels().length;
+                          const severityRange = calculateSeverityRange(
+                            index,
+                            totalSeverities
+                          );
+                          const isLast = index === totalSeverities - 1;
 
-                        return (
-                          <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
-                            {isLast ? (
-                              <>&gt; {formatCurrencyCompact(severityRange.max)}</>
-                            ) : (
-                              <>{formatCurrencyCompact(severityRange.min)} - {formatCurrencyCompact(severityRange.max)}</>
-                            )}
-                          </Typography>
-                        );
-                      })()}
+                          return (
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "white",
+                                fontWeight: 400,
+                                fontSize: "12px",
+                                mt: 0.5,
+                                textAlign: "center",
+                                px: 0.5,
+                              }}
+                            >
+                              {isLast ? (
+                                <>
+                                  &gt;{" "}
+                                  {formatCurrencyCompact(severityRange.max)}
+                                </>
+                              ) : (
+                                <>
+                                  {formatCurrencyCompact(severityRange.min)} -{" "}
+                                  {formatCurrencyCompact(severityRange.max)}
+                                </>
+                              )}
+                            </Typography>
+                          );
+                        })()}
                     </Box>
                   ))
                 ) : (
                   // Fallback to default severity levels if no API data
                   <>
-                    <Box sx={{
-                      flex: 1,
-                      backgroundColor: '#3BB966',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      borderRight: '1px solid rgba(255, 255, 255, 0.3)',
-                      '&:first-of-type': {
-                        borderTopLeftRadius: '8px',
-                        borderBottomLeftRadius: '8px',
-                      }
-                    }}>
-                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        backgroundColor: "#3BB966",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.3)",
+                        "&:first-of-type": {
+                          borderTopLeftRadius: "8px",
+                          borderBottomLeftRadius: "8px",
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "14px",
+                        }}
+                      >
                         Very Low
                       </Typography>
                       {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
-                          {formatCurrencyCompact(getCurrentRange()[0])} - {formatCurrencyCompact(calculateImpact(25, gradientType))}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "white",
+                            fontWeight: 400,
+                            fontSize: "12px",
+                            mt: 0.5,
+                            textAlign: "center",
+                            px: 0.5,
+                          }}
+                        >
+                          {formatCurrencyCompact(getCurrentRange()[0])} -{" "}
+                          {formatCurrencyCompact(
+                            calculateImpact(25, gradientType)
+                          )}
                         </Typography>
                       )}
                     </Box>
-                    <Box sx={{
-                      flex: 1,
-                      backgroundColor: '#3366CC',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      borderRight: '1px solid rgba(255, 255, 255, 0.3)'
-                    }}>
-                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        backgroundColor: "#3366CC",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.3)",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "14px",
+                        }}
+                      >
                         Low
                       </Typography>
                       {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
-                          {formatCurrencyCompact(calculateImpact(25, gradientType))} - {formatCurrencyCompact(calculateImpact(50, gradientType))}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "white",
+                            fontWeight: 400,
+                            fontSize: "12px",
+                            mt: 0.5,
+                            textAlign: "center",
+                            px: 0.5,
+                          }}
+                        >
+                          {formatCurrencyCompact(
+                            calculateImpact(25, gradientType)
+                          )}{" "}
+                          -{" "}
+                          {formatCurrencyCompact(
+                            calculateImpact(50, gradientType)
+                          )}
                         </Typography>
                       )}
                     </Box>
-                    <Box sx={{
-                      flex: 1,
-                      backgroundColor: '#E3B52A',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      borderRight: '1px solid rgba(255, 255, 255, 0.3)'
-                    }}>
-                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        backgroundColor: "#E3B52A",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.3)",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "14px",
+                        }}
+                      >
                         Medium
                       </Typography>
                       {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
-                          {formatCurrencyCompact(calculateImpact(50, gradientType))} - {formatCurrencyCompact(calculateImpact(75, gradientType))}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "white",
+                            fontWeight: 400,
+                            fontSize: "12px",
+                            mt: 0.5,
+                            textAlign: "center",
+                            px: 0.5,
+                          }}
+                        >
+                          {formatCurrencyCompact(
+                            calculateImpact(50, gradientType)
+                          )}{" "}
+                          -{" "}
+                          {formatCurrencyCompact(
+                            calculateImpact(75, gradientType)
+                          )}
                         </Typography>
                       )}
                     </Box>
-                    <Box sx={{
-                      flex: 1,
-                      backgroundColor: '#DA7706',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      borderRight: '1px solid rgba(255, 255, 255, 0.3)'
-                    }}>
-                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        backgroundColor: "#DA7706",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.3)",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "14px",
+                        }}
+                      >
                         High
                       </Typography>
                       {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
-                          {formatCurrencyCompact(calculateImpact(75, gradientType))} - {formatCurrencyCompact(calculateImpact(100, gradientType))}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "white",
+                            fontWeight: 400,
+                            fontSize: "12px",
+                            mt: 0.5,
+                            textAlign: "center",
+                            px: 0.5,
+                          }}
+                        >
+                          {formatCurrencyCompact(
+                            calculateImpact(75, gradientType)
+                          )}{" "}
+                          -{" "}
+                          {formatCurrencyCompact(
+                            calculateImpact(100, gradientType)
+                          )}
                         </Typography>
                       )}
                     </Box>
-                    <Box sx={{
-                      flex: 1,
-                      backgroundColor: '#B90D0D',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      '&:last-of-type': {
-                        borderTopRightRadius: '8px',
-                        borderBottomRightRadius: '8px',
-                      }
-                    }}>
-                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        backgroundColor: "#B90D0D",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        "&:last-of-type": {
+                          borderTopRightRadius: "8px",
+                          borderBottomRightRadius: "8px",
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "14px",
+                        }}
+                      >
                         Critical
                       </Typography>
                       {getCurrentRange()[0] > 0 && getCurrentRange()[1] > 0 && (
-                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 400, fontSize: '12px', mt: 0.5, textAlign: 'center', px: 0.5 }}>
-                          &gt; {formatCurrencyCompact(calculateImpact(100, gradientType))}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "white",
+                            fontWeight: 400,
+                            fontSize: "12px",
+                            mt: 0.5,
+                            textAlign: "center",
+                            px: 0.5,
+                          }}
+                        >
+                          &gt;{" "}
+                          {formatCurrencyCompact(
+                            calculateImpact(100, gradientType)
+                          )}
                         </Typography>
                       )}
                     </Box>
@@ -1370,29 +1717,29 @@ const RiskTaxonomy: React.FC = () => {
             </Paper>
 
             {/* Save Button for Impact Scale */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
               <Button
                 variant="contained"
                 startIcon={<Save />}
                 onClick={() => handleSaveImpactScale(selectedCategory)}
                 disabled={savingStates[selectedCategory]}
                 sx={{
-                  backgroundColor: '#04139A',
-                  color: 'white',
+                  backgroundColor: "#04139A",
+                  color: "white",
                   fontWeight: 600,
                   px: 3,
                   py: 1,
-                  '&:hover': {
-                    backgroundColor: '#04139A',
+                  "&:hover": {
+                    backgroundColor: "#04139A",
                     opacity: 0.9,
                   },
-                  '&:disabled': {
-                    backgroundColor: '#E4E4E4',
-                    color: '#91939A',
+                  "&:disabled": {
+                    backgroundColor: "#E4E4E4",
+                    color: "#91939A",
                   },
                 }}
               >
-                {savingStates[selectedCategory] ? 'Saving...' : 'Save'}
+                {savingStates[selectedCategory] ? "Saving..." : "Save"}
               </Button>
             </Box>
           </Box>
