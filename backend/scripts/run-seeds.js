@@ -8,8 +8,6 @@ const seeds = [
   "seed-organization-business-units.js",
   "seed-organization-process.js",
   "seed-organization-risk-scenarios.js",
-  "seed-organization-taxonomy.js",
-  "seed-organization-severity.js",
   "seed-organization-assets.js",
   "seed-library-process.js",
   "seed-library-assets.js",
@@ -18,8 +16,7 @@ const seeds = [
   "seed-framework-controls.js",
   "seed-threat-bundle.js",
   "seed-questionnaire.js",
-  "seed-organization-mitre-threats-control.js"
-  // "seed-questionnaire-asset-control.js",
+  "seed-organization-mitre-threats-control.js",
 ];
 
 (async () => {
