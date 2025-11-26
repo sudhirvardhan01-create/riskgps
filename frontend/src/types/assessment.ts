@@ -50,6 +50,7 @@ export interface Taxonomy {
   name: string;
   orgId: string;
   severityDetails: Severity;
+  weightage: number;
 }
 
 export interface Risk {
