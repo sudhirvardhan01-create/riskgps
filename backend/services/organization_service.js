@@ -1020,48 +1020,50 @@ class OrganizationService {
                 );
             }
 
-            const taxonomies = await Taxonomy.findAll({
-                where: {
-                    organizationId: orgId,
-                    isDeleted: false,
-                },
-                attributes: [
-                    "taxonomyId",
-                    "name",
-                    "organizationId",
-                    "createdBy",
-                    "modifiedBy",
-                    "createdDate",
-                    "modifiedDate",
-                    "weightage",
-                    "order",
-                    "isEdited",
-                    "isActive",
-                ],
-                include: [
-                    {
-                        model: SeverityLevel,
-                        as: "severityLevels",
-                        where: { isDeleted: false },
-                        required: false,
-                        attributes: [
-                            "severityId",
-                            "taxonomyId",
-                            "name",
-                            "minRange",
-                            "maxRange",
-                            "createdBy",
-                            "modifiedBy",
-                            "createdDate",
-                            "modifiedDate",
-                            "color",
-                            "order",
-                        ],
-                        order: [["order"]],
-                    },
-                ],
-                order: [["order"]],
-            });
+      const taxonomies = await Taxonomy.findAll({
+        where: {
+          organizationId: orgId,
+          isDeleted: false,
+        },
+        attributes: [
+          "taxonomyId",
+          "name",
+          "organizationId",
+          "createdBy",
+          "modifiedBy",
+          "createdDate",
+          "modifiedDate",
+          "weightage",
+          "order",
+          "isEdited",
+          "isActive",
+        ],
+        include: [
+          {
+            model: SeverityLevel,
+            as: "severityLevels",
+            where: { isDeleted: false },
+            required: false,
+            attributes: [
+              "severityId",
+              "taxonomyId",
+              "name",
+              "minRange",
+              "maxRange",
+              "createdBy",
+              "modifiedBy",
+              "createdDate",
+              "modifiedDate",
+              "color",
+              "order",
+            ],
+          },
+        ],
+        order: [
+          ["order", "ASC"], // sort taxonomies
+          [{ model: SeverityLevel, as: "severityLevels" }, "order", "ASC"], // sort severityLevels
+        ],
+      });
 
             return taxonomies;
         } catch (err) {
@@ -1845,143 +1847,144 @@ class OrganizationService {
             modifiedDate: new Date(),
         });
 
-        return { message: "Business unit deleted successfully" };
-    }
+    return { message: "Business unit deleted successfully" };
+  }
 
-    /**
-     * Save or update taxonomies with severity levels for an organization (Option B)
-     */
-    static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
-        try {
-            if (!orgId) {
-                throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
-            }
+  /**
+   * Save or update taxonomies with severity levels for an organization (Option B)
+   */
+  static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
+    try {
+      if (!orgId) {
+        throw new CustomError(
+          "Organization ID is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
 
             const savedTaxonomies = [];
 
-            for (const taxonomyData of taxonomies) {
-                const {
-                    taxonomyId,
-                    name,
-                    weightage,
-                    createdBy,
-                    order,
-                    isEdited,
-                    isActive,
-                    severityLevels = [],
-                } = taxonomyData;
+      for (const taxonomyData of taxonomies) {
+        const {
+          taxonomyId,
+          name,
+          weightage,
+          createdBy,
+          order,
+          isEdited,
+          isActive,
+          severityLevels = [],
+        } = taxonomyData;
 
-                let taxonomy;
+        let taxonomy;
 
-                if (taxonomyId) {
-                    taxonomy = await Taxonomy.findOne({
-                        where: {
-                            taxonomyId,
-                            organizationId: orgId,
-                            isDeleted: false,
-                        },
-                    });
+        if (taxonomyId) {
+          taxonomy = await Taxonomy.findOne({
+            where: {
+              taxonomyId,
+              organizationId: orgId,
+              isDeleted: false,
+            },
+          });
 
-                    if (taxonomy) {
-                        await taxonomy.update({
-                            name,
-                            weightage,
-                            order: order ?? taxonomy.order,
-                            isEdited: isEdited ?? true,
-                            isActive: isActive ?? taxonomy.isActive,
-                            modifiedBy: createdBy,
-                            modifiedDate: new Date()
-                        });
-                    } else {
-                        taxonomy = await Taxonomy.create({
-                            name,
-                            weightage,
-                            organizationId: orgId,
-                            createdBy,
-                            createdDate: new Date(),
-                            isEdited: isEdited ?? false,
-                            isActive: isActive ?? true,
-                            order: order ?? 0
-                        });
-                    }
-
-                } else {
-                    taxonomy = await Taxonomy.create({
-                        name,
-                        weightage,
-                        organizationId: orgId,
-                        createdBy,
-                        createdDate: new Date(),
-                        isEdited: isEdited ?? false,
-                        isActive: isActive ?? true,
-                        order: order ?? 0,
-                    });
-                }
+          if (taxonomy) {
+            await taxonomy.update({
+              name,
+              weightage,
+              order: order ?? taxonomy.order,
+              isEdited: isEdited ?? true,
+              isActive: isActive ?? taxonomy.isActive,
+              modifiedBy: createdBy,
+              modifiedDate: new Date(),
+            });
+          } else {
+            taxonomy = await Taxonomy.create({
+              name,
+              weightage,
+              organizationId: orgId,
+              createdBy,
+              createdDate: new Date(),
+              isEdited: isEdited ?? false,
+              isActive: isActive ?? true,
+              order: order ?? 0,
+            });
+          }
+        } else {
+          taxonomy = await Taxonomy.create({
+            name,
+            weightage,
+            organizationId: orgId,
+            createdBy,
+            createdDate: new Date(),
+            isEdited: isEdited ?? false,
+            isActive: isActive ?? true,
+            order: order ?? 0,
+          });
+        }
 
                 const savedSeverities = [];
 
-                for (const level of severityLevels) {
-                    const {
-                        severityId,
-                        name,
-                        minRange,
-                        maxRange,
-                        color,
-                        createdBy,
-                        order,
-                    } = level;
+        for (const level of severityLevels) {
+          const {
+            severityId,
+            name,
+            minRange,
+            maxRange,
+            color,
+            createdBy,
+            order,
+          } = level;
 
-                    let severity;
+          let severity;
 
-                    if (severityId) {
-                        severity = await SeverityLevel.findOne({
-                            where: {
-                                severityId,
-                                taxonomyId: taxonomy.taxonomyId,
-                                isDeleted: false,
-                            },
-                        });
+          if (severityId) {
+            severity = await SeverityLevel.findOne({
+              where: {
+                severityId,
+                taxonomyId: taxonomy.taxonomyId,
+                isDeleted: false,
+              },
+            });
 
-                        if (severity) {
-                            await severity.update({
-                                name,
-                                minRange,
-                                maxRange,
-                                color,
-                                order: order ?? severity.order,
-                                modifiedBy: createdBy,
-                                modifiedDate: new Date()
-                            });
-                        } else {
-                            severity = await SeverityLevel.create({
-                                taxonomyId: taxonomy.taxonomyId,
-                                name,
-                                minRange,
-                                maxRange,
-                                color,
-                                createdBy,
-                                createdDate: new Date(),
-                                isEdited: isEdited ?? false,
-                                isActive: isActive ?? true,
-                                order: order ?? 0,
-                            });
-                        }
+            if (severity) {
+              await severity.update({
+                name,
+                minRange,
+                maxRange,
+                color,
+                order: order ?? severity.order,
+                modifiedBy: createdBy,
+                modifiedDate: new Date(),
+              });
+            } else {
+              severity = await SeverityLevel.create({
+                taxonomyId: taxonomy.taxonomyId,
+                name,
+                minRange,
+                maxRange,
+                color,
+                createdBy,
+                createdDate: new Date(),
+                isEdited: isEdited ?? false,
+                isActive: isActive ?? true,
+                order: order ?? 0,
+              });
+            }
+          } else {
+            severity = await SeverityLevel.create({
+              taxonomyId: taxonomy.taxonomyId,
+              name,
+              minRange,
+              maxRange,
+              color,
+              createdBy,
+              createdDate: new Date(),
+              order: order ?? 0,
+            });
+          }
 
-                    } else {
-                        severity = await SeverityLevel.create({
-                            taxonomyId: taxonomy.taxonomyId,
-                            name,
-                            minRange,
-                            maxRange,
-                            color,
-                            createdBy,
-                            createdDate: new Date(),
-                            order: order ?? 0
-                        });
-                    }
-
-                    savedSeverities.push(severity);
-                }
+          savedSeverities.push(severity);
+        }
 
                 savedTaxonomies.push({
                     ...taxonomy.get({ plain: true }),

@@ -249,7 +249,6 @@ router.put(
     }
 );
 
-
 router.delete(
     "/:orgId/business-unit/:businessUnitId/process",
     async (req, res) => {
@@ -336,8 +335,6 @@ router.get("/:orgId/risk-scenarios-v2", async (req, res) => {
     }
 });
 
-
-
 router.post("/:orgId/add-risk-scenarios", async (req, res) => {
     try {
         const { orgId } = req.params;
@@ -363,7 +360,6 @@ router.post("/:orgId/add-risk-scenarios", async (req, res) => {
         });
     }
 });
-
 
 /**
  * @route GET /organization/:orgId/risk-scenarios
@@ -394,7 +390,6 @@ router.post("/:orgId/risk-scenarios", async (req, res) => {
         });
     }
 });
-
 
 router.put("/:orgId/risk-scenarios/:id", async (req, res) => {
     try {
@@ -449,7 +444,6 @@ router.delete("/:orgId/risk-scenarios", async (req, res) => {
         });
     }
 });
-
 
 /**
  * @route GET /organization/:orgId/risk-scenarios
@@ -510,7 +504,6 @@ router.post("/:orgId/threats", async (req, res) => {
     }
 });
 
-
 /**
  * @route GET /organization/:orgId/taxonomies
  * @desc Get all taxonomies and severity levels for an organization
@@ -567,7 +560,6 @@ router.get("/:orgId/assets/:assetId", async (req, res) => {
         });
     }
 });
-
 
 /**
  * @route GET /organization/:orgId/assets
@@ -648,7 +640,6 @@ router.post("/:orgId/add-asset", async (req, res) => {
         });
     }
 });
-
 
 router.post("/:orgId/asset", async (req, res) => {
     try {
@@ -912,29 +903,31 @@ router.delete("/business-unit/:id", async (req, res) => {
     }
 });
 
-
 /**
  * @route POST /organization/:orgId/taxonomies
  * @desc Create taxonomies with severity levels for an organization
  */
 router.post("/:orgId/taxonomies", async (req, res) => {
-    try {
-        const { orgId } = req.params;
-        const { taxonomies } = req.body; // Expecting an array of taxonomy objects with severity levels
+  try {
+    const { orgId } = req.params;
+    const { taxonomies } = req.body; // Expecting an array of taxonomy objects with severity levels
 
-        if (!orgId) {
-            return res.status(HttpStatus.BAD_REQUEST).json({
-                message: "Organization ID is required in the URL",
-            });
-        }
+    if (!orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "Organization ID is required in the URL",
+      });
+    }
 
-        if (!Array.isArray(taxonomies) || taxonomies.length === 0) {
-            return res.status(HttpStatus.BAD_REQUEST).json({
-                message: "At least one taxonomy with severity levels is required",
-            });
-        }
+    if (!Array.isArray(taxonomies) || taxonomies.length === 0) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "At least one taxonomy with severity levels is required",
+      });
+    }
 
-        const result = await OrganizationService.saveTaxonomiesWithSeverity(orgId, taxonomies);
+    const result = await OrganizationService.saveTaxonomiesWithSeverity(
+      orgId,
+      taxonomies
+    );
 
         res.status(HttpStatus.CREATED).json({
             message: "Organization taxonomies and severity levels saved successfully",
