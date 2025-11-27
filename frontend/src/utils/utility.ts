@@ -152,22 +152,22 @@ export const formatNumberWithCommas = (value: string): string => {
   // Remove all non-digit characters
   const numericValue = value.replace(/\D/g, "");
   if (!numericValue) return "";
-  
+
   // Indian numbering system: last 3 digits, then groups of 2
   if (numericValue.length <= 3) {
     return numericValue;
   }
-  
+
   // Get last 3 digits
   const lastThree = numericValue.slice(-3);
   // Get remaining digits
   const remaining = numericValue.slice(0, -3);
-  
+
   // Group remaining digits in groups of 2 from right to left
   const reversedRemaining = remaining.split("").reverse().join("");
   const groupedRemaining = reversedRemaining.replace(/(\d{2})(?=\d)/g, "$1,");
   const formattedRemaining = groupedRemaining.split("").reverse().join("");
-  
+
   return formattedRemaining ? `${formattedRemaining},${lastThree}` : lastThree;
 };
 
@@ -253,3 +253,41 @@ export function transformAssetData(apiData: RawAsset[]) {
 
   return { asset_data, vendor_data, network_data, cityData };
 }
+
+// Format currency with K (thousand), M (million), and B (billion) abbreviations
+// K = 1,000 (for values 1,000 to 999,999)
+// M = 1,000,000 (for values 1,000,000 to 999,999,999)
+// B = 1,000,000,000 (for values >= 1,000,000,000)
+// Examples: 5,000 = $5K, 10,000 = $10K, 500,000 = $500K, 1,000,000 = $1M, 5,000,000 = $5M, 1,000,000,000 = $1B
+export const formatCurrencyCompact = (value: number): string => {
+  if (value >= 1000000000) {
+    // For values >= 1,000,000,000, use B (Billions) where 1B = 1,000,000,000
+    const billions = value / 1000000000;
+    // Round to 1 decimal place if needed, otherwise show as whole number
+    const formattedBillions =
+      billions % 1 === 0
+        ? Math.round(billions).toString()
+        : billions.toFixed(1);
+    return `$${formattedBillions}B`;
+  } else if (value >= 1000000) {
+    // For values >= 1,000,000 and < 1,000,000,000, use M (Millions) where 1M = 1,000,000
+    const millions = value / 1000000;
+    // Round to 1 decimal place if needed, otherwise show as whole number
+    const formattedMillions =
+      millions % 1 === 0
+        ? Math.round(millions).toString()
+        : millions.toFixed(1);
+    return `$${formattedMillions}M`;
+  } else if (value >= 1000) {
+    // For values >= 1,000 and < 1,000,000, use K (Thousands) where 1K = 1,000
+    const thousands = value / 1000;
+    // Round to 1 decimal place if needed, otherwise show as whole number
+    const formattedThousands =
+      thousands % 1 === 0
+        ? Math.round(thousands).toString()
+        : thousands.toFixed(1);
+    return `$${formattedThousands}K`;
+  }
+  // For values < 1,000, show as is
+  return `$${Math.round(value)}`;
+};

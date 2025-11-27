@@ -781,7 +781,7 @@ class AssessmentService {
           assessmentProcessAssetId: q.assessmentProcessAssetId,
           questionnaireId: q.questionnaireId,
           question: q.question,
-          responseValue: q.responseValue || null,
+          responseValue: q.responseValue,
           createdBy: userId,
           modifiedBy: userId,
           createdDate: new Date(),
