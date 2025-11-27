@@ -421,89 +421,93 @@ class AssessmentService {
     }
   }
 
-  /**
-   * Save business impacts & taxonomies for an assessment process risk
-   * @param {Object} payload
-   * @param {string} payload.assessmentId
-   * @param {string} payload.assessmentProcessRiskId
-   * @param {Array} payload.businessImpacts
-   * @param {Array} payload.taxonomies
-   * @param {string} userId
-   */
-  static async saveRiskDetails(payload, userId) {
-    try {
-      const { assessmentId, riskScenarios, status } = payload;
-      let progress = undefined;
+    /**
+     * Save business impacts & taxonomies for an assessment process risk
+     * Option B: Delete + Recreate All Taxonomies
+     *
+     * @param {Object} payload
+     * @param {string} payload.assessmentId
+     * @param {Array} payload.riskScenarios
+     * @param {string} payload.status
+     * @param {string} userId
+     */
+    static async saveRiskDetails(payload, userId) {
+        try {
+            const { assessmentId, riskScenarios, status } = payload;
 
-      for (const rs of riskScenarios) {
-        // Taxonomies
-        for (const tx of rs.taxonomy || []) {
-          let existingTax = null;
-          if (tx.assessmentRiskTaxonomyId) {
-            existingTax = await AssessmentRiskTaxonomy.findOne({
-              where: { assessmentRiskTaxonomyId: tx.assessmentRiskTaxonomyId },
-            });
-          }
+            if (!assessmentId) {
+                throw new CustomError("assessmentId is required", HttpStatus.BAD_REQUEST);
+            }
 
-          if (existingTax) {
-            await existingTax.update({
-              taxonomyName: tx.name,
-              severityName: tx.severityDetails.name,
-              severityMinRange: tx.severityDetails.minRange,
-              severityMaxRange: tx.severityDetails.maxRange,
-              color: tx.severityDetails.color,
-              modifiedBy: userId,
-              modifiedDate: new Date(),
-            });
-          } else {
-            await AssessmentRiskTaxonomy.create({
-              assessmentRiskTaxonomyId: uuidv4(),
-              assessmentId,
-              assessmentProcessRiskId: rs.assessmentProcessRiskId,
-              taxonomyId: tx.taxonomyId,
-              taxonomyName: tx.name,
-              severityName: tx.severityDetails.name,
-              severityMinRange: tx.severityDetails.minRange,
-              severityMaxRange: tx.severityDetails.maxRange,
-              color: tx.severityDetails.color,
-              severityId: tx.severityDetails.severityId,
-              createdBy: userId,
-              modifiedBy: userId,
-              createdDate: new Date(),
+            if (!Array.isArray(riskScenarios) || riskScenarios.length === 0) {
+                throw new CustomError(
+                    "riskScenarios array is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            // Step 1: Delete all previous taxonomies for this assessment
+            await AssessmentRiskTaxonomy.destroy({
+                where: { assessmentId },
             });
 
-            progress = 60;
-          }
+            // Step 2: Insert all NEW taxonomies from payload
+            const newRecords = [];
+
+            for (const rs of riskScenarios) {
+                for (const tx of rs.taxonomy || []) {
+                    const created = await AssessmentRiskTaxonomy.create({
+                        assessmentRiskTaxonomyId: uuidv4(),
+                        assessmentId: assessmentId,
+                        assessmentProcessRiskId: rs.assessmentProcessRiskId,
+                        taxonomyId: tx.taxonomyId,
+                        taxonomyName: tx.name,
+                        severityName: tx.severityDetails.name,
+                        severityMinRange: tx.severityDetails.minRange,
+                        severityMaxRange: tx.severityDetails.maxRange,
+                        color: tx.severityDetails.color,
+                        weightage: tx.weightage,
+                        severityId: tx.severityDetails.severityId,
+                        createdBy: userId,
+                        modifiedBy: userId,
+                        createdDate: new Date(),
+                        modifiedDate: new Date()
+                    });
+
+                    newRecords.push(created);
+                }
+            }
+
+            // Step 3: Update assessment status
+            if (status) {
+                await Assessment.update(
+                    {
+                        status,
+                        progress: 60,
+                        modifiedBy: userId,
+                        modifiedDate: new Date()
+                    },
+                    { where: { assessmentId } }
+                );
+            }
+
+            // Step 4: Return fresh list
+            const finalList = await AssessmentRiskTaxonomy.findAll({
+                where: { assessmentId },
+            });
+
+            return {
+                message: "Risk taxonomies deleted and recreated successfully",
+                taxonomies: finalList,
+            };
+        } catch (err) {
+            throw new CustomError(
+                err.message || "Failed to save risk details",
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
-      }
-
-      if (status) {
-        await Assessment.update(
-          {
-            status,
-            progress: progress,
-            modifiedBy: userId,
-            modifiedDate: new Date(),
-          },
-          { where: { assessmentId } }
-        );
-      }
-
-      return {
-        message: "Business Impacts and Taxonomies saved successfully",
-        taxonomies: await AssessmentRiskTaxonomy.findAll({
-          where: {
-            assessmentId: assessmentId,
-          },
-        }),
-      };
-    } catch (err) {
-      throw new CustomError(
-        err.message || "Failed to save risk details",
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
     }
-  }
+
 
   /**
    * Save assets for an assessment process and update assessment status
