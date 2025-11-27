@@ -14,7 +14,7 @@ const AssetPool: React.FC<AssetPoolProps> = ({ assetPool }) => {
   const { setNodeRef } = useDroppable({ id: "asset-pool" });
   const [search, setSearch] = useState("");
 
-  // Filter risks by title
+  // Filter riskScenarios by title
   const filteredAssets = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return assetPool;

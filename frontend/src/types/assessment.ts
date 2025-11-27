@@ -50,6 +50,7 @@ export interface Taxonomy {
   name: string;
   orgId: string;
   severityDetails: Severity;
+  weightage: number;
 }
 
 export interface Risk {
@@ -87,6 +88,6 @@ export interface ProcessUnit {
   processName: string;
   processDescription: string;
   order?: number;
-  risks: Risk[];
+  riskScenarios: Risk[];
   assets: Asset[];
 }

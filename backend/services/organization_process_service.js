@@ -5,6 +5,7 @@ const {
   OrganizationProcess,
   OrganizationProcessRelationship,
   MetaData,
+  OrganizationAsset,
   OrganizationRiskScenario,
   OrganizationProcessAttribute,
 } = require("../models");
@@ -25,6 +26,10 @@ class OrganizationProcessService {
       {
         model: OrganizationRiskScenario,
         as: "riskScenarios",
+      },
+      {
+        model: OrganizationAsset,
+        as: "assets",
       },
       {
         model: OrganizationProcessRelationship,

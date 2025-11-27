@@ -40,18 +40,21 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
   const { setNodeRef } = useDroppable({ id: process.id });
 
   const allSelected =
-    process.risks.length > 0 &&
-    process.risks.every(
+    process.riskScenarios.length > 0 &&
+    process.riskScenarios.every(
       (r) => selectedRisks.length > 0 && selectedRisks.includes(r.id)
     );
 
   const toggleSelectAll = () => {
     if (allSelected) {
       setSelectedRisks((prev) =>
-        prev.filter((id) => !process.risks.find((r) => r.id === id))
+        prev.filter((id) => !process.riskScenarios.find((r) => r.id === id))
       );
     } else {
-      setSelectedRisks((prev) => [...prev, ...process.risks.map((r) => r.id)]);
+      setSelectedRisks((prev) => [
+        ...prev,
+        ...process.riskScenarios.map((r) => r.id),
+      ]);
     }
   };
 
@@ -86,7 +89,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
           fontWeight={600}
           sx={{ flexGrow: 1 }}
         >
-          {process.processName} ({process.risks.length})
+          {process.processName} ({process.riskScenarios.length})
         </Typography>
       </AccordionSummary>
       <AccordionDetails ref={setNodeRef} sx={{ p: 2 }}>
@@ -160,7 +163,7 @@ const ProcessCardRisk: React.FC<ProcessCardRiskProps> = ({
             gap: 1.5,
           }}
         >
-          {process.risks.map((risk) => (
+          {process.riskScenarios.map((risk) => (
             <Paper
               key={risk.id}
               sx={{

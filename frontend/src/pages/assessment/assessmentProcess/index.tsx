@@ -72,10 +72,6 @@ function BUProcessMappingPage() {
           assessment?.orgId,
           assessment?.businessUnitId
         );
-        response.data.forEach((item: any) => {
-          item["risks"] = [];
-          item["assets"] = [];
-        });
         setProcesses(response.data);
       } catch (error) {
         console.error("Error fetching organisations:", error);
@@ -102,7 +98,7 @@ function BUProcessMappingPage() {
 
   const prepareRiskPayload = () => {
     const obj = assessment?.processes.flatMap((process) =>
-      process.risks.map((risk) => ({
+      process.riskScenarios.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
         assessmentProcessRiskId: risk.assessmentProcessRiskId,
         id: risk.id,
@@ -115,7 +111,7 @@ function BUProcessMappingPage() {
 
   const prepareRiskTaxonomyPayload = () => {
     const obj = assessment?.processes.flatMap((process) =>
-      process.risks.map((risk) => ({
+      process.riskScenarios.map((risk) => ({
         assessmentProcessId: process.assessmentProcessId ?? "",
         assessmentProcessRiskId: risk.assessmentProcessRiskId ?? "",
         id: risk.id,
@@ -209,7 +205,7 @@ function BUProcessMappingPage() {
 
           const updatedProcessesRisk = assessment?.processes.map((process) => ({
             ...process,
-            risks: process.risks.map((risk) => {
+            riskScenarios: process.riskScenarios.map((risk) => {
               const match = response.riskScenarios.find(
                 (obj: any) => obj.id === risk.id
               );
@@ -236,7 +232,7 @@ function BUProcessMappingPage() {
           const updatedProcessesRiskTaxonomy = assessment?.processes.map(
             (process) => ({
               ...process,
-              risks: process.risks.map((risk) => ({
+              riskScenarios: process.riskScenarios.map((risk) => ({
                 ...risk,
                 taxonomy: risk.taxonomy?.map((tax) => {
                   // Find a matching question entry from resultQues.questionnaire
@@ -337,20 +333,22 @@ function BUProcessMappingPage() {
       case 0:
         return assessment?.processes && assessment?.processes.length > 0;
       case 1:
-        return assessment?.processes.some((item) => item.risks.length > 0);
+        return assessment?.processes.every(
+          (item) => item.riskScenarios.length > 0
+        );
       case 2:
-        return assessment?.processes.some(
+        return assessment?.processes.every(
           (item) =>
-            item.risks.length > 0 &&
-            item.risks.some((risk) => risk.taxonomy?.length > 0)
+            item.riskScenarios.length > 0 &&
+            item.riskScenarios.every((risk) => risk.taxonomy?.length > 0)
         );
       case 3:
-        return assessment?.processes.some((item) => item.assets.length > 0);
+        return assessment?.processes.every((item) => item.assets.length > 0);
       case 4:
-        return assessment?.processes.some(
+        return assessment?.processes.every(
           (item) =>
             item.assets.length > 0 &&
-            item.assets.some((asset) => asset.questionnaire?.length > 0)
+            item.assets.every((asset) => asset.questionnaire?.length > 0)
         );
     }
     return true;
