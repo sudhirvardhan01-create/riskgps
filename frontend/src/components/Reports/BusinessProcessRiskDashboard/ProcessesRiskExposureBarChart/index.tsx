@@ -56,9 +56,16 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
         ry={6}
         opacity={isSelected ? 1 : 0.3}
         style={{ cursor: "pointer" }}
-        onClick={() => setSelectedProcess(payload.processName)}
+        onClick={() => {
+          setSelectedProcess(payload.processName);
+        }}
       />
     );
+  };
+
+  const legendFormatter = (value: any, entry: any, index: any) => {
+    // You can apply different colors based on the value or index if needed
+    return <span style={{ color: "#484848" }}>{value}</span>;
   };
 
   return (
@@ -77,7 +84,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={formattedData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+          margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
           onClick={(e) => {
             // Clear selection by clicking empty chart area
             if (!e?.activeLabel) setSelectedProcess(null);
@@ -90,7 +97,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
             angle={-45}
             textAnchor="end"
             interval={0}
-            height={90}
+            height={120}
             tickMargin={10}
             tick={{ fontSize: 12 }}
           />
@@ -100,7 +107,9 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
               value: "Exposure (in Billion USD)",
               angle: -90,
               position: "insideCentre",
+              style: { fontWeight: "bold", fontSize: 12 },
             }}
+            width={100}
           />
 
           <Tooltip
@@ -108,24 +117,26 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
             labelStyle={{ fontWeight: "bold" }}
           />
 
-          <Legend />
+          <Legend formatter={legendFormatter} />
 
           {/* RISK EXPOSURE */}
           <Bar
             dataKey="maxRiskExposureBillion"
             name="Max Risk Exposure"
-            fill="#FF6B6B"
+            fill="#31a8b2"
             shape={<CustomBar />}
             isAnimationActive={false}
+            barSize={24}
           />
 
           {/* NET EXPOSURE */}
           <Bar
             dataKey="maxNetExposureBillion"
             name="Max Net Exposure"
-            fill="#4E89FF"
+            fill="#20cfcf"
             shape={<CustomBar />}
             isAnimationActive={false}
+            barSize={24}
           />
 
           <ReferenceLine

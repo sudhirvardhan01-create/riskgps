@@ -25,6 +25,7 @@ const ProcessCriticalityCard: React.FC<ProcessCriticalityCardProps> = ({
           backgroundColor: cardBackgroundColor,
           borderRadius: 2,
           p: 2,
+          opacity: 0.9,
         }}
       >
         <Stack
