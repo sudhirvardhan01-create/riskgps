@@ -13,6 +13,11 @@ import {
   DialogContent,
   SxProps,
   Theme,
+  Button,
+  Popover,
+  Checkbox,
+  FormControlLabel,
+  CircularProgress,
 } from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
@@ -25,6 +30,7 @@ import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTy
 import ToastComponent from "@/components/ToastComponent";
 import Repository from "@/components/Repository/Repository";
 import Cookies from "js-cookie";
+import { useLibraryImport } from "@/hooks/useLibraryImport";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,6 +73,15 @@ function OrgDetailsPage() {
     severity: "error" as "error" | "warning" | "info" | "success",
   });
   const [user, setUser] = useState<{ role?: string; orgId?: string }>({});
+  const [importModalAnchor, setImportModalAnchor] = useState<HTMLButtonElement | null>(null);
+  const [importSelections, setImportSelections] = useState({
+    riskScenario: false,
+    process: false,
+    assets: false,
+  });
+
+  // WebSocket integration for library import
+  const { importStatus, startImport, stopImport, resetStatus } = useLibraryImport();
 
   useEffect(() => {
     const cookieUser = Cookies.get("user");
@@ -288,6 +303,113 @@ function OrgDetailsPage() {
     router.push("/orgManagement");
   };
 
+  const handleImportLibraryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setImportModalAnchor(event.currentTarget);
+  };
+
+  const handleImportModalClose = () => {
+    setImportModalAnchor(null);
+    // Only reset status if import is not in progress
+    if (!importStatus.isImporting) {
+      resetStatus();
+      // Reset selections
+      setImportSelections({
+        riskScenario: false,
+        process: false,
+        assets: false,
+      });
+    }
+  };
+
+  const handleCheckboxChange = (key: keyof typeof importSelections) => {
+    setImportSelections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const handleImport = async () => {
+    if (!orgId || typeof orgId !== "string") {
+      setToast({
+        open: true,
+        message: "Organization ID is required",
+        severity: "error",
+      });
+      return;
+    }
+
+    // Build selectedLibrary array based on importSelections
+    const selectedLibrary: string[] = [];
+    if (importSelections.riskScenario) {
+      selectedLibrary.push("risk-scenarios");
+    }
+    if (importSelections.process) {
+      selectedLibrary.push("process");
+    }
+    if (importSelections.assets) {
+      selectedLibrary.push("assets");
+    }
+
+    // Check if at least one library is selected
+    if (selectedLibrary.length === 0) {
+      setToast({
+        open: true,
+        message: "Please select at least one library to import",
+        severity: "warning",
+      });
+      return;
+    }
+
+    try {
+      // Start import using WebSocket hook
+      await startImport(orgId as string, selectedLibrary);
+      
+      // Close modal immediately - import is now running in background
+      handleImportModalClose();
+      
+      // Reset selections after starting import
+      setImportSelections({
+        riskScenario: false,
+        process: false,
+        assets: false,
+      });
+    } catch (error: any) {
+      setToast({
+        open: true,
+        message: error.message || "Failed to start import",
+        severity: "error",
+      });
+      resetStatus();
+    }
+  };
+
+  // Handle import status changes from WebSocket
+  useEffect(() => {
+    if (importStatus.status === "completed") {
+      setToast({
+        open: true,
+        message: importStatus.message || "Library imported successfully",
+        severity: "success",
+      });
+      resetStatus();
+    } else if (importStatus.status === "error") {
+      setToast({
+        open: true,
+        message: importStatus.message || "Failed to import library",
+        severity: "error",
+      });
+      resetStatus();
+    } else if (importStatus.status === "stopped") {
+      setToast({
+        open: true,
+        message: importStatus.message || "Import stopped",
+        severity: "warning",
+      });
+      resetStatus();
+    }
+  }, [importStatus.status, importStatus.message, resetStatus]);
+
+
   if (loading) {
     return (
       <Box
@@ -387,53 +509,86 @@ function OrgDetailsPage() {
         {/* Organization Header */}
         <Box sx={{ pl: 8, mb: 2 }}>
           {/* Logo and Company Name on same line */}
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <Box
-              sx={{
-                mr: 2,
-                position: "relative",
-                width: 40,
-                height: 40,
-                borderRadius: "30px",
-                overflow: "hidden",
-                backgroundColor: "#91939A",
-              }}
-            >
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, mr: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               <Box
                 sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#FFFFFF",
-                  fontSize: "22px",
-                  fontWeight: 600,
-                  zIndex: 2,
+                  mr: 2,
+                  position: "relative",
+                  width: 40,
+                  height: 40,
+                  borderRadius: "30px",
+                  overflow: "hidden",
+                  backgroundColor: "#91939A",
                 }}
               >
-                {organization.name?.charAt(0)?.toUpperCase() || "?"}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#FFFFFF",
+                    fontSize: "22px",
+                    fontWeight: 600,
+                    zIndex: 2,
+                  }}
+                >
+                  {organization.name?.charAt(0)?.toUpperCase() || "?"}
+                </Box>
+                {/* Gradient overlay */}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "#0000001F",
+                    borderRadius: "48px",
+                    zIndex: 1,
+                  }}
+                />
               </Box>
-              {/* Gradient overlay */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "#0000001F",
-                  borderRadius: "48px",
-                  zIndex: 1,
-                }}
-              />
+              <Typography variant="h4" sx={{ fontWeight: 500, color: "#484848" }}>
+                {organization.name}
+              </Typography>
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 500, color: "#484848" }}>
-              {organization.name}
-            </Typography>
+            <Button
+              variant="contained"
+              onClick={handleImportLibraryClick}
+              disabled={importStatus.isImporting}
+              startIcon={
+                importStatus.isImporting ? (
+                  <CircularProgress size={16} sx={{ color: "#FFFFFF" }} />
+                ) : null
+              }
+              sx={{
+                backgroundColor: "#04139A",
+                color: "#FFFFFF",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "14px",
+                px: 2,
+                py: 1,
+                "&:hover": {
+                  backgroundColor: "#030d6b",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "#04139A",
+                  color: "#FFFFFF",
+                  opacity: 0.7,
+                },
+              }}
+            >
+              {importStatus.isImporting
+                ? importStatus.message || "Importing..."
+                : "Import Library"}
+            </Button>
           </Box>
 
           {/* Details row below */}
@@ -977,6 +1132,149 @@ function OrgDetailsPage() {
           </Typography>
         </TabPanel>
       </Box>
+
+      {/* Import Library Modal */}
+      <Popover
+        open={Boolean(importModalAnchor)}
+        anchorEl={importModalAnchor}
+        onClose={handleImportModalClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 300,
+            borderRadius: "8px",
+            boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #E7E7E8",
+          },
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 2,
+              fontWeight: 500,
+              color: "#484848",
+            }}
+          >
+            Import Library
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 3 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={importSelections.riskScenario}
+                  onChange={() => handleCheckboxChange("riskScenario")}
+                  sx={{
+                    color: "#04139A",
+                    "&.Mui-checked": {
+                      color: "#04139A",
+                    },
+                  }}
+                />
+              }
+              label="Risk Scenario"
+              sx={{
+                "& .MuiFormControlLabel-label": {
+                  fontSize: "14px",
+                  color: "#484848",
+                },
+              }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={importSelections.process}
+                  onChange={() => handleCheckboxChange("process")}
+                  sx={{
+                    color: "#04139A",
+                    "&.Mui-checked": {
+                      color: "#04139A",
+                    },
+                  }}
+                />
+              }
+              label="Process"
+              sx={{
+                "& .MuiFormControlLabel-label": {
+                  fontSize: "14px",
+                  color: "#484848",
+                },
+              }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={importSelections.assets}
+                  onChange={() => handleCheckboxChange("assets")}
+                  sx={{
+                    color: "#04139A",
+                    "&.Mui-checked": {
+                      color: "#04139A",
+                    },
+                  }}
+                />
+              }
+              label="Assets"
+              sx={{
+                "& .MuiFormControlLabel-label": {
+                  fontSize: "14px",
+                  color: "#484848",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={handleImportModalClose}
+              sx={{
+                textTransform: "none",
+                color: "#484848",
+                borderColor: "#E7E7E8",
+                "&:hover": {
+                  borderColor: "#91939A",
+                  backgroundColor: "#F5F5F5",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleImport}
+              disabled={
+                !importSelections.riskScenario &&
+                !importSelections.process &&
+                !importSelections.assets
+              }
+              sx={{
+                backgroundColor: "#04139A",
+                color: "#FFFFFF",
+                textTransform: "none",
+                fontWeight: 500,
+                "&:hover": {
+                  backgroundColor: "#030d6b",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "#E7E7E8",
+                  color: "#91939A",
+                },
+              }}
+            >
+              Import
+            </Button>
+          </Box>
+        </Box>
+      </Popover>
 
       {/* Success Popup Dialog */}
       <Dialog
