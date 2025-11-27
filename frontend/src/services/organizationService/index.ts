@@ -360,11 +360,13 @@ export const updateOrganization = async (
 
 export interface SaveTaxonomiesRequest {
   taxonomies: Array<{
+    taxonomyId?: string; // Optional: if provided, indicates update
     name: string;
     weightage: number;
     order: number;
     createdBy: string;
     severityLevels: Array<{
+      severityId?: string; // Optional: if provided, indicates update
       name: string;
       minRange: string;
       maxRange: string;
@@ -390,6 +392,8 @@ export interface Taxonomy {
   modifiedDate: string;
   weightage: number;
   order: number;
+  isEdited?: boolean;
+  isActive?: boolean;
   severityLevels: Array<{
     severityId: string;
     taxonomyId: string;

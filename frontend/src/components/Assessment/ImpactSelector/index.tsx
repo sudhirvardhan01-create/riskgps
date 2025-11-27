@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import TooltipComponent from "@/components/TooltipComponent";
 import { Severity } from "@/types/assessment";
+import { formatCurrencyCompact } from "@/utils/utility";
 
 interface ImpactSelectorProps {
   label: string;
@@ -55,35 +56,48 @@ export default function ImpactSelector({
           onChange={(_, newValue) => newValue && onChange(newValue)}
           sx={{ flexWrap: "wrap" }}
         >
-          {severityLevels.map((opt) => (
-            <ToggleButton
-              key={opt.severityId}
-              value={opt.severityId}
-              sx={{
-                textTransform: "none",
-                bgcolor:
-                  value === opt.severityId
-                    ? `${opt.color} !important`
-                    : "#f5f5f5",
-                color: value === opt.severityId ? "#ffffff !important" : "#333",
-                borderRadius: 2,
-                px: 2,
-                py: 1,
-                minWidth: 110,
-                display: "flex",
-                flexDirection: "column",
-                "&.MuiToggleButtonGroup-middleButton, &.MuiToggleButtonGroup-lastButton":
-                  {
-                    borderLeft: "1px solid #E4E4E4",
-                  },
-              }}
-            >
-              <Typography variant="body2" fontWeight="500" sx={{ pb: 1 }}>
-                {opt.name}
-              </Typography>
-              <Typography variant="caption">{`${opt.minRange} - ${opt.maxRange}`}</Typography>
-            </ToggleButton>
-          ))}
+          {severityLevels.map((opt, index) => {
+            const isLast = index === severityLevels.length - 1;
+            return (
+              <ToggleButton
+                key={opt.severityId}
+                value={opt.severityId}
+                sx={{
+                  textTransform: "none",
+                  bgcolor:
+                    value === opt.severityId
+                      ? `${opt.color} !important`
+                      : "#f5f5f5",
+                  color:
+                    value === opt.severityId ? "#ffffff !important" : "#333",
+                  borderRadius: 2,
+                  px: 2,
+                  py: 1,
+                  minWidth: 110,
+                  display: "flex",
+                  flexDirection: "column",
+                  "&.MuiToggleButtonGroup-middleButton, &.MuiToggleButtonGroup-lastButton":
+                    {
+                      borderLeft: "1px solid #E4E4E4",
+                    },
+                }}
+              >
+                <Typography variant="body2" fontWeight="500" sx={{ pb: 1 }}>
+                  {opt.name}
+                </Typography>
+                <Typography variant="caption">
+                  {isLast ? (
+                    <>&gt; {formatCurrencyCompact(Number(opt.maxRange))}</>
+                  ) : (
+                    <>
+                      {formatCurrencyCompact(Number(opt.minRange))} -{" "}
+                      {formatCurrencyCompact(Number(opt.maxRange))}
+                    </>
+                  )}
+                </Typography>
+              </ToggleButton>
+            );
+          })}
         </ToggleButtonGroup>
       </Grid>
     </Grid>

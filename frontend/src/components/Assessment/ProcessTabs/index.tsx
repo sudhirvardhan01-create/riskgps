@@ -18,7 +18,7 @@ export default function ProcessTabs() {
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
     setSelectedScenario({
-      ...assessment!.processes[newValue].risks[0],
+      ...assessment!.processes[newValue].riskScenarios[0],
     } as Risk); // reset selection when switching process
   };
 
@@ -29,7 +29,7 @@ export default function ProcessTabs() {
 
       return {
         ...p,
-        risks: p.risks.map((r: Risk) =>
+        riskScenarios: p.riskScenarios.map((r: Risk) =>
           r.id === updatedScenario.id ? updatedScenario : r
         ),
       };
@@ -43,7 +43,9 @@ export default function ProcessTabs() {
 
   useEffect(() => {
     if (assessment?.processes && assessment?.processes.length > 0) {
-      setSelectedScenario({ ...assessment?.processes[0].risks[0] } as Risk);
+      setSelectedScenario({
+        ...assessment?.processes[0].riskScenarios[0],
+      } as Risk);
     }
   }, []);
 
@@ -82,7 +84,7 @@ export default function ProcessTabs() {
               <Typography
                 variant="body2"
                 fontWeight={550}
-              >{`${p.processName} (${p.risks.length})`}</Typography>
+              >{`${p.processName} (${p.riskScenarios.length})`}</Typography>
             }
             sx={{
               border:
@@ -104,7 +106,7 @@ export default function ProcessTabs() {
       <Box sx={{ display: "flex", flex: 1, mb: 0 }}>
         {/* Left Panel: Risk Scenarios */}
         <RiskScenarioList
-          scenarios={activeProcess?.risks}
+          scenarios={activeProcess?.riskScenarios}
           onSelect={setSelectedScenario}
           selectedScenario={selectedScenario}
         />

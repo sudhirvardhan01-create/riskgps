@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,8 +10,11 @@ import {
   Divider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import TextFieldStyled from '../TextFieldStyled';
 import ToastComponent from '../ToastComponent';
+import { useRouter } from 'next/router';
+import { useOrganization } from '@/hooks/useOrganization';
+import { getTaxonomies, saveTaxonomies, Taxonomy } from '@/services/organizationService';
+import Cookies from 'js-cookie';
 
 interface BusinessImpact {
   financial: number;
@@ -28,44 +31,106 @@ interface ImpactScale {
 }
 
 const Scales: React.FC = () => {
+  const router = useRouter();
+  const { orgId } = router.query;
+  const { organization } = useOrganization(orgId);
+
   const [businessImpacts, setBusinessImpacts] = useState<BusinessImpact>({
-    financial: 40,
-    operational: 30,
-    regulatory: 20,
-    reputational: 10,
+    financial: 0,
+    operational: 0,
+    regulatory: 0,
+    reputational: 0,
   });
 
   const [isWeightageModalOpen, setIsWeightageModalOpen] = useState(false);
   const [isLabelsModalOpen, setIsLabelsModalOpen] = useState(false);
   const [weightageInputs, setWeightageInputs] = useState<BusinessImpact>({
-    financial: 40,
-    operational: 30,
-    regulatory: 20,
-    reputational: 10,
+    financial: 0,
+    operational: 0,
+    regulatory: 0,
+    reputational: 0,
   });
-  const [labelsInputs, setLabelsInputs] = useState<ImpactScale[]>([
-    { id: 5, label: 'Critical', value: 5, color: '#B90D0D' },
-    { id: 4, label: 'High', value: 4, color: '#DA7706' },
-    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' },
-    { id: 2, label: 'Low', value: 2, color: '#3366CC' },
-    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' },
+  const [labelsInputs, setLabelsInputs] = useState<ImpactScale[]>([]);
 
-  ]);
-
-  const [impactScales, setImpactScales] = useState<ImpactScale[]>([
-    { id: 5, label: 'Critical', value: 5, color: '#B90D0D' }, // Red
-    { id: 4, label: 'High', value: 4, color: '#DA7706' }, // Orange
-    { id: 3, label: 'Moderate', value: 3, color: '#E3B52A' }, // Yellow
-    { id: 2, label: 'Low', value: 2, color: '#3366CC' }, // Blue
-    { id: 1, label: 'Very Low', value: 1, color: '#3BB966' }, // Green
-
-  ]);
+  const [impactScales, setImpactScales] = useState<ImpactScale[]>([]);
 
   const [toast, setToast] = useState({
     open: false,
     message: '',
     severity: 'error' as 'success' | 'error' | 'info' | 'warning',
   });
+
+  const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]);
+  const [loadingTaxonomies, setLoadingTaxonomies] = useState<boolean>(false);
+  const [savingWeightage, setSavingWeightage] = useState<boolean>(false);
+  const [savingLabels, setSavingLabels] = useState<boolean>(false);
+
+  // Helper function to map taxonomy name to category key
+  const mapTaxonomyNameToCategoryKey = (name: string): keyof BusinessImpact | null => {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('financial')) return 'financial';
+    if (nameLower.includes('regulatory')) return 'regulatory';
+    if (nameLower.includes('operational')) return 'operational';
+    if (nameLower.includes('reputational')) return 'reputational';
+    return null;
+  };
+
+  // Fetch taxonomies from API when orgId is available
+  useEffect(() => {
+    const fetchTaxonomies = async () => {
+      if (orgId && typeof orgId === 'string') {
+        setLoadingTaxonomies(true);
+        try {
+          const response = await getTaxonomies(orgId);
+          if (response.data && response.data.length > 0) {
+            setTaxonomies(response.data);
+
+            // Update business impacts from taxonomy weightages
+            const newBusinessImpacts: BusinessImpact = {
+              financial: 0,
+              operational: 0,
+              regulatory: 0,
+              reputational: 0,
+            };
+
+            response.data.forEach(taxonomy => {
+              const categoryKey = mapTaxonomyNameToCategoryKey(taxonomy.name);
+              if (categoryKey) {
+                newBusinessImpacts[categoryKey] = taxonomy.weightage || 0;
+              }
+            });
+
+            setBusinessImpacts(newBusinessImpacts);
+
+            // Update impact scales from severity levels (use first taxonomy's severity levels)
+            // Sort severity levels by order
+            const firstTaxonomy = response.data[0];
+            if (firstTaxonomy && firstTaxonomy.severityLevels && firstTaxonomy.severityLevels.length > 0) {
+              const sortedSeverityLevels = [...firstTaxonomy.severityLevels].sort((a, b) => a.order - b.order);
+              const newImpactScales: ImpactScale[] = sortedSeverityLevels.map((severity, index) => ({
+                id: severity.order,
+                label: severity.name,
+                value: severity.order,
+                color: severity.color,
+              }));
+              setImpactScales(newImpactScales);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching taxonomies:', error);
+          setToast({
+            open: true,
+            message: 'Failed to load taxonomy data',
+            severity: 'error',
+          });
+        } finally {
+          setLoadingTaxonomies(false);
+        }
+      }
+    };
+
+    fetchTaxonomies();
+  }, [orgId]);
 
   const handleBusinessImpactChange = (field: keyof BusinessImpact, value: string) => {
     // Allow empty string for better UX
@@ -102,6 +167,16 @@ const Scales: React.FC = () => {
     setIsWeightageModalOpen(true);
   };
 
+  // Load data when labels modal opens
+  useEffect(() => {
+    if (isLabelsModalOpen && impactScales.length > 0) {
+      setLabelsInputs(impactScales.map(scale => ({
+        ...scale,
+        label: scale.label || ''
+      })));
+    }
+  }, [isLabelsModalOpen, impactScales]);
+
   const handleWeightageInputChange = (field: keyof BusinessImpact, value: string) => {
     const numValue = parseInt(value) || 0;
     setWeightageInputs(prev => ({
@@ -130,22 +205,111 @@ const Scales: React.FC = () => {
     return impactScales.some(scale => scale.label.trim() !== '');
   };
 
-  const handleSaveWeightage = () => {
+  const handleSaveWeightage = async () => {
     const total = Object.values(weightageInputs).reduce((sum, value) => sum + value, 0);
-    if (total === 100) {
-      setBusinessImpacts(weightageInputs);
-      setIsWeightageModalOpen(false);
-      setToast({
-        open: true,
-        message: 'Business Impact weightage added successfully',
-        severity: 'success',
-      });
-    } else {
+    if (total !== 100) {
       setToast({
         open: true,
         message: 'Please ensure that the total sum of all fields equals 100',
         severity: 'error',
       });
+      return;
+    }
+
+    if (!orgId || typeof orgId !== 'string') {
+      setToast({
+        open: true,
+        message: 'Organization ID is required',
+        severity: 'error',
+      });
+      return;
+    }
+
+    setSavingWeightage(true);
+
+    try {
+      // Get current user ID from cookies
+      const user = JSON.parse(Cookies.get("user") ?? "{}");
+      const userId = user.id;
+
+      if (!userId) {
+        throw new Error("User ID not found. Please login again.");
+      }
+
+      // Update taxonomies with new weightages
+      const updatedTaxonomies = taxonomies.map(taxonomy => {
+        const categoryKey = mapTaxonomyNameToCategoryKey(taxonomy.name);
+        const taxonomyId = taxonomy.taxonomyId;
+        
+        if (categoryKey && weightageInputs[categoryKey] !== undefined) {
+          return {
+            ...(taxonomyId && { taxonomyId }),
+            name: taxonomy.name,
+            weightage: weightageInputs[categoryKey],
+            order: taxonomy.order || 0,
+            createdBy: userId,
+            isEdited: taxonomy.isEdited !== undefined ? taxonomy.isEdited : false,
+            isActive: taxonomy.isActive !== undefined ? taxonomy.isActive : true,
+            severityLevels: taxonomy.severityLevels.map(severity => ({
+              ...(severity.severityId && { severityId: severity.severityId }),
+              ...(taxonomyId && { taxonomyId }),
+              name: severity.name,
+              minRange: severity.minRange,
+              maxRange: severity.maxRange,
+              color: severity.color,
+              order: severity.order,
+              createdBy: userId,
+            })),
+          };
+        }
+        return {
+          ...(taxonomyId && { taxonomyId }),
+          name: taxonomy.name,
+          weightage: taxonomy.weightage || 0,
+          order: taxonomy.order || 0,
+          createdBy: userId,
+          isEdited: taxonomy.isEdited !== undefined ? taxonomy.isEdited : false,
+          isActive: taxonomy.isActive !== undefined ? taxonomy.isActive : true,
+          severityLevels: taxonomy.severityLevels.map(severity => ({
+            ...(severity.severityId && { severityId: severity.severityId }),
+            ...(taxonomyId && { taxonomyId }),
+            name: severity.name,
+            minRange: severity.minRange,
+            maxRange: severity.maxRange,
+            color: severity.color,
+            order: severity.order,
+            createdBy: userId,
+          })),
+        };
+      });
+
+      // Call the API to save/update taxonomies
+      await saveTaxonomies(orgId, updatedTaxonomies);
+
+      // Update local state
+      setBusinessImpacts(weightageInputs);
+      setIsWeightageModalOpen(false);
+      
+      // Refresh taxonomies
+      const response = await getTaxonomies(orgId);
+      if (response.data && response.data.length > 0) {
+        setTaxonomies(response.data);
+      }
+
+      setToast({
+        open: true,
+        message: 'Business Impact weightage saved successfully',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('Error saving weightage:', error);
+      setToast({
+        open: true,
+        message: error instanceof Error ? error.message : 'Failed to save weightage',
+        severity: 'error',
+      });
+    } finally {
+      setSavingWeightage(false);
     }
   };
 
@@ -161,10 +325,12 @@ const Scales: React.FC = () => {
 
   const handleAddLabels = () => {
     // Prefill with existing values if they exist, otherwise reset to empty state
-    setLabelsInputs(impactScales.map(scale => ({
-      ...scale,
-      label: scale.label || ''
-    })));
+    if (impactScales.length > 0) {
+      setLabelsInputs(impactScales.map(scale => ({
+        ...scale,
+        label: scale.label || ''
+      })));
+    }
     setIsLabelsModalOpen(true);
   };
 
@@ -176,20 +342,127 @@ const Scales: React.FC = () => {
     );
   };
 
-  const handleSaveLabels = () => {
-    setImpactScales(labelsInputs);
-    setIsLabelsModalOpen(false);
-    setToast({
-      open: true,
-      message: 'Impact scale labels updated successfully',
-      severity: 'success',
-    });
+  const handleSaveLabels = async () => {
+    if (!orgId || typeof orgId !== 'string') {
+      setToast({
+        open: true,
+        message: 'Organization ID is required',
+        severity: 'error',
+      });
+      return;
+    }
+
+    setSavingLabels(true);
+
+    try {
+      // Get current user ID from cookies
+      const user = JSON.parse(Cookies.get("user") ?? "{}");
+      const userId = user.id;
+
+      if (!userId) {
+        throw new Error("User ID not found. Please login again.");
+      }
+
+      // Update all taxonomies with new severity level labels
+      // We update all taxonomies because they should all have the same severity level structure
+      const updatedTaxonomies = taxonomies.map(taxonomy => {
+        // Sort severity levels by order to match with labelsInputs
+        const sortedSeverityLevels = [...taxonomy.severityLevels].sort((a, b) => a.order - b.order);
+        const taxonomyId = taxonomy.taxonomyId;
+        
+        return {
+          ...(taxonomyId && { taxonomyId }),
+          name: taxonomy.name,
+          weightage: taxonomy.weightage || 0,
+          order: taxonomy.order || 0,
+          createdBy: userId,
+          isEdited: taxonomy.isEdited !== undefined ? taxonomy.isEdited : false,
+          isActive: taxonomy.isActive !== undefined ? taxonomy.isActive : true,
+          severityLevels: sortedSeverityLevels.map((severity, index) => {
+            // Find matching label input by order
+            const matchingLabel = labelsInputs.find(label => label.id === severity.order);
+            return {
+              ...(severity.severityId && { severityId: severity.severityId }),
+              ...(taxonomyId && { taxonomyId }),
+              name: matchingLabel ? matchingLabel.label : severity.name,
+              minRange: severity.minRange,
+              maxRange: severity.maxRange,
+              color: severity.color,
+              order: severity.order,
+              createdBy: userId,
+            };
+          }),
+        };
+      });
+
+      // Call the API to save/update taxonomies
+      await saveTaxonomies(orgId, updatedTaxonomies);
+
+      // Update local state
+      setImpactScales(labelsInputs);
+      setIsLabelsModalOpen(false);
+      
+      // Refresh taxonomies
+      const response = await getTaxonomies(orgId);
+      if (response.data && response.data.length > 0) {
+        setTaxonomies(response.data);
+        
+        // Update impact scales from refreshed data
+        const firstTaxonomy = response.data[0];
+        if (firstTaxonomy && firstTaxonomy.severityLevels && firstTaxonomy.severityLevels.length > 0) {
+          const sortedSeverityLevels = [...firstTaxonomy.severityLevels].sort((a, b) => a.order - b.order);
+          const newImpactScales: ImpactScale[] = sortedSeverityLevels.map((severity) => ({
+            id: severity.order,
+            label: severity.name,
+            value: severity.order,
+            color: severity.color,
+          }));
+          setImpactScales(newImpactScales);
+        }
+      }
+
+      setToast({
+        open: true,
+        message: 'Impact scale labels updated successfully',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('Error saving labels:', error);
+      setToast({
+        open: true,
+        message: error instanceof Error ? error.message : 'Failed to save labels',
+        severity: 'error',
+      });
+    } finally {
+      setSavingLabels(false);
+    }
   };
 
   const handleCancelLabels = () => {
     setIsLabelsModalOpen(false);
     setLabelsInputs(impactScales);
   };
+
+  // Show loading state while fetching taxonomies
+  if (loadingTaxonomies) {
+    return (
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '400px',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="h6" sx={{ color: '#484848' }}>
+          Loading scales data...
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#91939A' }}>
+          Please wait while we fetch your data
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: '100%', mx: 'auto', mb: 6 }}>
@@ -242,7 +515,7 @@ const Scales: React.FC = () => {
                 Add weightage for different types of business Impact:
               </Typography>
 
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 7 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 7 }}>
                 {[
                   { key: 'financial', label: 'Financial' },
                   { key: 'operational', label: 'Operational' },
@@ -535,15 +808,15 @@ const Scales: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={handleSaveWeightage}
-                disabled={!isAllWeightageInputsFilled()}
+                disabled={!isAllWeightageInputsFilled() || savingWeightage}
                 sx={{
-                  backgroundColor: isAllWeightageInputsFilled() ? '#04139A' : '#9BA1D7',
-                  color: isAllWeightageInputsFilled() ? '#FFFFFF' : '#F4F4F4',
+                  backgroundColor: isAllWeightageInputsFilled() && !savingWeightage ? '#04139A' : '#9BA1D7',
+                  color: isAllWeightageInputsFilled() && !savingWeightage ? '#FFFFFF' : '#F4F4F4',
                   textTransform: 'none',
                   fontWeight: 500,
                   p: "12px 40px",
                   '&:hover': {
-                    backgroundColor: isAllWeightageInputsFilled() ? '#04139A' : '#9BA1D7',
+                    backgroundColor: isAllWeightageInputsFilled() && !savingWeightage ? '#04139A' : '#9BA1D7',
                   },
                   '&:disabled': {
                     backgroundColor: '#9BA1D7',
@@ -551,7 +824,7 @@ const Scales: React.FC = () => {
                   },
                 }}
               >
-                {hasWeightageValues() ? 'Update' : 'Add'}
+                {savingWeightage ? 'Saving...' : (hasWeightageValues() ? 'Update' : 'Add')}
               </Button>
             </Box>
           </Box>
@@ -716,15 +989,15 @@ const Scales: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={handleSaveLabels}
-                disabled={!isAllLabelInputsFilled()}
+                disabled={!isAllLabelInputsFilled() || savingLabels}
                 sx={{
-                  backgroundColor: isAllLabelInputsFilled() ? '#04139A' : '#9BA1D7',
-                  color: isAllLabelInputsFilled() ? '#FFFFFF' : '#F4F4F4',
+                  backgroundColor: isAllLabelInputsFilled() && !savingLabels ? '#04139A' : '#9BA1D7',
+                  color: isAllLabelInputsFilled() && !savingLabels ? '#FFFFFF' : '#F4F4F4',
                   textTransform: 'none',
                   fontWeight: 500,
                   p: "12px 40px",
                   '&:hover': {
-                    backgroundColor: isAllLabelInputsFilled() ? '#04139A' : '#9BA1D7',
+                    backgroundColor: isAllLabelInputsFilled() && !savingLabels ? '#04139A' : '#9BA1D7',
                   },
                   '&:disabled': {
                     backgroundColor: '#9BA1D7',
@@ -732,7 +1005,7 @@ const Scales: React.FC = () => {
                   },
                 }}
               >
-                {hasLabelValues() ? 'Update' : 'Add'}
+                {savingLabels ? 'Saving...' : (hasLabelValues() ? 'Update' : 'Add')}
               </Button>
             </Box>
           </Box>
