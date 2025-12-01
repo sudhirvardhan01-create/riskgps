@@ -26,6 +26,32 @@ router.get("/process-details/:orgId", async (req, res) => {
 });
 
 
+router.get("/reports-v1/:orgId/risk-exposure", async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
+    const businessUnitId = req.query.businessUnitId ?? null;
+    const businessProcessId = req.query.businessProcessId ?? null;
+    const riskScenarioId = req.query.riskScenarioId ?? null;
+    const assetId = req.query.assetId ?? null;
+    if (!orgId) {
+        throw new Error("Org id not found")
+    }
+    const data = await ReportsService.getRiskExposureReportData(
+      orgId
+    );
+    res.status(HttpStatusCodes.OK).json({
+      data: data,
+      msg: "fetched reports details",
+    });
+  } catch (err) {
+    console.log("Failed to fetch summary", err);
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
+  }
+});
+
 router.get("/reports-v1/:orgId", async (req, res) => {
   try {
     const { orgId } = req.params;
@@ -50,64 +76,5 @@ router.get("/reports-v1/:orgId", async (req, res) => {
 });
 
 
-router.post("/reports-syncup-master/:orgId", async (req, res) => {
-  try {
-    
-    const { orgId } = req.params;  // bc1b9a89-64f8-469f-bc02-b3417a06c6a4"
-    if (!orgId) {
-      throw new Error("Org ID required");
-    }
-    const flatten = req.query.flatten?.toLowerCase() === "false" ? false : true;
-    const clearOldRecords = req.query.clearOldRecords?.toLowerCase() === "true" ? true : false;
-    const updateReportRecords = req.query.updateReportRecords?.toLowerCase() === "true" ? true : false;
-    const assessmentIds  = req.body?.assessmentIds ?? [];
-
-
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
-
-    const data = await ReportsService.syncupReportsMasterTable(
-      orgId,
-      assessmentIds,
-      false,
-      flatten,
-      updateReportRecords,
-      clearOldRecords
-    );
-
-    res.status(HttpStatusCodes.OK).json({
-      data: data,
-      msg: "fetched master reports details",
-    });
-  } catch (err) {
-    console.log("Failed to fetch summary", err);
-    res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
-  }
-});
-
-router.post("/reports-syncup-active/:orgId", async (req, res) => {
-  try {
-    const { orgId } = req.params;
-    if (!orgId) {
-      throw new Error("Org ID required");
-    }
-    const businessUnitId = req.query.businessUnitId ?? null;
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
-    const data = await ReportsService.syncupReportsMasterTable(
-      orgId,
-      false
-    );
-    res.status(HttpStatusCodes.OK).json({
-      data: data,
-      msg: "fetched active reports details",
-    });
-  } catch (err) {
-    console.log("Failed to fetch summary", err);
-    res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
-  }
-});
 
 module.exports = router;

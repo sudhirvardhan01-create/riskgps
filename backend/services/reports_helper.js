@@ -3,11 +3,210 @@ const models = require("../models");
 const fs = require("fs");
 const { format } = require("@fast-csv/format");
 
-const riskAppetite = 10000;
+const impactLevelToNumMap = {
+  critical: 4,
+  high: 4,
+  moderate: 3,
+  low: 2,
+  "very low": 1,
+};
 
+
+async function insertReportsMaster(records) {
+  try {
+    const now = new Date();
+    if (!Array.isArray(records)) {
+      throw new Error("Input must be an array");
+    }
+
+    // Validate incoming array
+    const cleanedRecords = records.map((item) => ({
+      // Basic assessment
+      assessmentId: item.assessmentId,
+      assessmentName: item.assessmentName,
+
+      orgId: item.orgId,
+      orgName: item.orgName,
+      organizationRiskAppetiteInMillionDollar:
+        item.organizationRiskAppetiteInMillionDollar,
+
+      businessUnitId: item.businessUnitId,
+      businessUnit: item.businessUnit,
+
+      businessProcessId: item.businessProcessId,
+      businessProcess: item.businessProcess,
+
+      assetId: item.assetId,
+      asset: item.asset,
+      assetCategory: item.assetCategory,
+
+      riskScenarioId: item.riskScenarioId,
+      riskScenario: item.riskScenario,
+      riskScenarioCIAMapping: item.riskScenarioCIAMapping,
+
+      // Financial / Regulatory / Reputational / Operational
+      financial: item.financial,
+      financialWeightage: item.financialWeightage,
+      financialMinRange: item.financialMinRange,
+      financialMaxRange: item.financialMaxRange,
+
+      regulatory: item.regulatory,
+      regulatoryWeightage: item.regulatoryWeightage,
+      regulatoryMinRange: item.regulatoryMinRange,
+      regulatoryMaxRange: item.regulatoryMaxRange,
+
+      reputational: item.reputational,
+      reputationalWeightage: item.reputationalWeightage,
+      reputationalMinRange: item.reputationalMinRange,
+      reputationalMaxRange: item.reputationalMaxRange,
+
+      operational: item.operational,
+      operationalWeightage: item.operationalWeightage,
+      operationalMinRange: item.operationalMinRange,
+      operationalMaxRange: item.operationalMaxRange,
+
+      mitreControlsAndScores: item.mitreControlsAndScores,
+
+      // CIA Scores
+      aggAssetCScore: item.assetCScore,
+      aggAssetIScore: item.assetIScore,
+      aggAssetAScore: item.assetAScore,
+      aggAssetCIAOverallScore: item.assetCIAOverallScore,
+
+      // Strength
+      aggAssetControlStrengthProcessToAsset:
+        item.controlStrengthProcessToAsset,
+      aggBuBpControlStrengthRisksToImpacts:
+        item.controlStrengthRisksToImpacts,
+
+      // Impact values
+      financialDollarImpactUsingQualitativeScoreAndAligningWithERMRiskModelRisksToImpacts:
+        item.financialDollarImpactUsingQualitativeScoreAndAligningWithERMRiskModel,
+
+      financialImpactValueInMillionDollar:
+        item.finacialImpactValueInMillionDollar,
+      regulatoryImpactValueInMillionDollar:
+        item.regulatoryImpactValueInMillionDollar,
+      reputationalImpactValueInMillionDollar:
+        item.reputationalImpactValueInMillionDollar,
+      operationalImpactValueInMillionDollar:
+        item.operationalImpactValueInMillionDollar,
+
+      inherentFinancialExposureRisksToImpacts:
+        item.inherentFinancialExposure,
+      overallImpactScoreRisksToImpacts: item.overallImpactScore,
+
+      // ERM dashboard
+      inherentRiskScoreRiskDashboardERMTab:
+        item.inherentRiskScoreRiskDashboardERMTab,
+      inherentRiskLevelRiskDashboardERMTab:
+        item.inherentRiskLevelRiskDashboardERMTab,
+      controlStrengthRiskDashboardERMTab:
+        item.controlStrengthRiskDashboardERMTab,
+      residualRiskScoreRiskDashboardERMTab:
+        item.residualRiskScoreRiskDashboardERMTab,
+      residualRiskLevelRiskDashboardERMTab:
+        item.residualRiskLevelRiskDashboardERMTab,
+      inherentImpactInMillionDollarsRiskDashboardERMTab:
+        item.inherentImpactInMillionDollarsRiskDashboardERMTab,
+      residualImpactInMillionDollarsRiskDashboardERMTab:
+        item.residualImpactInMillionDollarsRiskDashboardERMTab,
+      targetImpactInMillionDollarsRiskDashboardERMTab:
+        item.targetImpactInMillionDollarsRiskDashboardERMTab,
+
+      // Business dashboard
+      aggBuBpInherentRiskScoreRiskDashboardBusinessTab:
+        item.inherentRiskScoreRiskDashboardBusinessTab,
+      aggBuBpInherentRiskLevelRiskDashboardBusinessTab:
+        item.inherentRiskLevelRiskDashboardBusinessTab,
+      aggBuBpControlStrengthRiskDashboardBusinessTab:
+        item.controlStrengthRiskDashboardBusinessTab,
+      aggBuBpResidualRiskScoreRiskDashboardBusinessTab:
+        item.residualRiskScoreRiskDashboardBusinessTab,
+      aggBuBpResidualRiskLevelRiskDashboardBusinessTab:
+        item.residualRiskLevelRiskDashboardBusinessTab,
+      aggBuBpInherentImpactInMillionDollarsRiskDashboardBusinessTab:
+        item.inherentImpactInMillionDollarsRiskDashboardBusinessTab,
+      aggBuBpResidualImpactInMillionDollarsRiskDashboardBusinessTab:
+        item.residualImpactInMillionDollarsRiskDashboardBusinessTab,
+      aggBuBpTargetImpactRiskDashboardBusinessTab:
+        item.targetImpactRiskDashboardBusinessTab,
+      aggBuBpTargetStrengthRiskDashboardBusinessTab:
+        item.targetStrengthRiskDashboardBusinessTab,
+      aggBuBpTargetResidualRiskRiskDashboardBusinessTab:
+        item.targetResidualRiskRiskDashboardBusinessTab,
+      aggBuBpTargetResidualRiskLevelRiskDashboardBusinessTab:
+        item.targetResidualRiskLevelRiskDashboardBusinessTab,
+
+      // Process to asset
+      businessProcessInherentRiskProcessToAsset:
+        item.businessProcessInherentRiskProcessToAsset,
+      businessProcessInherentImpactInMillionDollarsProcessToAsset:
+        item.businessProcessinherentImpactInMillionDollarsProcessToAsset,
+
+      // CIO dashboard
+      aggAssetInherentRiskScoreRiskDashboardCIOTab:
+        item.inherentRiskScoreRiskDashboardCIOTab,
+      aggAssetInherentRiskLevelRiskDashboardCIOTab:
+        item.inherentRiskLevelRiskDashboardCIOTab,
+      aggAssetControlStrengthRiskDashboardCIOTab:
+        item.controlStrengthRiskDashboardCIOTab,
+      aggAssetResidualRiskScoreRiskDashboardCIOTab:
+        item.residualRiskScoreRiskDashboardCIOTab,
+      aggAssetResidualRiskLevelRiskDashboardCIOTab:
+        item.residualRiskLevelRiskDashboardCIOTab,
+      aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab:
+        item.inherentImpactInMillionDollarsDRiskDashboardCIOTab,
+      aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab:
+        item.residualImpactInMillionDollarsRiskDashboardCIOTab,
+      aggAssetTargetImpactRiskDashboardCIOTab:
+        item.targetImpactRiskDashboardCIOTab,
+      aggAssetTargetStrengthRiskDashboardCIOTab:
+        item.targetStrengthRiskDashboardCIOTab,
+      aggAssetTargetResidualRiskScoreRiskDashboardCIOTab:
+        item.targetResidualRiskScoreRiskDashboardCIOTab,
+      aggAssetTargetResidualRiskLevelRiskDashboardCIOTab:
+        item.targetResidualRiskLevelRiskDashboardCIOTab,
+
+      // timestamps
+      assessmentCreatedTimestamp: item.assessmentCreatedDate,
+      assessmentUpdatedTimestamp: item.assessmentModifiedDate,
+      createdAt: now,
+      updatedAt: now
+    }));
+
+    const result = await models.ReportsMaster.bulkCreate(cleanedRecords, {
+      returning: true,
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Error inserting reports:", error);
+    throw error;
+  }
+}
+
+function normalizeRiskTypeLabels(name) {
+  const map = {
+    "financial risk": "financial",
+    "regulatory risk": "regulatory",
+    "reputational risk": "reputational",
+    "operational risk": "operational",
+  };
+
+  return map[name] || name; // fallback if not found
+}
 function roundToOneDecimal(value) {
   if (typeof value !== "number") return null;
   return Math.round(value * 10) / 10;
+}
+
+function convertValueToMillion(value) {
+  const num = Number(value);
+
+  if (isNaN(num)) return null; // or return 0 if you prefer
+  console.log(num, num / 1_000_000, num / 1000000);
+  return num / 1_000_000;
 }
 
 async function generateCSV(formatted, filePath = "./export.csv") {
@@ -241,6 +440,10 @@ async function enrichMitreControlsByMitreThreatRecords(assetList) {
   const controlRecords = await models.MitreThreatControl.findAll({
     where: { mitreControlId: allControlIds },
     attributes: [
+      "mitreTechniqueId",
+      "mitreTechniqueName",
+      "subTechniqueId",
+      "subTechniqueName",
       "mitreControlId",
       "ciaMapping",
       "controlPriority",
@@ -259,6 +462,10 @@ async function enrichMitreControlsByMitreThreatRecords(assetList) {
     }
 
     controlMap[id].push({
+      mitreTechniqueId:record.mitreTechniqueId,
+      mitreTechniqueName: record.mitreTechniqueName,
+      subTechniqueId: record.subTechniqueId,
+      subTechniqueName: record.subTechniqueName,
       ciaMapping: record.ciaMapping,
       controlPriority: record.controlPriority,
       mitreControlType: record.mitreControlType,
@@ -297,13 +504,12 @@ function createFlatAssessmentMatrixFromProcesses(assessmentProcesses) {
     const assessmentId = process.assessmentId;
     const orgId = process.assessment.orgId;
     const orgName = process.assessment.orgName;
-    const buName = process.assessment.businessUnitName || "N/A";
+    const buName = process.assessment.businessUnitName || null;
     const buId = process.assessment.businessUnitId;
     const processName = process.processName;
     const processId = process.orgProcessId;
     const createdDate = process.createdDate;
     const modifiedDate = process.modifiedDate;
-    const isDeleted = process.isDeleted;
     // Extract Mitre Control IDs and Score/Response for each Asset
     const assetDetails = process.assets.map((asset) => {
       const mitreControlScores = []; // Array to hold [{id: ..., score: ...}, ...]
@@ -342,19 +548,19 @@ function createFlatAssessmentMatrixFromProcesses(assessmentProcesses) {
         ? assetDetails
         : [
             {
-              assetName: "N/A",
-              assetCategory: "N/A",
+              assetName: null,
+              assetCategory: null,
               mitreControlScores: [],
             },
           ];
 
     const finalRisks =
-      process.risks.length > 0
-        ? process.risks
+      process.riskScenarios.length > 0
+        ? process.riskScenarios
         : [
             {
-              riskScenario: "N/A",
-              riskDescription: "N/A",
+              riskScenario: null,
+              riskDescription: null,
               taxonomy: [],
               riskScenarioBusinessImpacts: [],
             },
@@ -363,23 +569,17 @@ function createFlatAssessmentMatrixFromProcesses(assessmentProcesses) {
     // const proce
     // --- Perform the Cross-Join (Asset X Risk) ---
     for (const asset of finalAssets) {
-      console.log(asset);
       for (const risk of finalRisks) {
         const riskScenario = risk.riskScenario;
 
-        // Get the impact values from the nested 'taxonomy' array
-        // const impactMap = risk.taxonomy.reduce((acc, tax) => {
-        //   const name = tax.taxonomyName.toLowerCase().replace(/ impact/g, "");
-        //   acc[name] = tax.severityName || null;
-        //   return acc;
-        // }, {});
         const impactMap = risk.taxonomy.reduce((acc, tax) => {
-          const name = tax.taxonomyName.toLowerCase().replace(/ impact/g, "");
+          const name = normalizeRiskTypeLabels(tax.taxonomyName.toLowerCase());
 
           acc[name] = {
             severityName: tax.severityName || null,
-            severityMinRange: tax.severityMinRange || null,
-            severityMaxRange: tax.severityMaxRange || null,
+            severityMinRange: Number(tax.severityMinRange) || null,
+            severityMaxRange: Number(tax.severityMaxRange) || null,
+            weightage: Number(tax.weightage) || null,
           };
 
           return acc;
@@ -403,20 +603,24 @@ function createFlatAssessmentMatrixFromProcesses(assessmentProcesses) {
           riskScenario: riskScenario,
           riskScenarioCIAMapping: risk?.orgRiskScenario?.ciaMapping ?? [],
           financial: impactMap.financial?.severityName || null,
+          financialWeightage: impactMap.financial?.weightage || null,
           financialMinRange: impactMap.financial?.severityMinRange || null,
           financialMaxRange: impactMap.financial?.severityMaxRange || null,
 
           regulatory: impactMap.regulatory?.severityName || null,
+          regulatoryWeightage: impactMap.regulatory?.weightage || null,
           regulatoryMinRange: impactMap.regulatory?.severityMinRange || null,
           regulatoryMaxRange: impactMap.regulatory?.severityMaxRange || null,
 
           reputational: impactMap.reputational?.severityName || null,
+          reputationalWeightage: impactMap.reputational?.weightage || null,
           reputationalMinRange:
             impactMap.reputational?.severityMinRange || null,
           reputationalMaxRange:
             impactMap.reputational?.severityMaxRange || null,
 
           operational: impactMap.operational?.severityName || null,
+          operationalWeightage: impactMap.operational?.weightage || null,
           operationalMinRange: impactMap.operational?.severityMinRange || null,
           operationalMaxRange: impactMap.operational?.severityMaxRange || null,
           mitreControlsAndScores: asset.mitreControlScores,
@@ -539,7 +743,7 @@ async function fetchDataFromAssessment(
     where.assessmentId = { [Op.in]: organizationAssessmentsIds };
   }
 
-  // --- 2. Fetch all required nested data based on the latest IDs ---
+  // --- 2. Fetch all required nested data based on the IDs ---
   const assessmentProcesses = await models.AssessmentProcess.findAll({
     where,
     attributes: {
@@ -592,7 +796,7 @@ async function fetchDataFromAssessment(
       },
       {
         model: models.AssessmentProcessRiskScenario,
-        as: "risks",
+        as: "riskScenarios",
         attributes: [
           "id",
           "riskScenario",
@@ -741,9 +945,10 @@ function mergeAndAddControlStrength(assessmentsArray, scoresArray) {
     const score = scoreMap.get(a.assetId) || {};
     return {
       ...a,
-      // C: score.C ?? 0,
-      // I: score.I ?? 0,
-      // A: score.A ?? 0,
+      assetCScore: score.C ?? null,
+      assetIScore: score.I ?? null,
+      assetAScore: score.A ?? null,
+      assetCIAOverallScore: score.OVERALL ?? null,
       controlStrengthProcessToAsset: score.OVERALL ?? 0,
     };
   });
@@ -783,113 +988,74 @@ function mergeAndAddControlStrength(assessmentsArray, scoresArray) {
 }
 
 function risksToImpactCalculations(assessmentRecordsArray) {
-  const impactWeightMap = {
-    regulatory: 40,
-    reputational: 40,
-    financial: 10,
-    operational: 10,
-  };
-
-  const impactLevelToNumMap = {
-    critical: 4,
-    high: 4,
-    moderate: 3,
-    low: 2,
-    "very low": 1,
-  };
-
-  const residualRiskThreshold = {
-    critical: 4,
-    high: 3,
-    moderate: 2,
-    low: 1,
-    "very low": 0,
-  };
-
-  function getRiskLevel(value) {
-    // Sort the keys by threshold in descending order
-    const levels = Object.entries(residualRiskThreshold).sort(
-      (a, b) => b[1] - a[1]
+  const updated = assessmentRecordsArray.map((item) => {
+    let financialMinRange = Number(item.financialMinRange);
+    let financialMaxRange = Number(item.financialMaxRange);
+    let finacialImpactValueInDollar = convertValueToMillion(
+      (financialMinRange + financialMaxRange) / 2
     );
 
-    for (const [level, threshold] of levels) {
-      if (value >= threshold) {
-        return level;
-      }
-    }
+    let regulatoryMinRange = Number(item.regulatoryMinRange);
+    let regulatoryMaxRange = Number(item.regulatoryMaxRange);
+    let regulatoryImpactValueInDollar = convertValueToMillion(
+      (regulatoryMinRange + regulatoryMaxRange) / 2
+    );
 
-    return "very low";
-  }
+    let reputationalMinRange = Number(item.reputationalMinRange);
+    let reputationalMaxRange = Number(item.reputationalMaxRange);
+    let reputationalImpactValueInDollar = convertValueToMillion(
+      (reputationalMinRange + reputationalMaxRange) / 2
+    );
 
-  const updated = assessmentRecordsArray.map((item) => {
-    let financialMinRange = item.financialMinRange.replace(/k/i, "");
-    financialMinRange = Number(financialMinRange) * 1000;
-    let financialMaxRange = item.financialMaxRange.replace(/k/i, "");
-    financialMinRfinancialMaxRangeange = Number(financialMaxRange) * 1000;
-    let finacialImpactValueInDollar =
-      (financialMinRange + financialMaxRange) / 2;
+    let operationalMinRange = Number(item.operationalMinRange);
+    let operationalMaxRange = Number(item.operationalMaxRange);
+    let operationalImpactValueInDollar = convertValueToMillion(
+      (operationalMinRange + operationalMaxRange) / 2
+    );
 
-    let regulatoryMinRange = item.regulatoryMinRange.replace(/k/i, "");
-    regulatoryMinRange = Number(regulatoryMinRange) * 1000;
-    let regulatoryMaxRange = item.regulatoryMaxRange.replace(/k/i, "");
-    regulatoryMaxRange = Number(regulatoryMaxRange) * 1000;
-    let regulatoryImpactValueInDollar =
-      (regulatoryMinRange + regulatoryMaxRange) / 2;
-
-    let reputationalMinRange = item.reputationalMinRange.replace(/k/i, "");
-    reputationalMinRange = Number(reputationalMinRange) * 1000;
-    let reputationalMaxRange = item.reputationalMaxRange.replace(/k/i, "");
-    reputationalMaxRange = Number(reputationalMaxRange) * 1000;
-    let reputationalImpactValueInDollar =
-      (reputationalMaxRange + regulatoryMaxRange) / 2;
-
-    let operationalMinRange = item.operationalMinRange.replace(/k/i, "");
-    operationalMinRange = Number(operationalMinRange) * 1000;
-    let operationalMaxRange = item.operationalMaxRange.replace(/k/i, "");
-    operationalMaxRange = Number(operationalMaxRange) * 1000;
-    let operationalImpactValueInDollar =
-      (operationalMinRange + operationalMaxRange) / 2;
-
-    let inherentFinancialExposure =
+    const financialDollarImpactUsingQualitativeScoreAndAligningWithERMRiskModel =
+      finacialImpactValueInDollar;
+    let rawInherentFinancialExposure =
       finacialImpactValueInDollar +
-      (impactWeightMap["regulatory"] * regulatoryImpactValueInDollar +
-        impactWeightMap["reputational"] * reputationalImpactValueInDollar +
-        impactWeightMap["financial"] * finacialImpactValueInDollar +
-        impactWeightMap["operational"] * operationalImpactValueInDollar) /
-        (impactWeightMap["regulatory"] +
-          impactWeightMap["reputational"] +
-          impactWeightMap["operational"]);
-
+      (item.regulatoryWeightage * regulatoryImpactValueInDollar +
+        item.reputationalWeightage * reputationalImpactValueInDollar +
+        item.operationalWeightage * operationalImpactValueInDollar) /
+        (item.regulatoryWeightage +
+          +item.reputationalWeightage +
+          item.operationalWeightage);
+    let inherentFinancialExposureInMillionDollar = roundToOneDecimal(
+      rawInherentFinancialExposure
+    );
     let overallImpactScore =
-      (impactWeightMap["regulatory"] *
+      (item.regulatoryWeightage *
         impactLevelToNumMap[item.regulatory?.toLowerCase()] +
-        impactWeightMap["reputational"] *
+        item.reputationalWeightage *
           impactLevelToNumMap[item.reputational?.toLowerCase()] +
-        impactWeightMap["financial"] *
+        item.financialWeightage *
           impactLevelToNumMap[item.financial?.toLowerCase()] +
-        impactWeightMap["operational"] *
+        item.operationalWeightage *
           impactLevelToNumMap[item.operational?.toLowerCase()]) /
-      (impactWeightMap["financial"] +
-        impactWeightMap["regulatory"] +
-        impactWeightMap["reputational"] +
-        impactWeightMap["operational"]);
+      (item.regulatoryWeightage +
+        item.reputationalWeightage +
+        item.financialWeightage +
+        item.operationalWeightage);
 
     return {
       ...item,
       financialDollarImpactUsingQualitativeScoreAndAligningWithERMRiskModel:
-        finacialImpactValueInDollar,
-      finacialImpactValueInDollar,
-      regulatoryImpactValueInDollar,
-      reputationalImpactValueInDollar,
-      operationalImpactValueInDollar,
-      inherentFinancialExposure,
+        financialDollarImpactUsingQualitativeScoreAndAligningWithERMRiskModel,
+      finacialImpactValueInMillionDollar: finacialImpactValueInDollar,
+      regulatoryImpactValueInMillionDollar: regulatoryImpactValueInDollar,
+      reputationalImpactValueInMillionDollar: reputationalImpactValueInDollar,
+      operationalImpactValueInMillionDollar: operationalImpactValueInDollar,
+      inherentFinancialExposure: inherentFinancialExposureInMillionDollar,
       overallImpactScore,
     };
   });
   return updated;
 }
 
-function riskDashboardERMTab(assessmentRecordsArray, assetControlScores) {
+function riskDashboardERMTab(assessmentRecordsArray, assetControlScores, riskAppetite) {
   const residualRiskThreshold = {
     critical: 4,
     high: 3,
@@ -918,7 +1084,7 @@ function riskDashboardERMTab(assessmentRecordsArray, assetControlScores) {
         return asset[ciaMapping];
       }
     }
-    return "N/A";
+    return null;
   }
 
   const updated = assessmentRecordsArray.map((item) => {
@@ -926,13 +1092,13 @@ function riskDashboardERMTab(assessmentRecordsArray, assetControlScores) {
     let inherentRiskLevelRiskDashboardERMTab = getRiskLevel(
       inherentRiskScoreRiskDashboardERMTab
     );
-    let controlStrengthRiskDashboardERMTab = "N/A";
-    let residualRiskScoreRiskDashboardERMTab = "N/A";
-    let residualRiskLevelRiskDashboardERMTab = "N/A";
+    let controlStrengthRiskDashboardERMTab = null;
+    let residualRiskScoreRiskDashboardERMTab = null;
+    let residualRiskLevelRiskDashboardERMTab = null;
     let inherentImpactInMillionDollarsRiskDashboardERMTab =
-      roundToOneDecimal(item.inherentFinancialExposure) ?? "N/A";
-    let residualImpactInMillionDollarsRiskDashboardERMTab = "N/A";
-    let targetImpactInMillionDollarsRiskDashboardERMTab = "N/A";
+      roundToOneDecimal(item.inherentFinancialExposure) ?? null;
+    let residualImpactInMillionDollarsRiskDashboardERMTab = null;
+    let targetImpactInMillionDollarsRiskDashboardERMTab = null;
 
     if (item.riskScenarioCIAMapping?.length > 0 && item.assetId != null) {
       controlStrengthRiskDashboardERMTab =
@@ -969,6 +1135,7 @@ function riskDashboardERMTab(assessmentRecordsArray, assetControlScores) {
 
     return {
       ...item,
+      organizationRiskAppetiteInMillionDollar: riskAppetite,
       inherentRiskScoreRiskDashboardERMTab:
         inherentRiskScoreRiskDashboardERMTab,
       inherentRiskLevelRiskDashboardERMTab:
@@ -989,7 +1156,7 @@ function riskDashboardERMTab(assessmentRecordsArray, assetControlScores) {
   return updated;
 }
 
-function riskDashboardBusinessTab(dataArray) {
+function riskDashboardBusinessTab(dataArray, riskAppetite) {
   const groupMap = new Map();
 
   const residualRiskThreshold = {
@@ -1067,12 +1234,12 @@ function riskDashboardBusinessTab(dataArray) {
     const key = `${item.businessUnitId}___${item.businessProcessId}`;
     const stats = groupMap.get(key);
     const inherentRiskScoreRiskDashboardBusinessTab =
-      stats?.maxOverallImpactScore ?? "N/A";
+      stats?.maxOverallImpactScore ?? null;
     const inherentRiskLevelRiskDashboardBusinessTab = getRiskLevel(
       inherentRiskScoreRiskDashboardBusinessTab
     );
     const controlStrengthRiskDashboardBusinessTab =
-      stats?.totalControlStrength / stats?.count ?? "N/A";
+      stats?.totalControlStrength / stats?.count ?? null;
     const rawResidualRiskScoreRiskDashboardBusinessTab =
       (inherentRiskScoreRiskDashboardBusinessTab *
         (5.25 - controlStrengthRiskDashboardBusinessTab)) /
@@ -1084,11 +1251,11 @@ function riskDashboardBusinessTab(dataArray) {
       residualRiskScoreRiskDashboardBusinessTab
     );
     const rawInherentImpactInMillionDollarsRiskDashboardBusinessTab =
-      stats.maxInherentFinancialExposure ?? "N/A";
+      stats.maxInherentFinancialExposure ?? null;
     const inherentImpactInMillionDollarsRiskDashboardBusinessTab =
       roundToOneDecimal(
         rawInherentImpactInMillionDollarsRiskDashboardBusinessTab
-      ) ?? "N/A";
+      ) ?? null;
 
     const rawResidualImpactInMillionDollarsRiskDashboardBusinessTab =
       (inherentImpactInMillionDollarsRiskDashboardBusinessTab *
@@ -1098,13 +1265,28 @@ function riskDashboardBusinessTab(dataArray) {
       roundToOneDecimal(
         rawResidualImpactInMillionDollarsRiskDashboardBusinessTab
       );
-    
-    const targetImpactRiskDashboardBusinessTab = residualImpactInMillionDollarsRiskDashboardBusinessTab < riskAppetite ? residualImpactInMillionDollarsRiskDashboardBusinessTab : riskAppetite;
-    const rawtargetStrengthRiskDashboardBusinessTab = 5 - ((targetImpactRiskDashboardBusinessTab * 5) / inherentImpactInMillionDollarsRiskDashboardBusinessTab );
-    const targetStrengthRiskDashboardBusinessTab = roundToOneDecimal(rawtargetStrengthRiskDashboardBusinessTab);
-    const rawTargetResidualRiskRiskDashboardBusinessTab = ( inherentRiskScoreRiskDashboardBusinessTab * ( 5.25 - targetStrengthRiskDashboardBusinessTab) ) / 5;
-    const targetResidualRiskRiskDashboardBusinessTab = roundToOneDecimal(rawTargetResidualRiskRiskDashboardBusinessTab);
-    const targetResidualRiskLevelRiskDashboardBusinessTab = getRiskLevel(targetResidualRiskRiskDashboardBusinessTab);
+
+    const targetImpactRiskDashboardBusinessTab =
+      residualImpactInMillionDollarsRiskDashboardBusinessTab < riskAppetite
+        ? residualImpactInMillionDollarsRiskDashboardBusinessTab
+        : riskAppetite;
+    const rawtargetStrengthRiskDashboardBusinessTab =
+      5 -
+      (targetImpactRiskDashboardBusinessTab * 5) /
+        inherentImpactInMillionDollarsRiskDashboardBusinessTab;
+    const targetStrengthRiskDashboardBusinessTab = roundToOneDecimal(
+      rawtargetStrengthRiskDashboardBusinessTab
+    );
+    const rawTargetResidualRiskRiskDashboardBusinessTab =
+      (inherentRiskScoreRiskDashboardBusinessTab *
+        (5.25 - targetStrengthRiskDashboardBusinessTab)) /
+      5;
+    const targetResidualRiskRiskDashboardBusinessTab = roundToOneDecimal(
+      rawTargetResidualRiskRiskDashboardBusinessTab
+    );
+    const targetResidualRiskLevelRiskDashboardBusinessTab = getRiskLevel(
+      targetResidualRiskRiskDashboardBusinessTab
+    );
     return {
       ...item,
       inherentRiskScoreRiskDashboardBusinessTab:
@@ -1117,31 +1299,38 @@ function riskDashboardBusinessTab(dataArray) {
         residualRiskScoreRiskDashboardBusinessTab,
       residualRiskLevelRiskDashboardBusinessTab:
         residualRiskLevelRiskDashboardBusinessTab,
-      inherentImpactInMillionDollarsRiskDashboardBusinessTab: inherentImpactInMillionDollarsRiskDashboardBusinessTab,
-      residualImpactInMillionDollarsRiskDashboardBusinessTab: residualImpactInMillionDollarsRiskDashboardBusinessTab,
-      targetImpactRiskDashboardBusinessTab: targetImpactRiskDashboardBusinessTab,
-      targetStrengthRiskDashboardBusinessTab: targetStrengthRiskDashboardBusinessTab,
-      targetResidualRiskRiskDashboardBusinessTab: targetResidualRiskRiskDashboardBusinessTab,
-      targetResidualRiskLevelRiskDashboardBusinessTab: targetResidualRiskLevelRiskDashboardBusinessTab
-
-
+      inherentImpactInMillionDollarsRiskDashboardBusinessTab:
+        inherentImpactInMillionDollarsRiskDashboardBusinessTab,
+      residualImpactInMillionDollarsRiskDashboardBusinessTab:
+        residualImpactInMillionDollarsRiskDashboardBusinessTab,
+      targetImpactRiskDashboardBusinessTab:
+        targetImpactRiskDashboardBusinessTab,
+      targetStrengthRiskDashboardBusinessTab:
+        targetStrengthRiskDashboardBusinessTab,
+      targetResidualRiskRiskDashboardBusinessTab:
+        targetResidualRiskRiskDashboardBusinessTab,
+      targetResidualRiskLevelRiskDashboardBusinessTab:
+        targetResidualRiskLevelRiskDashboardBusinessTab,
     };
   });
 }
 
-
 function processToAssetBusinesssProcessLevelCalculations(dataArray) {
- return dataArray.map((item) => {
-  const businessProcessInherentRiskProcessToAsset = item.inherentRiskScoreRiskDashboardBusinessTab;
-  const businessProcessinherentImpactInMillionDollarsProcessToAsset = item.inherentImpactInMillionDollarsRiskDashboardBusinessTab
-  return {
-    ...item,
-    businessProcessInherentRiskProcessToAsset: businessProcessInherentRiskProcessToAsset,
-    businessProcessinherentImpactInMillionDollarsProcessToAsset: businessProcessinherentImpactInMillionDollarsProcessToAsset
-  }
- })
+  return dataArray.map((item) => {
+    const businessProcessInherentRiskProcessToAsset =
+      item.inherentRiskScoreRiskDashboardBusinessTab;
+    const businessProcessinherentImpactInMillionDollarsProcessToAsset =
+      item.inherentImpactInMillionDollarsRiskDashboardBusinessTab;
+    return {
+      ...item,
+      businessProcessInherentRiskProcessToAsset:
+        businessProcessInherentRiskProcessToAsset,
+      businessProcessinherentImpactInMillionDollarsProcessToAsset:
+        businessProcessinherentImpactInMillionDollarsProcessToAsset,
+    };
+  });
 }
-function riskDashboardCIOTab(dataArray, assetControlScores) {
+function riskDashboardCIOTab(dataArray, assetControlScores, riskAppetite) {
   const groupMap = new Map();
 
   const residualRiskThreshold = {
@@ -1165,13 +1354,13 @@ function riskDashboardCIOTab(dataArray, assetControlScores) {
 
     return "very low";
   }
-    function getControlStrengthForAsset(ciaMapping = "OVERALL", assetId) {
+  function getControlStrengthForAsset(ciaMapping = "OVERALL", assetId) {
     for (const asset of assetControlScores) {
       if (asset.assetId === assetId) {
         return asset[ciaMapping];
       }
     }
-    return "N/A";
+    return null;
   }
   // 1. Build map with running max only
   for (const item of dataArray) {
@@ -1179,22 +1368,36 @@ function riskDashboardCIOTab(dataArray, assetControlScores) {
 
     if (!groupMap.has(key)) {
       groupMap.set(key, {
-        maxBusinessProcessInherentImpact: typeof item.businessProcessinherentImpactInMillionDollarsProcessToAsset === "number" ? item.businessProcessinherentImpactInMillionDollarsProcessToAsset : 0,
+        maxBusinessProcessInherentImpact:
+          typeof item.businessProcessinherentImpactInMillionDollarsProcessToAsset ===
+          "number"
+            ? item.businessProcessinherentImpactInMillionDollarsProcessToAsset
+            : 0,
         totalBusinessProcessInherentRisk:
           typeof item.businessProcessInherentRiskProcessToAsset === "number"
             ? item.businessProcessInherentRiskProcessToAsset
             : 0,
-        countBusinessProcessInherentRisk: typeof item.businessProcessInherentRiskProcessToAsset === "number" ? 1 : 0,
+        countBusinessProcessInherentRisk:
+          typeof item.businessProcessInherentRiskProcessToAsset === "number"
+            ? 1
+            : 0,
       });
     } else {
       const stats = groupMap.get(key);
       // Update max component
-      if (typeof item.businessProcessinherentImpactInMillionDollarsProcessToAsset === "number" && item.businessProcessinherentImpactInMillionDollarsProcessToAsset > stats.maxBusinessProcessInherentImpact) {
-        stats.maxBusinessProcessInherentImpact = item.businessProcessinherentImpactInMillionDollarsProcessToAsset;
+      if (
+        typeof item.businessProcessinherentImpactInMillionDollarsProcessToAsset ===
+          "number" &&
+        item.businessProcessinherentImpactInMillionDollarsProcessToAsset >
+          stats.maxBusinessProcessInherentImpact
+      ) {
+        stats.maxBusinessProcessInherentImpact =
+          item.businessProcessinherentImpactInMillionDollarsProcessToAsset;
       }
       // Update average components
       if (typeof item.controlStrengthProcessToAsset === "number") {
-        stats.totalBusinessProcessInherentRisk += item.businessProcessInherentRiskProcessToAsset;
+        stats.totalBusinessProcessInherentRisk +=
+          item.businessProcessInherentRiskProcessToAsset;
         stats.countBusinessProcessInherentRisk += 1;
       }
     }
@@ -1203,55 +1406,112 @@ function riskDashboardCIOTab(dataArray, assetControlScores) {
   return dataArray.map((item) => {
     const key = `${item.assetId}`;
     const stats = groupMap.get(key);
-    const rawInherentRiskScoreRiskDashboardCIOTab = stats.countBusinessProcessInherentRisk > 0 ? ( stats?.totalBusinessProcessInherentRisk ?? 0 / stats.countBusinessProcessInherentRisk ) : 0  ;
-    const inherentRiskScoreRiskDashboardCIOTab = roundToOneDecimal(rawInherentRiskScoreRiskDashboardCIOTab);
-    const inherentRiskLevelRiskDashboardCIOTab = getRiskLevel(inherentRiskScoreRiskDashboardCIOTab);
-    const controlStrengthRiskDashboardCIOTab = getControlStrengthForAsset("OVERALL", item.assetId);
-    const rawResidualRiskScoreRiskDashboardCIOTab = inherentRiskScoreRiskDashboardCIOTab * ( 5.25 - controlStrengthRiskDashboardCIOTab) / 5;
-    const residualRiskScoreRiskDashboardCIOTab = roundToOneDecimal(rawResidualRiskScoreRiskDashboardCIOTab);
-    const residualRiskLevelRiskDashboardCIOTab = getRiskLevel(residualRiskScoreRiskDashboardCIOTab);
-    const inherentImpactInMillionDollarsDRiskDashboardCIOTab = stats.maxBusinessProcessInherentImpact ?? 0;
-    const rawResidualImpactRiskDashboardCIOTab = inherentImpactInMillionDollarsDRiskDashboardCIOTab * ( 5.25 - controlStrengthRiskDashboardCIOTab) / 5;
-    const residualImpactInMillionDollarsRiskDashboardCIOTab = roundToOneDecimal(rawResidualImpactRiskDashboardCIOTab);
-    const targetImpactRiskDashboardCIOTab = residualImpactInMillionDollarsRiskDashboardCIOTab < riskAppetite ? residualImpactInMillionDollarsRiskDashboardCIOTab : riskAppetite;
-    const rawTargetStrengthRiskDashboardCIOTab = 5 - ((targetImpactRiskDashboardCIOTab * 5) / inherentImpactInMillionDollarsDRiskDashboardCIOTab) ;
-    const targetStrengthRiskDashboardCIOTab = roundToOneDecimal(rawTargetStrengthRiskDashboardCIOTab);
-    const rawTargetResidualRiskScoreRiskDashboardCIOTab = inherentRiskScoreRiskDashboardCIOTab * (5.25 - targetStrengthRiskDashboardCIOTab) / 5;
-    const targetResidualRiskScoreRiskDashboardCIOTab = roundToOneDecimal(rawTargetResidualRiskScoreRiskDashboardCIOTab);
-    const targetResidualRiskLevelRiskDashboardCIOTab = getRiskLevel(targetResidualRiskScoreRiskDashboardCIOTab);
+    const rawInherentRiskScoreRiskDashboardCIOTab =
+      stats.countBusinessProcessInherentRisk > 0
+        ? stats?.totalBusinessProcessInherentRisk ??
+          0 / stats.countBusinessProcessInherentRisk
+        : 0;
+    const inherentRiskScoreRiskDashboardCIOTab = roundToOneDecimal(
+      rawInherentRiskScoreRiskDashboardCIOTab
+    );
+    const inherentRiskLevelRiskDashboardCIOTab = getRiskLevel(
+      inherentRiskScoreRiskDashboardCIOTab
+    );
+    const controlStrengthRiskDashboardCIOTab = getControlStrengthForAsset(
+      "OVERALL",
+      item.assetId
+    );
+    const rawResidualRiskScoreRiskDashboardCIOTab =
+      (inherentRiskScoreRiskDashboardCIOTab *
+        (5.25 - controlStrengthRiskDashboardCIOTab)) /
+      5;
+    const residualRiskScoreRiskDashboardCIOTab = roundToOneDecimal(
+      rawResidualRiskScoreRiskDashboardCIOTab
+    );
+    const residualRiskLevelRiskDashboardCIOTab = getRiskLevel(
+      residualRiskScoreRiskDashboardCIOTab
+    );
+    const inherentImpactInMillionDollarsDRiskDashboardCIOTab =
+      stats.maxBusinessProcessInherentImpact ?? 0;
+    const rawResidualImpactRiskDashboardCIOTab =
+      (inherentImpactInMillionDollarsDRiskDashboardCIOTab *
+        (5.25 - controlStrengthRiskDashboardCIOTab)) /
+      5;
+    const residualImpactInMillionDollarsRiskDashboardCIOTab = roundToOneDecimal(
+      rawResidualImpactRiskDashboardCIOTab
+    );
+    const targetImpactRiskDashboardCIOTab =
+      residualImpactInMillionDollarsRiskDashboardCIOTab < riskAppetite
+        ? residualImpactInMillionDollarsRiskDashboardCIOTab
+        : riskAppetite;
+    const rawTargetStrengthRiskDashboardCIOTab =
+      5 -
+      (targetImpactRiskDashboardCIOTab * 5) /
+        inherentImpactInMillionDollarsDRiskDashboardCIOTab;
+    const targetStrengthRiskDashboardCIOTab = roundToOneDecimal(
+      rawTargetStrengthRiskDashboardCIOTab
+    );
+    const rawTargetResidualRiskScoreRiskDashboardCIOTab =
+      (inherentRiskScoreRiskDashboardCIOTab *
+        (5.25 - targetStrengthRiskDashboardCIOTab)) /
+      5;
+    const targetResidualRiskScoreRiskDashboardCIOTab = roundToOneDecimal(
+      rawTargetResidualRiskScoreRiskDashboardCIOTab
+    );
+    const targetResidualRiskLevelRiskDashboardCIOTab = getRiskLevel(
+      targetResidualRiskScoreRiskDashboardCIOTab
+    );
 
-    return{
+    return {
       ...item,
-      inherentRiskScoreRiskDashboardCIOTab: inherentRiskScoreRiskDashboardCIOTab,
-      inherentRiskLevelRiskDashboardCIOTab: inherentRiskLevelRiskDashboardCIOTab,
+      inherentRiskScoreRiskDashboardCIOTab:
+        inherentRiskScoreRiskDashboardCIOTab,
+      inherentRiskLevelRiskDashboardCIOTab:
+        inherentRiskLevelRiskDashboardCIOTab,
       controlStrengthRiskDashboardCIOTab: controlStrengthRiskDashboardCIOTab,
-      residualRiskScoreRiskDashboardCIOTab: residualRiskScoreRiskDashboardCIOTab,
-      residualRiskLevelRiskDashboardCIOTab: residualRiskLevelRiskDashboardCIOTab,
-      inherentImpactInMillionDollarsDRiskDashboardCIOTab: inherentImpactInMillionDollarsDRiskDashboardCIOTab,
-      residualImpactInMillionDollarsRiskDashboardCIOTab: residualImpactInMillionDollarsRiskDashboardCIOTab,
+      residualRiskScoreRiskDashboardCIOTab:
+        residualRiskScoreRiskDashboardCIOTab,
+      residualRiskLevelRiskDashboardCIOTab:
+        residualRiskLevelRiskDashboardCIOTab,
+      inherentImpactInMillionDollarsDRiskDashboardCIOTab:
+        inherentImpactInMillionDollarsDRiskDashboardCIOTab,
+      residualImpactInMillionDollarsRiskDashboardCIOTab:
+        residualImpactInMillionDollarsRiskDashboardCIOTab,
       targetImpactRiskDashboardCIOTab: targetImpactRiskDashboardCIOTab,
       targetStrengthRiskDashboardCIOTab: targetStrengthRiskDashboardCIOTab,
-      targetResidualRiskScoreRiskDashboardCIOTab: targetResidualRiskScoreRiskDashboardCIOTab,
-      targetResidualRiskLevelRiskDashboardCIOTab: targetResidualRiskLevelRiskDashboardCIOTab
-    }
-  })
+      targetResidualRiskScoreRiskDashboardCIOTab:
+        targetResidualRiskScoreRiskDashboardCIOTab,
+      targetResidualRiskLevelRiskDashboardCIOTab:
+        targetResidualRiskLevelRiskDashboardCIOTab,
+    };
+  });
 }
 
-async function generateFlatAssessmentMatrix(orgId, active = false) {
-  const assessmentProcesses = await fetchDataFromAssessment(orgId, true);
+async function generateFlatAssessmentMatrix(orgId, active = true) {
+
+  const org = await models.Organization.findOne({
+    where: { organizationId: orgId },
+    attributes: ["riskAppetite"], // only fetch riskAppetite
+  });
+  if (!org) {
+    throw new Error("Invalid Org ID ");
+  }
+  const rawRiskAppetite = org ? org.riskAppetite : null;
+  const riskAppetite = convertValueToMillion(rawRiskAppetite);
+  const assessmentProcesses = await fetchDataFromAssessment(orgId, [], true);
   const d = createFlatAssessmentMatrixFromProcesses(assessmentProcesses);
-  const a = await insertBusinessAssetRisks(d);
   const b = aggregateMitreControlsByAsset(assessmentProcesses);
   const c = await enrichMitreControlsByMitreThreatRecords(b);
-  const e = calculateAssetScoresForAll(c);
-  const finalArray = mergeAndAddControlStrength(d, e);
-  const f = risksToImpactCalculations(finalArray);
-  const g = riskDashboardERMTab(f, e);
-  const h = riskDashboardBusinessTab(g);
-  const i = processToAssetBusinesssProcessLevelCalculations(h);
-  const j = riskDashboardCIOTab(i, e);
-
-  return j;
+  const assetControlScores = calculateAssetScoresForAll(c);
+  const finalArray = mergeAndAddControlStrength(d, assetControlScores);
+  const riskToImpact = risksToImpactCalculations(finalArray);
+  const ermTab = riskDashboardERMTab(riskToImpact, assetControlScores, riskAppetite);
+  const businessTab = riskDashboardBusinessTab(ermTab, riskAppetite);
+  const processToAssetBPLevelValues =
+    processToAssetBusinesssProcessLevelCalculations(businessTab);
+  const cioTab = riskDashboardCIOTab(processToAssetBPLevelValues, assetControlScores, riskAppetite);
+  insertReportsMaster(cioTab);
+  return cioTab;
 }
 
 module.exports = {
