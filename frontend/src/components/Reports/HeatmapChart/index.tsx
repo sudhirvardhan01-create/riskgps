@@ -75,7 +75,7 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
     const colorScale = d3
       .scaleLinear<string>()
       .domain([0, maxValue])
-      .range(["#80fff4", "#214f73"]);
+      .range(["#cae8ff", "#12229d"]);
 
     // Create a map for quick data lookup
     const dataMap = new Map(data.map((d) => [`${d.y}-${d.x}`, d.value]));
@@ -132,9 +132,8 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
       .attr("transform", `translate(0,${innerHeight})`)
       .call(xAxis)
       .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-.8em")
-      .attr("dy", ".15em")
+      .style("text-anchor", "middle")
+      .attr("dy", ".50em")
       .style("font-size", "12px");
 
     // Y-axis
@@ -194,29 +193,3 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
 };
 
 export default HeatmapChart;
-
-// Example usage for Business Units vs Severity:
-// const severityData: HeatmapData[] = [
-//   { x: 'Very Low', y: 'Sales', value: 5 },
-//   { x: 'Low', y: 'Sales', value: 8 },
-//   { x: 'Moderate', y: 'Sales', value: 12 },
-//   { x: 'High', y: 'Sales', value: 25 },
-//   { x: 'Critical', y: 'Sales', value: 10 },
-//   { x: 'High', y: 'IT', value: 20 },
-//   { x: 'Critical', y: 'IT', value: 30 },
-//   { x: 'Moderate', y: 'Marketing', value: 15 },
-//   { x: 'Low', y: 'HR', value: 5 },
-//   { x: 'Moderate', y: 'Finance', value: 12 },
-// ];
-//
-// const severityOrder = ['Very Low', 'Low', 'Moderate', 'High', 'Critical'];
-//
-// <HeatmapChart
-//   data={severityData}
-//   xAxisLabel="Severity Level"
-//   yAxisLabel="Business Unit"
-//   xOrder={severityOrder}
-//   title="Business Units vs Severity Levels"
-//   width={900}
-//   height={600}
-// />

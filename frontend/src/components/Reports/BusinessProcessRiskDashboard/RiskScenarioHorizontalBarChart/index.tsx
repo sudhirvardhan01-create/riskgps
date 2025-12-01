@@ -61,6 +61,11 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
     );
   };
 
+  const legendFormatter = (value: any, entry: any, index: any) => {
+    // You can apply different colors based on the value or index if needed
+    return <span style={{ color: "#484848" }}>{value}</span>;
+  };
+
   return (
     <>
       {formattedData.length > 0 ? (
@@ -91,13 +96,13 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
               formatter={(value: number) => `$ ${value.toFixed(2)} Bn`}
               labelStyle={{ fontWeight: "bold" }}
             />
-            <Legend />
+            <Legend formatter={legendFormatter} />
 
             {/* Risk Exposure Bar */}
             <Bar
               dataKey="riskExposureBillion"
               name="Risk Exposure (B)"
-              fill="#31a8b2"
+              fill="#12229d"
               shape={<CustomBar />}
               isAnimationActive={false}
               barSize={24}
@@ -107,7 +112,7 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
             <Bar
               dataKey="netExposureBillion"
               name="Net Exposure (B)"
-              fill="#20cfcf"
+              fill="#6f80eb"
               shape={<CustomBar />}
               isAnimationActive={false}
               barSize={24}

@@ -65,8 +65,8 @@ export default function DashboardContainer() {
 
   const processCriticalityCardItems = [
     {
-      cardBackgroundColor: "#214f73",
-      cardBorderColor: "#1b415f",
+      cardBackgroundColor: "primary.900",
+      cardBorderColor: "#04139A",
       cardIcon: <ReportIcon sx={{ color: "#ffffff" }} />,
       cardText: "Critical",
       cardTextColor: "#ffffff",
@@ -75,8 +75,8 @@ export default function DashboardContainer() {
       ).length,
     },
     {
-      cardBackgroundColor: "#31a8b2",
-      cardBorderColor: "#298c94",
+      cardBackgroundColor: "primary.700",
+      cardBorderColor: "#12229d",
       cardIcon: <WarningAmberIcon sx={{ color: "#ffffff" }} />,
       cardText: "High",
       cardTextColor: "#ffffff",
@@ -85,8 +85,8 @@ export default function DashboardContainer() {
       ).length,
     },
     {
-      cardBackgroundColor: "#20cfcf",
-      cardBorderColor: "#1aa9a9",
+      cardBackgroundColor: "primary.500",
+      cardBorderColor: "#233dff",
       cardIcon: <InfoIcon sx={{ color: "#ffffff" }} />,
       cardText: "Moderate",
       cardTextColor: "#ffffff",
@@ -95,8 +95,8 @@ export default function DashboardContainer() {
       ).length,
     },
     {
-      cardBackgroundColor: "#5af4de",
-      cardBorderColor: "#49c9b8",
+      cardBackgroundColor: "primary.300",
+      cardBorderColor: "#6f80eb",
       cardIcon: <CheckCircleOutlineIcon sx={{ color: "#214f73" }} />,
       cardText: "Low",
       cardTextColor: "#214f73",
@@ -105,8 +105,8 @@ export default function DashboardContainer() {
       ).length,
     },
     {
-      cardBackgroundColor: "#80fff4",
-      cardBorderColor: "#6ad4ca",
+      cardBackgroundColor: "primary.100",
+      cardBorderColor: "#5cb6f9",
       cardIcon: <CheckCircleIcon sx={{ color: "#214f73" }} />,
       cardText: "Very Low",
       cardTextColor: "#214f73",
@@ -115,8 +115,8 @@ export default function DashboardContainer() {
       ).length,
     },
     {
-      cardBackgroundColor: "#f7fffc",
-      cardBorderColor: "#d9eae6",
+      cardBackgroundColor: "#e0ecedff",
+      cardBorderColor: "#cae8ff",
       cardIcon: <AnalyticsIcon sx={{ color: "#214f73" }} />,
       cardText: "Total",
       cardTextColor: "#214f73",
@@ -166,19 +166,6 @@ export default function DashboardContainer() {
         ? `$ ${processes[0]?.riskAppetite / 1000000000} Bn`
         : "-",
     },
-  ];
-
-  const severityData = [
-    { x: "Very Low", y: "Retail Banking", value: 5 },
-    { x: "Low", y: "Retail Banking", value: 8 },
-    { x: "Moderate", y: "Retail Banking", value: 12 },
-    { x: "High", y: "Loan Services", value: 25 },
-    { x: "Critical", y: "Retail Banking", value: 10 },
-    { x: "High", y: "Corporate Banking", value: 20 },
-    { x: "Critical", y: "Corporate Banking", value: 30 },
-    { x: "Moderate", y: "Loan Services", value: 15 },
-    { x: "Low", y: "Corporate Banking", value: 5 },
-    { x: "Moderate", y: "Corporate Banking", value: 12 },
   ];
 
   const severityOrder = ["Very Low", "Low", "Moderate", "High", "Critical"];
@@ -291,6 +278,7 @@ export default function DashboardContainer() {
               Risk Exposure by Business Process
             </Typography>
             <Paper
+              elevation={0}
               sx={{
                 p: 2,
                 backgroundColor: "#fff",
@@ -335,20 +323,43 @@ export default function DashboardContainer() {
               data={processBarChartData}
               selectedProcess={selectedProcess}
               setSelectedProcess={setSelectedProcess}
-              // riskAppetite={70000000}
               riskAppetite={processes[0]?.riskAppetite / 1000000000}
             />
           </Paper>
 
-          <HeatmapChart
-            data={businessUnitSeverityData}
-            xAxisLabel="Severity Level"
-            yAxisLabel="Business Unit"
-            xOrder={severityOrder}
-            title="Business Units vs Severity Levels"
-            width={800}
-            height={400}
-          />
+          <Grid container>
+            <Grid size={8}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fafafa",
+                  height: "530px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  borderRadius: 2,
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  textAlign="left"
+                  sx={{ mb: 2 }}
+                >
+                  Business Units vs Severity Levels
+                </Typography>
+                <HeatmapChart
+                  data={businessUnitSeverityData}
+                  xAxisLabel="Severity Level"
+                  yAxisLabel="Business Unit"
+                  xOrder={severityOrder}
+                  // title="Business Units vs Severity Levels"
+                  width={740}
+                  height={400}
+                />
+              </Paper>
+            </Grid>
+          </Grid>
         </Box>
       </Box>
 

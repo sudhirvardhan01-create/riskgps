@@ -54,6 +54,11 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
     );
   };
 
+  const legendFormatter = (value: any, entry: any, index: any) => {
+    // You can apply different colors based on the value or index if needed
+    return <span style={{ color: "#484848" }}>{value}</span>;
+  };
+
   return (
     <>
       {data.length > 0 ? (
@@ -69,26 +74,19 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
           >
             <CartesianGrid strokeDasharray="3 3" />
 
-            <XAxis
-              type="number"
-              //   label={{
-              //     value: "Exposure (in Billion USD)",
-              //     position: "insideBottomCentre",
-              //     offset: -5,
-              //   }}
-            />
+            <XAxis type="number" />
             <YAxis type="category" dataKey="applicationName" width={200} />
             <Tooltip
               formatter={(value: number) => `${value}`}
               labelStyle={{ fontWeight: "bold" }}
             />
-            <Legend />
+            <Legend formatter={legendFormatter} />
 
             {/* Control Strength Bar */}
             <Bar
               dataKey="controlStrength"
               name="Control Strength"
-              fill="#31a8b2"
+              fill="#12229d"
               shape={<CustomBar />}
               isAnimationActive={false}
               barSize={24}
@@ -98,7 +96,7 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
             <Bar
               dataKey="targetStrength"
               name="Target Strength"
-              fill="#20cfcf"
+              fill="#6f80eb"
               shape={<CustomBar />}
               isAnimationActive={false}
               barSize={24}

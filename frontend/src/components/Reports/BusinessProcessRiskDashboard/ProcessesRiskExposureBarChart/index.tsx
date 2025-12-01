@@ -123,7 +123,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
           <Bar
             dataKey="maxRiskExposureBillion"
             name="Max Risk Exposure"
-            fill="#31a8b2"
+            fill="#12229d"
             shape={<CustomBar />}
             isAnimationActive={false}
             barSize={24}
@@ -133,7 +133,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
           <Bar
             dataKey="maxNetExposureBillion"
             name="Max Net Exposure"
-            fill="#20cfcf"
+            fill="#6f80eb"
             shape={<CustomBar />}
             isAnimationActive={false}
             barSize={24}
