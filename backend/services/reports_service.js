@@ -16,6 +16,13 @@ const severityMap = {
   veryLow: "Very Low",
 };
 
+function convertMillionToValue(valueInMillions) {
+  const num = Number(valueInMillions);
+
+  if (isNaN(num)) return null; // or return 0 if you prefer
+  return num * 1_000_000;
+}
+
 
 class ReportsService {
   static async getOrganizationalDependencyData(orgId = null) {
@@ -256,7 +263,7 @@ class ReportsService {
           businessProcessId: item.businessProcessId,
           processName: item.businessProcess,
           severity: item.aggBuBpResidualRiskLevelRiskDashboardBusinessTab,
-          riskAppetite: item.organizationRiskAppetiteInMillionDollar,
+          riskAppetite: convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
           maxRiskExposure: 0,
           maxNetExposure: 0,
           risks: [],
@@ -274,24 +281,24 @@ class ReportsService {
           riskScenarioId: item.riskScenarioId,
           riskScenario: item.riskScenario,
           riskScenarioCIAMapping: item.riskScenarioCIAMapping[0] ?? null,
-          riskExposure: item.inherentImpactInMillionDollarsRiskDashboardERMTab,
+          riskExposure: convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
           riskExposureLevel: item.inherentRiskLevelRiskDashboardERMTab,
-          netExposure: item.residualImpactInMillionDollarsRiskDashboardERMTab,
+          netExposure: convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
           netExposureLevel: item.residualRiskLevelRiskDashboardERMTab,
         });
         if (
           entry.maxRiskExposure <
-          item.inherentImpactInMillionDollarsRiskDashboardERMTab
+          convertMillionToValue(item.aggBuBpInherentImpactInMillionDollarsRiskDashboardBusinessTab)
         ) {
           entry.maxRiskExposure =
-            item.inherentImpactInMillionDollarsRiskDashboardERMTab;
+            convertMillionToValue(item.aggBuBpInherentImpactInMillionDollarsRiskDashboardBusinessTab);
         }
         if (
           entry.maxNetExposure <
-          item.residualImpactInMillionDollarsRiskDashboardERMTab
+          convertMillionToValue(item.aggBuBpResidualImpactInMillionDollarsRiskDashboardBusinessTab)
         ) {
           entry.maxNetExposure =
-            item.residualImpactInMillionDollarsRiskDashboardERMTab;
+            convertMillionToValue(item.aggBuBpResidualImpactInMillionDollarsRiskDashboardBusinessTab);
         }
       }
 
@@ -299,13 +306,13 @@ class ReportsService {
       if (!entry.assets.some((a) => a.assetId === item.assetId)) {
         entry.assets.push({
           assetId: item.assetId,
-          applicationName: item.assetId,
-          controlStrength: item.asset,
-          targetStrength: item.assetCategory,
-          riskExposure: item.inherentImpactInMillionDollarsDRiskDashboardCIOTab,
-          riskExposureLevel: "high",
-          netExposure: item.residualImpactInMillionDollarsRiskDashboardCIOTab,
-          netExposureLevel: "medium",
+          applicationName: item.asset,
+          controlStrength: item.aggAssetControlStrengthRiskDashboardCIOTab,
+          targetStrength: item.aggAssetTargetImpactRiskDashboardCIOTab,
+          riskExposure: convertMillionToValue(item.inherentImpactInMillionDollarsDRiskDashboardCIOTab),
+          riskExposureLevel: item.aggAssetInherentRiskLevelRiskDashboardCIOTab,
+          netExposure: convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardCIOTab),
+          netExposureLevel: item.aggAssetResidualRiskLevelRiskDashboardCIOTab,
           // add more if needed
         });
       }
@@ -359,6 +366,34 @@ class ReportsService {
     return convertedTogetBusinessUnitHeatmapChartFormat;
   }
 
+
+  static async getRiskScenarioTableData(reportsData) {
+    return reportsData.map((item,index) => {
+      return {
+        assessmentId: item.assessmentId,
+        "assessmentName": item.assessmentName,
+            "orgId": item.orgId,
+            "orgName": item.orgName,
+            "organizationRiskAppetiteInMillionDollar": convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
+            "businessUnitId": item.businessUnitId,
+            "businessUnit": item.businessUnit,
+            "businessProcessId": item.businessProcessId,
+            "businessProcess": item.businessProcess,
+            "riskScenarioId": item.riskScenarioId,
+            "riskScenario": item.riskScenario,
+            "riskScenarioCIAMapping": item.riskScenarioCIAMapping[0],
+            "inherentRiskScore": item.inherentRiskScoreRiskDashboardERMTab,
+            "inherentRiskLevelRisk": item.inherentRiskLevelRiskDashboardERMTab,
+            "controlStrengthRisk": item.controlStrengthRiskDashboardERMTab,
+            "residualRiskScoreRisk": item.residualRiskScoreRiskDashboardERMTab,
+            "residualRiskLevelRisk": item.residualRiskLevelRiskDashboardERMTab,
+            "inherentImpactInMillionDollars": convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
+            "residualImpactInMillionDollars": convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
+            "targetImpactInMillionDollars": convertMillionToValue(item.targetImpactInMillionDollarsRiskDashboardERMTab),
+      }
+    })
+
+  }
   /**
    * 
    * @param {*} orgId 
@@ -422,6 +457,25 @@ class ReportsService {
 
     return businessUnitHeatmapChartData;
   } 
+
+  static async riskScenarioTableData(orgId) {
+    if (!orgId) {
+      throw new Error("Org ID not found");
+    }
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+    const reportsData = await ReportsMaster.findAll({
+      where: {
+        orgId,
+        updatedAt: latestTimeStamp,
+      },
+    });
+
+    const riskScenarioTableDataRes= this.getRiskScenarioTableData(reportsData);
+    return riskScenarioTableDataRes;
+
+  }
 }
 
 module.exports = ReportsService;
