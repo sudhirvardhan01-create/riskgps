@@ -340,8 +340,7 @@ class ReportsService {
       }
 
       const entry = map.get(key);
-      const residualRiskLevelRiskDashboardBusinessTab = item.aggBuBpTargetResidualRiskLevelRiskDashboardBusinessTab;
-      console.log(residualRiskLevelRiskDashboardBusinessTab);
+      const residualRiskLevelRiskDashboardBusinessTab = item.residualRiskLevelRiskDashboardERMTab;
       if (residualRiskLevelRiskDashboardBusinessTab == "critical") {
         entry.critical++;
       } else if (residualRiskLevelRiskDashboardBusinessTab == "high") {
