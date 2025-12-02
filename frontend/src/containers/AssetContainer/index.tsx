@@ -498,7 +498,7 @@ export default function AssetContainer() {
       />
 
       {/* Page content */}
-      <Box p={5}>
+      <Box p={5} pb="16px !important">
         <LibraryHeader {...headerProps} />
         <AssetList
           loading={loading}

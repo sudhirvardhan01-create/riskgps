@@ -175,7 +175,7 @@ const LibraryPage = () => {
   ];
 
   return (
-    <Box sx={{ p: 5, mb: 8 }}>
+    <Box sx={{ p: 5, pb: "16px !important" }}>
       <Typography variant="h5" fontWeight={600} mb={5}>
         Library
       </Typography>
@@ -183,7 +183,7 @@ const LibraryPage = () => {
         container
         rowSpacing={3}
         columnSpacing={3}
-        sx={{ overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 256px)" }}
         className="scroll-container"
       >
         {libs.map((lib) => {

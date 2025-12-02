@@ -40,7 +40,7 @@ const ThreatList: React.FC<Props> = ({
     <>
       <Stack
         spacing={2}
-        sx={{ overflow: "auto", maxHeight: "calc(100vh - 390px)" }}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 356px)" }}
       >
         {data && data.length > 0 ? (
           data.map((item) => (
@@ -53,9 +53,17 @@ const ThreatList: React.FC<Props> = ({
                 setIsEditOpen={setIsEditOpen}
                 setIsDeleteConfirmPopupOpen={setIsDeleteConfirmOpen}
                 handleUpdateStatus={handleUpdateStatus}
-                rowID={item.subTechniqueId ? `${item.mitreTechniqueId} > ${item.subTechniqueId}` : item.mitreTechniqueId}
+                rowID={
+                  item.subTechniqueId
+                    ? `${item.mitreTechniqueId} > ${item.subTechniqueId}`
+                    : item.mitreTechniqueId
+                }
                 headerChip={item.platforms.join(", ") ?? ""}
-                title={item.subTechniqueName ? `${item.mitreTechniqueName} > ${item.subTechniqueName}` : item.mitreTechniqueName}
+                title={
+                  item.subTechniqueName
+                    ? `${item.mitreTechniqueName} > ${item.subTechniqueName}`
+                    : item.mitreTechniqueName
+                }
                 status={item.status ?? ""}
                 lastUpdated={item.updated_at}
                 footerChips={[
@@ -78,10 +86,15 @@ const ThreatList: React.FC<Props> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          position: "absolute",
-          bottom: 55,
-          left: "50%", // place horizontally at 50%
-          transform: "translateX(-50%)",
+          position: "fixed",
+          bottom: 0,
+          left: "140px",
+          right: "30px",
+          zIndex: 1000,
+          // position: "absolute",
+          // bottom: 55,
+          // left: "50%", // place horizontally at 50%
+          // transform: "translateX(-50%)",
         }}
       >
         <TablePagination
