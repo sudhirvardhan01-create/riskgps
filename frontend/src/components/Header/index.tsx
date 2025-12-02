@@ -54,7 +54,7 @@ const Header = () => {
         pl: 2,
       }}
     >
-      <Image src={riskGPS_logo} alt="RiskGPS Logo" width={125} height={36} />
+      <Image src={riskGPS_logo} alt="RiskGPS Logo" width={125} height={40} />
       <Stack display={"flex"} flexDirection={"row"}>
         <Tooltip title="Notifications">
           <NotificationIcon
