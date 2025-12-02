@@ -14,6 +14,8 @@ import {
   Paper,
   Select,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import RiskExposureByProcessChart from "@/components/Reports/BusinessProcessRiskDashboard/ProcessesRiskExposureBarChart";
@@ -24,6 +26,20 @@ import {
   getBusinessUnitSeverityData,
 } from "@/utils/mockupData";
 import HeatmapChart from "@/components/Reports/HeatmapChart";
+import { BusinessUnitRadarChart } from "@/components/Reports/BusinessProcessRiskDashboard/BusinessUnitRadarChart";
+
+type RiskMetric =
+  | "Total Risk Exposure"
+  | "Average Net Exposure"
+  | "Financial Impact"
+  | "Operational Impact"
+  | "Regulatory Impact"
+  | "Reputational Impact";
+
+interface RiskRadarRecord {
+  metric: RiskMetric;
+  values: Record<string, number>; // dynamic BUs
+}
 
 export default function DashboardContainer() {
   const [data, setData] = useState<any[]>([]);
@@ -169,6 +185,61 @@ export default function DashboardContainer() {
   ];
 
   const severityOrder = ["Very Low", "Low", "Moderate", "High", "Critical"];
+  const [currentTab, setCurrentTab] = useState(0);
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setCurrentTab(newValue);
+  };
+
+  const riskData: RiskRadarRecord[] = [
+    {
+      metric: "Total Risk Exposure",
+      values: {
+        Finance: 2_400_000_000, // $2.4B
+        IT: 950_000_000, // $950M
+        HR: 350_000_000, // $350M
+      },
+    },
+    {
+      metric: "Average Net Exposure",
+      values: {
+        Finance: 480_000_000, // $480M
+        IT: 120_000_000,
+        HR: 45_000_000,
+      },
+    },
+    {
+      metric: "Financial Impact",
+      values: {
+        Finance: 1_800_000_000,
+        IT: 400_000_000,
+        HR: 150_000_000,
+      },
+    },
+    {
+      metric: "Operational Impact",
+      values: {
+        Finance: 320_000_000,
+        IT: 870_000_000,
+        HR: 210_000_000,
+      },
+    },
+    {
+      metric: "Regulatory Impact",
+      values: {
+        Finance: 900_000_000,
+        IT: 250_000_000,
+        HR: 90_000_000,
+      },
+    },
+    {
+      metric: "Reputational Impact",
+      values: {
+        Finance: 700_000_000,
+        IT: 180_000_000,
+        HR: 60_000_000,
+      },
+    },
+  ];
 
   return (
     <>
@@ -181,6 +252,54 @@ export default function DashboardContainer() {
           flexDirection: "column",
         }}
       >
+        <Tabs
+          value={currentTab}
+          onChange={handleChange}
+          sx={{
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontWeight: 550,
+              py: 2,
+              px: 6,
+            },
+            "& .MuiTabs-indicator": { display: "none" },
+            mx: -5,
+            mb: 5,
+          }}
+          variant="scrollable"
+          scrollButtons
+        >
+          <Tab
+            label={
+              <Typography variant="body2" fontWeight={550}>
+                Process
+              </Typography>
+            }
+            sx={{
+              border:
+                currentTab == 0 ? "1px solid #E7E7E8" : "1px solid transparent",
+              borderRadius: "8px 8px 0px 0px",
+              borderBottom:
+                currentTab == 0 ? "1px solid transparent" : "1px solid #E7E7E8",
+              maxHeight: 48,
+            }}
+          />
+          <Tab
+            label={
+              <Typography variant="body2" fontWeight={550}>
+                Asset
+              </Typography>
+            }
+            sx={{
+              border:
+                currentTab == 1 ? "1px solid #E7E7E8" : "1px solid transparent",
+              borderRadius: "8px 8px 0px 0px",
+              borderBottom:
+                currentTab == 1 ? "1px solid transparent" : "1px solid #E7E7E8",
+              maxHeight: 48,
+            }}
+          />
+        </Tabs>
         <Typography
           variant="h5"
           sx={{ fontWeight: 600, color: "#121212" }}
@@ -258,6 +377,61 @@ export default function DashboardContainer() {
               ))}
             </Grid>
           </Paper>
+          <Grid container spacing={1}>
+            <Grid size={6}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fafafa",
+                  height: "530px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  borderRadius: 2,
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  textAlign="left"
+                  sx={{ mb: 2 }}
+                >
+                  Business Units vs Severity Levels
+                </Typography>
+                <HeatmapChart
+                  data={businessUnitSeverityData}
+                  xAxisLabel="Severity Level"
+                  yAxisLabel="Business Unit"
+                  xOrder={severityOrder}
+                  width={535}
+                  height={400}
+                />
+              </Paper>
+            </Grid>
+            <Grid size={6}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fafafa",
+                  height: "530px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  borderRadius: 2,
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  textAlign="left"
+                  sx={{ mb: 2 }}
+                >
+                  Business Units vs Severity Levels
+                </Typography>
+                <BusinessUnitRadarChart data={riskData} />
+              </Paper>
+            </Grid>
+          </Grid>
           <Paper
             elevation={0}
             sx={{
@@ -326,40 +500,6 @@ export default function DashboardContainer() {
               riskAppetite={processes[0]?.riskAppetite / 1000000000}
             />
           </Paper>
-
-          <Grid container>
-            <Grid size={8}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  backgroundColor: "#fafafa",
-                  height: "530px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                  borderRadius: 2,
-                  border: "1px solid #E5E7EB",
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  fontWeight={600}
-                  textAlign="left"
-                  sx={{ mb: 2 }}
-                >
-                  Business Units vs Severity Levels
-                </Typography>
-                <HeatmapChart
-                  data={businessUnitSeverityData}
-                  xAxisLabel="Severity Level"
-                  yAxisLabel="Business Unit"
-                  xOrder={severityOrder}
-                  // title="Business Units vs Severity Levels"
-                  width={740}
-                  height={400}
-                />
-              </Paper>
-            </Grid>
-          </Grid>
         </Box>
       </Box>
 

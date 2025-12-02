@@ -141,12 +141,12 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
 
           <ReferenceLine
             y={riskAppetite}
-            stroke="red"
+            stroke="#ffa500"
             strokeWidth={2}
             label={{
               value: `Risk Appetite ($ ${riskAppetite} Bn)`,
-              position: "insideTopRight",
-              fill: "red",
+              position: "insideBottomRight",
+              fill: "#ffa500",
               fontSize: 12,
               fontWeight: 600,
             }}
