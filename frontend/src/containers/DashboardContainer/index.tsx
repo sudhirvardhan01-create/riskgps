@@ -245,6 +245,7 @@ export default function DashboardContainer() {
     <>
       <Box
         p={5}
+        pb="0px !important"
         sx={{
           height: "calc(100vh - 128px)",
           overflow: "hidden",
@@ -264,7 +265,7 @@ export default function DashboardContainer() {
             },
             "& .MuiTabs-indicator": { display: "none" },
             mx: -5,
-            mb: 5,
+            mb: 3,
           }}
           variant="scrollable"
           scrollButtons
@@ -300,91 +301,145 @@ export default function DashboardContainer() {
             }}
           />
         </Tabs>
-        <Typography
-          variant="h5"
-          sx={{ fontWeight: 600, color: "#121212" }}
-          mb={5}
-        >
-          Business Process Risk Dashboard
-        </Typography>
-        <Stack
-          direction={"row"}
-          justifyContent={"end"}
-          alignItems={"center"}
-          mb={3}
-          gap={2}
-        >
-          <Typography variant="body1">
-            Filter by Business Unit to view specific processes
-          </Typography>
-          <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
-            <InputLabel id="business-unit-label">Business Unit</InputLabel>
-            <Select
-              labelId="business-unit-label"
-              value={selectedBusinessUnit}
-              onChange={(e) => {
-                setSelectedBusinessUnit(e.target.value);
+        {currentTab === 0 ? (
+          // Process Tab Content
+          <>
+            <Stack
+              direction={"row"}
+              justifyContent={"space-between"}
+              alignItems={"center"}
+              mb={3}
+            >
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 600, color: "#121212" }}
+              >
+                Business Process Risk Dashboard
+              </Typography>
+              <FormControl
+                variant="filled"
+                sx={{ height: "48px", width: "200px" }}
+              >
+                <InputLabel id="business-unit-label">Business Unit</InputLabel>
+                <Select
+                  labelId="business-unit-label"
+                  value={selectedBusinessUnit}
+                  onChange={(e) => {
+                    setSelectedBusinessUnit(e.target.value);
+                  }}
+                >
+                  {businessUnits.map((item, index) => (
+                    <MenuItem value={item} key={index}>
+                      {item}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: "auto", // scroll only vertical
+                overflowX: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                gap: 3,
               }}
             >
-              {businessUnits.map((item, index) => (
-                <MenuItem value={item} key={index}>
-                  {item}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-        <Box
-          sx={{
-            flex: 1,
-            overflowY: "auto", // scroll only vertical
-            overflowX: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-          }}
-        >
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              backgroundColor: "#fafafa",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              borderRadius: 2,
-              border: "1px solid #E5E7EB",
-            }}
-          >
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              textAlign="left"
-              sx={{ mb: 1 }}
-            >
-              Process Criticality Overview
-            </Typography>
-            <Grid container spacing={2}>
-              {processCriticalityCardItems.map((item, index) => (
-                <Grid size={{ xs: 2 }} key={index}>
-                  <ProcessCriticalityCard
-                    cardBackgroundColor={item.cardBackgroundColor}
-                    cardBorderColor={item.cardBorderColor}
-                    cardIcon={item.cardIcon}
-                    cardText={item.cardText}
-                    cardTextColor={item.cardTextColor}
-                    processesCount={item.processesCount}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Paper>
-          <Grid container spacing={1}>
-            <Grid size={6}>
               <Paper
                 elevation={0}
                 sx={{
                   p: 2,
                   backgroundColor: "#fafafa",
-                  height: "530px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  borderRadius: 2,
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  textAlign="left"
+                  sx={{ mb: 1 }}
+                >
+                  Process Criticality Overview
+                </Typography>
+                <Grid container spacing={2}>
+                  {processCriticalityCardItems.map((item, index) => (
+                    <Grid size={{ xs: 2 }} key={index}>
+                      <ProcessCriticalityCard
+                        cardBackgroundColor={item.cardBackgroundColor}
+                        cardBorderColor={item.cardBorderColor}
+                        cardIcon={item.cardIcon}
+                        cardText={item.cardText}
+                        cardTextColor={item.cardTextColor}
+                        processesCount={item.processesCount}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Paper>
+              <Grid container spacing={2}>
+                <Grid size={6}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      backgroundColor: "#fafafa",
+                      height: "530px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                      borderRadius: 2,
+                      border: "1px solid #E5E7EB",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      textAlign="left"
+                      sx={{ mb: 2 }}
+                    >
+                      Business Units(Y) vs Severity Levels(X)
+                    </Typography>
+                    <HeatmapChart
+                      data={businessUnitSeverityData}
+                      xAxisLabel="Severity Level"
+                      yAxisLabel="Business Unit"
+                      xOrder={severityOrder}
+                      width={535}
+                      height={400}
+                    />
+                  </Paper>
+                </Grid>
+                <Grid size={6}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      backgroundColor: "#fafafa",
+                      height: "530px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                      borderRadius: 2,
+                      border: "1px solid #E5E7EB",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      textAlign="left"
+                      sx={{ mb: 2 }}
+                    >
+                      Business Units vs Severity Levels
+                    </Typography>
+                    <BusinessUnitRadarChart data={riskData} />
+                  </Paper>
+                </Grid>
+              </Grid>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fafafa",
+                  height: "750px",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                   borderRadius: 2,
                   border: "1px solid #E5E7EB",
@@ -396,111 +451,65 @@ export default function DashboardContainer() {
                   textAlign="left"
                   sx={{ mb: 2 }}
                 >
-                  Business Units vs Severity Levels
+                  Risk Exposure by Business Process
                 </Typography>
-                <HeatmapChart
-                  data={businessUnitSeverityData}
-                  xAxisLabel="Severity Level"
-                  yAxisLabel="Business Unit"
-                  xOrder={severityOrder}
-                  width={535}
-                  height={400}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    backgroundColor: "#fff",
+                    borderRadius: 3,
+                    width: "100%",
+                    mb: 2,
+                    display: "flex",
+                    flexDirection: "row",
+                  }}
+                >
+                  <Grid container spacing={2} width={"100%"}>
+                    {riskExposureCardData.map((item, index) => (
+                      <Grid size={3} key={index}>
+                        <Box
+                          sx={{
+                            border: `1px solid #d0ccccff`,
+                            backgroundColor: "#fafafa",
+                            borderRadius: 2,
+                            p: 2,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "start",
+                          }}
+                        >
+                          <Typography
+                            variant="body1"
+                            fontWeight={600}
+                            color="text.primary"
+                          >
+                            {item.title}
+                          </Typography>
+                          <Typography variant="body1" color="primary.main">
+                            {item.value}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Paper>
+                <RiskExposureByProcessChart
+                  data={processBarChartData}
+                  selectedProcess={selectedProcess}
+                  setSelectedProcess={setSelectedProcess}
+                  riskAppetite={processes[0]?.riskAppetite / 1000000000}
                 />
               </Paper>
-            </Grid>
-            <Grid size={6}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  backgroundColor: "#fafafa",
-                  height: "530px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                  borderRadius: 2,
-                  border: "1px solid #E5E7EB",
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  fontWeight={600}
-                  textAlign="left"
-                  sx={{ mb: 2 }}
-                >
-                  Business Units vs Severity Levels
-                </Typography>
-                <BusinessUnitRadarChart data={riskData} />
-              </Paper>
-            </Grid>
-          </Grid>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              backgroundColor: "#fafafa",
-              height: "750px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              borderRadius: 2,
-              border: "1px solid #E5E7EB",
-            }}
-          >
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              textAlign="left"
-              sx={{ mb: 2 }}
-            >
-              Risk Exposure by Business Process
-            </Typography>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                backgroundColor: "#fff",
-                borderRadius: 3,
-                width: "100%",
-                mb: 2,
-                display: "flex",
-                flexDirection: "row",
-              }}
-            >
-              <Grid container spacing={2} width={"100%"}>
-                {riskExposureCardData.map((item, index) => (
-                  <Grid size={3} key={index}>
-                    <Box
-                      sx={{
-                        border: `1px solid #d0ccccff`,
-                        backgroundColor: "#fafafa",
-                        borderRadius: 2,
-                        p: 2,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "start",
-                      }}
-                    >
-                      <Typography
-                        variant="body1"
-                        fontWeight={600}
-                        color="text.primary"
-                      >
-                        {item.title}
-                      </Typography>
-                      <Typography variant="body1" color="primary.main">
-                        {item.value}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </Paper>
-            <RiskExposureByProcessChart
-              data={processBarChartData}
-              selectedProcess={selectedProcess}
-              setSelectedProcess={setSelectedProcess}
-              riskAppetite={processes[0]?.riskAppetite / 1000000000}
-            />
-          </Paper>
-        </Box>
+            </Box>
+          </>
+        ) : (
+          //Asset Tab Content
+          <>
+            <Typography>Asset Tab Content here</Typography>
+          </>
+        )}
       </Box>
 
       {selectedProcess && (
