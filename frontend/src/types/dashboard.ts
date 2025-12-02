@@ -3,8 +3,10 @@ export interface ProcessAsset {
   applicationName: string;
   controlStrength: number;
   targetStrength: number;
-  riskExposureLevel: string;
-  netExposureLevel: string;
+  riskExposure?: number;
+  riskExposureLevel?: string;
+  netExposure?: number;
+  netExposureLevel?: string;
 }
 
 export interface ProcessRisk {

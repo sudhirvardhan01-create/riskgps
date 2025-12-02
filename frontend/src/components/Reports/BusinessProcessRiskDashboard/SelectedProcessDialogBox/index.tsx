@@ -242,9 +242,13 @@ const SelectedProcessDialogBox: React.FC<SelectedProcessDialogBoxProps> = ({
                         key={index}
                         riskScenario={item.riskScenario}
                         ciaMapping={item.riskScenarioCIAMapping}
-                        riskExposure={`$ ${item.riskExposure / 1000000000} Bn`}
+                        riskExposure={`$ ${(
+                          item.riskExposure / 1000000000
+                        ).toFixed(2)} Bn`}
                         riskExposureLevel={item.riskExposureLevel}
-                        netExposure={`$ ${item.netExposure / 1000000000} Bn`}
+                        netExposure={`$ ${(
+                          item.netExposure / 1000000000
+                        ).toFixed(2)} Bn`}
                         netExposureLevel={item.netExposureLevel}
                       />
                     ))
@@ -253,9 +257,13 @@ const SelectedProcessDialogBox: React.FC<SelectedProcessDialogBoxProps> = ({
                       key={index}
                       riskScenario={item.riskScenario}
                       ciaMapping={item.riskScenarioCIAMapping}
-                      riskExposure={`$ ${item.riskExposure / 1000000000} Bn`}
+                      riskExposure={`$ ${(
+                        item.riskExposure / 1000000000
+                      ).toFixed(2)} Bn`}
                       riskExposureLevel={item.riskExposureLevel}
-                      netExposure={`$ ${item.netExposure / 1000000000} Bn`}
+                      netExposure={`$ ${(item.netExposure / 1000000000).toFixed(
+                        2
+                      )} Bn`}
                       netExposureLevel={item.netExposureLevel}
                     />
                   ))}
@@ -285,12 +293,16 @@ const SelectedProcessDialogBox: React.FC<SelectedProcessDialogBoxProps> = ({
                         targetStrength={item.targetStrength}
                         riskExposure={
                           item.riskExposure
-                            ? `$ ${item.riskExposure / 1000000000} Bn`
+                            ? `$ ${(item.riskExposure / 1000000000).toFixed(
+                                2
+                              )} Bn`
                             : "-"
                         }
                         netExposure={
                           item.netExposure
-                            ? `$ ${item.netExposure / 1000000000} Bn`
+                            ? `$ ${(item.netExposure / 1000000000).toFixed(
+                                2
+                              )} Bn`
                             : "-"
                         }
                       />
@@ -303,12 +315,14 @@ const SelectedProcessDialogBox: React.FC<SelectedProcessDialogBoxProps> = ({
                       targetStrength={item.targetStrength}
                       riskExposure={
                         item.riskExposure
-                          ? `$ ${item.riskExposure / 1000000000} Bn`
+                          ? `$ ${(item.riskExposure / 1000000000).toFixed(
+                              2
+                            )} Bn`
                           : "-"
                       }
                       netExposure={
                         item.netExposure
-                          ? `$ ${item.netExposure / 1000000000} Bn`
+                          ? `$ ${(item.netExposure / 1000000000).toFixed(2)} Bn`
                           : "-"
                       }
                     />

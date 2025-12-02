@@ -21,12 +21,11 @@ import {
 import RiskExposureByProcessChart from "@/components/Reports/BusinessProcessRiskDashboard/ProcessesRiskExposureBarChart";
 import { useEffect, useState } from "react";
 import SelectedProcessDialogBox from "@/components/Reports/BusinessProcessRiskDashboard/SelectedProcessDialogBox";
-import {
-  getBusinessProcessRiskDashboardData,
-  getBusinessUnitSeverityData,
-} from "@/utils/mockupData";
 import HeatmapChart from "@/components/Reports/HeatmapChart";
 import { BusinessUnitRadarChart } from "@/components/Reports/BusinessProcessRiskDashboard/BusinessUnitRadarChart";
+import { RiskExposureByProcessChartItem } from "@/types/dashboard";
+import Cookies from "js-cookie";
+import { DashboardService } from "@/services/dashboardService";
 
 type RiskMetric =
   | "Total Risk Exposure"
@@ -42,35 +41,69 @@ interface RiskRadarRecord {
 }
 
 export default function DashboardContainer() {
-  const [data, setData] = useState<any[]>([]);
+  const [currentTab, setCurrentTab] = useState(0);
+  const [orgId, setOrgId] = useState<string | null>();
+  const [riskExposureProcessChartData, setRiskExposureProcessChartData] =
+    useState<RiskExposureByProcessChartItem[]>([]);
   const [businessUnitSeverityData, setBusinessUnitSeverityData] = useState<
     any[]
   >([]);
   const [selectedBusinessUnit, setSelectedBusinessUnit] =
     useState<string>("All");
-  const [processes, setProcesses] = useState<any[]>(data);
+  const [processes, setProcesses] = useState<RiskExposureByProcessChartItem[]>(
+    riskExposureProcessChartData
+  );
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
 
   useEffect(() => {
-    setData(getBusinessProcessRiskDashboardData());
-    setBusinessUnitSeverityData(getBusinessUnitSeverityData());
+    if (typeof window !== "undefined") {
+      try {
+        const cookieUser = Cookies.get("user");
+        if (cookieUser) {
+          const parsed = JSON.parse(cookieUser);
+          setOrgId(parsed?.orgId || parsed?.org_id || null);
+        }
+      } catch (err) {
+        console.warn("Invalid or missing cookie:", err);
+      }
+    }
   }, []);
 
-  console.log(businessUnitSeverityData);
+  useEffect(() => {
+    async function fetchData() {
+      if (!orgId) return;
+      try {
+        const [riskExposureProcessChartRes, businessUnitHeatmapChartRes] =
+          await Promise.all([
+            DashboardService.getRiskExposureBusinessProcessChartData(orgId),
+            DashboardService.getBusinessUnitSeverityHeatmapChartData(orgId),
+          ]);
+        setRiskExposureProcessChartData(riskExposureProcessChartRes.data ?? []);
+        setBusinessUnitSeverityData(businessUnitHeatmapChartRes.data ?? []);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      }
+    }
+    fetchData();
+  }, [orgId]);
 
   useEffect(() => {
     if (selectedBusinessUnit === "All") {
-      setProcesses(data);
+      setProcesses(riskExposureProcessChartData);
     } else {
       setProcesses(
-        data.filter((item) => item.businessUnitName === selectedBusinessUnit)
+        riskExposureProcessChartData.filter(
+          (item) => item.businessUnitName === selectedBusinessUnit
+        )
       );
     }
-  }, [selectedBusinessUnit, data]);
+  }, [selectedBusinessUnit, riskExposureProcessChartData]);
 
   const businessUnits = [
     "All",
-    ...new Set(data.map((item) => item.businessUnitName)),
+    ...new Set(
+      riskExposureProcessChartData.map((item) => item.businessUnitName)
+    ),
   ];
 
   const processBarChartData = processes.map((item) => ({
@@ -140,6 +173,9 @@ export default function DashboardContainer() {
     },
   ];
 
+  const formatBn = (value?: number) =>
+    value != null ? `$ ${(value / 1_000_000_000).toFixed(2)} Bn` : "-";
+
   const riskExposureCardData = [
     {
       title: "Total Risk Scenarios",
@@ -153,28 +189,24 @@ export default function DashboardContainer() {
     {
       title: "Max. Risk Exposure",
       value: selectedProcess
-        ? `$ ${
+        ? formatBn(
             processes.find((item) => item.processName === selectedProcess)
-              ?.maxRiskExposure / 1000000000
-          } Bn`
-        : `$ ${
-            Math.max(
-              ...processes.map((item) => item.maxRiskExposure as number)
-            ) / 1000000000
-          } Bn`,
+              ?.maxRiskExposure
+          )
+        : formatBn(
+            Math.max(...processes.map((item) => item.maxRiskExposure ?? 0))
+          ),
     },
     {
       title: "Max. Net Exposure",
       value: selectedProcess
-        ? `$ ${
+        ? formatBn(
             processes.find((item) => item.processName === selectedProcess)
-              ?.maxNetExposure / 1000000000
-          } Bn`
-        : `$ ${
-            Math.max(
-              ...processes.map((item) => item.maxNetExposure as number)
-            ) / 1000000000
-          } Bn`,
+              ?.maxNetExposure
+          )
+        : formatBn(
+            Math.max(...processes.map((item) => item.maxNetExposure ?? 0))
+          ),
     },
     {
       title: "Risk Appetite",
@@ -185,10 +217,6 @@ export default function DashboardContainer() {
   ];
 
   const severityOrder = ["Very Low", "Low", "Moderate", "High", "Critical"];
-  const [currentTab, setCurrentTab] = useState(0);
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setCurrentTab(newValue);
-  };
 
   const riskData: RiskRadarRecord[] = [
     {
@@ -240,6 +268,18 @@ export default function DashboardContainer() {
       },
     },
   ];
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setCurrentTab(newValue);
+  };
+
+  if (!orgId) {
+    return (
+      <Box sx={{ p: 5 }}>
+        <Typography>User is not assigned to any organization</Typography>
+      </Box>
+    );
+  }
 
   return (
     <>
