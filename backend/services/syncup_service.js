@@ -1494,13 +1494,6 @@ class SyncupService {
   }
 
   static async getLastSyncupDetails(orgId) {
-    const json = {
-      businessUnits: 4,
-      businessProcesses: 5,
-      riskScenarios: 6,
-      assets: 4,
-      lastDayDateTime: new Date(Date.now() - 86400000).toISOString(),
-    };
     const latestTimeStamp =
       await ReportsService.getLatestTimeStampFromReportsTableForOrg(orgId);
 
@@ -1521,7 +1514,8 @@ class SyncupService {
       }
     );
     result[0].lastDayDateTime = latestTimeStamp;
-    return result;
+    console.log(result)
+    return result[0];
   }
 }
 
