@@ -306,12 +306,12 @@ class ReportsService {
       if (!entry.assets.some((a) => a.assetId === item.assetId)) {
         entry.assets.push({
           assetId: item.assetId,
-          applicationName: item.assetId,
-          controlStrength: item.asset,
-          targetStrength: item.assetCategory,
-          riskExposure: item.inherentImpactInMillionDollarsDRiskDashboardCIOTab,
+          applicationName: item.asset,
+          controlStrength: item.aggAssetControlStrengthRiskDashboardCIOTab,
+          targetStrength: item.aggAssetTargetImpactRiskDashboardCIOTab,
+          riskExposure: convertMillionToValue(item.inherentImpactInMillionDollarsDRiskDashboardCIOTab),
           riskExposureLevel: item.aggAssetInherentRiskLevelRiskDashboardCIOTab,
-          netExposure: item.residualImpactInMillionDollarsRiskDashboardCIOTab,
+          netExposure: convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardCIOTab),
           netExposureLevel: item.aggAssetResidualRiskLevelRiskDashboardCIOTab,
           // add more if needed
         });
