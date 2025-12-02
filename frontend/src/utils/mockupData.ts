@@ -808,5 +808,6 @@ export function getBusinessUnitSeverityData(orgId: string | null = null) {
       });
     });
   });
+  console.log(result)
   return result;
 }

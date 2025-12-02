@@ -58,10 +58,10 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     //// Relation to Questionaire Master (if exists)
-    //AssessmentQuestionaire.belongsTo(models.Questionaire, {
-    //    foreignKey: "questionnaireId",
-    //    as: "questionaire",
-    //});
+    AssessmentQuestionaire.belongsTo(models.LibraryQuestionnaire, {
+       foreignKey: "questionnaireId",
+       as: "questionaire",
+    });
   };
 
   return AssessmentQuestionaire;
