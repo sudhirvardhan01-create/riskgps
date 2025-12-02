@@ -79,6 +79,29 @@ router.get("/:orgId/bu-heatmap", async (req, res) => {
   }
 });
 
+router.get("/:orgId/risk-scenario-table-chart", async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
+
+    if (!orgId) {
+        throw new Error("Org id not found")
+    }
+    const data = await ReportsService.riskScenarioTableData(
+      orgId
+    );
+    res.status(HttpStatusCodes.OK).json({
+      data: data,
+      msg: "fetched reports details",
+    });
+  } catch (err) {
+    console.log("Failed to fetch summary", err);
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
+  }
+});
+
 router.get("/reports-v1/:orgId", async (req, res) => {
   try {
     const { orgId } = req.params;
@@ -101,6 +124,7 @@ router.get("/reports-v1/:orgId", async (req, res) => {
     res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
   }
 });
+
 
 
 
