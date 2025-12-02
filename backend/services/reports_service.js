@@ -309,9 +309,9 @@ class ReportsService {
           applicationName: item.asset,
           controlStrength: item.aggAssetControlStrengthRiskDashboardCIOTab,
           targetStrength: item.aggAssetTargetImpactRiskDashboardCIOTab,
-          riskExposure: convertMillionToValue(item.inherentImpactInMillionDollarsDRiskDashboardCIOTab),
+          riskExposure: convertMillionToValue(item.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab),
           riskExposureLevel: item.aggAssetInherentRiskLevelRiskDashboardCIOTab,
-          netExposure: convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardCIOTab),
+          netExposure: convertMillionToValue(item.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab),
           netExposureLevel: item.aggAssetResidualRiskLevelRiskDashboardCIOTab,
           // add more if needed
         });
