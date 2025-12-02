@@ -275,9 +275,9 @@ class ReportsService {
           riskScenario: item.riskScenario,
           riskScenarioCIAMapping: item.riskScenarioCIAMapping[0] ?? null,
           riskExposure: item.inherentImpactInMillionDollarsRiskDashboardERMTab,
-          riskExposureLevel: "high",
+          riskExposureLevel: item.inherentRiskLevelRiskDashboardERMTab,
           netExposure: item.residualImpactInMillionDollarsRiskDashboardERMTab,
-          netExposureLevel: "medium",
+          netExposureLevel: item.residualRiskLevelRiskDashboardERMTab,
         });
         if (
           entry.maxRiskExposure <
