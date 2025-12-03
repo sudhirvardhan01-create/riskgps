@@ -102,7 +102,8 @@ router.get("/:orgId/risk-scenario-table-chart", async (req, res) => {
   }
 });
 
-router.get("/reports-v1/:orgId", async (req, res) => {
+
+router.get("/:orgId/reports-table-data", async (req, res) => {
   try {
     const { orgId } = req.params;
     if (!orgId) {
@@ -112,7 +113,7 @@ router.get("/reports-v1/:orgId", async (req, res) => {
     if (!orgId) {
         throw new Error("Org id not found")
     }
-    const data = await ReportsHelper.generateFlatAssessmentMatrix(
+    const data = await ReportsService.reportsTableData(
       orgId
     );
     res.status(HttpStatusCodes.OK).json({
@@ -124,6 +125,7 @@ router.get("/reports-v1/:orgId", async (req, res) => {
     res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
   }
 });
+
 
 
 

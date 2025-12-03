@@ -373,7 +373,7 @@ class ReportsService {
         "assessmentName": item.assessmentName,
             "orgId": item.orgId,
             "orgName": item.orgName,
-            "organizationRiskAppetiteInMillionDollar": convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
+            "organizationRiskAppetite": convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
             "businessUnitId": item.businessUnitId,
             "businessUnit": item.businessUnit,
             "businessProcessId": item.businessProcessId,
@@ -386,9 +386,9 @@ class ReportsService {
             "controlStrengthRisk": item.controlStrengthRiskDashboardERMTab,
             "residualRiskScoreRisk": item.residualRiskScoreRiskDashboardERMTab,
             "residualRiskLevelRisk": item.residualRiskLevelRiskDashboardERMTab,
-            "inherentImpactInMillionDollars": convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
-            "residualImpactInMillionDollars": convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
-            "targetImpactInMillionDollars": convertMillionToValue(item.targetImpactInMillionDollarsRiskDashboardERMTab),
+            "inherentImpact": convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
+            "residualImpact": convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
+            "targetImpact": convertMillionToValue(item.targetImpactInMillionDollarsRiskDashboardERMTab),
       }
     })
 
@@ -473,6 +473,24 @@ class ReportsService {
 
     const riskScenarioTableDataRes= this.getRiskScenarioTableData(reportsData);
     return riskScenarioTableDataRes;
+
+  }
+
+    static async reportsTableData(orgId) {
+    if (!orgId) {
+      throw new Error("Org ID not found");
+    }
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+    const reportsData = await ReportsMaster.findAll({
+      where: {
+        orgId,
+        updatedAt: latestTimeStamp,
+      },
+    });
+
+    return reportsData;
 
   }
 }
