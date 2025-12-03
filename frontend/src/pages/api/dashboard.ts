@@ -19,3 +19,27 @@ export const getBusinessUnitHeatmapChartData = async (orgId: string) => {
   const res = await apiClient.get(`/reports/${orgId}/bu-heatmap`);
   return res.data;
 };
+
+/**
+ * Get Risk Scenarios Table Chart Data
+ * @param orgId
+ * @returns
+ */
+export const getRiskScenariosTableChartData = async (orgId: string) => {
+  const res = await apiClient.get(
+    `/reports/${orgId}/risk-scenario-table-chart`
+  );
+  return res.data;
+};
+
+/**
+ * Get Business Unit Radar chart Data
+ * @param orgId
+ * @returns
+ */
+export const getBusinessUnitRadarChartData = async (orgId: string) => {
+  const res = await apiClient.get(
+    `/reports/${orgId}/business-unit-radar-chart`
+  );
+  return res.data;
+};

@@ -16,56 +16,10 @@ import TableViewAssetCard from "../TableViewAssetCard";
 import TableViewRiskScenarioCard from "../TableViewRiskScenarioCard";
 import RiskScenarioHorizontalBarChart from "../RiskScenarioHorizontalBarChart";
 import AssetHorizontalBarChart from "../AssetHorizontalBarChart";
-
-const riskScenariosHeaderData = [
-  {
-    columnSize: 4,
-    columnTitle: "Risk Scenarios",
-  },
-  {
-    columnSize: 1,
-    columnTitle: "CIA",
-  },
-  {
-    columnSize: 2,
-    columnTitle: "Risk Exposure",
-  },
-  {
-    columnSize: 1.5,
-    columnTitle: "Risk Exposure Level",
-  },
-  {
-    columnSize: 2,
-    columnTitle: "Net Exposure",
-  },
-  {
-    columnSize: 1.5,
-    columnTitle: "Net Exposure Level",
-  },
-];
-
-const assetsHeaderData = [
-  {
-    columnSize: 4,
-    columnTitle: "Asset",
-  },
-  {
-    columnSize: 2,
-    columnTitle: "Control Strength",
-  },
-  {
-    columnSize: 2,
-    columnTitle: "Target Strength",
-  },
-  {
-    columnSize: 2,
-    columnTitle: "Risk Exposure",
-  },
-  {
-    columnSize: 2,
-    columnTitle: "Net Exposure",
-  },
-];
+import {
+  assetsHeaderData,
+  riskScenariosHeaderData,
+} from "@/constants/constant";
 
 interface SelectedProcessDialogBoxProps {
   selectedProcess: string | null;
@@ -91,27 +45,27 @@ const SelectedProcessDialogBox: React.FC<SelectedProcessDialogBoxProps> = ({
 
   switch (severity) {
     case "critical":
-      chipBackgroundColor = "#214f73";
+      chipBackgroundColor = "primary.900";
       chipTextColor = "#fff";
       break;
 
     case "high":
-      chipBackgroundColor = "#31a8b2";
+      chipBackgroundColor = "primary.700";
       chipTextColor = "#fff";
       break;
 
     case "moderate":
-      chipBackgroundColor = "#20cfcf";
+      chipBackgroundColor = "primary.500";
       chipTextColor = "#fff";
       break;
 
     case "low":
-      chipBackgroundColor = "#5af4de";
+      chipBackgroundColor = "primary.300";
       chipTextColor = "#214f73";
       break;
 
     case "very low":
-      chipBackgroundColor = "#80fff4";
+      chipBackgroundColor = "primary.100";
       chipTextColor = "#214f73";
       break;
 

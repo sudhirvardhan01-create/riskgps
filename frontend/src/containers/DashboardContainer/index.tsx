@@ -23,22 +23,16 @@ import { useEffect, useState } from "react";
 import SelectedProcessDialogBox from "@/components/Reports/BusinessProcessRiskDashboard/SelectedProcessDialogBox";
 import HeatmapChart from "@/components/Reports/HeatmapChart";
 import { BusinessUnitRadarChart } from "@/components/Reports/BusinessProcessRiskDashboard/BusinessUnitRadarChart";
-import { RiskExposureByProcessChartItem } from "@/types/dashboard";
+import {
+  RiskExposureByProcessChartItem,
+  RiskRadarRecord,
+  RiskScenarioTableChartItem,
+} from "@/types/dashboard";
 import Cookies from "js-cookie";
 import { DashboardService } from "@/services/dashboardService";
-
-type RiskMetric =
-  | "Total Risk Exposure"
-  | "Average Net Exposure"
-  | "Financial Impact"
-  | "Operational Impact"
-  | "Regulatory Impact"
-  | "Reputational Impact";
-
-interface RiskRadarRecord {
-  metric: RiskMetric;
-  values: Record<string, number>; // dynamic BUs
-}
+import TableViewHeader from "@/components/Reports/BusinessProcessRiskDashboard/TableViewHeader";
+import { riskScenariosHeaderData } from "@/constants/constant";
+import TableViewRiskScenarioCard from "@/components/Reports/BusinessProcessRiskDashboard/TableViewRiskScenarioCard";
 
 export default function DashboardContainer() {
   const [currentTab, setCurrentTab] = useState(0);
@@ -54,6 +48,11 @@ export default function DashboardContainer() {
     riskExposureProcessChartData
   );
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
+  const [riskScenariosTableChartData, setRiskScenariosTableChartData] =
+    useState<RiskScenarioTableChartItem[]>([]);
+  const [businessUnitRadarChartData, setBusinessUnitRadarChartData] = useState<
+    RiskRadarRecord[]
+  >([]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -73,13 +72,21 @@ export default function DashboardContainer() {
     async function fetchData() {
       if (!orgId) return;
       try {
-        const [riskExposureProcessChartRes, businessUnitHeatmapChartRes] =
-          await Promise.all([
-            DashboardService.getRiskExposureBusinessProcessChartData(orgId),
-            DashboardService.getBusinessUnitSeverityHeatmapChartData(orgId),
-          ]);
+        const [
+          riskExposureProcessChartRes,
+          businessUnitHeatmapChartRes,
+          riskScenarioTableChartRes,
+          businessUnitRadarChartRes,
+        ] = await Promise.all([
+          DashboardService.getRiskExposureBusinessProcessChartData(orgId),
+          DashboardService.getBusinessUnitSeverityHeatmapChartData(orgId),
+          DashboardService.getRiskScenariosTableChartData(orgId),
+          DashboardService.getBusinessUnitRadarChartData(orgId),
+        ]);
         setRiskExposureProcessChartData(riskExposureProcessChartRes.data ?? []);
         setBusinessUnitSeverityData(businessUnitHeatmapChartRes.data ?? []);
+        setRiskScenariosTableChartData(riskScenarioTableChartRes.data ?? []);
+        setBusinessUnitRadarChartData(businessUnitRadarChartRes.data ?? []);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
       }
@@ -218,60 +225,11 @@ export default function DashboardContainer() {
 
   const severityOrder = ["Very Low", "Low", "Moderate", "High", "Critical"];
 
-  const riskData: RiskRadarRecord[] = [
-    {
-      metric: "Total Risk Exposure",
-      values: {
-        Finance: 2_400_000_000, // $2.4B
-        IT: 950_000_000, // $950M
-        HR: 350_000_000, // $350M
-      },
-    },
-    {
-      metric: "Average Net Exposure",
-      values: {
-        Finance: 480_000_000, // $480M
-        IT: 120_000_000,
-        HR: 45_000_000,
-      },
-    },
-    {
-      metric: "Financial Impact",
-      values: {
-        Finance: 1_800_000_000,
-        IT: 400_000_000,
-        HR: 150_000_000,
-      },
-    },
-    {
-      metric: "Operational Impact",
-      values: {
-        Finance: 320_000_000,
-        IT: 870_000_000,
-        HR: 210_000_000,
-      },
-    },
-    {
-      metric: "Regulatory Impact",
-      values: {
-        Finance: 900_000_000,
-        IT: 250_000_000,
-        HR: 90_000_000,
-      },
-    },
-    {
-      metric: "Reputational Impact",
-      values: {
-        Finance: 700_000_000,
-        IT: 180_000_000,
-        HR: 60_000_000,
-      },
-    },
-  ];
-
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
+
+  console.log(riskScenariosTableChartData);
 
   if (!orgId) {
     return (
@@ -337,6 +295,21 @@ export default function DashboardContainer() {
               borderRadius: "8px 8px 0px 0px",
               borderBottom:
                 currentTab == 1 ? "1px solid transparent" : "1px solid #E7E7E8",
+              maxHeight: 48,
+            }}
+          />
+          <Tab
+            label={
+              <Typography variant="body2" fontWeight={550}>
+                Trends
+              </Typography>
+            }
+            sx={{
+              border:
+                currentTab == 2 ? "1px solid #E7E7E8" : "1px solid transparent",
+              borderRadius: "8px 8px 0px 0px",
+              borderBottom:
+                currentTab == 2 ? "1px solid transparent" : "1px solid #E7E7E8",
               maxHeight: 48,
             }}
           />
@@ -445,7 +418,7 @@ export default function DashboardContainer() {
                       xAxisLabel="Severity Level"
                       yAxisLabel="Business Unit"
                       xOrder={severityOrder}
-                      width={535}
+                      width={530}
                       height={400}
                     />
                   </Paper>
@@ -468,9 +441,9 @@ export default function DashboardContainer() {
                       textAlign="left"
                       sx={{ mb: 2 }}
                     >
-                      Business Units vs Severity Levels
+                      Business Units - Risk Impact
                     </Typography>
-                    <BusinessUnitRadarChart data={riskData} />
+                    <BusinessUnitRadarChart data={businessUnitRadarChartData} />
                   </Paper>
                 </Grid>
               </Grid>
@@ -541,6 +514,63 @@ export default function DashboardContainer() {
                   setSelectedProcess={setSelectedProcess}
                   riskAppetite={processes[0]?.riskAppetite / 1000000000}
                 />
+              </Paper>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fafafa",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  borderRadius: 2,
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                <Typography variant="body2" fontWeight={600} textAlign="left">
+                  Risk Scenarios
+                </Typography>
+                <Stack>
+                  <TableViewHeader headerData={riskScenariosHeaderData} />
+                  <Stack direction={"column"} spacing={2}>
+                    {riskScenariosTableChartData &&
+                      (selectedBusinessUnit === "All"
+                        ? riskScenariosTableChartData?.map(
+                            (item: any, index: number) => (
+                              <TableViewRiskScenarioCard
+                                key={index}
+                                riskScenario={item.riskScenario}
+                                ciaMapping={item.riskScenarioCIAMapping}
+                                riskExposure={`$ ${(
+                                  item.riskExposure / 1000000000
+                                ).toFixed(2)} Bn`}
+                                riskExposureLevel={item.riskExposureLevel}
+                                netExposure={`$ ${(
+                                  item.netExposure / 1000000000
+                                ).toFixed(2)} Bn`}
+                                netExposureLevel={item.netExposureLevel}
+                              />
+                            )
+                          )
+                        : riskScenariosTableChartData
+                            ?.filter(
+                              (i) => i.businessUnit === selectedBusinessUnit
+                            )
+                            .map((item: any, index: number) => (
+                              <TableViewRiskScenarioCard
+                                key={index}
+                                riskScenario={item.riskScenario}
+                                ciaMapping={item.riskScenarioCIAMapping}
+                                riskExposure={`$ ${(
+                                  item.riskExposure / 1000000000
+                                ).toFixed(2)} Bn`}
+                                riskExposureLevel={item.riskExposureLevel}
+                                netExposure={`$ ${(
+                                  item.netExposure / 1000000000
+                                ).toFixed(2)} Bn`}
+                                netExposureLevel={item.netExposureLevel}
+                              />
+                            )))}
+                  </Stack>
+                </Stack>
               </Paper>
             </Box>
           </>
