@@ -37,9 +37,7 @@ router.get("/:orgId/process-risk-exposure", async (req, res) => {
     const businessProcessId = req.query.businessProcessId ?? null;
     const riskScenarioId = req.query.riskScenarioId ?? null;
     const assetId = req.query.assetId ?? null;
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
+
     const data = await ReportsService.processesRiskExposureChartData(
       orgId
     );
@@ -63,9 +61,7 @@ router.get("/:orgId/bu-heatmap", async (req, res) => {
     const businessProcessId = req.query.businessProcessId ?? null;
     const riskScenarioId = req.query.riskScenarioId ?? null;
     const assetId = req.query.assetId ?? null;
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
+
     const data = await ReportsService.businessUnitHeatmapChart(
       orgId
     );
@@ -86,9 +82,6 @@ router.get("/:orgId/risk-scenario-table-chart", async (req, res) => {
       throw new Error("Org ID required");
     }
 
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
     const data = await ReportsService.riskScenarioTableData(
       orgId
     );
@@ -108,10 +101,6 @@ router.get("/:orgId/business-unit-radar-chart", async (req, res) => {
     const { orgId } = req.params;
     if (!orgId) {
       throw new Error("Org ID required");
-    }
-
-    if (!orgId) {
-        throw new Error("Org id not found")
     }
     const data = await ReportsService.businessUnitRadarChart(
       orgId
@@ -134,9 +123,6 @@ router.get("/:orgId/reports-table-data", async (req, res) => {
       throw new Error("Org ID required");
     }
     const businessUnitId = req.query.businessUnitId ?? null;
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
     const data = await ReportsService.reportsTableData(
       orgId
     );
