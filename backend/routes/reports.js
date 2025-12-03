@@ -37,9 +37,7 @@ router.get("/:orgId/process-risk-exposure", async (req, res) => {
     const businessProcessId = req.query.businessProcessId ?? null;
     const riskScenarioId = req.query.riskScenarioId ?? null;
     const assetId = req.query.assetId ?? null;
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
+
     const data = await ReportsService.processesRiskExposureChartData(
       orgId
     );
@@ -63,9 +61,7 @@ router.get("/:orgId/bu-heatmap", async (req, res) => {
     const businessProcessId = req.query.businessProcessId ?? null;
     const riskScenarioId = req.query.riskScenarioId ?? null;
     const assetId = req.query.assetId ?? null;
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
+
     const data = await ReportsService.businessUnitHeatmapChart(
       orgId
     );
@@ -86,10 +82,27 @@ router.get("/:orgId/risk-scenario-table-chart", async (req, res) => {
       throw new Error("Org ID required");
     }
 
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
     const data = await ReportsService.riskScenarioTableData(
+      orgId
+    );
+    res.status(HttpStatusCodes.OK).json({
+      data: data,
+      msg: "fetched reports details",
+    });
+  } catch (err) {
+    console.log("Failed to fetch summary", err);
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
+  }
+});
+
+
+router.get("/:orgId/business-unit-radar-chart", async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
+    const data = await ReportsService.businessUnitRadarChart(
       orgId
     );
     res.status(HttpStatusCodes.OK).json({
@@ -110,9 +123,6 @@ router.get("/:orgId/reports-table-data", async (req, res) => {
       throw new Error("Org ID required");
     }
     const businessUnitId = req.query.businessUnitId ?? null;
-    if (!orgId) {
-        throw new Error("Org id not found")
-    }
     const data = await ReportsService.reportsTableData(
       orgId
     );

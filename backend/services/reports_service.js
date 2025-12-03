@@ -23,7 +23,6 @@ function convertMillionToValue(valueInMillions) {
   return num * 1_000_000;
 }
 
-
 class ReportsService {
   static async getOrganizationalDependencyData(orgId = null) {
     console.log("Fetching all Organization Dependecy map details");
@@ -263,7 +262,9 @@ class ReportsService {
           businessProcessId: item.businessProcessId,
           processName: item.businessProcess,
           severity: item.aggBuBpResidualRiskLevelRiskDashboardBusinessTab,
-          riskAppetite: convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
+          riskAppetite: convertMillionToValue(
+            item.organizationRiskAppetiteInMillionDollar
+          ),
           maxRiskExposure: 0,
           maxNetExposure: 0,
           risks: [],
@@ -281,24 +282,34 @@ class ReportsService {
           riskScenarioId: item.riskScenarioId,
           riskScenario: item.riskScenario,
           riskScenarioCIAMapping: item.riskScenarioCIAMapping[0] ?? null,
-          riskExposure: convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
+          riskExposure: convertMillionToValue(
+            item.inherentImpactInMillionDollarsRiskDashboardERMTab
+          ),
           riskExposureLevel: item.inherentRiskLevelRiskDashboardERMTab,
-          netExposure: convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
+          netExposure: convertMillionToValue(
+            item.residualImpactInMillionDollarsRiskDashboardERMTab
+          ),
           netExposureLevel: item.residualRiskLevelRiskDashboardERMTab,
         });
         if (
           entry.maxRiskExposure <
-          convertMillionToValue(item.aggBuBpInherentImpactInMillionDollarsRiskDashboardBusinessTab)
+          convertMillionToValue(
+            item.aggBuBpInherentImpactInMillionDollarsRiskDashboardBusinessTab
+          )
         ) {
-          entry.maxRiskExposure =
-            convertMillionToValue(item.aggBuBpInherentImpactInMillionDollarsRiskDashboardBusinessTab);
+          entry.maxRiskExposure = convertMillionToValue(
+            item.aggBuBpInherentImpactInMillionDollarsRiskDashboardBusinessTab
+          );
         }
         if (
           entry.maxNetExposure <
-          convertMillionToValue(item.aggBuBpResidualImpactInMillionDollarsRiskDashboardBusinessTab)
+          convertMillionToValue(
+            item.aggBuBpResidualImpactInMillionDollarsRiskDashboardBusinessTab
+          )
         ) {
-          entry.maxNetExposure =
-            convertMillionToValue(item.aggBuBpResidualImpactInMillionDollarsRiskDashboardBusinessTab);
+          entry.maxNetExposure = convertMillionToValue(
+            item.aggBuBpResidualImpactInMillionDollarsRiskDashboardBusinessTab
+          );
         }
       }
 
@@ -309,9 +320,13 @@ class ReportsService {
           applicationName: item.asset,
           controlStrength: item.aggAssetControlStrengthRiskDashboardCIOTab,
           targetStrength: item.aggAssetTargetImpactRiskDashboardCIOTab,
-          riskExposure: convertMillionToValue(item.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab),
+          riskExposure: convertMillionToValue(
+            item.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab
+          ),
           riskExposureLevel: item.aggAssetInherentRiskLevelRiskDashboardCIOTab,
-          netExposure: convertMillionToValue(item.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab),
+          netExposure: convertMillionToValue(
+            item.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab
+          ),
           netExposureLevel: item.aggAssetResidualRiskLevelRiskDashboardCIOTab,
           // add more if needed
         });
@@ -340,7 +355,8 @@ class ReportsService {
       }
 
       const entry = map.get(key);
-      const residualRiskLevelRiskDashboardBusinessTab = item.residualRiskLevelRiskDashboardERMTab;
+      const residualRiskLevelRiskDashboardBusinessTab =
+        item.residualRiskLevelRiskDashboardERMTab;
       if (residualRiskLevelRiskDashboardBusinessTab == "critical") {
         entry.critical++;
       } else if (residualRiskLevelRiskDashboardBusinessTab == "high") {
@@ -354,53 +370,141 @@ class ReportsService {
       }
     });
 
-  const convertedTogetBusinessUnitHeatmapChartFormat = Array.from(map.values()).flatMap((item) =>
-    Object.entries(severityMap).map(([key, label]) => ({
-      businessUnitId: item.businessUnitId,
-      x: label,
-      y: item.businessUnitName,
-      value: item[key] || 0,
-    }))
-  );
+    const convertedTogetBusinessUnitHeatmapChartFormat = Array.from(
+      map.values()
+    ).flatMap((item) =>
+      Object.entries(severityMap).map(([key, label]) => ({
+        businessUnitId: item.businessUnitId,
+        x: label,
+        y: item.businessUnitName,
+        value: item[key] || 0,
+      }))
+    );
     return convertedTogetBusinessUnitHeatmapChartFormat;
   }
 
+  static getBusinessUnitRadarChartData(data) {
+    const map = new Map(); // key → buId|bpId
+
+    data.forEach((item) => {
+      const key = `${item.businessUnitId}`;
+
+      if (!map.has(key)) {
+        map.set(key, {
+          businessUnitId: item.businessUnitId,
+          businessUnitName: item.businessUnit,
+          riskScenarioIds: [],
+          totalRiskExposure: 0,
+          totalNetExposure: 0,
+          netExposureCount: 0,
+          financialImpactSum: 0,
+          operationalImpactSum: 0,
+          regulatoryImpactSum: 0,
+          reputationalImpactSum: 0,
+        });
+      }
+
+      const entry = map.get(key);
+      if (!entry.riskScenarioIds?.includes(item.riskScenarioId)) {
+        entry.riskScenarioIds.push(item.riskScenarioId);
+        entry.totalRiskExposure =
+          entry.totalRiskExposure +
+          convertMillionToValue(
+            item.inherentImpactInMillionDollarsRiskDashboardERMTab
+          );
+        entry.financialImpactSum =
+          entry.financialImpactSum +
+          convertMillionToValue(item.financialImpactValueInMillionDollar);
+        entry.operationalImpactSum =
+          entry.operationalImpactSum +
+          convertMillionToValue(item.operationalImpactValueInMillionDollar);
+        entry.regulatoryImpactSum =
+          entry.regulatoryImpactSum +
+          convertMillionToValue(item.regulatoryImpactValueInMillionDollar);
+        entry.reputationalImpactSum =
+          entry.reputationalImpactSum +
+          convertMillionToValue(item.reputationalImpactValueInMillionDollar);
+      }
+    });
+    const resultArray = Array.from(map.values());
+    const metrics = [
+      {
+        metric: "Total Risk Exposure",
+        values: {},
+      },
+      {
+        metric: "Financial Impact",
+        values: {},
+      },
+      {
+        metric: "Operational Impact",
+        values: {},
+      },
+      {
+        metric: "Regulatory Impact",
+        values: {},
+      },
+      {
+        metric: "Reputational Impact",
+        values: {},
+      },
+    ];
+
+    resultArray.forEach((item) => {
+      const name = item.businessUnitName;
+
+      metrics[0].values[name] = item.totalRiskExposure;
+      metrics[1].values[name] = item.financialImpactSum;
+      metrics[2].values[name] = item.operationalImpactSum;
+      metrics[3].values[name] = item.regulatoryImpactSum;
+      metrics[4].values[name] = item.reputationalImpactSum;
+    });
+    return metrics
+  }
 
   static async getRiskScenarioTableData(reportsData) {
-    return reportsData.map((item,index) => {
+    return reportsData.map((item, index) => {
       return {
         assessmentId: item.assessmentId,
-        "assessmentName": item.assessmentName,
-            "orgId": item.orgId,
-            "orgName": item.orgName,
-            "organizationRiskAppetite": convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
-            "businessUnitId": item.businessUnitId,
-            "businessUnit": item.businessUnit,
-            "businessProcessId": item.businessProcessId,
-            "businessProcess": item.businessProcess,
-            "riskScenarioId": item.riskScenarioId,
-            "riskScenario": item.riskScenario,
-            "riskScenarioCIAMapping": item.riskScenarioCIAMapping[0],
-            "inherentRiskScore": item.inherentRiskScoreRiskDashboardERMTab,
-            "inherentRiskLevelRisk": item.inherentRiskLevelRiskDashboardERMTab,
-            "controlStrengthRisk": item.controlStrengthRiskDashboardERMTab,
-            "residualRiskScoreRisk": item.residualRiskScoreRiskDashboardERMTab,
-            "residualRiskLevelRisk": item.residualRiskLevelRiskDashboardERMTab,
-            "inherentImpact": convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
-            "residualImpact": convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
-            "targetImpact": convertMillionToValue(item.targetImpactInMillionDollarsRiskDashboardERMTab),
-      }
-    })
-
+        assessmentName: item.assessmentName,
+        orgId: item.orgId,
+        orgName: item.orgName,
+        organizationRiskAppetite: convertMillionToValue(
+          item.organizationRiskAppetiteInMillionDollar
+        ),
+        businessUnitId: item.businessUnitId,
+        businessUnit: item.businessUnit,
+        businessProcessId: item.businessProcessId,
+        businessProcess: item.businessProcess,
+        riskScenarioId: item.riskScenarioId,
+        riskScenario: item.riskScenario,
+        riskScenarioCIAMapping: item.riskScenarioCIAMapping[0],
+        inherentRiskScore: item.inherentRiskScoreRiskDashboardERMTab,
+        inherentRiskLevelRisk: item.inherentRiskLevelRiskDashboardERMTab,
+        controlStrengthRisk: item.controlStrengthRiskDashboardERMTab,
+        residualRiskScoreRisk: item.residualRiskScoreRiskDashboardERMTab,
+        residualRiskLevelRisk: item.residualRiskLevelRiskDashboardERMTab,
+        inherentImpact: convertMillionToValue(
+          item.inherentImpactInMillionDollarsRiskDashboardERMTab
+        ),
+        residualImpact: convertMillionToValue(
+          item.residualImpactInMillionDollarsRiskDashboardERMTab
+        ),
+        targetImpact: convertMillionToValue(
+          item.targetImpactInMillionDollarsRiskDashboardERMTab
+        ),
+      };
+    });
   }
+
   /**
-   * 
-   * @param {*} orgId 
-   * @param {*} businessUnitId 
-   * @param {*} businessProcessId 
-   * @param {*} riskScenarioId 
-   * @param {*} assetId 
-   * @returns 
+   *
+   * @param {*} orgId
+   * @param {*} businessUnitId
+   * @param {*} businessProcessId
+   * @param {*} riskScenarioId
+   * @param {*} assetId
+   * @returns
    */
   static async processesRiskExposureChartData(
     orgId,
@@ -422,20 +526,19 @@ class ReportsService {
     const processesRiskExposureChartData =
       this.getProcessesRiskExposureChartData(reportsData);
 
-
     return processesRiskExposureChartData;
   }
 
-   /**
-    * 
-    * @param {*} orgId 
-    * @param {*} businessUnitId 
-    * @param {*} businessProcessId 
-    * @param {*} riskScenarioId 
-    * @param {*} assetId 
-    * @returns 
-    */
-   static async businessUnitHeatmapChart(
+  /**
+   *
+   * @param {*} orgId
+   * @param {*} businessUnitId
+   * @param {*} businessProcessId
+   * @param {*} riskScenarioId
+   * @param {*} assetId
+   * @returns
+   */
+  static async businessUnitHeatmapChart(
     orgId,
     businessUnitId = null,
     businessProcessId = null,
@@ -452,10 +555,11 @@ class ReportsService {
       },
     });
 
-    const businessUnitHeatmapChartData = this.getBusinessUnitHeatmapChartData(reportsData);
+    const businessUnitHeatmapChartData =
+      this.getBusinessUnitHeatmapChartData(reportsData);
 
     return businessUnitHeatmapChartData;
-  } 
+  }
 
   static async riskScenarioTableData(orgId) {
     if (!orgId) {
@@ -471,12 +575,11 @@ class ReportsService {
       },
     });
 
-    const riskScenarioTableDataRes= this.getRiskScenarioTableData(reportsData);
+    const riskScenarioTableDataRes = this.getRiskScenarioTableData(reportsData);
     return riskScenarioTableDataRes;
-
   }
 
-    static async reportsTableData(orgId) {
+  static async reportsTableData(orgId) {
     if (!orgId) {
       throw new Error("Org ID not found");
     }
@@ -491,7 +594,25 @@ class ReportsService {
     });
 
     return reportsData;
+  }
 
+  static async businessUnitRadarChart(orgId) {
+    if (!orgId) {
+      throw new Error("Org ID not found");
+    }
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+    const reportsData = await ReportsMaster.findAll({
+      where: {
+        orgId,
+        updatedAt: latestTimeStamp,
+      },
+    });
+    const businessUnitRadarChartRes =
+      this.getBusinessUnitRadarChartData(reportsData);
+
+    return businessUnitRadarChartRes;
   }
 }
 
