@@ -596,18 +596,23 @@ class ReportsService {
     return reportsData;
   }
 
-  static async businessUnitRadarChart(orgId) {
+  static async businessUnitRadarChart(orgId, businessUnitId = null) {
     if (!orgId) {
       throw new Error("Org ID not found");
     }
     const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
       orgId
     );
+    let whereClause = {
+      orgId,
+      updatedAt: latestTimeStamp,
+    }
+
+    if (businessUnitId) {
+      whereClause.businessUnitId = businessUnitId;
+    }
     const reportsData = await ReportsMaster.findAll({
-      where: {
-        orgId,
-        updatedAt: latestTimeStamp,
-      },
+      where: whereClause,
     });
     const businessUnitRadarChartRes =
       this.getBusinessUnitRadarChartData(reportsData);

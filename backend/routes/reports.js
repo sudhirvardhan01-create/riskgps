@@ -102,8 +102,9 @@ router.get("/:orgId/business-unit-radar-chart", async (req, res) => {
     if (!orgId) {
       throw new Error("Org ID required");
     }
+    const businessUnitId = req.query.businessUnitId ?? null;
     const data = await ReportsService.businessUnitRadarChart(
-      orgId
+      orgId, businessUnitId
     );
     res.status(HttpStatusCodes.OK).json({
       data: data,
