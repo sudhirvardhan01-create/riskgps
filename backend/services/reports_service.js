@@ -459,7 +459,7 @@ class ReportsService {
       metrics[3].values[name] = item.regulatoryImpactSum;
       metrics[4].values[name] = item.reputationalImpactSum;
     });
-    return metrics
+    return metrics;
   }
 
   static async getRiskScenarioTableData(reportsData) {
@@ -480,16 +480,17 @@ class ReportsService {
         riskScenario: item.riskScenario,
         riskScenarioCIAMapping: item.riskScenarioCIAMapping[0],
         inherentRiskScore: item.inherentRiskScoreRiskDashboardERMTab,
-        inherentRiskLevelRisk: item.inherentRiskLevelRiskDashboardERMTab,
-        controlStrengthRisk: item.controlStrengthRiskDashboardERMTab,
-        residualRiskScoreRisk: item.residualRiskScoreRiskDashboardERMTab,
-        residualRiskLevelRisk: item.residualRiskLevelRiskDashboardERMTab,
-        inherentImpact: convertMillionToValue(
+        riskExposure: convertMillionToValue(
           item.inherentImpactInMillionDollarsRiskDashboardERMTab
         ),
-        residualImpact: convertMillionToValue(
+        riskExposureLevel: item.inherentRiskLevelRiskDashboardERMTab,
+        controlStrengthRisk: item.controlStrengthRiskDashboardERMTab,
+        residualRiskScoreRisk: item.residualRiskScoreRiskDashboardERMTab,
+        netExposure: convertMillionToValue(
           item.residualImpactInMillionDollarsRiskDashboardERMTab
         ),
+        netExposureLevel: item.residualRiskLevelRiskDashboardERMTab,
+
         targetImpact: convertMillionToValue(
           item.targetImpactInMillionDollarsRiskDashboardERMTab
         ),
@@ -596,18 +597,23 @@ class ReportsService {
     return reportsData;
   }
 
-  static async businessUnitRadarChart(orgId) {
+  static async businessUnitRadarChart(orgId, businessUnitId = null) {
     if (!orgId) {
       throw new Error("Org ID not found");
     }
     const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
       orgId
     );
+    let whereClause = {
+      orgId,
+      updatedAt: latestTimeStamp,
+    };
+
+    if (businessUnitId) {
+      whereClause.businessUnitId = businessUnitId;
+    }
     const reportsData = await ReportsMaster.findAll({
-      where: {
-        orgId,
-        updatedAt: latestTimeStamp,
-      },
+      where: whereClause,
     });
     const businessUnitRadarChartRes =
       this.getBusinessUnitRadarChartData(reportsData);
