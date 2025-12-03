@@ -475,6 +475,24 @@ class ReportsService {
     return riskScenarioTableDataRes;
 
   }
+
+    static async reportsTableData(orgId) {
+    if (!orgId) {
+      throw new Error("Org ID not found");
+    }
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+    const reportsData = await ReportsMaster.findAll({
+      where: {
+        orgId,
+        updatedAt: latestTimeStamp,
+      },
+    });
+
+    return reportsData;
+
+  }
 }
 
 module.exports = ReportsService;
