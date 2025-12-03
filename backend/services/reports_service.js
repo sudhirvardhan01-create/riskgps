@@ -373,7 +373,7 @@ class ReportsService {
         "assessmentName": item.assessmentName,
             "orgId": item.orgId,
             "orgName": item.orgName,
-            "organizationRiskAppetiteInMillionDollar": convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
+            "organizationRiskAppetite": convertMillionToValue(item.organizationRiskAppetiteInMillionDollar),
             "businessUnitId": item.businessUnitId,
             "businessUnit": item.businessUnit,
             "businessProcessId": item.businessProcessId,
@@ -386,9 +386,9 @@ class ReportsService {
             "controlStrengthRisk": item.controlStrengthRiskDashboardERMTab,
             "residualRiskScoreRisk": item.residualRiskScoreRiskDashboardERMTab,
             "residualRiskLevelRisk": item.residualRiskLevelRiskDashboardERMTab,
-            "inherentImpactInMillionDollars": convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
-            "residualImpactInMillionDollars": convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
-            "targetImpactInMillionDollars": convertMillionToValue(item.targetImpactInMillionDollarsRiskDashboardERMTab),
+            "inherentImpact": convertMillionToValue(item.inherentImpactInMillionDollarsRiskDashboardERMTab),
+            "residualImpact": convertMillionToValue(item.residualImpactInMillionDollarsRiskDashboardERMTab),
+            "targetImpact": convertMillionToValue(item.targetImpactInMillionDollarsRiskDashboardERMTab),
       }
     })
 
