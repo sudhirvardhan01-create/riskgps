@@ -39,7 +39,7 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
     d3.select(svgRef.current).selectAll("*").remove();
 
     // Dimensions and margins
-    const margin = { top: 20, right: 20, bottom: 80, left: 150 };
+    const margin = { top: 10, right: 0, bottom: 20, left: 120 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -138,28 +138,32 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
 
     // Y-axis
     const yAxis = d3.axisLeft(yScale);
-    g.append("g").call(yAxis).selectAll("text").style("font-size", "12px");
+    g.append("g")
+      .call(yAxis)
+      .selectAll("text")
+      .style("font-size", "12px")
+      .style("text-anchor", "bottom");
 
     // X-axis label
-    svg
-      .append("text")
-      .attr("x", width / 2)
-      .attr("y", height - 10)
-      .attr("text-anchor", "middle")
-      .style("font-size", "14px")
-      .style("font-weight", "bold")
-      .text(xAxisLabel);
+    // svg
+    //   .append("text")
+    //   .attr("x", width / 2)
+    //   .attr("y", height - 10)
+    //   .attr("text-anchor", "middle")
+    //   .style("font-size", "14px")
+    //   .style("font-weight", "bold")
+    //   .text(xAxisLabel);
 
     // Y-axis label
-    svg
-      .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("x", -height / 2)
-      .attr("y", 15)
-      .attr("text-anchor", "middle")
-      .style("font-size", "14px")
-      .style("font-weight", "bold")
-      .text(yAxisLabel);
+    // svg
+    //   .append("text")
+    //   .attr("transform", "rotate(-90)")
+    //   .attr("x", -height / 2)
+    //   .attr("y", 15)
+    //   .attr("text-anchor", "middle")
+    //   .style("font-size", "14px")
+    //   .style("font-weight", "bold")
+    //   .text(yAxisLabel);
   }, [data, width, height, xAxisLabel, yAxisLabel, xOrder, yOrder]);
 
   return (
