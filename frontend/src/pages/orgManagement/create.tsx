@@ -316,6 +316,8 @@ function CreateNewOrgPage() {
               weightage: 40,
               order: 1,
               createdBy: userId || "",
+              isEdited: false,
+              isActive: true,
               severityLevels: [
                 {
                   name: "Very Low",
@@ -364,6 +366,8 @@ function CreateNewOrgPage() {
               weightage: 30,
               order: 2,
               createdBy: userId || "",
+              isEdited: false,
+              isActive: true,
               severityLevels: [
                 {
                   name: "Very Low",
@@ -412,6 +416,8 @@ function CreateNewOrgPage() {
               weightage: 20,
               order: 3,
               createdBy: userId || "",
+              isEdited: false,
+              isActive: true,
               severityLevels: [
                 {
                   name: "Very Low",
@@ -460,6 +466,8 @@ function CreateNewOrgPage() {
               weightage: 10,
               order: 4,
               createdBy: userId || "",
+              isEdited: false,
+              isActive: true,
               severityLevels: [
                 {
                   name: "Very Low",

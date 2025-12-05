@@ -9,30 +9,30 @@ const OrganizationService = require("../services/organization_service");
  * @description Get all organizations with optional filtering + pagination
  */
 router.get("/", async (req, res) => {
-  try {
-    const searchPattern = req.query.search || null;
-    const limit = parseInt(req.query?.limit) || 10;
-    const page = parseInt(req.query?.page) || 0;
-    const sortBy = req.query.sort_by || "created_date";
-    const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+    try {
+        const searchPattern = req.query.search || null;
+        const limit = parseInt(req.query?.limit) || 10;
+        const page = parseInt(req.query?.page) || 0;
+        const sortBy = req.query.sort_by || "created_date";
+        const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
 
-    const organizations = await OrganizationService.getAllOrganizations(
-      page,
-      limit,
-      searchPattern,
-      sortBy,
-      sortOrder
-    );
+        const organizations = await OrganizationService.getAllOrganizations(
+            page,
+            limit,
+            searchPattern,
+            sortBy,
+            sortOrder
+        );
 
-    res.status(HttpStatus.OK).json({
-      data: organizations,
-      msg: Messages.ORGANIZATION.FETCHED,
-    });
-  } catch (err) {
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || Messages.GENERAL.SERVER_ERROR,
-    });
-  }
+        res.status(HttpStatus.OK).json({
+            data: organizations,
+            msg: Messages.ORGANIZATION.FETCHED,
+        });
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || Messages.GENERAL.SERVER_ERROR,
+        });
+    }
 });
 
 /**
@@ -40,19 +40,19 @@ router.get("/", async (req, res) => {
  * @description Get organization by ID (with business units)
  */
 router.get("/:id", async (req, res) => {
-  try {
-    const organization = await OrganizationService.getOrganizationById(
-      req.params.id
-    );
-    res.status(HttpStatus.OK).json({
-      data: organization,
-      msg: Messages.ORGANIZATION.FETCHED_BY_ID,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.NOT_FOUND).json({
-      error: err.message || Messages.ORGANIZATION.NOT_FOUND,
-    });
-  }
+    try {
+        const organization = await OrganizationService.getOrganizationById(
+            req.params.id
+        );
+        res.status(HttpStatus.OK).json({
+            data: organization,
+            msg: Messages.ORGANIZATION.FETCHED_BY_ID,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.NOT_FOUND).json({
+            error: err.message || Messages.ORGANIZATION.NOT_FOUND,
+        });
+    }
 });
 
 /**
@@ -60,33 +60,33 @@ router.get("/:id", async (req, res) => {
  * @description Get all processes for a given organization + business unit (both mandatory)
  */
 router.get(
-  "/:orgId/process-for-listing",
-  async (req, res) => {
-    try {
-      const { orgId } = req.params;
-      const businessUnitId = req.query.buId ?? null;
-      if (!orgId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:
-            "Organization ID is required in the URL",
-        });
-      }
+    "/:orgId/process-for-listing",
+    async (req, res) => {
+        try {
+            const { orgId } = req.params;
+            const businessUnitId = req.query.buId ?? null;
+            if (!orgId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message:
+                        "Organization ID is required in the URL",
+                });
+            }
 
-      const processes = await OrganizationService.getOrganizationProcessesForListing(
-        orgId,
-        businessUnitId
-      );
+            const processes = await OrganizationService.getOrganizationProcessesForListing(
+                orgId,
+                businessUnitId
+            );
 
-      res.status(HttpStatus.OK).json({
-        data: processes,
-        msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
-      });
-    } catch (err) {
-      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || Messages.GENERAL.SERVER_ERROR,
-      });
+            res.status(HttpStatus.OK).json({
+                data: processes,
+                msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || Messages.GENERAL.SERVER_ERROR,
+            });
+        }
     }
-  }
 );
 
 /**
@@ -94,32 +94,32 @@ router.get(
  * @description Get all processes for a given organization + business unit (both mandatory)
  */
 router.get(
-  "/:orgId/business-unit/:businessUnitId/processes",
-  async (req, res) => {
-    try {
-      const { orgId, businessUnitId } = req.params;
-      if (!orgId || !businessUnitId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:
-            "Organization ID and Business unit ID is required in the URL",
-        });
-      }
+    "/:orgId/business-unit/:businessUnitId/processes",
+    async (req, res) => {
+        try {
+            const { orgId, businessUnitId } = req.params;
+            if (!orgId || !businessUnitId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message:
+                        "Organization ID and Business unit ID is required in the URL",
+                });
+            }
 
-      const processes = await OrganizationService.getOrganizationProcesses(
-        orgId,
-        businessUnitId
-      );
+            const processes = await OrganizationService.getOrganizationProcesses(
+                orgId,
+                businessUnitId
+            );
 
-      res.status(HttpStatus.OK).json({
-        data: processes,
-        msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
-      });
-    } catch (err) {
-      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || Messages.GENERAL.SERVER_ERROR,
-      });
+            res.status(HttpStatus.OK).json({
+                data: processes,
+                msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || Messages.GENERAL.SERVER_ERROR,
+            });
+        }
     }
-  }
 );
 
 /**
@@ -127,184 +127,183 @@ router.get(
  * @description Get all processes for a given organization + business unit (both mandatory)
  */
 router.get(
-  "/:orgId/business-unit/:businessUnitId/processes-v2",
-  async (req, res) => {
-    try {
-      const { orgId, businessUnitId } = req.params;
+    "/:orgId/business-unit/:businessUnitId/processes-v2",
+    async (req, res) => {
+        try {
+            const { orgId, businessUnitId } = req.params;
 
-      if (!orgId || !businessUnitId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:
-            "Organization ID and Business unit ID is required in the URL",
-        });
-      }
-      const processes = await OrganizationService.getOrganizationProcessesV2(
-        orgId,
-        businessUnitId
-      );
+            if (!orgId || !businessUnitId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message:
+                        "Organization ID and Business unit ID is required in the URL",
+                });
+            }
+            const processes = await OrganizationService.getOrganizationProcessesV2(
+                orgId,
+                businessUnitId
+            );
 
-      res.status(HttpStatus.OK).json({
-        data: processes,
-        msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
-      });
-    } catch (err) {
-      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || Messages.GENERAL.SERVER_ERROR,
-      });
+            res.status(HttpStatus.OK).json({
+                data: processes,
+                msg: Messages.ORGANIZATION.PROCESSES_FETCHED,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || Messages.GENERAL.SERVER_ERROR,
+            });
+        }
     }
-  }
 );
 
 router.post(
-  "/:orgId/business-unit/:businessUnitId/add-process",
-  async (req, res) => {
-    try {
-      const { orgId, businessUnitId } = req.params;
-      console.log({ orgId, businessUnitId })
-      if (!orgId || !businessUnitId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:
-            "Organization ID and Business unit ID is required in the URL",
-        });
-      }
+    "/:orgId/business-unit/:businessUnitId/add-process",
+    async (req, res) => {
+        try {
+            const { orgId, businessUnitId } = req.params;
+            console.log({ orgId, businessUnitId })
+            if (!orgId || !businessUnitId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message:
+                        "Organization ID and Business unit ID is required in the URL",
+                });
+            }
 
-      const scenarios = await OrganizationService.addProcessByOrgIdAndBuId(
-        orgId,
-        businessUnitId,
-        req.body
-      );
+            const scenarios = await OrganizationService.addProcessByOrgIdAndBuId(
+                orgId,
+                businessUnitId,
+                req.body
+            );
 
-      res.status(HttpStatus.OK).json({
-        message: "Organization process created successfully",
-        data: scenarios,
-      });
-    } catch (err) {
-      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || "Failed to create organization process",
-      });
+            res.status(HttpStatus.OK).json({
+                message: "Organization process created successfully",
+                data: scenarios,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || "Failed to create organization process",
+            });
+        }
     }
-  }
 );
 
 router.post(
-  "/:orgId/business-unit/:businessUnitId/process",
-  async (req, res) => {
-    try {
-      const { orgId, businessUnitId } = req.params;
-      console.log({ orgId, businessUnitId })
-      if (!orgId || !businessUnitId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:
-            "Organization ID and Business unit ID is required in the URL",
-        });
-      }
+    "/:orgId/business-unit/:businessUnitId/process",
+    async (req, res) => {
+        try {
+            const { orgId, businessUnitId } = req.params;
+            console.log({ orgId, businessUnitId })
+            if (!orgId || !businessUnitId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message:
+                        "Organization ID and Business unit ID is required in the URL",
+                });
+            }
 
-      const scenarios = await OrganizationService.createProcessByOrgIdAndBuId(
-        orgId,
-        businessUnitId,
-        req.body
-      );
+            const scenarios = await OrganizationService.createProcessByOrgIdAndBuId(
+                orgId,
+                businessUnitId,
+                req.body
+            );
 
-      res.status(HttpStatus.OK).json({
-        message: "Organization process created successfully",
-        data: scenarios,
-      });
-    } catch (err) {
-      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || "Failed to create organization process",
-      });
+            res.status(HttpStatus.OK).json({
+                message: "Organization process created successfully",
+                data: scenarios,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || "Failed to create organization process",
+            });
+        }
     }
-  }
 );
 
 router.put(
-  "/:orgId/business-unit/:businessUnitId/process/:id",
-  async (req, res) => {
-    try {
-      const { id, orgId, businessUnitId } = req.params;
-      console.log({ id ,orgId, businessUnitId })
-      if (!id || !orgId || !businessUnitId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:
-            "Process ID, Organization ID and Business unit ID is required in the URL",
-        });
-      }
+    "/:orgId/business-unit/:businessUnitId/process/:id",
+    async (req, res) => {
+        try {
+            const { id, orgId, businessUnitId } = req.params;
+            console.log({ id, orgId, businessUnitId })
+            if (!id || !orgId || !businessUnitId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message:
+                        "Process ID, Organization ID and Business unit ID is required in the URL",
+                });
+            }
 
-      const process = await OrganizationService.updateProcess(
-        id,
-        orgId,
-        businessUnitId,
-        req.body
-      );
+            const process = await OrganizationService.updateProcess(
+                id,
+                orgId,
+                businessUnitId,
+                req.body
+            );
 
-      res.status(HttpStatus.OK).json({
-        message: "Organization process updated successfully",
-        data: process,
-      });
-    } catch (err) {
-      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || "Failed to update organization process",
-      });
+            res.status(HttpStatus.OK).json({
+                message: "Organization process updated successfully",
+                data: process,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || "Failed to update organization process",
+            });
+        }
     }
-  }
 );
 
-
 router.delete(
-  "/:orgId/business-unit/:businessUnitId/process",
-  async (req, res) => {
-    try {
-      const { orgId, businessUnitId } = req.params;
-      const ids = req.body.id ?? null;
-      if (!ids || !Array.isArray(ids) || !orgId || !businessUnitId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:
-            "Process ID array, Organization ID and Business unit ID is required in the URL",
-        });
-      }
+    "/:orgId/business-unit/:businessUnitId/process",
+    async (req, res) => {
+        try {
+            const { orgId, businessUnitId } = req.params;
+            const ids = req.body.id ?? null;
+            if (!ids || !Array.isArray(ids) || !orgId || !businessUnitId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message:
+                        "Process ID array, Organization ID and Business unit ID is required in the URL",
+                });
+            }
 
-      const process = await OrganizationService.deleteProcess(
-        ids,
-        orgId,
-        businessUnitId,
-      );
+            const process = await OrganizationService.deleteProcess(
+                ids,
+                orgId,
+                businessUnitId,
+            );
 
-      res.status(HttpStatus.OK).json({
-        message: "Organization process deleted successfully",
-        data: process,
-      });
-    } catch (err) {
-      res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: err.message || "Failed to delete organization process",
-      });
+            res.status(HttpStatus.OK).json({
+                message: "Organization process deleted successfully",
+                data: process,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || "Failed to delete organization process",
+            });
+        }
     }
-  }
 );
 /**
  * @route GET /organization/:orgId/risk-scenarios
  * @desc Get all risk scenarios for an organization
  */
 router.get("/:orgId/risk-scenarios", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.getRiskScenariosByOrgId(orgId);
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization risk scenarios fetched successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to fetch organization risk scenarios",
+        });
     }
-
-    const scenarios = await OrganizationService.getRiskScenariosByOrgId(orgId);
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization risk scenarios fetched successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to fetch organization risk scenarios",
-    });
-  }
 });
 
 /**
@@ -312,172 +311,167 @@ router.get("/:orgId/risk-scenarios", async (req, res) => {
  * @desc Get all risk scenarios for an organization
  */
 router.get("/:orgId/risk-scenarios-v2", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.getRiskScenariosByOrgIdV2(
+            orgId
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization risk scenarios fetched successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to fetch organization risk scenarios",
+        });
     }
-
-    const scenarios = await OrganizationService.getRiskScenariosByOrgIdV2(
-      orgId
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization risk scenarios fetched successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to fetch organization risk scenarios",
-    });
-  }
 });
-
-
 
 router.post("/:orgId/add-risk-scenarios", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.addRiskScenariosByOrgId(
+            orgId,
+            req.body
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization risk scenarios created successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to create organization risk scenarios",
+        });
     }
-
-    const scenarios = await OrganizationService.addRiskScenariosByOrgId(
-      orgId,
-      req.body
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization risk scenarios created successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to create organization risk scenarios",
-    });
-  }
 });
-
 
 /**
  * @route GET /organization/:orgId/risk-scenarios
  * @desc Get all risk scenarios for an organization
  */
 router.post("/:orgId/risk-scenarios", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.createRiskScenariosByOrgId(
+            orgId,
+            req.body
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization risk scenarios created successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to create organization risk scenarios",
+        });
     }
-
-    const scenarios = await OrganizationService.createRiskScenariosByOrgId(
-      orgId,
-      req.body
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization risk scenarios created successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to create organization risk scenarios",
-    });
-  }
 });
 
-
 router.put("/:orgId/risk-scenarios/:id", async (req, res) => {
-  try {
-    const { id , orgId } = req.params;
+    try {
+        const { id, orgId } = req.params;
 
-    if (!id || !orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "id and Organization ID is required in the URL",
-      });
+        if (!id || !orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "id and Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.updateRiskScenario(
+            id,
+            orgId,
+            req.body
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization risk scenarios updated successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to update organization risk scenarios",
+        });
     }
-
-    const scenarios = await OrganizationService.updateRiskScenario(
-      id,
-      orgId,
-      req.body
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization risk scenarios updated successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to update organization risk scenarios",
-    });
-  }
 });
 
 router.delete("/:orgId/risk-scenarios", async (req, res) => {
-  try {
-    const { orgId } = req.params;
-    const ids = req.body.id ?? null;
-    
-    if (!Array.isArray(ids) || !orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "id array and Organization ID is required in the URL",
-      });
+    try {
+        const { orgId } = req.params;
+        const ids = req.body.id ?? null;
+
+        if (!Array.isArray(ids) || !orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "id array and Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.deleteRiskScenario(
+            ids,
+            orgId,
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization risk scenarios deleted successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to delete organization risk scenarios",
+        });
     }
-
-    const scenarios = await OrganizationService.deleteRiskScenario(
-      ids,
-      orgId,
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization risk scenarios deleted successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to delete organization risk scenarios",
-    });
-  }
 });
-
 
 /**
  * @route GET /organization/:orgId/risk-scenarios
  * @desc Get all risk scenarios for an organization
  */
 router.get("/:orgId/threats", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.getOrganizationMitreThreatsByOrgId(
+            orgId
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization mitre threats fetched successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to fetch organization mitre threats",
+        });
     }
-
-    const scenarios = await OrganizationService.getOrganizationMitreThreatsByOrgId(
-      orgId
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization mitre threats fetched successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to fetch organization mitre threats",
-    });
-  }
 });
 
 /**
@@ -485,60 +479,59 @@ router.get("/:orgId/threats", async (req, res) => {
  * @desc Get all risk scenarios for an organization
  */
 router.post("/:orgId/threats", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.createMitreThreatByOrgId(
+            orgId,
+            req.body
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization mitre threat created successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to create organization mitre threat",
+        });
     }
-
-    const scenarios = await OrganizationService.createMitreThreatByOrgId(
-      orgId,
-      req.body
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization mitre threat created successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to create organization mitre threat",
-    });
-  }
 });
-
 
 /**
  * @route GET /organization/:orgId/taxonomies
  * @desc Get all taxonomies and severity levels for an organization
  */
 router.get("/:orgId/taxonomies", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const taxonomies = await OrganizationService.getTaxonomiesWithSeverity(
+            orgId
+        );
+
+        res.status(HttpStatus.OK).json({
+            message:
+                "Organization taxonomies with severity levels fetched successfully",
+            data: taxonomies,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to fetch taxonomies with severity levels",
+        });
     }
-
-    const taxonomies = await OrganizationService.getTaxonomiesWithSeverity(
-      orgId
-    );
-
-    res.status(HttpStatus.OK).json({
-      message:
-        "Organization taxonomies with severity levels fetched successfully",
-      data: taxonomies,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to fetch taxonomies with severity levels",
-    });
-  }
 });
 
 /**
@@ -546,54 +539,53 @@ router.get("/:orgId/taxonomies", async (req, res) => {
  * @description Get all assets for a given organization
  */
 router.get("/:orgId/assets/:assetId", async (req, res) => {
-  try {
-    const { orgId, assetId } = req.params;
+    try {
+        const { orgId, assetId } = req.params;
 
-    if (!orgId || !assetId) {
-      return res.status(400).json({
-        message: "Organization ID and asset is required",
-      });
+        if (!orgId || !assetId) {
+            return res.status(400).json({
+                message: "Organization ID and asset is required",
+            });
+        }
+
+        const assets = await OrganizationService.getOrganizationAssetById(assetId, orgId);
+
+        res.status(200).json({
+            message: "Organization asset fetched successfully",
+            data: assets,
+        });
+    } catch (err) {
+        res.status(err.statusCode || 500).json({
+            error: err.message || "Failed to fetch organization asset",
+        });
     }
-
-    const assets = await OrganizationService.getOrganizationAssetById(assetId, orgId);
-
-    res.status(200).json({
-      message: "Organization asset fetched successfully",
-      data: assets,
-    });
-  } catch (err) {
-    res.status(err.statusCode || 500).json({
-      error: err.message || "Failed to fetch organization asset",
-    });
-  }
 });
-
 
 /**
  * @route GET /organization/:orgId/assets
  * @description Get all assets for a given organization
  */
 router.get("/:orgId/assets", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(400).json({
-        message: "Organization ID is required",
-      });
+        if (!orgId) {
+            return res.status(400).json({
+                message: "Organization ID is required",
+            });
+        }
+
+        const assets = await OrganizationService.getAssetsByOrgId(orgId);
+
+        res.status(200).json({
+            message: "Organization assets fetched successfully",
+            data: assets,
+        });
+    } catch (err) {
+        res.status(err.statusCode || 500).json({
+            error: err.message || "Failed to fetch organization assets",
+        });
     }
-
-    const assets = await OrganizationService.getAssetsByOrgId(orgId);
-
-    res.status(200).json({
-      message: "Organization assets fetched successfully",
-      data: assets,
-    });
-  } catch (err) {
-    res.status(err.statusCode || 500).json({
-      error: err.message || "Failed to fetch organization assets",
-    });
-  }
 });
 
 /**
@@ -601,155 +593,154 @@ router.get("/:orgId/assets", async (req, res) => {
  * @description Get all assets for a given organization
  */
 router.get("/:orgId/assets-v2", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(400).json({
-        message: "Organization ID is required",
-      });
+        if (!orgId) {
+            return res.status(400).json({
+                message: "Organization ID is required",
+            });
+        }
+
+        const assets = await OrganizationService.getAssetsByOrgIdV2(orgId);
+
+        res.status(200).json({
+            message: "Organization assets fetched successfully",
+            data: assets,
+        });
+    } catch (err) {
+        res.status(err.statusCode || 500).json({
+            error: err.message || "Failed to fetch organization assets",
+        });
     }
-
-    const assets = await OrganizationService.getAssetsByOrgIdV2(orgId);
-
-    res.status(200).json({
-      message: "Organization assets fetched successfully",
-      data: assets,
-    });
-  } catch (err) {
-    res.status(err.statusCode || 500).json({
-      error: err.message || "Failed to fetch organization assets",
-    });
-  }
 });
 
 router.post("/:orgId/add-asset", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.addAssetByOrgId(
+            orgId,
+            req.body
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization asset created successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to created org asset",
+        });
     }
-
-    const scenarios = await OrganizationService.addAssetByOrgId(
-      orgId,
-      req.body
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization asset created successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to created org asset",
-    });
-  }
 });
 
-
 router.post("/:orgId/asset", async (req, res) => {
-  try {
-    const { orgId } = req.params;
+    try {
+        const { orgId } = req.params;
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.createAssetByOrgId(
+            orgId,
+            req.body
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization asset created successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to created org asset",
+        });
     }
-
-    const scenarios = await OrganizationService.createAssetByOrgId(
-      orgId,
-      req.body
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization asset created successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to created org asset",
-    });
-  }
 });
 
 router.put("/:orgId/asset/:id", async (req, res) => {
-  try {
-    const { id, orgId } = req.params;
+    try {
+        const { id, orgId } = req.params;
 
-    if (!id || !orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "asset id and Organization ID is required in the URL",
-      });
+        if (!id || !orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "asset id and Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.updateAsset(
+            id,
+            orgId,
+            req.body
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization asset updated successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to update org asset",
+        });
     }
-
-    const scenarios = await OrganizationService.updateAsset(
-      id,
-      orgId,
-      req.body
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization asset updated successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to update org asset",
-    });
-  }
 });
 
 router.delete("/:orgId/asset/", async (req, res) => {
-  try {
-    const { orgId } = req.params;
-    const ids = req.body.id ?? null;
+    try {
+        const { orgId } = req.params;
+        const ids = req.body.id ?? null;
 
-    if (!Array.isArray(ids) || !orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "asset id array and Organization ID is required in the URL",
-      });
+        if (!Array.isArray(ids) || !orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "asset id array and Organization ID is required in the URL",
+            });
+        }
+
+        const scenarios = await OrganizationService.deleteAsset(
+            ids,
+            orgId
+        );
+
+        res.status(HttpStatus.OK).json({
+            message: "Organization asset deleted successfully",
+            data: scenarios,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to delete org asset",
+        });
     }
-
-    const scenarios = await OrganizationService.deleteAsset(
-      ids,
-      orgId
-    );
-
-    res.status(HttpStatus.OK).json({
-      message: "Organization asset deleted successfully",
-      data: scenarios,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to delete org asset",
-    });
-  }
 });
 /**
  * @route POST /organization
  * @desc Create a new organization
  */
 router.post("/", async (req, res) => {
-  try {
-    const data = await OrganizationService.createOrganization(req.body);
+    try {
+        const data = await OrganizationService.createOrganization(req.body);
 
-    res.status(HttpStatus.CREATED).json({
-      success: true,
-      message: "Organization created successfully",
-      data,
-    });
-  } catch (error) {
-    res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error: {
-        message: error.message,
-      },
-    });
-  }
+        res.status(HttpStatus.CREATED).json({
+            success: true,
+            message: "Organization created successfully",
+            data,
+        });
+    } catch (error) {
+        res.status(error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            error: {
+                message: error.message,
+            },
+        });
+    }
 });
 
 /**
@@ -757,22 +748,22 @@ router.post("/", async (req, res) => {
  * @description Update organization by ID
  */
 router.put("/:id", async (req, res) => {
-  try {
-    const updatedOrg = await OrganizationService.updateOrganizationById(
-      req.params.id,
-      req.body,
-      req.user?.id || null
-    );
+    try {
+        const updatedOrg = await OrganizationService.updateOrganizationById(
+            req.params.id,
+            req.body,
+            req.user?.id || null
+        );
 
-    res.status(HttpStatus.OK).json({
-      data: updatedOrg,
-      msg: Messages.ORGANIZATION.UPDATED,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message,
-    });
-  }
+        res.status(HttpStatus.OK).json({
+            data: updatedOrg,
+            msg: Messages.ORGANIZATION.UPDATED,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
 });
 
 /**
@@ -780,20 +771,20 @@ router.put("/:id", async (req, res) => {
  * @description Soft delete organization by ID
  */
 router.delete("/:id", async (req, res) => {
-  try {
-    const result = await OrganizationService.deleteOrganizationById(
-      req.params.id,
-      req.body.modifiedBy // pass logged-in user ID here
-    );
+    try {
+        const result = await OrganizationService.deleteOrganizationById(
+            req.params.id,
+            req.body.modifiedBy // pass logged-in user ID here
+        );
 
-    res.status(HttpStatus.OK).json({
-      msg: result.message,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message || "Failed to delete organization",
-    });
-  }
+        res.status(HttpStatus.OK).json({
+            msg: result.message,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message || "Failed to delete organization",
+        });
+    }
 });
 
 // ---------------------------------------------------------------------------
@@ -805,32 +796,32 @@ router.delete("/:id", async (req, res) => {
  * @desc Get all business units for a specific organization
  */
 router.get("/:orgId/business-units", async (req, res) => {
-  try {
-    const { orgId } = req.params;
-    const searchPattern = req.query.search || "";
-    const page = parseInt(req.query.page) || 0;
-    const limit = parseInt(req.query.limit) || 10;
-    const sortBy = req.query.sort_by || "created_date";
-    const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
+    try {
+        const { orgId } = req.params;
+        const searchPattern = req.query.search || "";
+        const page = parseInt(req.query.page) || 0;
+        const limit = parseInt(req.query.limit) || 10;
+        const sortBy = req.query.sort_by || "created_date";
+        const sortOrder = req.query.sort_order?.toUpperCase() || "DESC";
 
-    const result = await OrganizationService.getBusinessUnitsByOrganizationId(
-      orgId,
-      page,
-      limit,
-      searchPattern,
-      sortBy,
-      sortOrder
-    );
+        const result = await OrganizationService.getBusinessUnitsByOrganizationId(
+            orgId,
+            page,
+            limit,
+            searchPattern,
+            sortBy,
+            sortOrder
+        );
 
-    res.status(HttpStatus.OK).json({
-      data: result,
-      msg: "Business units fetched successfully",
-    });
-  } catch (err) {
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message,
-    });
-  }
+        res.status(HttpStatus.OK).json({
+            data: result,
+            msg: "Business units fetched successfully",
+        });
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
 });
 
 /**
@@ -838,17 +829,17 @@ router.get("/:orgId/business-units", async (req, res) => {
  * @desc Get single business unit by ID
  */
 router.get("/business-unit/:id", async (req, res) => {
-  try {
-    const result = await OrganizationService.getBusinessUnitById(req.params.id);
-    res.status(HttpStatus.OK).json({
-      data: result,
-      msg: "Business unit fetched successfully",
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message,
-    });
-  }
+    try {
+        const result = await OrganizationService.getBusinessUnitById(req.params.id);
+        res.status(HttpStatus.OK).json({
+            data: result,
+            msg: "Business unit fetched successfully",
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
 });
 
 /**
@@ -856,21 +847,21 @@ router.get("/business-unit/:id", async (req, res) => {
  * @desc Create business unit under organization
  */
 router.post("/:orgId/business-units", async (req, res) => {
-  try {
-    const { orgId } = req.params;
-    const result = await OrganizationService.createBusinessUnit(
-      orgId,
-      req.body
-    );
-    res.status(HttpStatus.CREATED).json({
-      message: "Business unit created successfully",
-      data: result,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message,
-    });
-  }
+    try {
+        const { orgId } = req.params;
+        const result = await OrganizationService.createBusinessUnit(
+            orgId,
+            req.body
+        );
+        res.status(HttpStatus.CREATED).json({
+            message: "Business unit created successfully",
+            data: result,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
 });
 
 /**
@@ -878,20 +869,20 @@ router.post("/:orgId/business-units", async (req, res) => {
  * @desc Update business unit
  */
 router.put("/business-unit/:id", async (req, res) => {
-  try {
-    const result = await OrganizationService.updateBusinessUnitById(
-      req.params.id,
-      req.body
-    );
-    res.status(HttpStatus.OK).json({
-      message: "Business unit updated successfully",
-      data: result,
-    });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message,
-    });
-  }
+    try {
+        const result = await OrganizationService.updateBusinessUnitById(
+            req.params.id,
+            req.body
+        );
+        res.status(HttpStatus.OK).json({
+            message: "Business unit updated successfully",
+            data: result,
+        });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
 });
 
 /**
@@ -899,42 +890,44 @@ router.put("/business-unit/:id", async (req, res) => {
  * @desc Soft delete business unit
  */
 router.delete("/business-unit/:id", async (req, res) => {
-  try {
-    const result = await OrganizationService.deleteBusinessUnitById(
-      req.params.id,
-      req.body.modifiedBy
-    );
-    res.status(HttpStatus.OK).json({ message: result.message });
-  } catch (err) {
-    res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: err.message,
-    });
-  }
+    try {
+        const result = await OrganizationService.deleteBusinessUnitById(
+            req.params.id,
+            req.body.modifiedBy
+        );
+        res.status(HttpStatus.OK).json({ message: result.message });
+    } catch (err) {
+        res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+            error: err.message,
+        });
+    }
 });
-
 
 /**
  * @route POST /organization/:orgId/taxonomies
  * @desc Create taxonomies with severity levels for an organization
  */
 router.post("/:orgId/taxonomies", async (req, res) => {
-    try {
-        const { orgId } = req.params;
-        const { taxonomies } = req.body; // Expecting an array of taxonomy objects with severity levels
+  try {
+    const { orgId } = req.params;
+    const { taxonomies } = req.body; // Expecting an array of taxonomy objects with severity levels
 
-        if (!orgId) {
-            return res.status(HttpStatus.BAD_REQUEST).json({
-                message: "Organization ID is required in the URL",
-            });
-        }
+    if (!orgId) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "Organization ID is required in the URL",
+      });
+    }
 
-        if (!Array.isArray(taxonomies) || taxonomies.length === 0) {
-            return res.status(HttpStatus.BAD_REQUEST).json({
-                message: "At least one taxonomy with severity levels is required",
-            });
-        }
+    if (!Array.isArray(taxonomies) || taxonomies.length === 0) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: "At least one taxonomy with severity levels is required",
+      });
+    }
 
-        const result = await OrganizationService.saveTaxonomiesWithSeverity(orgId, taxonomies);
+    const result = await OrganizationService.saveTaxonomiesWithSeverity(
+      orgId,
+      taxonomies
+    );
 
         res.status(HttpStatus.CREATED).json({
             message: "Organization taxonomies and severity levels saved successfully",
@@ -947,6 +940,38 @@ router.post("/:orgId/taxonomies", async (req, res) => {
     }
 });
 
+// POST → Sync Generic Library → Organization Library
+router.post("/sync", async (req, res) => {
+    try {
+        const { organizationId, libraryNames, orgBusinessUnitId, userId } = req.body;
 
+        if (!organizationId || !libraryNames || !Array.isArray(libraryNames)) {
+            return res.status(400).json({
+                success: false,
+                message: "organizationId and libraryNames[] are required",
+            });
+        }
+
+        const result = await OrganizationService.syncLibraries({
+            organizationId,
+            libraryNames,
+            orgBusinessUnitId,
+            userId,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Library sync completed",
+            data: result,
+        });
+
+    } catch (error) {
+        console.error("Library Sync Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error",
+        });
+    }
+});
 
 module.exports = router;

@@ -36,6 +36,7 @@ export default function BusinessImpactPanel({
           taxonomyId: item.taxonomyId,
           name: item.name,
           orgId: item.organizationId,
+          weightage: item.weightage,
           severityDetails: {},
         }))
       );
@@ -59,6 +60,7 @@ export default function BusinessImpactPanel({
           name: t.name ?? "",
           orgId: t.orgId ?? assessment?.orgId,
           severityDetails: t.severityDetails ?? {},
+          weightage: t.weightage ?? 0,
         }))
       );
     } else {
@@ -98,6 +100,8 @@ export default function BusinessImpactPanel({
   const setTaxonomy = (
     taxonomyId: string,
     name: string,
+    weightage: number,
+    orgId: string,
     ind: number,
     val: string
   ) => {
@@ -114,6 +118,8 @@ export default function BusinessImpactPanel({
         ...updated[ind],
         taxonomyId,
         name,
+        weightage,
+        orgId,
         severityDetails: {
           severityId: severity.severityId,
           name: severity.name,
@@ -202,17 +208,30 @@ export default function BusinessImpactPanel({
             </Box>
 
             {/* Impacts */}
-            {taxonomies.map((item: any, ind: number) => (
-              <ImpactSelector
-                key={item.taxonomyId}
-                label={item.name}
-                severityLevels={item.severityLevels}
-                value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
-                onChange={(val) =>
-                  setTaxonomy(item.taxonomyId, item.name, ind, val)
-                }
-              />
-            ))}
+            {taxonomies.length > 0 ? (
+              taxonomies.map((item: any, ind: number) => (
+                <ImpactSelector
+                  key={item.taxonomyId}
+                  label={item.name}
+                  severityLevels={item.severityLevels}
+                  value={taxonomyValue[ind]?.severityDetails?.severityId ?? ""}
+                  onChange={(val) =>
+                    setTaxonomy(
+                      item.taxonomyId,
+                      item.name,
+                      item.weightage,
+                      item.orgId,
+                      ind,
+                      val
+                    )
+                  }
+                />
+              ))
+            ) : (
+              <Box>
+                <Typography>No taxonomy added in the organization</Typography>
+              </Box>
+            )}
           </Box>
         </TabPanel>
       </TabContext>

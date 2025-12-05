@@ -14,7 +14,7 @@ const RiskScenarioPool: React.FC<RiskScenarioPoolProps> = ({ riskPool }) => {
   const { setNodeRef } = useDroppable({ id: "risk-pool" });
   const [search, setSearch] = useState("");
 
-  // Filter risks by title
+  // Filter riskScenarios by title
   const filteredRisks = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return riskPool;

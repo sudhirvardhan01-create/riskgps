@@ -172,7 +172,7 @@ const ProcessAssetFlow = ({ data }: { data: any }) => {
               description: process.processDescription,
               businessUnit: unit.name,
               assets: process.assets || [],
-              risks: process.riskScenarios || [],
+              riskScenarios: process.riskScenarios || [],
               status: process.status,
             };
           }
@@ -378,8 +378,8 @@ const ProcessAssetFlow = ({ data }: { data: any }) => {
                 <Typography variant="body2" color="text.secondary">
                   Risk Scenarios:
                 </Typography>
-                {selectedProcess.risks?.length > 0 ? (
-                  selectedProcess.risks.map((r: any) => (
+                {selectedProcess.riskScenarios?.length > 0 ? (
+                  selectedProcess.riskScenarios.map((r: any) => (
                     <Box
                       key={r.id}
                       sx={{

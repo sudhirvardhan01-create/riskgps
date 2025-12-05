@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
 
     AssessmentProcess.hasMany(models.AssessmentProcessRiskScenario, {
       foreignKey: "assessmentProcessId",
-      as: "risks",
+      as: "riskScenarios",
     });
 
     AssessmentProcess.hasMany(models.AssessmentProcessAsset, {

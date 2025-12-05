@@ -37,7 +37,7 @@ const ProcessList: React.FC<Props> = ({
     <>
       <Stack
         spacing={2}
-        sx={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}
+        sx={{ overflow: "auto", maxHeight: "calc(100vh - 300px)" }}
       >
         {data && data.length > 0 ? (
           data.map((item) => (
@@ -86,7 +86,9 @@ const ProcessList: React.FC<Props> = ({
                 ]}
                 module="Process"
                 footerChipKey="Users"
-                footerChipValue={item.users ? item.users.join(", ") : "Not Defined"}
+                footerChipValue={
+                  item.users ? item.users.join(", ") : "Not Defined"
+                }
               />
             </div>
           ))
@@ -101,10 +103,15 @@ const ProcessList: React.FC<Props> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          position: "absolute",
-          bottom: 55,
-          left: "50%", // place horizontally at 50%
-          transform: "translateX(-50%)",
+          position: "fixed",
+          bottom: 0,
+          left: "140px",
+          right: "30px",
+          zIndex: 1000,
+          // position: "absolute",
+          // bottom: 55,
+          // left: "50%", // place horizontally at 50%
+          // transform: "translateX(-50%)",
         }}
       >
         <TablePagination
