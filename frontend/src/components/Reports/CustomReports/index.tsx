@@ -18,7 +18,8 @@ export default function RiskDashboard({ assetData, tooltipData }: any) {
   return (
     <Grid container spacing={3} sx={{ width: "100%" }}>
       {/* ===== LEFT CARD: GEO MAP ===== */}
-      <Grid size={{ xs: 12, md: 6 }}>
+      {/* <Grid size={{ xs: 12, md: 6 }}> */}
+      <Grid size={{ xs: 12 }}>
         <Paper
           elevation={0}
           sx={{
@@ -53,10 +54,11 @@ export default function RiskDashboard({ assetData, tooltipData }: any) {
       </Grid>
 
       {/* ===== RIGHT CARD: BAR CHARTS ===== */}
-      <Grid size={{ xs: 12, md: 6 }}>
+      {/* <Grid size={{ xs: 12, md: 6 }}> */}
+      <Grid size={{ xs: 12 }}>
         <Grid container spacing={3}>
           {/* ---- Asset Dependencies ---- */}
-          <Grid size={12}>
+          <Grid size={6}>
             <Paper
               elevation={0}
               sx={{
@@ -84,7 +86,8 @@ export default function RiskDashboard({ assetData, tooltipData }: any) {
           </Grid>
 
           {/* ---- Vendor Dependencies ---- */}
-          <Grid size={12}>
+          {/* <Grid size={12}> */}
+          <Grid size={6}>
             <Grid container spacing={3}>
               {/* ---- Asset Dependencies ---- */}
               <Grid size={{ xs: 12, md: 6 }}>

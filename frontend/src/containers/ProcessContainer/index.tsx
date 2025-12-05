@@ -456,7 +456,7 @@ export default function ProcessContainer() {
       />
 
       {/* Page content */}
-      <Box p={5}>
+      <Box p={5} pb="16px !important">
         {<LibraryHeader {...headerProps} />}
         <ProcessList
           loading={loading}

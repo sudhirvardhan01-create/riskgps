@@ -460,7 +460,7 @@ export default function QuestionnaireContainer() {
       />
 
       {/* Page content */}
-      <Box p={5}>
+      <Box p={5} pb="16px !important">
         <LibraryHeader {...headerProps} />
 
         {/* Tabs to select the Asset Category */}

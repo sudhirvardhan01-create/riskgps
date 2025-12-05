@@ -82,16 +82,11 @@ const AssetLevelReportsContainer: React.FC = () => {
     <>
                 <Stack
               direction={"row"}
-              justifyContent={"space-between"}
+              justifyContent={"end"}
               alignItems={"center"}
               mb={3}
             >
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 600, color: "#121212" }}
-              >
-                Asset Dashboard
-              </Typography>
+
               <FormControl
                 variant="filled"
                 sx={{ height: "48px", width: "200px" }}
