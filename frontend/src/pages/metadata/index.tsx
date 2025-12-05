@@ -299,7 +299,7 @@ const Index = () => {
       />
 
       {/* Landing Page code*/}
-      <Box p={5} mb={5}>
+      <Box p={5} pb="16px !important">
         <Stack display={"flex"} flexDirection={"column"} gap={5} mb={5}>
           {/* Row 1: Breadcrumb + Add Button */}
           <Stack
@@ -416,7 +416,7 @@ const Index = () => {
           spacing={3}
           sx={{
             overflow: "auto",
-            maxHeight: "calc(100vh - 350px)",
+            maxHeight: "calc(100vh - 340px)",
           }}
         >
           {metaDatas &&
