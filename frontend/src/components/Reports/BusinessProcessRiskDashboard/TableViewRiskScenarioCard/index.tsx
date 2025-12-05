@@ -8,6 +8,7 @@ interface TableViewRiskScenarioCardProps {
   riskExposureLevel?: "very low" | "low" | "moderate" | "high" | "critical";
   netExposure: string;
   netExposureLevel?: "very low" | "low" | "moderate" | "high" | "critical";
+  processName?: string;
 }
 
 const TableViewRiskScenarioCard: React.FC<TableViewRiskScenarioCardProps> = ({
@@ -17,6 +18,7 @@ const TableViewRiskScenarioCard: React.FC<TableViewRiskScenarioCardProps> = ({
   riskExposureLevel,
   netExposure,
   netExposureLevel,
+  processName,
 }) => {
   return (
     <Box
@@ -32,22 +34,29 @@ const TableViewRiskScenarioCard: React.FC<TableViewRiskScenarioCardProps> = ({
         justifyContent={"center"}
         alignItems={"center"}
       >
-        <Grid size={4}>
+        {processName && (
+          <Grid size={2}>
+            <Typography variant="body2" color="text.primary" fontWeight={500}>
+              {processName}
+            </Typography>
+          </Grid>
+        )}
+        <Grid size={processName ? 3.5 : 4}>
           <Typography variant="body2" color="text.primary" fontWeight={500}>
             {riskScenario}
           </Typography>
         </Grid>
-        <Grid size={1}>
+        <Grid size={processName ? 0.5 : 1}>
           <Typography variant="body2" color="text.primary" fontWeight={500}>
             {ciaMapping}
           </Typography>
         </Grid>
-        <Grid size={1.5}>
+        <Grid size={processName ? 1 : 1.5}>
           <Typography variant="body2" color="text.primary" fontWeight={500}>
             {riskExposure}
           </Typography>
         </Grid>
-        <Grid size={1.5}>
+        <Grid size={processName ? 1 : 1.5}>
           <Typography variant="body2" color="text.primary" fontWeight={500}>
             {netExposure}
           </Typography>

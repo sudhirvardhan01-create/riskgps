@@ -34,6 +34,37 @@ export const riskScenariosHeaderData = [
   },
 ];
 
+export const riskScenariosHeaderDataWithProcess = [
+  {
+    columnSize: 2,
+    columnTitle: "Business Process",
+  },
+  {
+    columnSize: 3.5,
+    columnTitle: "Risk Scenarios",
+  },
+  {
+    columnSize: 0.5,
+    columnTitle: "CIA",
+  },
+  {
+    columnSize: 1,
+    columnTitle: "Risk Exposure",
+  },
+  {
+    columnSize: 1,
+    columnTitle: "Net Exposure",
+  },
+  {
+    columnSize: 2,
+    columnTitle: "Risk Exposure Level",
+  },
+  {
+    columnSize: 2,
+    columnTitle: "Net Exposure Level",
+  },
+];
+
 export const assetsHeaderData = [
   {
     columnSize: 4,
@@ -54,5 +85,24 @@ export const assetsHeaderData = [
   {
     columnSize: 2,
     columnTitle: "Net Exposure",
+  },
+];
+
+export const reportsPageTabs = [
+  {
+    tabName: "Process",
+    tabVlaue: 0,
+  },
+  {
+    tabName: "Asset",
+    tabVlaue: 1,
+  },
+  {
+    tabName: "Concentration Risks",
+    tabVlaue: 2,
+  },
+  {
+    tabName: "Org View",
+    tabVlaue: 3,
   },
 ];

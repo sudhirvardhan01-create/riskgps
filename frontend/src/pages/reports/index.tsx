@@ -5,12 +5,30 @@ import React, { useEffect, useState } from "react";
 import { getOrganizationAssets } from "../api/organization";
 import { getProcessList } from "../api/reports";
 import Cookies from "js-cookie";
+import { reportsPageTabs } from "@/constants/constant";
+import {
+  RiskExposureByProcessChartItem,
+  RiskRadarRecord,
+  RiskScenarioTableChartItem,
+} from "@/types/dashboard";
+import { DashboardService } from "@/services/dashboardService";
+import ProcessTab from "@/components/Reports/ProcessTab";
 
 function Reports() {
   const [currentTab, setCurrentTab] = useState(0);
   const [orgData, setOrgData] = useState<any>({});
   const [assetData, setAssetData] = useState<any[]>([]);
   const [orgId, setOrgId] = useState<string | null>();
+  const [riskExposureProcessChartData, setRiskExposureProcessChartData] =
+    useState<RiskExposureByProcessChartItem[]>([]);
+  const [businessUnitSeverityData, setBusinessUnitSeverityData] = useState<
+    any[]
+  >([]);
+  const [riskScenariosTableChartData, setRiskScenariosTableChartData] =
+    useState<RiskScenarioTableChartItem[]>([]);
+  const [businessUnitRadarChartData, setBusinessUnitRadarChartData] = useState<
+    RiskRadarRecord[]
+  >([]);
 
   useEffect(() => {
     // ✅ Only run on client
@@ -31,13 +49,28 @@ function Reports() {
     async function fetchData() {
       if (!orgId) return;
       try {
-        const [processRes, assetRes] = await Promise.all([
+        const [
+          processRes,
+          assetRes,
+          riskExposureProcessChartRes,
+          businessUnitHeatmapChartRes,
+          riskScenarioTableChartRes,
+          businessUnitRadarChartRes,
+        ] = await Promise.all([
           getProcessList(orgId),
           getOrganizationAssets(orgId),
+          DashboardService.getRiskExposureBusinessProcessChartData(orgId),
+          DashboardService.getBusinessUnitSeverityHeatmapChartData(orgId),
+          DashboardService.getRiskScenariosTableChartData(orgId),
+          DashboardService.getBusinessUnitRadarChartData(orgId),
         ]);
 
         setOrgData(processRes.data);
         setAssetData(assetRes.data ?? []);
+        setRiskExposureProcessChartData(riskExposureProcessChartRes.data ?? []);
+        setBusinessUnitSeverityData(businessUnitHeatmapChartRes.data ?? []);
+        setRiskScenariosTableChartData(riskScenarioTableChartRes.data ?? []);
+        setBusinessUnitRadarChartData(businessUnitRadarChartRes.data ?? []);
       } catch (error) {
         console.error("Error fetching reports data:", error);
       }
@@ -65,7 +98,6 @@ function Reports() {
           Reports
         </Typography>
       </Stack>
-
       <Tabs
         value={currentTab}
         onChange={handleChange}
@@ -78,44 +110,55 @@ function Reports() {
           },
           "& .MuiTabs-indicator": { display: "none" },
           mx: -5,
+          mb: 1,
         }}
         variant="scrollable"
         scrollButtons
       >
-        <Tab
-          label={
-            <Typography variant="body2" fontWeight={550}>
-              Asset View
-            </Typography>
-          }
-          sx={{
-            border:
-              currentTab == 0 ? "1px solid #E7E7E8" : "1px solid transparent",
-            borderRadius: "8px 8px 0px 0px",
-            borderBottom:
-              currentTab == 0 ? "1px solid transparent" : "1px solid #E7E7E8",
-            maxHeight: 48,
-          }}
-        />
-        <Tab
-          label={
-            <Typography variant="body2" fontWeight={550}>
-              Process View
-            </Typography>
-          }
-          sx={{
-            border:
-              currentTab == 1 ? "1px solid #E7E7E8" : "1px solid transparent",
-            borderRadius: "8px 8px 0px 0px",
-            borderBottom:
-              currentTab == 1 ? "1px solid transparent" : "1px solid #E7E7E8",
-            maxHeight: 48,
-          }}
-        />
+        {reportsPageTabs.map((item, index) => (
+          <Tab
+            key={index}
+            label={
+              <Typography variant="body2" fontWeight={550}>
+                {item.tabName}
+              </Typography>
+            }
+            sx={{
+              border:
+                currentTab === item.tabVlaue
+                  ? "1px solid #E7E7E8"
+                  : "1px solid transparent",
+              borderRadius: "8px 8px 0px 0px",
+              borderBottom:
+                currentTab === item.tabVlaue
+                  ? "1px solid transparent"
+                  : "1px solid #E7E7E8",
+              maxHeight: 48,
+            }}
+          />
+        ))}
       </Tabs>
-
       {/* Tab Content */}
-      {currentTab === 0 ? (
+      {currentTab === 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            mb: 0,
+            maxHeight: 500,
+            overflow: "auto",
+          }}
+        >
+          <ProcessTab
+            riskExposureProcessChartData={riskExposureProcessChartData}
+            businessUnitSeverityData={businessUnitSeverityData}
+            riskScenariosTableChartData={riskScenariosTableChartData}
+            businessUnitRadarChartData={businessUnitRadarChartData}
+          />
+        </Box>
+      )}
+      {currentTab === 1 && <Typography>Asset Tab Content</Typography>}
+      {currentTab === 2 && (
         <Box
           sx={{
             display: "flex",
@@ -127,7 +170,8 @@ function Reports() {
         >
           <RiskDashboard assetData={assetData} />
         </Box>
-      ) : (
+      )}
+      {currentTab === 3 && (
         <Box
           sx={{
             display: "flex",
