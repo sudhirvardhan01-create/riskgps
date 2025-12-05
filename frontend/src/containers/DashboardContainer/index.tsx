@@ -33,6 +33,8 @@ import { DashboardService } from "@/services/dashboardService";
 import TableViewHeader from "@/components/Reports/BusinessProcessRiskDashboard/TableViewHeader";
 import { riskScenariosHeaderData } from "@/constants/constant";
 import TableViewRiskScenarioCard from "@/components/Reports/BusinessProcessRiskDashboard/TableViewRiskScenarioCard";
+import AssetControlStrengthDashboardContainer from "@/pages/dashboard/asset";
+import AssetLevelReportsContainer from "../AssetLevelReports";
 
 export default function DashboardContainer() {
   const [currentTab, setCurrentTab] = useState(0);
@@ -577,7 +579,7 @@ export default function DashboardContainer() {
         ) : (
           //Asset Tab Content
           <>
-            <Typography>Asset Tab Content here</Typography>
+            <AssetLevelReportsContainer/>
           </>
         )}
       </Box>

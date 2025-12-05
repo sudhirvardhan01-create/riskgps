@@ -5,15 +5,30 @@ import React, { useEffect, useState } from "react";
 import { getOrganizationAssets } from "../api/organization";
 import { getProcessList } from "../api/reports";
 import Cookies from "js-cookie";
+import NistControlScoreCardList, {
+  NistControlCategory,
+  NistControlScore,
+} from "@/components/NistScore/NistScoreInput";
 
 function Reports() {
   const [currentTab, setCurrentTab] = useState(0);
   const [orgData, setOrgData] = useState<any>({});
   const [assetData, setAssetData] = useState<any[]>([]);
   const [orgId, setOrgId] = useState<string | null>();
+  const categories: NistControlCategory[] = [
+    { id: "ID", code: "ID", name: "Identify" },
+    { id: "PR", code: "PR", name: "Protect" },
+    { id: "DE", code: "DE", name: "Detect" },
+    { id: "RS", code: "RS", name: "Respond" },
+    { id: "RC", code: "RC", name: "Recover" },
+  ];
+
+  const handleSave = (scores: NistControlScore[]) => {
+    // replace with your API call
+    console.log("Saving NIST scores:", scores);
+  };
 
   useEffect(() => {
-    // ✅ Only run on client
     if (typeof window !== "undefined") {
       try {
         const cookieUser = Cookies.get("user");
@@ -112,10 +127,25 @@ function Reports() {
             maxHeight: 48,
           }}
         />
+        <Tab
+          label={
+            <Typography variant="body2" fontWeight={550}>
+              Nist Scores
+            </Typography>
+          }
+          sx={{
+            border:
+              currentTab == 2 ? "1px solid #E7E7E8" : "1px solid transparent",
+            borderRadius: "8px 8px 0px 0px",
+            borderBottom:
+              currentTab == 1 ? "1px solid transparent" : "1px solid #E7E7E8",
+            maxHeight: 48,
+          }}
+        />
       </Tabs>
 
       {/* Tab Content */}
-      {currentTab === 0 ? (
+      {currentTab === 0 && (
         <Box
           sx={{
             display: "flex",
@@ -127,7 +157,8 @@ function Reports() {
         >
           <RiskDashboard assetData={assetData} />
         </Box>
-      ) : (
+      )}
+      {currentTab === 1 && (
         <Box
           sx={{
             display: "flex",
@@ -138,6 +169,22 @@ function Reports() {
           }}
         >
           <ProcessAssetFlow data={orgData} />
+        </Box>
+      )}
+      {currentTab === 2 && (
+        <Box
+          sx={{
+            display: "flex",
+            flex: 1,
+            mb: 0,
+            maxHeight: 600,
+            overflow: "auto",
+          }}
+        >
+          <NistControlScoreCardList
+            categories={categories}
+            onSave={handleSave}
+          />{" "}
         </Box>
       )}
     </Box>
