@@ -1,4 +1,5 @@
 const {
+  sequelize,
   Organization,
   OrganizationBusinessUnit,
   OrganizationProcess,
@@ -6,7 +7,11 @@ const {
   OrganizationProcessRelationship,
   OrganizationAsset,
   ReportsMaster,
+  OrganizationFrameworkControl,
+  FrameWorkControl,
+  ReportsAssetNistControlScore,
 } = require("../models");
+const { isDeleted } = require("../models/common_fields");
 
 const severityMap = {
   critical: "Critical",
@@ -170,6 +175,20 @@ class ReportsService {
   static async getLatestTimeStampFromReportsTableForOrg(orgId) {
     if (!orgId) throw new Error("Org id required");
     const latest = await ReportsMaster.findOne({
+      where: { orgId },
+      order: [["updatedAt", "DESC"]],
+      attributes: ["updatedAt"],
+    });
+    if (!latest) throw new Error("no data found for org");
+
+    return latest.updatedAt;
+  }
+
+  static async getLatestTimeStampFromReportsAssetNistControlScoreTableForOrg(
+    orgId
+  ) {
+    if (!orgId) throw new Error("Org id required");
+    const latest = await ReportsAssetNistControlScore.findOne({
       where: { orgId },
       order: [["updatedAt", "DESC"]],
       attributes: ["updatedAt"],
@@ -619,6 +638,143 @@ class ReportsService {
       this.getBusinessUnitRadarChartData(reportsData);
 
     return businessUnitRadarChartRes;
+  }
+
+  static async fetchOrganizationNistControlScores(orgId) {
+    return sequelize.transaction(async (t) => {
+      let orgControls = await OrganizationFrameworkControl.findAll({
+        where: {
+          organizationId: orgId,
+          frameWorkName: "NIST",
+        },
+        transaction: t,
+      });
+
+      const defaultControls = await FrameWorkControl.findAll({
+        where: { frameWorkName: "NIST" },
+        transaction: t,
+      });
+
+      const existingParentIds = new Set(
+        orgControls.map((c) => c.parentObjectId)
+      );
+
+      const missingControls = defaultControls.filter(
+        (dc) => !existingParentIds.has(dc.id)
+      );
+
+      if (missingControls.length > 0) {
+        const toInsert = missingControls.map((dc) => ({
+          organizationId: orgId,
+          parentObjectId: dc.id,
+
+          frameWorkName: dc.frameWorkName,
+          frameWorkControlCategoryId: dc.frameWorkControlCategoryId,
+          frameWorkControlCategory: dc.frameWorkControlCategory,
+          frameWorkControlDescription: dc.frameWorkControlDescription,
+          frameWorkControlSubCategoryId: dc.frameWorkControlSubCategoryId,
+          frameWorkControlSubCategory: dc.frameWorkControlSubCategory,
+
+          currentScore: null,
+          targetScore: null,
+        }));
+
+        await OrganizationFrameworkControl.bulkCreate(toInsert, {
+          transaction: t,
+        });
+      }
+
+      const updatedOrgControls = await OrganizationFrameworkControl.findAll({
+        where: {
+          organizationId: orgId,
+          frameWorkName: "NIST",
+        },
+        transaction: t,
+      });
+
+      return updatedOrgControls;
+    });
+  }
+
+  static async updateOrganizationNistControlScores(orgId, controls = []) {
+    if (!orgId) {
+      throw new Error("Organization id required");
+    }
+    if (!Array.isArray(controls) || controls.length === 0) {
+      throw new Error("No controls provided for update");
+    }
+
+    await sequelize.transaction(async (t) => {
+      for (const row of controls) {
+        await OrganizationFrameworkControl.update(
+          {
+            currentScore: row.currentScore,
+            targetScore: row.targetScore,
+            modifiedDate: new Date(),
+          },
+          {
+            where: { organizationId: orgId, orgControlId: row.orgControlId },
+            transaction: t,
+          }
+        );
+      }
+    });
+  }
+
+  static async organizationMitreToNistScoreMapping(orgId) {
+    if (!orgId) {
+      throw new Error("Organization id required");
+    }
+    const latestTimeStampFromAssetNistControlScoreTable =
+      await this.getLatestTimeStampFromReportsAssetNistControlScoreTableForOrg(
+        orgId
+      );
+    const calculatedMitreToNistScores =
+      await ReportsAssetNistControlScore.findAll({
+        where: {
+          orgId: orgId,
+          updatedAt: latestTimeStampFromAssetNistControlScoreTable,
+        },
+      });
+    const parentIds = calculatedMitreToNistScores.map(
+      (item) => item.nistControlId
+    );
+    const organizationNistControlScores = await OrganizationFrameworkControl.findAll({
+      where: {
+        parentObjectId: parentIds, // IN condition
+        organizationId: orgId, // filter by org
+        frameWorkName: "NIST", // ensure NIST only
+      },
+    });
+    const controlMap = new Map(
+      organizationNistControlScores.map((c) => [
+        c.parentObjectId,
+        {
+          currentScore: c.currentScore,
+          targetScore: c.targetScore,
+        },
+      ])
+    );
+
+    let assetMitreToNistControlScore = [];
+    for (const asset of calculatedMitreToNistScores) {
+      const match = controlMap.get(asset.nistControlId);
+
+      assetMitreToNistControlScore.push({
+        assetId: asset.assetId,
+        assetName: asset.assetName,
+        assetCategory: asset.assetCategory,
+        controlCategoryId: asset.controlCategoryId,
+        controlCategory: asset.controlCategory,
+        controlSubCategoryId: asset.controlSubCategoryId,
+        controlSubCategory: asset.controlSubCategory,
+
+        calcultatedControlScore: asset.calcultatedControlScore,
+        currentScore: match ? match.currentScore : null,
+        targetScore: match ? match.targetScore : null,
+      })
+    }
+    return assetMitreToNistControlScore;
   }
 }
 

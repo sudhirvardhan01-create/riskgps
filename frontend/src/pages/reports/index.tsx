@@ -25,12 +25,16 @@ function Reports() {
   const [assetData, setAssetData] = useState<any[]>([]);
   const [orgId, setOrgId] = useState<string | null>();
   const categories: NistControlCategory[] = [
-    { id: "ID", code: "ID", name: "Identify" },
-    { id: "PR", code: "PR", name: "Protect" },
-    { id: "DE", code: "DE", name: "Detect" },
-    { id: "RS", code: "RS", name: "Respond" },
-    { id: "RC", code: "RC", name: "Recover" },
-  ];
+  { id: "DE.CM", code: "DE.CM", name: "Continuous Monitoring" },
+  { id: "PR.AT", code: "PR.AT", name: "Awareness and Training" },
+  { id: "PR.AA", code: "PR.AA", name: "Identity Management, Authentication, and Access Control" },
+  { id: "PR.IR", code: "PR.IR", name: "Technology Infrastructure Resilience" },
+  { id: "PR.PS", code: "PR.PS", name: "Platform Security" },
+  { id: "ID.RA", code: "ID.RA", name: "Risk Assessment" },
+
+  // Included because you referenced it
+  { id: "DE.AE", code: "DE.AE", name: "Anomalies and Events" }
+];;
 
   const handleSave = (scores: NistControlScore[]) => {
     // replace with your API call
@@ -206,8 +210,7 @@ function Reports() {
             display: "flex",
             flex: 1,
             mb: 0,
-            maxHeight: 600,
-            overflow: "auto",
+            maxHeight: 500,
           }}
         >
           <NistControlScoreCardList

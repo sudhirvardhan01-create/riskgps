@@ -13,7 +13,7 @@ router.get("/v1/data-syncup/:orgId", async (req, res) => {
     if (!orgId) {
       throw new Error("Org id not found");
     }
-    const data = await SyncupService.generateFlatAssessmentMatrix(orgId);
+    const data = await SyncupService.assessmentSyncUpJob(orgId);
     res.status(HttpStatusCodes.OK).json({
       data: data,
       msg: "fetched reports details",

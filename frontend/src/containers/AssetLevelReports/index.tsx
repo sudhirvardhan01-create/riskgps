@@ -35,9 +35,83 @@ const mockAssetProfiles: AssetControlProfile[] = [
     controlStrength: 3.8,
     band: "High",
     metrics: [
-      // ... (keeping metrics data here or move to separate file)
-      { id: "GV.OC", familyLabel: "GV.OC", orgCurrent: 2.5, orgTarget: 3.0, assetCurrent: 0.3 },
-      // ... other metrics
+      {
+        id: "GV.OC",
+        familyLabel: "GV.OC",
+        orgCurrent: 2.5,
+        orgTarget: 3.0,
+        assetCurrent: 0.3,
+      },
+      {
+        id: "GV.OV",
+        familyLabel: "GV.OV",
+        orgCurrent: 3.0,
+        orgTarget: 3.5,
+        assetCurrent: 0.3,
+      },
+      {
+        id: "GV.PO",
+        familyLabel: "GV.PO",
+        orgCurrent: 4.0,
+        orgTarget: 3.2,
+        assetCurrent: 0.3,
+      },
+      {
+        id: "ID.IM",
+        familyLabel: "ID.IM",
+        orgCurrent: 2.8,
+        orgTarget: 3.5,
+        assetCurrent: 2.1,
+      },
+      {
+        id: "ID.RA",
+        familyLabel: "ID.RA",
+        orgCurrent: 3.0,
+        orgTarget: 3.8,
+        assetCurrent: 5.5,
+      },
+      {
+        id: "PR.AA",
+        familyLabel: "PR.AA",
+        orgCurrent: 2.9,
+        orgTarget: 3.4,
+        assetCurrent: 5.0,
+      },
+      {
+        id: "PR.DS",
+        familyLabel: "PR.DS",
+        orgCurrent: 2.0,
+        orgTarget: 3.0,
+        assetCurrent: 1.0,
+      },
+      {
+        id: "PR.PS",
+        familyLabel: "PR.PS",
+        orgCurrent: 2.8,
+        orgTarget: 3.2,
+        assetCurrent: 3.0,
+      },
+      {
+        id: "DE.AE",
+        familyLabel: "DE.AE",
+        orgCurrent: 3.0,
+        orgTarget: 3.0,
+        assetCurrent: 3.2,
+      },
+      {
+        id: "RS.AN",
+        familyLabel: "RS.AN",
+        orgCurrent: 3.0,
+        orgTarget: 3.0,
+        assetCurrent: 0.0,
+      },
+      {
+        id: "RC.RP",
+        familyLabel: "RC.RP",
+        orgCurrent: 3.0,
+        orgTarget: 3.0,
+        assetCurrent: 0.0,
+      },
     ],
   },
   {
@@ -67,11 +141,15 @@ const mockAssetProfiles: AssetControlProfile[] = [
 ];
 
 const AssetLevelReportsContainer: React.FC = () => {
-  const [selectedAssetName, setSelectedAssetName] = useState<string>("Banking Application");
-  const [selectedBusinessUnit, setSelectedBusinessUnit] = useState<string>("All");
+  const [selectedAssetName, setSelectedAssetName] = useState<string>(
+    "Banking Application"
+  );
+  const [selectedBusinessUnit, setSelectedBusinessUnit] =
+    useState<string>("All");
 
   const selectedAsset =
-    mockAssetProfiles.find((a) => a.assetName === selectedAssetName) ?? mockAssetProfiles[0];
+    mockAssetProfiles.find((a) => a.assetName === selectedAssetName) ??
+    mockAssetProfiles[0];
 
   const businessUnits = [
     "All",
@@ -80,33 +158,29 @@ const AssetLevelReportsContainer: React.FC = () => {
 
   return (
     <>
-                <Stack
-              direction={"row"}
-              justifyContent={"end"}
-              alignItems={"center"}
-              mb={3}
-            >
-
-              <FormControl
-                variant="filled"
-                sx={{ height: "48px", width: "200px" }}
-              >
-                <InputLabel id="business-unit-label">Business Unit</InputLabel>
-                <Select
-                  labelId="business-unit-label"
-                  value={selectedBusinessUnit}
-                  onChange={(e) => {
-                    setSelectedBusinessUnit(e.target.value);
-                  }}
-                >
-                  {businessUnits.map((item, index) => (
-                    <MenuItem value={item} key={index}>
-                      {item}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
+      <Stack
+        direction={"row"}
+        justifyContent={"end"}
+        alignItems={"center"}
+        mb={3}
+      >
+        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
+          <InputLabel id="business-unit-label">Business Unit</InputLabel>
+          <Select
+            labelId="business-unit-label"
+            value={selectedBusinessUnit}
+            onChange={(e) => {
+              setSelectedBusinessUnit(e.target.value);
+            }}
+          >
+            {businessUnits.map((item, index) => (
+              <MenuItem value={item} key={index}>
+                {item}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
       {/* Scrollable content */}
       <Box
         sx={{
@@ -137,7 +211,9 @@ const AssetLevelReportsContainer: React.FC = () => {
               size="small"
               clickable
               onClick={() => setSelectedAssetName(asset.assetName)}
-              color={asset.assetName === selectedAssetName ? "primary" : "default"}
+              color={
+                asset.assetName === selectedAssetName ? "primary" : "default"
+              }
               sx={{ textTransform: "none" }}
             />
           ))}

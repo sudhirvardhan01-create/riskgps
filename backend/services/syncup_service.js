@@ -451,6 +451,203 @@ class SyncupService {
 
     return finalScores;
   }
+  static async calculateNistToMitreScores(assetList) {
+    // -----------------------------------------
+    // 1. Gather all MITRE control IDs
+    // -----------------------------------------
+    const allMitreIds = [
+      ...new Set(
+        assetList.flatMap((asset) =>
+          asset.mitreControlsAndScores.map((c) => c.id)
+        )
+      ),
+    ];
+
+    // -----------------------------------------
+    // 2. Fetch MITRE → Threat Techniques
+    // -----------------------------------------
+    const threatRecords = await models.MitreThreatControl.findAll({
+      where: { mitreControlId: allMitreIds },
+      attributes: [
+        "mitreTechniqueId",
+        "mitreTechniqueName",
+        "subTechniqueId",
+        "subTechniqueName",
+        "mitreControlId",
+        "ciaMapping",
+        "controlPriority",
+        "mitreControlType",
+      ],
+    });
+
+    // Group threat techniques under each MITRE control
+    const mitreThreatMap = {}; // mitreId → techniques[]
+    for (const row of threatRecords) {
+      const mitreId = row.mitreControlId;
+      if (!mitreThreatMap[mitreId]) mitreThreatMap[mitreId] = [];
+
+      mitreThreatMap[mitreId].push({
+        mitreTechniqueId: row.mitreTechniqueId,
+        mitreTechniqueName: row.mitreTechniqueName,
+        subTechniqueId: row.subTechniqueId,
+        subTechniqueName: row.subTechniqueName,
+        ciaMapping: row.ciaMapping,
+        controlPriority: row.controlPriority,
+        mitreControlType: row.mitreControlType,
+      });
+    }
+
+    // -----------------------------------------
+    // 3. Fetch MITRE → NIST control mapping
+    // -----------------------------------------
+    const mappingRecords = await models.MitreThreatControl.findAll({
+      where: { mitreControlId: allMitreIds },
+      include: [
+        {
+          model: models.FrameWorkControl,
+          as: "framework_controls",
+          attributes: [
+            "id",
+            "frameWorkName",
+            "frameWorkControlCategoryId",
+            "frameWorkControlCategory",
+            "frameWorkControlSubCategoryId",
+            "frameWorkControlSubCategory",
+          ],
+          where: {
+            frameWorkName: "NIST",
+            status: "published",
+          },
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    // Build MITRE → NIST map
+    const mitreToNistMap = {}; // mitreId → nist { categoryId, ... }
+
+    for (const rec of mappingRecords) {
+      const mitreId = rec.mitreControlId;
+      const fc = rec.framework_controls[0];
+      if (!fc) continue;
+
+      // Only one NIST category per MITRE control
+      mitreToNistMap[mitreId] = {
+        id: fc.id,
+        frameWorkName: fc.frameWorkName,
+        controlCategoryId: fc.frameWorkControlCategoryId,
+        controlCategory: fc.frameWorkControlCategory,
+        controlSubCategoryId: fc.frameWorkControlSubCategoryId,
+        controlSubCategory: fc.frameWorkControlSubCategory,
+      };
+    }
+
+    // -----------------------------------------
+    // 4. Build NIST → MITRE grouping for each asset
+    // -----------------------------------------
+    const enrichedAssets = assetList.map((asset) => {
+      const nistGroups = {}; // nistCategoryId → group
+
+      for (const { id: mitreId, score } of asset.mitreControlsAndScores) {
+        const nist = mitreToNistMap[mitreId];
+        if (!nist) continue; // no NIST mapping
+
+        const catId = nist.controlCategoryId;
+
+        if (!nistGroups[catId]) {
+          nistGroups[catId] = {
+            id: nist.id,
+            frameWorkName: nist.frameWorkName,
+            controlCategoryId: nist.controlCategoryId,
+            controlCategory: nist.controlCategory,
+            controlSubCategoryId: nist.controlSubCategoryId,
+            controlSubCategory: nist.controlSubCategory,
+            mitreControlsAndScores: [],
+          };
+        }
+
+        // Add the MITRE control
+        nistGroups[catId].mitreControlsAndScores.push({
+          id: mitreId,
+          score,
+          techniques: mitreThreatMap[mitreId] || [],
+        });
+      }
+
+      return {
+        assetId: asset.assetId,
+        assetName: asset.assetName,
+        assetCategory: asset.assetCategory,
+        nistControls: Object.values(nistGroups),
+      };
+    });
+
+    for (const asset of enrichedAssets) {
+      if (!asset.nistControls) continue;
+
+      for (const nist of asset.nistControls) {
+        let num = 0;
+        let den = 0;
+
+        for (const mitre of nist.mitreControlsAndScores || []) {
+          const baseScore = mitre.score || 0;
+          if (baseScore === -1) continue;
+
+          for (const technique of mitre.techniques) {
+            const priority = technique.controlPriority || 0;
+            const typeScore =
+              technique.mitreControlType === "MITIGATION" ? 3 : 1;
+
+            const weight = typeScore * priority;
+            const weightedScore = baseScore * 2.5 * weight;
+            num = num + weightedScore;
+            den = den + weight;
+          }
+        }
+        const nistControlScore =
+          den === 0 ? null : roundToOneDecimal(num / den);
+        nist.nistControlScore =
+          nistControlScore === null ? null : nistControlScore;
+      }
+    }
+    return enrichedAssets;
+  }
+
+  static async insertToReportsAssetNistControlScores(orgId, items) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error("items must be a non-empty array");
+    }
+    const now = new Date();
+
+    return models.sequelize.transaction(async (t) => {
+      let formattedRecords = [];
+      for (const asset of items) {
+        for (const nistControl of asset.nistControls) {
+          formattedRecords.push({
+            orgId: orgId,
+            assetId: asset.assetId ?? null,
+            assetName: asset.assetName ?? null,
+            assetCategory: asset.assetCategory ?? null,
+            nistControlId: nistControl.id ?? null,
+            frameWorkName: nistControl.frameWorkName ?? null,
+            controlCategoryId: nistControl.controlCategoryId ?? null,
+            controlCategory: nistControl.controlCategory ?? null,
+            controlSubCategoryId: nistControl.controlSubCategoryId ?? null,
+            controlSubCategory: nistControl.controlSubCategory ?? null,
+            calcultatedControlScore: nistControl.nistControlScore ?? null,
+            mitreControlsAndScores: nistControl.mitreControlsAndScores ?? null,
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
+
+      return models.ReportsAssetNistControlScore.bulkCreate(formattedRecords, {
+        transaction: t,
+        returning: true,
+      });
+    });
+  }
 
   static async enrichMitreControlsByMitreThreatRecords(assetList) {
     // 1. Gather unique MITRE control IDs
@@ -1455,7 +1652,7 @@ class SyncupService {
     });
   }
 
-  static async generateFlatAssessmentMatrix(orgId, active = true) {
+  static async assessmentSyncUpJob(orgId, active = true) {
     const org = await models.Organization.findOne({
       where: { organizationId: orgId },
       attributes: ["riskAppetite"], // only fetch riskAppetite
@@ -1473,6 +1670,11 @@ class SyncupService {
     const d = this.createFlatAssessmentMatrixFromProcesses(assessmentProcesses);
     const b = this.aggregateMitreControlsByAsset(assessmentProcesses);
     const c = await this.enrichMitreControlsByMitreThreatRecords(b);
+    const nistToMitreControlScores = await this.calculateNistToMitreScores(b);
+    await this.insertToReportsAssetNistControlScores(
+      orgId,
+      nistToMitreControlScores
+    );
     const assetControlScores = this.calculateAssetScoresForAll(c);
     const finalArray = this.mergeAndAddControlStrength(d, assetControlScores);
     const riskToImpact = this.risksToImpactCalculations(finalArray);
@@ -1490,7 +1692,7 @@ class SyncupService {
       riskAppetite
     );
     this.insertReportsMaster(cioTab);
-    return cioTab;
+    return nistToMitreControlScores;
   }
 
   static async getLastSyncupDetails(orgId) {
@@ -1514,7 +1716,6 @@ class SyncupService {
       }
     );
     result[0].lastDayDateTime = latestTimeStamp;
-    console.log(result)
     return result[0];
   }
 }
