@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 import HorizontalBarChart from "../CustomReports/HorizontalBarChart";
 import WorldMap from "../CustomReports/WorldMap";
 import { transformAssetData } from "@/utils/utility";
+import AssetTableViewContainer from "@/components/AssetLevelReports/AssetTableViewContainer";
 
 interface AssetControlProfile {
   assetName: string;
@@ -289,6 +290,9 @@ export default function CISOTab({ assetData, tooltipData }: any) {
             </Typography>
             <AssetsRiskScoreBarChart data={assetRiskScoresData} />
           </Paper>
+        </Grid>
+        <Grid size={12}>
+          <AssetTableViewContainer />
         </Grid>
         {/* ===== LEFT CARD: GEO MAP ===== */}
         {/* <Grid size={{ xs: 12, md: 6 }}> */}
