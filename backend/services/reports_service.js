@@ -689,6 +689,9 @@ class ReportsService {
           organizationId: orgId,
           frameWorkName: "NIST",
         },
+        attributes: {
+          exclude: ["modifiedBy"], // put your 2 column names here
+        },
         transaction: t,
       });
 
@@ -829,11 +832,13 @@ class ReportsService {
       }
     });
     assetLevelReportsData = reportsMasterDataGrouped.map((data) => {
-      const mitreNistControlData = assetDataLookUp[data.assetId]?.controls ?? null;
+      const mitreNistControlData =
+        assetDataLookUp[data.assetId]?.controls ?? null;
       return {
         orgId: data.orgId,
         orgName: data.orgName,
-        organizationRiskAppetiteInMillionDollar: data.organizationRiskAppetiteInMillionDollar,
+        organizationRiskAppetiteInMillionDollar:
+          data.organizationRiskAppetiteInMillionDollar,
         businessUnitId: data.businessUnitId,
         businessUnit: data.businessUnit,
         businessProcessId: data.businessProcessId,
@@ -846,15 +851,23 @@ class ReportsService {
         inherentRiskLevel: data.aggAssetInherentRiskLevelRiskDashboardCIOTab,
         residualRiskScore: data.aggAssetResidualRiskScoreRiskDashboardCIOTab,
         residualRiskLevel: data.aggAssetResidualRiskLevelRiskDashboardCIOTab,
-        inherentImpactInDollar: convertMillionToValue(data.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab),
-        residualImpactInDollar: convertMillionToValue(data.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab),
-        targetImpactInDollar: convertMillionToValue(data.aggAssetTargetImpactRiskDashboardCIOTab),
+        inherentImpactInDollar: convertMillionToValue(
+          data.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab
+        ),
+        residualImpactInDollar: convertMillionToValue(
+          data.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab
+        ),
+        targetImpactInDollar: convertMillionToValue(
+          data.aggAssetTargetImpactRiskDashboardCIOTab
+        ),
         targetStrength: data.aggAssetTargetStrengthRiskDashboardCIOTab,
-        targetResidualRiskScore: data.aggAssetTargetResidualRiskScoreRiskDashboardCIOTab,
-        targetResidualRiskLevel: data.aggAssetTargetResidualRiskLevelRiskDashboardCIOTab,
-        controls: mitreNistControlData
-      }
-    })
+        targetResidualRiskScore:
+          data.aggAssetTargetResidualRiskScoreRiskDashboardCIOTab,
+        targetResidualRiskLevel:
+          data.aggAssetTargetResidualRiskLevelRiskDashboardCIOTab,
+        controls: mitreNistControlData,
+      };
+    });
     return assetLevelReportsData;
   }
 }

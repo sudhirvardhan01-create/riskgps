@@ -14,28 +14,21 @@ import InfoIcon from "@mui/icons-material/Info";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
+import { AssetLevelReportsData } from "@/types/reports";
 
-interface AssetControlProfile {
-  assetName: string;
-  businessUnit: string;
-  businessProcess: string;
-  controlStrength: number;
-  band: string;
-  metrics: any[];
-}
 
 interface AssetSummaryRowProps {
-  assets: AssetControlProfile[];
+  assets: AssetLevelReportsData[];
 }
 
-const AssetSummaryRow: React.FC<AssetSummaryRowProps> = ({ assets }) => {
+const AssetSummaryRow: React.FC<AssetSummaryRowProps> = ({assets} ) => {
   const assetSummaryCardItems = useMemo(
     () => ({
-      critical: assets.filter((a) => a.band === "Critical").length,
-      high: assets.filter((a) => a.band === "High").length,
-      moderate: assets.filter((a) => a.band === "Moderate").length,
-      low: assets.filter((a) => a.band === "Low").length,
-      veryLow: assets.filter((a) => a.band === "Very Low").length,
+      critical: assets.filter((a) => a.residualRiskLevel === "critical").length,
+      high: assets.filter((a) => a.residualRiskLevel === "high").length,
+      moderate: assets.filter((a) => a.residualRiskLevel === "moderate").length,
+      low: assets.filter((a) => a.residualRiskLevel === "low").length,
+      veryLow: assets.filter((a) => a.residualRiskLevel === "very low").length,
       total: assets.length,
     }),
     [assets]

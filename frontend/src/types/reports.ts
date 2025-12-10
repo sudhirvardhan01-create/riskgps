@@ -58,6 +58,7 @@ export interface OrganizationFrameworkControl {
   frameWorkControlSubCategory: string | null;
   currentScore: number | null;
   targetScore: number | null;
+  createdBy: string | null,
   createdDate: string;
   modifiedDate: string; 
   isDeleted: boolean;
@@ -66,14 +67,14 @@ export interface OrganizationFrameworkControl {
 export interface Control {
   controlCategoryId: string;
   controlCategory: string;
-  controlSubCategoryId: string;
-  controlSubCategory: string;
-  calcultatedControlScore: number;
-  currentScore: number;
-  targetScore: number;
+  controlSubCategoryId: string | null;
+  controlSubCategory: string | null;
+  calcultatedControlScore: number | null
+  currentScore: number | null;
+  targetScore: number | null;
 }
 
-export interface AssetRiskRecord {
+export interface AssetLevelReportsData {
   orgId: string;
   orgName: string;
   organizationRiskAppetiteInMillionDollar: number;
@@ -88,22 +89,22 @@ export interface AssetRiskRecord {
   asset: string;
   assetCategory: string;
 
-  controlStrength: number;
+  controlStrength: number | null;
 
-  inherentRiskScore: number;
-  inherentRiskLevel: string;
+  inherentRiskScore: number | null;
+  inherentRiskLevel: "very low" | "low" | "moderate" | "high" | "critical";
 
-  residualRiskScore: number;
-  residualRiskLevel: string;
+  residualRiskScore: number | null;
+  residualRiskLevel: "very low" | "low" | "moderate" | "high" | "critical";
 
-  inherentImpactInDollar: number;
-  residualImpactInDollar: number;
-  targetImpactInDollar: number;
+  inherentImpactInDollar: number | null;
+  residualImpactInDollar: number | null;
+  targetImpactInDollar: number | null;
 
-  targetStrength: number;
-  targetResidualRiskScore: number;
-  targetResidualRiskLevel: string;
+  targetStrength: number | null;
+  targetResidualRiskScore: number | null;
+  targetResidualRiskLevel: "very low" | "low" | "moderate" | "high" | "critical";
 
-  controls: Control[];
+  controls: Control[] | null;
 }
 

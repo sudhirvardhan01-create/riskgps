@@ -1692,7 +1692,7 @@ class SyncupService {
       riskAppetite
     );
     this.insertReportsMaster(cioTab);
-    return nistToMitreControlScores;
+    return cioTab;
   }
 
   static async getLastSyncupDetails(orgId) {

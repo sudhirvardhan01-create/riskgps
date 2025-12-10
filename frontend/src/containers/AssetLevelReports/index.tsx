@@ -1,6 +1,5 @@
-"use client";
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Cookies from "js-cookie";
 import {
   Box,
   Stack,
@@ -16,146 +15,65 @@ import AssetSummaryRow from "@/components/AssetLevelReports/AssetSummaryRow/inde
 import AssetControlFamilyLineChart from "@/components/AssetLevelReports/AssetControlFamilyLineChart";
 import AssetStrengthBarChart from "@/components/AssetLevelReports/AssetStrengthBarChart";
 import AssetTableViewContainer from "@/components/AssetLevelReports/AssetTableViewContainer";
-
-// Types & mock data
-interface AssetControlProfile {
-  assetName: string;
-  businessUnit: string;
-  businessProcess: string;
-  controlStrength: number;
-  band: string;
-  metrics: any[];
-}
-
-const mockAssetProfiles: AssetControlProfile[] = [
-  {
-    assetName: "Banking Application",
-    businessUnit: "Retail Banking",
-    businessProcess: "Electronic Banking",
-    controlStrength: 3.8,
-    band: "High",
-    metrics: [
-      {
-        id: "GV.OC",
-        familyLabel: "GV.OC",
-        orgCurrent: 2.5,
-        orgTarget: 3.0,
-        assetCurrent: 0.3,
-      },
-      {
-        id: "GV.OV",
-        familyLabel: "GV.OV",
-        orgCurrent: 3.0,
-        orgTarget: 3.5,
-        assetCurrent: 0.3,
-      },
-      {
-        id: "GV.PO",
-        familyLabel: "GV.PO",
-        orgCurrent: 4.0,
-        orgTarget: 3.2,
-        assetCurrent: 0.3,
-      },
-      {
-        id: "ID.IM",
-        familyLabel: "ID.IM",
-        orgCurrent: 2.8,
-        orgTarget: 3.5,
-        assetCurrent: 2.1,
-      },
-      {
-        id: "ID.RA",
-        familyLabel: "ID.RA",
-        orgCurrent: 3.0,
-        orgTarget: 3.8,
-        assetCurrent: 5.5,
-      },
-      {
-        id: "PR.AA",
-        familyLabel: "PR.AA",
-        orgCurrent: 2.9,
-        orgTarget: 3.4,
-        assetCurrent: 5.0,
-      },
-      {
-        id: "PR.DS",
-        familyLabel: "PR.DS",
-        orgCurrent: 2.0,
-        orgTarget: 3.0,
-        assetCurrent: 1.0,
-      },
-      {
-        id: "PR.PS",
-        familyLabel: "PR.PS",
-        orgCurrent: 2.8,
-        orgTarget: 3.2,
-        assetCurrent: 3.0,
-      },
-      {
-        id: "DE.AE",
-        familyLabel: "DE.AE",
-        orgCurrent: 3.0,
-        orgTarget: 3.0,
-        assetCurrent: 3.2,
-      },
-      {
-        id: "RS.AN",
-        familyLabel: "RS.AN",
-        orgCurrent: 3.0,
-        orgTarget: 3.0,
-        assetCurrent: 0.0,
-      },
-      {
-        id: "RC.RP",
-        familyLabel: "RC.RP",
-        orgCurrent: 3.0,
-        orgTarget: 3.0,
-        assetCurrent: 0.0,
-      },
-    ],
-  },
-  {
-    assetName: "Payment Rails",
-    businessUnit: "Retail Banking",
-    businessProcess: "ACH",
-    controlStrength: 2.7,
-    band: "Moderate",
-    metrics: [],
-  },
-  {
-    assetName: "Fraud Application",
-    businessUnit: "Retail Banking",
-    businessProcess: "Fraud Monitoring",
-    controlStrength: 2.7,
-    band: "Moderate",
-    metrics: [],
-  },
-  {
-    assetName: "Customer Database",
-    businessUnit: "Retail Banking",
-    businessProcess: "Account Management Process",
-    controlStrength: 1.2,
-    band: "Critical",
-    metrics: [],
-  },
-];
+import { AssetLevelReportsData } from "@/types/reports";
+import { DashboardService } from "@/services/dashboardService";
 
 const AssetLevelReportsContainer: React.FC = () => {
-  const [selectedAssetName, setSelectedAssetName] = useState<string>(
-    "Banking Application"
+  const [orgId, setOrgId] = useState<string | null>();
+
+  const [assetLevelReportsData, setAssetLevelReportsData] = useState<
+    AssetLevelReportsData[]
+  >([]);
+
+  const [selectedAssetId, setSelectedAssetId] = useState<string>(
+    assetLevelReportsData[0]?.assetId
   );
   const [selectedBusinessUnit, setSelectedBusinessUnit] =
     useState<string>("All");
 
   const selectedAsset =
-    mockAssetProfiles.find((a) => a.assetName === selectedAssetName) ??
-    mockAssetProfiles[0];
+    assetLevelReportsData.find((a) => a.assetId === selectedAssetId) ??
+    assetLevelReportsData[0];
 
   const businessUnits = [
     "All",
-    ...Array.from(new Set(mockAssetProfiles.map((a) => a.businessUnit))),
+    ...Array.from(new Set(assetLevelReportsData.map((a) => a.businessUnit))),
   ];
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cookieUser = Cookies.get("user");
+        if (cookieUser) {
+          const parsed = JSON.parse(cookieUser);
+          setOrgId(parsed?.orgId || parsed?.org_id || null);
+        }
+      } catch (err) {
+        console.warn("Invalid or missing cookie:", err);
+      }
+    }
+  }, []);
+  useEffect(() => {
+    async function fetchData() {
+      if (!orgId) return;
+      const [res] = await Promise.all([
+        DashboardService.getAssetLevelChartsData(orgId),
+      ]);
+      const data = res?.data;
+      console.log(res)
+      if (selectedBusinessUnit === "All") {
+        setAssetLevelReportsData(data);
+        setSelectedAssetId(data[0].assetId);
 
+      } else {
+        const filteredData = data.filter(
+          (a: AssetLevelReportsData) => a.businessUnit === selectedBusinessUnit
+        );
+        setAssetLevelReportsData(filteredData);
+        setSelectedAssetId(filteredData[0].assetId);
+      }
+    }
+    fetchData();
+  }, [orgId, selectedBusinessUnit]);
   return (
     <>
       <Stack
@@ -192,29 +110,32 @@ const AssetLevelReportsContainer: React.FC = () => {
           gap: 3,
         }}
       >
-        <AssetSummaryRow assets={mockAssetProfiles} />
+        {assetLevelReportsData.length > 0 && (
+          <AssetSummaryRow assets={assetLevelReportsData} />
+        )}
 
         <Grid container spacing={2} sx={{ width: "100%" }}>
           <Grid size={{ xs: 12, md: 7 }}>
-            <AssetControlFamilyLineChart asset={selectedAsset} />
+
+              <AssetControlFamilyLineChart asset={selectedAsset} />
+
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
-            <AssetStrengthBarChart assets={mockAssetProfiles} />
+            <AssetStrengthBarChart assets={assetLevelReportsData} />
           </Grid>
         </Grid>
 
         <Stack direction="row" spacing={1} flexWrap="wrap">
-          {mockAssetProfiles.map((asset) => (
+          {Array.from(
+            new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
+          ).map((asset) => (
             <Chip
-              key={asset.assetName}
-              label={asset.assetName}
+              key={asset.assetId}
+              label={asset.asset}
               size="small"
               clickable
-              onClick={() => setSelectedAssetName(asset.assetName)}
-              color={
-                asset.assetName === selectedAssetName ? "primary" : "default"
-              }
-              sx={{ textTransform: "none" }}
+              onClick={() => setSelectedAssetId(asset.assetId)}
+              color={asset.assetId === selectedAssetId ? "primary" : "default"}
             />
           ))}
         </Stack>

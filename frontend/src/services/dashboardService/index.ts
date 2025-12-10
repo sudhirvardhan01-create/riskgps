@@ -5,10 +5,11 @@ import {
   getRiskScenariosTableChartData,
 } from "@/pages/api/dashboard";
 import {
-  getAssetMitreToNistScoreChartData,
+  getAssetLevelChartsData,
   getOrganizationNistControlScores,
   updateOrganizationNistControlScores,
 } from "@/pages/api/reports";
+import { OrganizationFrameworkControl } from "@/types/reports";
 
 export const DashboardService = {
   getRiskExposureBusinessProcessChartData: (orgId: string) =>
@@ -21,8 +22,8 @@ export const DashboardService = {
     getBusinessUnitRadarChartData(orgId),
   getOrganizationNistControlScores: (orgId: string) =>
     getOrganizationNistControlScores(orgId),
-  updateOrganizationNistControlScores: (orgId: string, body: any) =>
+  updateOrganizationNistControlScores: (orgId: string, body: OrganizationFrameworkControl[]) =>
     updateOrganizationNistControlScores(orgId, body),
-  getAssetMitreToNistScoreChartData: (orgId: string) =>
-    getAssetMitreToNistScoreChartData(orgId),
+  getAssetLevelChartsData: (orgId: string) =>
+    getAssetLevelChartsData(orgId),
 };

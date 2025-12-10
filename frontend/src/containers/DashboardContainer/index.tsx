@@ -33,7 +33,6 @@ import { DashboardService } from "@/services/dashboardService";
 import TableViewHeader from "@/components/Reports/BusinessProcessRiskDashboard/TableViewHeader";
 import { riskScenariosHeaderData } from "@/constants/constant";
 import TableViewRiskScenarioCard from "@/components/Reports/BusinessProcessRiskDashboard/TableViewRiskScenarioCard";
-import AssetControlStrengthDashboardContainer from "@/pages/dashboard/asset";
 import AssetLevelReportsContainer from "../AssetLevelReports";
 
 export default function DashboardContainer() {

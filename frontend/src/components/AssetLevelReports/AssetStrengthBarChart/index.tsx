@@ -16,24 +16,21 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { AssetLevelReportsData } from "@/types/reports";
 
-interface AssetControlProfile {
-  assetName: string;
-  controlStrength: number;
-}
 
 interface AssetStrengthBarChartProps {
-  assets: AssetControlProfile[];
+  assets: AssetLevelReportsData[];
 }
 
 const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({ assets }) => {
   const data = useMemo(
-    () => assets.map((a) => ({ assetName: a.assetName, controlStrength: a.controlStrength })),
+    () => assets.map((a) => ({ assetName: a.asset, controlStrength: a.controlStrength })),
     [assets]
   );
 
   const avgCurrent =
-    data.reduce((sum, d) => sum + d.controlStrength, 0) / data.length || 0;
+    data.reduce((sum, d) => sum + (d.controlStrength ?? 0), 0) / data.length || 0;
   const targetScore = 4.68;
 
   return (
@@ -78,6 +75,8 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({ assets })
               value: `Current Score: ${avgCurrent.toFixed(2)}`,
               position: "insideBottomRight",
               fill: "#0F172A",
+              fontSize: 11,
+              // dy: 12,
             }}
           />
           <ReferenceLine
@@ -88,6 +87,8 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({ assets })
               value: `Target Score: ${targetScore.toFixed(2)}`,
               position: "insideBottomRight",
               fill: "#EF4444",
+              dy: -20,
+              fontSize: 11,
             }}
           />
         </BarChart>

@@ -5,10 +5,7 @@ import React, { useEffect, useState } from "react";
 import { getOrganizationAssets } from "../api/organization";
 import { getProcessList } from "../api/reports";
 import Cookies from "js-cookie";
-import NistControlScoreCardList, {
-  NistControlCategory,
-  NistControlScore,
-} from "@/components/NistScore/NistScoreInput";
+import NistControlScoreCardList from "@/components/NistScore/NistScoreInput";
 import { reportsPageTabs } from "@/constants/constant";
 import {
   RiskExposureByProcessChartItem,
@@ -18,27 +15,25 @@ import {
 import { DashboardService } from "@/services/dashboardService";
 import ProcessTab from "@/components/Reports/ProcessTab";
 import AssetLevelReportsContainer from "@/containers/AssetLevelReports";
+import { OrganizationFrameworkControl } from "@/types/reports";
 
 function Reports() {
   const [currentTab, setCurrentTab] = useState(0);
   const [orgData, setOrgData] = useState<any>({});
   const [assetData, setAssetData] = useState<any[]>([]);
   const [orgId, setOrgId] = useState<string | null>();
-  const categories: NistControlCategory[] = [
-  { id: "DE.CM", code: "DE.CM", name: "Continuous Monitoring" },
-  { id: "PR.AT", code: "PR.AT", name: "Awareness and Training" },
-  { id: "PR.AA", code: "PR.AA", name: "Identity Management, Authentication, and Access Control" },
-  { id: "PR.IR", code: "PR.IR", name: "Technology Infrastructure Resilience" },
-  { id: "PR.PS", code: "PR.PS", name: "Platform Security" },
-  { id: "ID.RA", code: "ID.RA", name: "Risk Assessment" },
 
-  // Included because you referenced it
-  { id: "DE.AE", code: "DE.AE", name: "Anomalies and Events" }
-];;
+  const [controlScores, setControlScores] =
+    useState<OrganizationFrameworkControl[]>([]);
 
-  const handleSave = (scores: NistControlScore[]) => {
+  const handleSave = async (scores: OrganizationFrameworkControl[]) => {
     // replace with your API call
-    console.log("Saving NIST scores:", scores);
+    if (!orgId) return;
+    const res = await DashboardService.updateOrganizationNistControlScores(
+      orgId,
+      scores
+    );
+    await fetchOrganizationNistControlScores();
   };
   const [riskExposureProcessChartData, setRiskExposureProcessChartData] =
     useState<RiskExposureByProcessChartItem[]>([]);
@@ -96,6 +91,18 @@ function Reports() {
       }
     }
     fetchData();
+  }, [orgId]);
+
+  async function fetchOrganizationNistControlScores() {
+    if (!orgId) return;
+    const nistControlScores =
+      await DashboardService.getOrganizationNistControlScores(orgId);
+    setControlScores(nistControlScores.data ?? []);
+  }
+  useEffect(() => {
+    if (!orgId) return;
+
+    fetchOrganizationNistControlScores();
   }, [orgId]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -177,7 +184,7 @@ function Reports() {
           />
         </Box>
       )}
-      {currentTab === 1 && <AssetLevelReportsContainer/>}
+      {currentTab === 1 && <AssetLevelReportsContainer />}
       {currentTab === 2 && (
         <Box
           sx={{
@@ -214,7 +221,7 @@ function Reports() {
           }}
         >
           <NistControlScoreCardList
-            categories={categories}
+            controls={controlScores}
             onSave={handleSave}
           />{" "}
         </Box>
