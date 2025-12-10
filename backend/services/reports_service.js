@@ -729,6 +729,10 @@ class ReportsService {
       await this.getLatestTimeStampFromReportsAssetNistControlScoreTableForOrg(
         orgId
       );
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+
     const calculatedMitreToNistScores =
       await ReportsAssetNistControlScore.findAll({
         where: {
@@ -739,13 +743,14 @@ class ReportsService {
     const parentIds = calculatedMitreToNistScores.map(
       (item) => item.nistControlId
     );
-    const organizationNistControlScores = await OrganizationFrameworkControl.findAll({
-      where: {
-        parentObjectId: parentIds, // IN condition
-        organizationId: orgId, // filter by org
-        frameWorkName: "NIST", // ensure NIST only
-      },
-    });
+    const organizationNistControlScores =
+      await OrganizationFrameworkControl.findAll({
+        where: {
+          parentObjectId: parentIds,
+          organizationId: orgId,
+          frameWorkName: "NIST",
+        },
+      });
     const controlMap = new Map(
       organizationNistControlScores.map((c) => [
         c.parentObjectId,
@@ -772,9 +777,85 @@ class ReportsService {
         calcultatedControlScore: asset.calcultatedControlScore,
         currentScore: match ? match.currentScore : null,
         targetScore: match ? match.targetScore : null,
-      })
+      });
     }
-    return assetMitreToNistControlScore;
+    let assetLevelReportsData = Object.values(
+      assetMitreToNistControlScore.reduce((acc, item) => {
+        if (!acc[item.assetId]) {
+          acc[item.assetId] = {
+            assetId: item.assetId,
+            assetName: item.assetName,
+            assetCategory: item.assetCategory,
+            controls: [],
+          };
+        }
+
+        acc[item.assetId].controls.push({
+          controlCategoryId: item.controlCategoryId,
+          controlCategory: item.controlCategory,
+          controlSubCategoryId: item.controlSubCategoryId,
+          controlSubCategory: item.controlSubCategory,
+          calcultatedControlScore: item.calcultatedControlScore,
+          currentScore: item.currentScore,
+          targetScore: item.targetScore,
+        });
+
+        return acc;
+      }, {})
+    );
+
+    let whereClause = {
+      orgId,
+      updatedAt: latestTimeStamp,
+    };
+
+    const reportsMasterData = await ReportsMaster.findAll({
+      where: whereClause,
+    });
+    const assetDataLookUp = assetLevelReportsData.reduce((acc, item) => {
+      acc[item.assetId] = item;
+      return acc;
+    }, {});
+
+    const reportsMasterDataGrouped = [];
+    const seen = new Set();
+
+    reportsMasterData.forEach((item) => {
+      const key = `${item.businessUnitId}_${item.businessProcessId}_${item.assetId}`;
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        reportsMasterDataGrouped.push(item);
+      }
+    });
+    assetLevelReportsData = reportsMasterDataGrouped.map((data) => {
+      const mitreNistControlData = assetDataLookUp[data.assetId]?.controls ?? null;
+      return {
+        orgId: data.orgId,
+        orgName: data.orgName,
+        organizationRiskAppetiteInMillionDollar: data.organizationRiskAppetiteInMillionDollar,
+        businessUnitId: data.businessUnitId,
+        businessUnit: data.businessUnit,
+        businessProcessId: data.businessProcessId,
+        businessProcess: data.businessProcess,
+        assetId: data.assetId,
+        asset: data.asset,
+        assetCategory: data.assetCategory,
+        controlStrength: data.aggAssetControlStrengthRiskDashboardCIOTab,
+        inherentRiskScore: data.aggAssetInherentRiskScoreRiskDashboardCIOTab,
+        inherentRiskLevel: data.aggAssetInherentRiskLevelRiskDashboardCIOTab,
+        residualRiskScore: data.aggAssetResidualRiskScoreRiskDashboardCIOTab,
+        residualRiskLevel: data.aggAssetResidualRiskLevelRiskDashboardCIOTab,
+        inherentImpactInDollar: convertMillionToValue(data.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab),
+        residualImpactInDollar: convertMillionToValue(data.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab),
+        targetImpactInDollar: convertMillionToValue(data.aggAssetTargetImpactRiskDashboardCIOTab),
+        targetStrength: data.aggAssetTargetStrengthRiskDashboardCIOTab,
+        targetResidualRiskScore: data.aggAssetTargetResidualRiskScoreRiskDashboardCIOTab,
+        targetResidualRiskLevel: data.aggAssetTargetResidualRiskLevelRiskDashboardCIOTab,
+        controls: mitreNistControlData
+      }
+    })
+    return assetLevelReportsData;
   }
 }
 

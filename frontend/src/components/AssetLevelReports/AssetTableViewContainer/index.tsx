@@ -20,7 +20,6 @@ interface AssetTableViewRow {
   assetName: string;
   controlStrength: number;
   targetStrength: number;
-  strengthLevel?: StrengthLevel;
   gapLevel?: StrengthLevel;
 }
 
@@ -32,7 +31,6 @@ const mockAssetTableViewRows: AssetTableViewRow[] = [
     assetName: "Loan Application",
     controlStrength: 3.6,
     targetStrength: 4.6,
-    strengthLevel: "moderate",
     gapLevel: "high",
   },
   {
@@ -41,7 +39,6 @@ const mockAssetTableViewRows: AssetTableViewRow[] = [
     assetName: "Loan Application",
     controlStrength: 3.6,
     targetStrength: 4.6,
-    strengthLevel: "moderate",
     gapLevel: "high",
   },
   {
@@ -50,7 +47,6 @@ const mockAssetTableViewRows: AssetTableViewRow[] = [
     assetName: "Underwriting Application",
     controlStrength: 1.2,
     targetStrength: 4.6,
-    strengthLevel: "critical",
     gapLevel: "critical",
   },
   {
@@ -59,7 +55,6 @@ const mockAssetTableViewRows: AssetTableViewRow[] = [
     assetName: "Banking Application",
     controlStrength: 3.8,
     targetStrength: 4.6,
-    strengthLevel: "high",
     gapLevel: "moderate",
   },
   {
@@ -68,7 +63,6 @@ const mockAssetTableViewRows: AssetTableViewRow[] = [
     assetName: "Payment Rails",
     controlStrength: 2.7,
     targetStrength: 4.6,
-    strengthLevel: "moderate",
     gapLevel: "high",
   },
   {
@@ -77,7 +71,6 @@ const mockAssetTableViewRows: AssetTableViewRow[] = [
     assetName: "Fraud Application",
     controlStrength: 2.7,
     targetStrength: 4.6,
-    strengthLevel: "moderate",
     gapLevel: "high",
   },
   {
@@ -86,7 +79,6 @@ const mockAssetTableViewRows: AssetTableViewRow[] = [
     assetName: "Customer Database",
     controlStrength: 1.2,
     targetStrength: 4.6,
-    strengthLevel: "critical",
     gapLevel: "critical",
   },
 ];
