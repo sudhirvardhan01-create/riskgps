@@ -267,7 +267,7 @@ export default function CISOTab({ assetData, tooltipData }: any) {
 
   return (
     <>
-      <Stack
+      {/* <Stack
         direction={"row"}
         justifyContent={"end"}
         alignItems={"center"}
@@ -289,7 +289,7 @@ export default function CISOTab({ assetData, tooltipData }: any) {
             ))}
           </Select>
         </FormControl>
-      </Stack>
+      </Stack> */}
       <Box
         sx={{
           flex: 1,
@@ -300,6 +300,39 @@ export default function CISOTab({ assetData, tooltipData }: any) {
           gap: 3,
         }}
       >
+            <Box
+      sx={{
+        position: "sticky",
+        top: 0,
+        zIndex: 10,
+        pb: 2,
+        backgroundColor: "transparent",
+      }}
+    >
+      <Stack
+        direction="row"
+        justifyContent="end"
+        alignItems="center"
+        mb={1}
+      >
+        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
+          <InputLabel id="business-unit-label">Business Unit</InputLabel>
+          <Select
+            labelId="business-unit-label"
+            value={selectedBusinessUnit}
+            onChange={(e) => {
+              setSelectedBusinessUnit(e.target.value);
+            }}
+          >
+            {businessUnits.map((item, index) => (
+              <MenuItem value={item} key={index}>
+                {item}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
+    </Box>
         <AssetSummaryRow assets={assetLevelReportsData} />
         <Grid size={12}>
           <Stack direction="row" spacing={1} flexWrap="wrap">

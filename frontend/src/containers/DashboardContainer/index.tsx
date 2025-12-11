@@ -13,11 +13,14 @@ import { DashboardService } from "@/services/dashboardService";
 import BusinessTab from "@/components/Reports/BusinessTab";
 import CISOTab from "@/components/Reports/CISOTab";
 import { getOrganizationAssets } from "@/pages/api/organization";
+import NistControlScoreCardList from "@/components/NistScore/NistScoreInput";
+import { OrganizationFrameworkControl } from "@/types/reports";
 
 export default function DashboardContainer() {
   const [currentTab, setCurrentTab] = useState(0);
   const [orgId, setOrgId] = useState<string | null>();
   const [assetData, setAssetData] = useState<any[]>([]);
+  const [orgFrameworkControls, setOrgFrameworkControls] = useState<OrganizationFrameworkControl[]>([]);
   const [riskExposureProcessChartData, setRiskExposureProcessChartData] =
     useState<RiskExposureByProcessChartItem[]>([]);
   const [riskScenariosTableChartData, setRiskScenariosTableChartData] =
@@ -72,6 +75,26 @@ export default function DashboardContainer() {
     fetchData();
   }, [orgId]);
 
+  async function fetchOrganizationNistControlScores() {
+    if (!orgId) return;
+    const nistControlScores =
+      await DashboardService.getOrganizationNistControlScores(orgId);
+    setOrgFrameworkControls(nistControlScores.data ?? []);
+  }
+  useEffect(() => {
+    if (!orgId) return;
+
+    fetchOrganizationNistControlScores();
+  }, [orgId]);
+
+    const handleSaveOrganizationNistControls = async (scores: OrganizationFrameworkControl[]) => {
+    if (!orgId) return;
+    const res = await DashboardService.updateOrganizationNistControlScores(
+      orgId,
+      scores
+    );
+    await fetchOrganizationNistControlScores();
+  };
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
@@ -164,6 +187,12 @@ export default function DashboardContainer() {
         {currentTab === 3 && (
           <>
             <BoardTab />
+          </>
+        )}
+        {/* Nist Score */}
+        {currentTab === 4 && (
+          <>
+            <NistControlScoreCardList controls={orgFrameworkControls} onSave={handleSaveOrganizationNistControls} />
           </>
         )}
       </Box>
