@@ -26,128 +26,6 @@ import { DashboardService } from "@/services/dashboardService";
 import Cookies from "js-cookie";
 import { AssetLevelReportsData } from "@/types/reports";
 
-interface AssetControlProfile {
-  assetName: string;
-  businessUnit: string;
-  businessProcess: string;
-  controlStrength: number;
-  band: string;
-  metrics: any[];
-}
-
-const mockAssetProfiles: AssetControlProfile[] = [
-  {
-    assetName: "Banking Application",
-    businessUnit: "Retail Banking",
-    businessProcess: "Electronic Banking",
-    controlStrength: 3.8,
-    band: "High",
-    metrics: [
-      {
-        id: "GV.OC",
-        familyLabel: "GV.OC",
-        orgCurrent: 2.5,
-        orgTarget: 3.0,
-        assetCurrent: 0.3,
-      },
-      {
-        id: "GV.OV",
-        familyLabel: "GV.OV",
-        orgCurrent: 3.0,
-        orgTarget: 3.5,
-        assetCurrent: 0.3,
-      },
-      {
-        id: "GV.PO",
-        familyLabel: "GV.PO",
-        orgCurrent: 4.0,
-        orgTarget: 3.2,
-        assetCurrent: 0.3,
-      },
-      {
-        id: "ID.IM",
-        familyLabel: "ID.IM",
-        orgCurrent: 2.8,
-        orgTarget: 3.5,
-        assetCurrent: 2.1,
-      },
-      {
-        id: "ID.RA",
-        familyLabel: "ID.RA",
-        orgCurrent: 3.0,
-        orgTarget: 3.8,
-        assetCurrent: 5.5,
-      },
-      {
-        id: "PR.AA",
-        familyLabel: "PR.AA",
-        orgCurrent: 2.9,
-        orgTarget: 3.4,
-        assetCurrent: 5.0,
-      },
-      {
-        id: "PR.DS",
-        familyLabel: "PR.DS",
-        orgCurrent: 2.0,
-        orgTarget: 3.0,
-        assetCurrent: 1.0,
-      },
-      {
-        id: "PR.PS",
-        familyLabel: "PR.PS",
-        orgCurrent: 2.8,
-        orgTarget: 3.2,
-        assetCurrent: 3.0,
-      },
-      {
-        id: "DE.AE",
-        familyLabel: "DE.AE",
-        orgCurrent: 3.0,
-        orgTarget: 3.0,
-        assetCurrent: 3.2,
-      },
-      {
-        id: "RS.AN",
-        familyLabel: "RS.AN",
-        orgCurrent: 3.0,
-        orgTarget: 3.0,
-        assetCurrent: 0.0,
-      },
-      {
-        id: "RC.RP",
-        familyLabel: "RC.RP",
-        orgCurrent: 3.0,
-        orgTarget: 3.0,
-        assetCurrent: 0.0,
-      },
-    ],
-  },
-  {
-    assetName: "Payment Rails",
-    businessUnit: "Retail Banking",
-    businessProcess: "ACH",
-    controlStrength: 2.7,
-    band: "Moderate",
-    metrics: [],
-  },
-  {
-    assetName: "Fraud Application",
-    businessUnit: "Retail Banking",
-    businessProcess: "Fraud Monitoring",
-    controlStrength: 2.7,
-    band: "Moderate",
-    metrics: [],
-  },
-  {
-    assetName: "Customer Database",
-    businessUnit: "Retail Banking",
-    businessProcess: "Account Management Process",
-    controlStrength: 1.2,
-    band: "Critical",
-    metrics: [],
-  },
-];
-
 const PieChartComponent = dynamic(() => import("../CustomReports/PieChart"), {
   ssr: false,
 });
@@ -300,43 +178,48 @@ export default function CISOTab({ assetData, tooltipData }: any) {
           gap: 3,
         }}
       >
-            <Box
-      sx={{
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-        pb: 2,
-        backgroundColor: "transparent",
-      }}
-    >
-      <Stack
-        direction="row"
-        justifyContent="end"
-        alignItems="center"
-        mb={1}
-      >
-        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
-          <InputLabel id="business-unit-label">Business Unit</InputLabel>
-          <Select
-            labelId="business-unit-label"
-            value={selectedBusinessUnit}
-            onChange={(e) => {
-              setSelectedBusinessUnit(e.target.value);
-            }}
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            pb: 2,
+            backgroundColor: "transparent",
+          }}
+        >
+          <Stack
+            direction="row"
+            justifyContent="end"
+            alignItems="center"
+            mb={1}
           >
-            {businessUnits.map((item, index) => (
-              <MenuItem value={item} key={index}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Stack>
-    </Box>
+            <FormControl
+              variant="filled"
+              sx={{ height: "48px", width: "200px" }}
+            >
+              <InputLabel id="business-unit-label">Business Unit</InputLabel>
+              <Select
+                labelId="business-unit-label"
+                value={selectedBusinessUnit}
+                onChange={(e) => {
+                  setSelectedBusinessUnit(e.target.value);
+                }}
+              >
+                {businessUnits.map((item, index) => (
+                  <MenuItem value={item} key={index}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </Box>
         <AssetSummaryRow assets={assetLevelReportsData} />
         <Grid size={12}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
-            {assetLevelReportsData.map((asset) => (
+            {Array.from(
+              new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
+            ).map((asset) => (
               <Chip
                 key={asset.assetId}
                 label={asset.asset}

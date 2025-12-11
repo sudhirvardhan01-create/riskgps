@@ -240,10 +240,15 @@ import { DashboardService } from "@/services/dashboardService";
 import BusinessTab from "@/components/Reports/BusinessTab";
 import CISOTab from "@/components/Reports/CISOTab";
 import { getOrganizationAssets } from "@/pages/api/organization";
+import { OrganizationFrameworkControl } from "@/types/reports";
+import NistControlScoreCardList from "@/components/NistScore/NistScoreInput";
 
 export default function DashboardContainer() {
   const [currentTab, setCurrentTab] = useState(0);
   const [orgId, setOrgId] = useState<string | null>();
+  const [orgFrameworkControls, setOrgFrameworkControls] = useState<
+    OrganizationFrameworkControl[]
+  >([]);
   const [assetData, setAssetData] = useState<any[]>([]);
   const [riskExposureProcessChartData, setRiskExposureProcessChartData] =
     useState<RiskExposureByProcessChartItem[]>([]);
@@ -303,12 +308,24 @@ export default function DashboardContainer() {
     if (!orgId) return;
     const nistControlScores =
       await DashboardService.getOrganizationNistControlScores(orgId);
+    setOrgFrameworkControls(nistControlScores.data ?? []);
   }
   useEffect(() => {
     if (!orgId) return;
 
     fetchOrganizationNistControlScores();
   }, [orgId]);
+
+  const handleSaveOrganizationNistControls = async (
+    scores: OrganizationFrameworkControl[]
+  ) => {
+    if (!orgId) return;
+    const res = await DashboardService.updateOrganizationNistControlScores(
+      orgId,
+      scores
+    );
+    await fetchOrganizationNistControlScores();
+  };
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -402,6 +419,14 @@ export default function DashboardContainer() {
         {currentTab === 3 && (
           <>
             <BoardTab />
+          </>
+        )}
+        {currentTab === 4 && (
+          <>
+            <NistControlScoreCardList
+              controls={orgFrameworkControls}
+              onSave={handleSaveOrganizationNistControls}
+            />
           </>
         )}
       </Box>

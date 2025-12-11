@@ -338,7 +338,7 @@ class ReportsService {
           assetId: item.assetId,
           applicationName: item.asset,
           controlStrength: item.aggAssetControlStrengthRiskDashboardCIOTab,
-          targetStrength: item.aggAssetTargetImpactRiskDashboardCIOTab,
+          targetStrength: item.aggAssetTargetStrengthRiskDashboardCIOTab,
           riskExposure: convertMillionToValue(
             item.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab
           ),
@@ -347,7 +347,6 @@ class ReportsService {
             item.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab
           ),
           netExposureLevel: item.aggAssetResidualRiskLevelRiskDashboardCIOTab,
-          // add more if needed
         });
       }
     });
@@ -481,6 +480,71 @@ class ReportsService {
     return metrics;
   }
 
+  static async getAssetRiskInDollarChartsData(dataArray) {
+    const map = new Map();
+
+    for (const item of dataArray) {
+      const key = item.assetId;
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    }
+
+    let assetsData = [...map.values()];
+    assetsData = assetsData?.map((asset) => {
+      return {
+        assetName: asset.asset,
+        inherentRiskScore: convertMillionToValue(
+          asset.aggAssetInherentImpactInMillionDollarsRiskDashboardCIOTab ?? 0
+        ),
+        netRiskScore: convertMillionToValue(
+          asset.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab ?? 0
+        ),
+      };
+    });
+    return assetsData;
+  }
+  static async getTopNRiskyAssets(dataArray, requiredCount = 5) {
+    const map = new Map();
+
+    for (const item of dataArray) {
+      const key = item.assetId;
+      const score = item.aggAssetResidualRiskScoreRiskDashboardCIOTab;
+
+      if (map.has(key) || typeof score !== "number") continue;
+
+      map.set(key, { item, score });
+    }
+
+    // sort unique assets by highest score
+    const sorted = [...map.values()]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, requiredCount)
+      .map((v) => v.item);
+
+    return sorted;
+  }
+
+  static async getTopNRiskScenarios(dataArray, requiredCount = 5) {
+    const map = new Map();
+
+    for (const item of dataArray) {
+      const key = item.riskScenarioId;
+      const score = item.residualRiskScoreRiskDashboardERMTab;
+
+      if (typeof score !== "number") continue;
+      if (!map.has(key) || score > map.get(key).score)
+        map.set(key, { item, score });
+    }
+
+    // sort unique assets by highest score
+    const sorted = [...map.values()]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, requiredCount)
+      .map((v) => v.item);
+
+    return sorted;
+  }
   static async getRiskScenarioTableData(reportsData) {
     return reportsData.map((item, index) => {
       return {
@@ -869,6 +933,83 @@ class ReportsService {
       };
     });
     return assetLevelReportsData;
+  }
+
+  static async topNRiskyAssets(orgId, requiredCount = 5) {
+    if (!orgId) {
+      throw new Error("Organization id required");
+    }
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+
+    let whereClause = {
+      orgId,
+      updatedAt: latestTimeStamp,
+    };
+
+    const reportsData = await ReportsMaster.findAll({
+      where: whereClause,
+    });
+
+    let riskyAssets = await this.getTopNRiskyAssets(reportsData, requiredCount);
+    riskyAssets = riskyAssets.map((item) => {
+      return {
+        name: item.asset,
+        value: item.aggAssetResidualRiskScoreRiskDashboardCIOTab,
+      };
+    });
+    return riskyAssets;
+  }
+
+  static async topNRiskScenarios(orgId, requiredCount = 5) {
+    if (!orgId) {
+      throw new Error("Organization id required");
+    }
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+
+    let whereClause = {
+      orgId,
+      updatedAt: latestTimeStamp,
+    };
+
+    const reportsData = await ReportsMaster.findAll({
+      where: whereClause,
+    });
+
+    let topRisKScenarios = await this.getTopNRiskScenarios(
+      reportsData,
+      requiredCount
+    );
+    topRisKScenarios = topRisKScenarios.map((risk) => {
+      return {
+        name: risk.riskScenario,
+        value: risk.residualRiskScoreRiskDashboardERMTab,
+      };
+    });
+    return topRisKScenarios;
+  }
+
+  static async assetRiskScoresInMillionDollar(orgId) {
+    if (!orgId) {
+      throw new Error("Organization id required");
+    }
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+
+    let whereClause = {
+      orgId,
+      updatedAt: latestTimeStamp,
+    };
+
+    const reportsData = await ReportsMaster.findAll({
+      where: whereClause,
+    });
+    const assetRiskScoreinMillionDollar = await this.getAssetRiskInDollarChartsData(reportsData);
+    return assetRiskScoreinMillionDollar;
   }
 }
 
