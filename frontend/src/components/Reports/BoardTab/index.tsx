@@ -6,7 +6,7 @@ import { getProcessList } from "@/pages/api/reports";
 
 export default function BoardTab() {
   const [orgId, setOrgId] = useState<string | null>();
-  const [orgData, setOrgData] = useState<any>({});
+  const [orgData, setOrgData] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -47,7 +47,7 @@ export default function BoardTab() {
         overflow: "auto",
       }}
     >
-      <ProcessAssetFlow data={orgData} />
+      {orgData && <ProcessAssetFlow data={orgData} />}
     </Box>
   );
 }
