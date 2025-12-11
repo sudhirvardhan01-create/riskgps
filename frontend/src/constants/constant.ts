@@ -110,3 +110,22 @@ export const reportsPageTabs = [
     tabVlaue: 4,
   },
 ];
+
+export const dashboardPageTabs = [
+  {
+    tabName: "Business",
+    tabVlaue: 0,
+  },
+  {
+    tabName: "ERM",
+    tabVlaue: 1,
+  },
+  {
+    tabName: "CISO",
+    tabVlaue: 2,
+  },
+  {
+    tabName: "Board",
+    tabVlaue: 3,
+  },
+];
