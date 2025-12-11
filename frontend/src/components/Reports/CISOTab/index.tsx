@@ -24,6 +24,8 @@ import AssetTableViewContainer from "@/components/AssetLevelReports/AssetTableVi
 import { DashboardService } from "@/services/dashboardService";
 import Cookies from "js-cookie";
 import { AssetLevelReportsData } from "@/types/reports";
+import { getProcessList } from "@/pages/api/reports";
+import ProcessAssetFlow from "../ProcessAssetFlow";
 
 const PieChartComponent = dynamic(() => import("../CustomReports/PieChart"), {
   ssr: false,
@@ -53,6 +55,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
     assetLevelReportsData[0]?.assetId
   );
   const [businessUnits, setBusinessUnits] = useState<string[]>([]);
+  const [orgData, setOrgData] = useState<any>(null);
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -69,24 +72,32 @@ const CISOTab: React.FC<CISOTabProps> = ({
   useEffect(() => {
     async function fetchData() {
       if (!orgId) return;
-      const [res] = await Promise.all([
-        DashboardService.getAssetLevelChartsData(orgId),
-      ]);
-      const data = res?.data;
-      const businessUNits: string[] = [...Array.from(new Set(data.map((a: AssetLevelReportsData) => a.businessUnit)))] as string[]
-      setBusinessUnits([
-        "All",
-        ...businessUNits
-      ]);
-      if (selectedBusinessUnit === "All") {
-        setAssetLevelReportsData(data);
-        setSelectedAssetId(data[0].assetId);
-      } else {
-        const filteredData = data.filter(
-          (a: AssetLevelReportsData) => a.businessUnit === selectedBusinessUnit
-        );
-        setAssetLevelReportsData(filteredData);
-        setSelectedAssetId(filteredData[0].assetId);
+      try {
+        const [res, processRes] = await Promise.all([
+          DashboardService.getAssetLevelChartsData(orgId),
+          getProcessList(orgId),
+        ]);
+        setOrgData(processRes.data);
+        const data = res?.data;
+        const businessUNits: string[] = [
+          ...Array.from(
+            new Set(data.map((a: AssetLevelReportsData) => a.businessUnit))
+          ),
+        ] as string[];
+        setBusinessUnits(["All", ...businessUNits]);
+        if (selectedBusinessUnit === "All") {
+          setAssetLevelReportsData(data);
+          setSelectedAssetId(data[0].assetId);
+        } else {
+          const filteredData = data.filter(
+            (a: AssetLevelReportsData) =>
+              a.businessUnit === selectedBusinessUnit
+          );
+          setAssetLevelReportsData(filteredData);
+          setSelectedAssetId(filteredData[0].assetId);
+        }
+      } catch (error) {
+        console.error("Error fetching reports data:", error);
       }
     }
     fetchData();
@@ -167,10 +178,12 @@ const CISOTab: React.FC<CISOTabProps> = ({
             </FormControl>
           </Stack>
         </Box>
-             
-        <AssetSummaryRow assets={Array.from(
-              new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
-            )} />
+
+        <AssetSummaryRow
+          assets={Array.from(
+            new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
+          )}
+        />
         <Grid size={12}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {Array.from(
@@ -395,6 +408,9 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 />
               </Box>
             </Paper>
+          </Grid>
+          <Grid size={12}>
+            {orgData && <ProcessAssetFlow data={orgData} />}
           </Grid>
         </Grid>
       </Box>
