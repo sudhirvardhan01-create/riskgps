@@ -6,6 +6,11 @@ const theme = createTheme({
   palette: {
     primary: {
       main: "#04139A", // Blue
+      900: "#12229d",
+      700: "#233dff",
+      500: "#6f80eb",
+      300: "#5cb6f9",
+      100: "#cae8ff",
     },
     secondary: {
       main: "#dc004e", // Pink

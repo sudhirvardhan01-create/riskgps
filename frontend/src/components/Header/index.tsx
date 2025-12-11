@@ -16,6 +16,7 @@ import AvatarIcon from "@/icons/avatar.svg";
 import Image from "next/image";
 import riskgps_logo from "../../../public/riskgps_logo.jpg";
 import riskGPS_logo from "../../../public/riskGPS_logo.png";
+import riskgps_logo_svg from "../../../public/riskgps_logo_svg.svg";
 import { logout } from "@/pages/api/AuthAPI";
 import Cookies from "js-cookie";
 import { useAuth } from "@/context/AuthContext";
@@ -54,7 +55,12 @@ const Header = () => {
         pl: 2,
       }}
     >
-      <Image src={riskGPS_logo} alt="RiskGPS Logo" width={125} height={40} />
+      <Image
+        src={"/riskgps_logo_svg.svg"}
+        alt="RiskGPS Logo"
+        width={125}
+        height={40}
+      />
       <Stack display={"flex"} flexDirection={"row"}>
         <Tooltip title="Notifications">
           <NotificationIcon

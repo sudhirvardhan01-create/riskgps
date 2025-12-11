@@ -115,8 +115,8 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
 
   return (
     <div className="w-full bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-center gap-6">
-      <div className="w-full md:w-2/3 h-[400px]">
-        <ResponsiveContainer width="100%" aspect={1}>
+      <div className="w-full md:w-2/3">
+        <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             {/* Outer Ring */}
             <Pie

@@ -109,7 +109,7 @@ const CriticalDependenciesBarChart: React.FC<
         backgroundColor: "#fff",
         borderRadius: 3,
         width: "100%",
-        height: 270,
+        height: 300,
         display: "flex",
         flexDirection: "column",
       }}
