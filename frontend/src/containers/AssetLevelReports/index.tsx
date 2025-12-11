@@ -82,7 +82,7 @@ const AssetLevelReportsContainer: React.FC = () => {
         alignItems={"center"}
         mb={3}
       >
-        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
+        {/* <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
           <InputLabel id="business-unit-label">Business Unit</InputLabel>
           <Select
             labelId="business-unit-label"
@@ -97,7 +97,7 @@ const AssetLevelReportsContainer: React.FC = () => {
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </FormControl> */}
       </Stack>
       {/* Scrollable content */}
       <Box
@@ -110,11 +110,11 @@ const AssetLevelReportsContainer: React.FC = () => {
           gap: 3,
         }}
       >
-        {assetLevelReportsData.length > 0 && (
+        {/* {assetLevelReportsData.length > 0 && (
           <AssetSummaryRow assets={assetLevelReportsData} />
-        )}
+        )} */}
 
-        <Grid container spacing={2} sx={{ width: "100%" }}>
+        {/* <Grid container spacing={2} sx={{ width: "100%" }}>
           <Grid size={{ xs: 12, md: 7 }}>
 
               <AssetControlFamilyLineChart asset={selectedAsset} />
@@ -123,8 +123,8 @@ const AssetLevelReportsContainer: React.FC = () => {
           <Grid size={{ xs: 12, md: 5 }}>
             <AssetStrengthBarChart assets={assetLevelReportsData} />
           </Grid>
-        </Grid>
-
+        </Grid> */}
+{/* 
         <Stack direction="row" spacing={1} flexWrap="wrap">
           {Array.from(
             new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
@@ -138,9 +138,9 @@ const AssetLevelReportsContainer: React.FC = () => {
               color={asset.assetId === selectedAssetId ? "primary" : "default"}
             />
           ))}
-        </Stack>
+        </Stack> */}
 
-        <AssetTableViewContainer />
+        {/* <AssetTableViewContainer /> */}
       </Box>
     </>
   );
