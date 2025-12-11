@@ -5,6 +5,6 @@ const port = 8000;
 
 db.sequelize.sync().then(() => {
   app.listen(port, () => {
-    console.log("Server started on port " + port);
+    console.log("RiskGPS Server started on port " + port);
   });
 });
