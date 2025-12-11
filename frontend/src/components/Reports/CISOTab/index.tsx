@@ -52,11 +52,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
   const [selectedAssetId, setSelectedAssetId] = useState<string>(
     assetLevelReportsData[0]?.assetId
   );
-  const businessUnits = [
-    "All",
-    ...Array.from(new Set(assetLevelReportsData.map((a) => a.businessUnit))),
-  ];
-
+  const [businessUnits, setBusinessUnits] = useState<string[]>([]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -77,7 +73,11 @@ const CISOTab: React.FC<CISOTabProps> = ({
         DashboardService.getAssetLevelChartsData(orgId),
       ]);
       const data = res?.data;
-      console.log(res);
+      const businessUNits: string[] = [...Array.from(new Set(data.map((a: AssetLevelReportsData) => a.businessUnit)))] as string[]
+      setBusinessUnits([
+        "All",
+        ...businessUNits
+      ]);
       if (selectedBusinessUnit === "All") {
         setAssetLevelReportsData(data);
         setSelectedAssetId(data[0].assetId);
@@ -245,7 +245,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
             </Paper>
           </Grid>
           <Grid size={12}>
-            <AssetTableViewContainer />
+            <AssetTableViewContainer assets={assetLevelReportsData} />
           </Grid>
           {/* ===== LEFT CARD: GEO MAP ===== */}
           {/* <Grid size={{ xs: 12, md: 6 }}> */}
