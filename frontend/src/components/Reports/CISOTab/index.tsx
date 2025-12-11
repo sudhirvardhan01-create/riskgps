@@ -167,7 +167,10 @@ const CISOTab: React.FC<CISOTabProps> = ({
             </FormControl>
           </Stack>
         </Box>
-        <AssetSummaryRow assets={assetLevelReportsData} />
+             
+        <AssetSummaryRow assets={Array.from(
+              new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
+            )} />
         <Grid size={12}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {Array.from(
