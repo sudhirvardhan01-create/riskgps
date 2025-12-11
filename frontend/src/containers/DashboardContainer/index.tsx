@@ -13,14 +13,20 @@ import { DashboardService } from "@/services/dashboardService";
 import BusinessTab from "@/components/Reports/BusinessTab";
 import CISOTab from "@/components/Reports/CISOTab";
 import { getOrganizationAssets } from "@/pages/api/organization";
-import NistControlScoreCardList from "@/components/NistScore/NistScoreInput";
 import { OrganizationFrameworkControl } from "@/types/reports";
+import NistControlScoreCardList from "@/components/NistScore/NistScoreInput";
+import {
+  getRiskPrioritisedAssetsData,
+  getTopOrgRiskScenariosAssets,
+} from "../../pages/api/reports";
 
 export default function DashboardContainer() {
   const [currentTab, setCurrentTab] = useState(0);
   const [orgId, setOrgId] = useState<string | null>();
+  const [orgFrameworkControls, setOrgFrameworkControls] = useState<
+    OrganizationFrameworkControl[]
+  >([]);
   const [assetData, setAssetData] = useState<any[]>([]);
-  const [orgFrameworkControls, setOrgFrameworkControls] = useState<OrganizationFrameworkControl[]>([]);
   const [riskExposureProcessChartData, setRiskExposureProcessChartData] =
     useState<RiskExposureByProcessChartItem[]>([]);
   const [riskScenariosTableChartData, setRiskScenariosTableChartData] =
@@ -30,6 +36,11 @@ export default function DashboardContainer() {
   >([]);
   const [businessUnitRadarChartData, setBusinessUnitRadarChartData] = useState<
     RiskRadarRecord[]
+  >([]);
+  const [topRiskScenarios, setTopRiskScenarios] = useState<any[]>([]);
+  const [topAssets, setTopAssets] = useState<any[]>([]);
+  const [riskPrioritisedAssetsData, setRiskPrioritisedAssetsData] = useState<
+    any[]
   >([]);
 
   useEffect(() => {
@@ -56,18 +67,25 @@ export default function DashboardContainer() {
           businessUnitHeatmapChartRes,
           businessUnitRadarChartRes,
           assetRes,
+          topRiskScenariosAssetsRes,
+          riskPrioritisedAssetsRes,
         ] = await Promise.all([
           DashboardService.getRiskExposureBusinessProcessChartData(orgId),
           DashboardService.getRiskScenariosTableChartData(orgId),
           DashboardService.getBusinessUnitSeverityHeatmapChartData(orgId),
           DashboardService.getBusinessUnitRadarChartData(orgId),
           getOrganizationAssets(orgId),
+          getTopOrgRiskScenariosAssets(orgId),
+          getRiskPrioritisedAssetsData(orgId),
         ]);
         setRiskExposureProcessChartData(riskExposureProcessChartRes.data ?? []);
         setRiskScenariosTableChartData(riskScenarioTableChartRes.data ?? []);
         setBusinessUnitSeverityData(businessUnitHeatmapChartRes.data ?? []);
         setBusinessUnitRadarChartData(businessUnitRadarChartRes.data ?? []);
         setAssetData(assetRes.data ?? []);
+        setTopRiskScenarios(topRiskScenariosAssetsRes.data.riskScenarios ?? []);
+        setTopAssets(topRiskScenariosAssetsRes.data.assets ?? []);
+        setRiskPrioritisedAssetsData(riskPrioritisedAssetsRes.data ?? []);
       } catch (error) {
         console.error("Error fetching reports data:", error);
       }
@@ -87,7 +105,9 @@ export default function DashboardContainer() {
     fetchOrganizationNistControlScores();
   }, [orgId]);
 
-    const handleSaveOrganizationNistControls = async (scores: OrganizationFrameworkControl[]) => {
+  const handleSaveOrganizationNistControls = async (
+    scores: OrganizationFrameworkControl[]
+  ) => {
     if (!orgId) return;
     const res = await DashboardService.updateOrganizationNistControlScores(
       orgId,
@@ -95,6 +115,7 @@ export default function DashboardContainer() {
     );
     await fetchOrganizationNistControlScores();
   };
+
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
@@ -174,13 +195,19 @@ export default function DashboardContainer() {
               riskScenariosTableChartData={riskScenariosTableChartData}
               businessUnitSeverityData={businessUnitSeverityData}
               businessUnitRadarChartData={businessUnitRadarChartData}
+              topAssets={topAssets}
+              topRiskScenarios={topRiskScenarios}
             />
           </>
         )}
         {/* CISO Tab Content */}
         {currentTab === 2 && (
           <>
-            <CISOTab assetData={assetData} />
+            <CISOTab
+              assetData={assetData}
+              topAssets={topAssets}
+              riskPrioritisedAssets={riskPrioritisedAssetsData}
+            />
           </>
         )}
         {/* CIO Tab Content */}
@@ -189,10 +216,12 @@ export default function DashboardContainer() {
             <BoardTab />
           </>
         )}
-        {/* Nist Score */}
         {currentTab === 4 && (
           <>
-            <NistControlScoreCardList controls={orgFrameworkControls} onSave={handleSaveOrganizationNistControls} />
+            <NistControlScoreCardList
+              controls={orgFrameworkControls}
+              onSave={handleSaveOrganizationNistControls}
+            />
           </>
         )}
       </Box>

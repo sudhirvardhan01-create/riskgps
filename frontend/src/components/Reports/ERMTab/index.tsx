@@ -22,12 +22,16 @@ interface Props {
   riskScenariosTableChartData: RiskScenarioTableChartItem[];
   businessUnitSeverityData: any[];
   businessUnitRadarChartData: RiskRadarRecord[];
+  topRiskScenarios: any[];
+  topAssets: any[];
 }
 
 const ERMTab: React.FC<Props> = ({
   riskScenariosTableChartData,
   businessUnitSeverityData,
   businessUnitRadarChartData,
+  topRiskScenarios,
+  topAssets,
 }) => {
   const [riskScenariosTableChart, setRiskScenariosTableChart] = useState<
     RiskScenarioTableChartItem[]
@@ -61,52 +65,6 @@ const ERMTab: React.FC<Props> = ({
 
   const processesForDropdown = [
     ...new Set(riskScenariosTableChartData.map((i) => i.businessProcess)),
-  ];
-
-  const topAssets = [
-    {
-      name: "Customer Database",
-      value: 3.3,
-    },
-    {
-      name: "Underwriting Application",
-      value: 3,
-    },
-    {
-      name: "Banking Application",
-      value: 2.2,
-    },
-    {
-      name: "Loan Application",
-      value: 2.1,
-    },
-    {
-      name: "Payment Rails",
-      value: 1.7,
-    },
-  ];
-
-  const topRiskScenarios = [
-    {
-      name: "Customer account data is exposed",
-      value: 3.2,
-    },
-    {
-      name: "Customer accounts cannot be managed for 1 week",
-      value: 3.1,
-    },
-    {
-      name: "Customer loan data is exposed",
-      value: 3.1,
-    },
-    {
-      name: "Customer account data is corrupted and no longer accurate",
-      value: 3,
-    },
-    {
-      name: "ATM data is exposed",
-      value: 2.5,
-    },
   ];
 
   const severityOrder = ["Very Low", "Low", "Moderate", "High", "Critical"];
@@ -194,7 +152,7 @@ const ERMTab: React.FC<Props> = ({
               textAlign="left"
               sx={{ mb: 2 }}
             >
-              Top 5 Risk Scenarios
+              Top Risk Scenarios
             </Typography>
             <VerticalSingleBarChart
               data={topRiskScenarios}
@@ -221,7 +179,7 @@ const ERMTab: React.FC<Props> = ({
               textAlign="left"
               sx={{ mb: 2 }}
             >
-              Top 5 Assets
+              Top Assets
             </Typography>
             <VerticalSingleBarChart
               data={topAssets}

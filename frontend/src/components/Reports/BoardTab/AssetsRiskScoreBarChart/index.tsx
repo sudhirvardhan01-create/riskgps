@@ -22,6 +22,13 @@ interface Props {
 }
 
 const AssetsRiskScoreBarChart: React.FC<Props> = ({ data }) => {
+  // Convert raw values into billions
+  const formattedData = data?.map((item) => ({
+    ...item,
+    inherentRiskScore: item.inherentRiskScore / 1_000_000_000,
+    netRiskScore: item.netRiskScore / 1_000_000_000,
+  }));
+
   const legendFormatter = (value: any, entry: any, index: any) => {
     // You can apply different colors based on the value or index if needed
     return <span style={{ color: "#484848" }}>{value}</span>;
@@ -42,7 +49,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data }) => {
     >
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={data}
+          data={formattedData}
           margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" />

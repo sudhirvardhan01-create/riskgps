@@ -21,7 +21,6 @@ import HorizontalBarChart from "../CustomReports/HorizontalBarChart";
 import WorldMap from "../CustomReports/WorldMap";
 import { transformAssetData } from "@/utils/utility";
 import AssetTableViewContainer from "@/components/AssetLevelReports/AssetTableViewContainer";
-import OrgId from "@/pages/orgManagement/[orgId]";
 import { DashboardService } from "@/services/dashboardService";
 import Cookies from "js-cookie";
 import { AssetLevelReportsData } from "@/types/reports";
@@ -30,7 +29,17 @@ const PieChartComponent = dynamic(() => import("../CustomReports/PieChart"), {
   ssr: false,
 });
 
-export default function CISOTab({ assetData, tooltipData }: any) {
+interface CISOTabProps {
+  assetData: any;
+  topAssets: any[];
+  riskPrioritisedAssets: any[];
+}
+
+const CISOTab: React.FC<CISOTabProps> = ({
+  assetData,
+  topAssets,
+  riskPrioritisedAssets,
+}) => {
   const [orgId, setOrgId] = useState<string | null>();
   const [selectedBusinessUnit, setSelectedBusinessUnit] =
     useState<string>("All");
@@ -86,62 +95,6 @@ export default function CISOTab({ assetData, tooltipData }: any) {
   const selectedAsset =
     assetLevelReportsData.find((a) => a.assetId === selectedAssetId) ??
     assetLevelReportsData[0];
-
-  const assetRiskScoresData = [
-    {
-      assetName: "Customer Database",
-      inherentRiskScore: 3.6,
-      netRiskScore: 3.3,
-    },
-    {
-      assetName: "Banking Application",
-      inherentRiskScore: 3.6,
-      netRiskScore: 2.2,
-    },
-    {
-      assetName: "Payment Rails",
-      inherentRiskScore: 3.4,
-      netRiskScore: 1.7,
-    },
-    {
-      assetName: "Fraud Application",
-      inherentRiskScore: 2.5,
-      netRiskScore: 1.3,
-    },
-    {
-      assetName: "Underwriting Application",
-      inherentRiskScore: 3.5,
-      netRiskScore: 3,
-    },
-    {
-      assetName: "Loan Application",
-      inherentRiskScore: 3.6,
-      netRiskScore: 2.1,
-    },
-  ];
-
-  const topAssets = [
-    {
-      name: "Customer Database",
-      value: 3.3,
-    },
-    {
-      name: "Underwriting Application",
-      value: 3,
-    },
-    {
-      name: "Banking Application",
-      value: 2.2,
-    },
-    {
-      name: "Loan Application",
-      value: 2.1,
-    },
-    {
-      name: "Payment Rails",
-      value: 1.7,
-    },
-  ];
 
   return (
     <>
@@ -259,7 +212,7 @@ export default function CISOTab({ assetData, tooltipData }: any) {
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                Top 5 Assets
+                Top Assets
               </Typography>
               <VerticalSingleBarChart
                 data={topAssets}
@@ -288,7 +241,7 @@ export default function CISOTab({ assetData, tooltipData }: any) {
               >
                 Risk Prioritised Assets
               </Typography>
-              <AssetsRiskScoreBarChart data={assetRiskScoresData} />
+              <AssetsRiskScoreBarChart data={riskPrioritisedAssets} />
             </Paper>
           </Grid>
           <Grid size={12}>
@@ -444,4 +397,6 @@ export default function CISOTab({ assetData, tooltipData }: any) {
       </Box>
     </>
   );
-}
+};
+
+export default CISOTab;

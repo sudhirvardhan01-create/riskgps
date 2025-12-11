@@ -39,3 +39,24 @@ export const getAssetLevelChartsData = async (orgId: string | undefined) => {
   );
   return res.data;
 };
+
+export const getTopOrgRiskScenariosAssets = async (
+  orgId: string,
+  riskScenario: boolean = true,
+  asset: boolean = true
+) => {
+  const params = new URLSearchParams();
+  params.append("riskScenario", riskScenario.toString());
+  params.append("asset", asset.toString());
+  const res = await apiClient.get(
+    `reports/${orgId}/organization-risks?${params}`
+  );
+  return res.data;
+};
+
+export const getRiskPrioritisedAssetsData = async (orgId: string) => {
+  const res = await apiClient.get(
+    `reports/${orgId}/asset-million-dollar-risk-chart`
+  );
+  return res.data;
+};

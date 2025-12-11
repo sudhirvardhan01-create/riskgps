@@ -25,16 +25,24 @@
 //   const [assetData, setAssetData] = useState<any[]>([]);
 //   const [orgId, setOrgId] = useState<string | null>();
 //   const categories: NistControlCategory[] = [
-//   { id: "DE.CM", code: "DE.CM", name: "Continuous Monitoring" },
-//   { id: "PR.AT", code: "PR.AT", name: "Awareness and Training" },
-//   { id: "PR.AA", code: "PR.AA", name: "Identity Management, Authentication, and Access Control" },
-//   { id: "PR.IR", code: "PR.IR", name: "Technology Infrastructure Resilience" },
-//   { id: "PR.PS", code: "PR.PS", name: "Platform Security" },
-//   { id: "ID.RA", code: "ID.RA", name: "Risk Assessment" },
+//     { id: "DE.CM", code: "DE.CM", name: "Continuous Monitoring" },
+//     { id: "PR.AT", code: "PR.AT", name: "Awareness and Training" },
+//     {
+//       id: "PR.AA",
+//       code: "PR.AA",
+//       name: "Identity Management, Authentication, and Access Control",
+//     },
+//     {
+//       id: "PR.IR",
+//       code: "PR.IR",
+//       name: "Technology Infrastructure Resilience",
+//     },
+//     { id: "PR.PS", code: "PR.PS", name: "Platform Security" },
+//     { id: "ID.RA", code: "ID.RA", name: "Risk Assessment" },
 
-//   // Included because you referenced it
-//   { id: "DE.AE", code: "DE.AE", name: "Anomalies and Events" }
-// ];;
+//     // Included because you referenced it
+//     { id: "DE.AE", code: "DE.AE", name: "Anomalies and Events" },
+//   ];
 
 //   const handleSave = (scores: NistControlScore[]) => {
 //     // replace with your API call
@@ -177,7 +185,7 @@
 //           />
 //         </Box>
 //       )}
-//       {currentTab === 1 && <AssetLevelReportsContainer/>}
+//       {currentTab === 1 && <AssetLevelReportsContainer />}
 //       {currentTab === 2 && (
 //         <Box
 //           sx={{
@@ -242,6 +250,10 @@ import CISOTab from "@/components/Reports/CISOTab";
 import { getOrganizationAssets } from "@/pages/api/organization";
 import { OrganizationFrameworkControl } from "@/types/reports";
 import NistControlScoreCardList from "@/components/NistScore/NistScoreInput";
+import {
+  getRiskPrioritisedAssetsData,
+  getTopOrgRiskScenariosAssets,
+} from "../api/reports";
 
 export default function DashboardContainer() {
   const [currentTab, setCurrentTab] = useState(0);
@@ -259,6 +271,11 @@ export default function DashboardContainer() {
   >([]);
   const [businessUnitRadarChartData, setBusinessUnitRadarChartData] = useState<
     RiskRadarRecord[]
+  >([]);
+  const [topRiskScenarios, setTopRiskScenarios] = useState<any[]>([]);
+  const [topAssets, setTopAssets] = useState<any[]>([]);
+  const [riskPrioritisedAssetsData, setRiskPrioritisedAssetsData] = useState<
+    any[]
   >([]);
 
   useEffect(() => {
@@ -285,18 +302,25 @@ export default function DashboardContainer() {
           businessUnitHeatmapChartRes,
           businessUnitRadarChartRes,
           assetRes,
+          topRiskScenariosAssetsRes,
+          riskPrioritisedAssetsRes,
         ] = await Promise.all([
           DashboardService.getRiskExposureBusinessProcessChartData(orgId),
           DashboardService.getRiskScenariosTableChartData(orgId),
           DashboardService.getBusinessUnitSeverityHeatmapChartData(orgId),
           DashboardService.getBusinessUnitRadarChartData(orgId),
           getOrganizationAssets(orgId),
+          getTopOrgRiskScenariosAssets(orgId),
+          getRiskPrioritisedAssetsData(orgId),
         ]);
         setRiskExposureProcessChartData(riskExposureProcessChartRes.data ?? []);
         setRiskScenariosTableChartData(riskScenarioTableChartRes.data ?? []);
         setBusinessUnitSeverityData(businessUnitHeatmapChartRes.data ?? []);
         setBusinessUnitRadarChartData(businessUnitRadarChartRes.data ?? []);
         setAssetData(assetRes.data ?? []);
+        setTopRiskScenarios(topRiskScenariosAssetsRes.data.riskScenarios ?? []);
+        setTopAssets(topRiskScenariosAssetsRes.data.assets ?? []);
+        setRiskPrioritisedAssetsData(riskPrioritisedAssetsRes.data ?? []);
       } catch (error) {
         console.error("Error fetching reports data:", error);
       }
@@ -406,13 +430,19 @@ export default function DashboardContainer() {
               riskScenariosTableChartData={riskScenariosTableChartData}
               businessUnitSeverityData={businessUnitSeverityData}
               businessUnitRadarChartData={businessUnitRadarChartData}
+              topAssets={topAssets}
+              topRiskScenarios={topRiskScenarios}
             />
           </>
         )}
         {/* CISO Tab Content */}
         {currentTab === 2 && (
           <>
-            <CISOTab assetData={assetData} />
+            <CISOTab
+              assetData={assetData}
+              topAssets={topAssets}
+              riskPrioritisedAssets={riskPrioritisedAssetsData}
+            />
           </>
         )}
         {/* CIO Tab Content */}
