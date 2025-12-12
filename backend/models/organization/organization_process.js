@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       orgBusinessUnitId: {
         type: DataTypes.UUID,
-        allowNull: false,
+        allowNull: true,
         field: "org_business_unit_id", // new field added
       },
       autoIncrementId: {

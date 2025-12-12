@@ -67,7 +67,7 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
     return (
       <Paper
         sx={{
-          height: 500,
+          height: 300,
           width: "100%",
           borderRadius: 3,
           bgcolor: "#f5f5f5",
@@ -111,7 +111,7 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
     <Paper
       sx={{
         width: "100%",
-        height: 600,
+        height: 300,
         borderRadius: 3,
         overflow: "hidden",
         boxShadow: "0 4px 15px rgba(0,0,0,0.1)",

@@ -19,16 +19,57 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         field: "org_id", // alias → DB column org_id
       },
-      name: {
+      frameWorkName: {
         type: DataTypes.STRING,
         allowNull: false,
-        field: "name",
+        field: "framework_name",
+        validate: {
+          notEmpty: true,
+        },
+      },
+      frameWorkControlCategoryId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        field: "framework_control_category_id",
+        validate: {
+          notEmpty: true,
+        },
+      },
+      frameWorkControlCategory: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: "framework_control_category",
+      },
+      frameWorkControlDescription: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        field: "framework_control_description",
+      },
+      frameWorkControlSubCategoryId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: "framework_control_sub_category_id",
+      },
+      frameWorkControlSubCategory: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: "framework_control_sub_category",
+      },
+      currentScore: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        field: "current_score",
+      },
+      targetScore: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        field: "target_score",
       },
       ...commonFields, // createdBy, modifiedBy, createdDate, modifiedDate, isDeleted
     },
     {
       tableName: "organization_framework_control",
-      timestamps: false, // we’re handling timestamps manually
+      timestamps: false, 
     }
   );
 
