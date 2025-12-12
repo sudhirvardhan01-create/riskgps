@@ -208,7 +208,13 @@ const CISOTab: React.FC<CISOTabProps> = ({
             <AssetControlFamilyLineChart asset={selectedAsset} />
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
-            <AssetStrengthBarChart assets={assetLevelReportsData} />
+            <AssetStrengthBarChart
+              assets={Array.from(
+                new Map(
+                  assetLevelReportsData.map((a) => [a.assetId, a])
+                ).values()
+              )}
+            />
           </Grid>
           <Grid size={6}>
             <Paper
