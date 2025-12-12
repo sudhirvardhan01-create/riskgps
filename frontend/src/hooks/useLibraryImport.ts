@@ -11,7 +11,12 @@ export interface LibraryImportStatus {
 
 export interface UseLibraryImportReturn {
   importStatus: LibraryImportStatus;
-  startImport: (orgId: string, selectedLibrary: string[]) => Promise<void>;
+  startImport: (
+    orgId: string,
+    selectedLibrary: string[],
+    orgBusinessUnitId?: string | null,
+    userId?: string | null
+  ) => Promise<void>;
   stopImport: () => void;
   resetStatus: () => void;
 }
@@ -110,11 +115,15 @@ export const useLibraryImport = (): UseLibraryImportReturn => {
 
             default:
               // Handle other message types
-              if (message.type === "import_complete") {
-                newStatus.isImporting = false;
-                newStatus.status = "completed";
-                newStatus.message = message.message || "Import completed successfully";
-                newStatus.progress = 100;
+              if (message.type === "import_complete" || message.type === "sync_status") {
+                // sync_status messages are already handled by the status field above
+                // This is just a fallback for any edge cases
+                if (message.status === "completed" && !newStatus.isImporting) {
+                  newStatus.isImporting = false;
+                  newStatus.status = "completed";
+                  newStatus.message = message.message || "Import completed successfully";
+                  newStatus.progress = 100;
+                }
               }
               break;
           }
@@ -135,7 +144,12 @@ export const useLibraryImport = (): UseLibraryImportReturn => {
     };
   }, [importStatus.jobId, isConnected, subscribe]);
 
-  const startImport = async (orgId: string, selectedLibrary: string[]) => {
+  const startImport = async (
+    orgId: string,
+    selectedLibrary: string[],
+    orgBusinessUnitId?: string | null,
+    userId?: string | null
+  ) => {
     // Try to connect WebSocket if not connected (optional - won't fail if it doesn't work)
     if (!isConnected) {
       try {
@@ -161,17 +175,32 @@ export const useLibraryImport = (): UseLibraryImportReturn => {
     });
 
     try {
-      // Call the backend API to start the import
+      // Get access token from cookies for authorization
+      const token = typeof window !== 'undefined' ? document.cookie
+        .split('; ')
+        .find(row => row.startsWith('accessToken='))
+        ?.split('=')[1] : null;
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      // Add authorization header if token exists
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // Call the backend API to start the sync
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/import-library`,
+        `${process.env.NEXT_PUBLIC_API_URL}/organization/sync`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify({
-            orgId,
-            selectedLibrary,
+            organizationId: orgId,
+            orgBusinessUnitId: orgBusinessUnitId || null,
+            userId: userId || null,
+            libraryNames: selectedLibrary,
           }),
         }
       );

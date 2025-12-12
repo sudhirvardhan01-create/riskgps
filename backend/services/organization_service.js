@@ -28,6 +28,7 @@ const Messages = require("../constants/messages");
 const OrganizationRiskScenarioService = require("./organization_risk_scenario_service");
 const OrganizationProcessService = require("./organization_process_service");
 const OrganizationAssetService = require("./organization_asset_service");
+const wsManager = require("../utils/websocket");
 
 class OrganizationService {
     /**
@@ -2002,38 +2003,159 @@ class OrganizationService {
         }
     }
 
-    static async syncLibraries({ organizationId, libraryNames, orgBusinessUnitId, userId }) {
+    static async syncLibraries({ organizationId, libraryNames, orgBusinessUnitId, userId, jobId }) {
         const output = {};
+        const totalLibraries = libraryNames.length;
+        let completedLibraries = 0;
 
-        for (const name of libraryNames) {
-            switch (name) {
-
-                case "process":
-                case "process_attribute":
-                case "process":
-                case "process_relation":
-                case "riskScenario":
-                case "risk_scenario_attribute":
-                case "risk_scenario_process":
-                case "asset":
-                case "asset_attribute":
-                case "asset_process":
-                    output[name] = await this.syncSingleLibrary(
-                        name,
-                        organizationId,
-                        orgBusinessUnitId,
-                        userId
-                    );
-                    break;
-
-                default:
-                    output[name] = { skipped: true, error: "Unknown library type." };
-            }
+        // Send started message
+        if (jobId) {
+            wsManager.sendToJob(jobId, {
+                type: "sync_status",
+                status: "started",
+                message: "Library sync started",
+                progress: 0,
+                totalLibraries,
+                completedLibraries: 0,
+            });
         }
-        return output;
+
+        try {
+            for (let i = 0; i < libraryNames.length; i++) {
+                const name = libraryNames[i];
+                const libraryDisplayName = this.getLibraryDisplayName(name);
+
+                // Send progress message for current library
+                if (jobId) {
+                    wsManager.sendToJob(jobId, {
+                        type: "sync_status",
+                        status: "progress",
+                        message: `Syncing ${libraryDisplayName}...`,
+                        progress: Math.round((i / totalLibraries) * 100),
+                        currentLibrary: libraryDisplayName,
+                        totalLibraries,
+                        completedLibraries,
+                    });
+                }
+
+                try {
+                    // Normalize library name (frontend may send plural forms)
+                    let normalizedName = name;
+                    if (name === "risk-scenarios") {
+                        normalizedName = "risk-scenario";
+                    } else if (name === "assets") {
+                        normalizedName = "asset";
+                    }
+
+                    switch (normalizedName) {
+                        case "process":
+                        case "process-attribute":
+                        case "process-relation":
+                        case "risk-scenario":
+                        case "risk-scenario-attribute":
+                        case "risk-scenario-process":
+                        case "asset":
+                        case "asset-attribute":
+                        case "asset-process":
+                            output[name] = await this.syncSingleLibrary(
+                                normalizedName,
+                                organizationId,
+                                orgBusinessUnitId,
+                                userId,
+                                jobId
+                            );
+                            completedLibraries++;
+                            break;
+
+                        default:
+                            output[name] = { skipped: true, error: "Unknown library type." };
+                            completedLibraries++;
+                    }
+
+                    // Send completion message for this library
+                    if (jobId && output[name] && !output[name].error) {
+                        wsManager.sendToJob(jobId, {
+                            type: "sync_status",
+                            status: "progress",
+                            message: `${libraryDisplayName} synced successfully`,
+                            progress: Math.round(((i + 1) / totalLibraries) * 100),
+                            currentLibrary: libraryDisplayName,
+                            totalLibraries,
+                            completedLibraries,
+                            libraryResult: output[name],
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error syncing library ${name}:`, error);
+                    output[name] = { error: error.message || "Failed to sync library" };
+                    completedLibraries++;
+
+                    // Send error message for this library
+                    if (jobId) {
+                        wsManager.sendToJob(jobId, {
+                            type: "sync_status",
+                            status: "progress",
+                            message: `Error syncing ${libraryDisplayName}`,
+                            progress: Math.round(((i + 1) / totalLibraries) * 100),
+                            currentLibrary: libraryDisplayName,
+                            totalLibraries,
+                            completedLibraries,
+                            error: error.message || "Failed to sync library",
+                        });
+                    }
+                }
+            }
+
+            // Send completion message
+            if (jobId) {
+                wsManager.sendToJob(jobId, {
+                    type: "sync_status",
+                    status: "completed",
+                    message: "Library sync completed successfully",
+                    progress: 100,
+                    totalLibraries,
+                    completedLibraries,
+                    data: output,
+                });
+            }
+
+            return output;
+        } catch (error) {
+            console.error("Library sync error:", error);
+            
+            // Send error message
+            if (jobId) {
+                wsManager.sendToJob(jobId, {
+                    type: "sync_status",
+                    status: "error",
+                    message: error.message || "Library sync failed",
+                    progress: Math.round((completedLibraries / totalLibraries) * 100),
+                    totalLibraries,
+                    completedLibraries,
+                    error: error.message || "Library sync failed",
+                });
+            }
+            
+            throw error;
+        }
     }
 
-    static async syncSingleLibrary(name, organizationId, orgBusinessUnitId, userId) {
+    static getLibraryDisplayName(name) {
+        const displayNames = {
+            "process": "Processes",
+            "process-attribute": "Process Attributes",
+            "process-relation": "Process Relations",
+            "risk-scenarios": "Risk Scenarios",
+            "risk-scenario-attribute": "Risk Scenario Attributes",
+            "risk-scenario-process": "Risk Scenario Processes",
+            "assets": "Assets",
+            "asset-attribute": "Asset Attributes",
+            "asset-process": "Asset Processes",
+        };
+        return displayNames[name] || name;
+    }
+
+    static async syncSingleLibrary(name, organizationId, orgBusinessUnitId, userId, jobId = null) {
 
         let GenericModel, OrgModel, mappingFields;
 

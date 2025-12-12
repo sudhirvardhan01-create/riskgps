@@ -483,3 +483,52 @@ export const saveTaxonomies = async (
 
   return response.json();
 };
+
+export interface SyncLibrariesRequest {
+  organizationId: string;
+  libraryNames: string[];
+  orgBusinessUnitId?: string | null;
+  userId?: string | null;
+  jobId?: string | null;
+}
+
+export interface SyncLibrariesResponse {
+  success: boolean;
+  message: string;
+  data: any;
+}
+
+export const syncLibraries = async (
+  syncData: SyncLibrariesRequest
+): Promise<SyncLibrariesResponse> => {
+  // Get access token from cookies
+  const token = typeof window !== 'undefined' ? document.cookie
+    .split('; ')
+    .find(row => row.startsWith('accessToken='))
+    ?.split('=')[1] : null;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add authorization header if token exists
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/sync`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify(syncData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || errorData.error || "Failed to sync libraries");
+  }
+
+  return response.json();
+};

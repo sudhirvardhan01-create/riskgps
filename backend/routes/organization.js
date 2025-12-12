@@ -943,7 +943,7 @@ router.post("/:orgId/taxonomies", async (req, res) => {
 // POST → Sync Generic Library → Organization Library
 router.post("/sync", async (req, res) => {
     try {
-        const { organizationId, libraryNames, orgBusinessUnitId, userId } = req.body;
+        const { organizationId, libraryNames, orgBusinessUnitId, userId, jobId } = req.body;
 
         if (!organizationId || !libraryNames || !Array.isArray(libraryNames)) {
             return res.status(400).json({
@@ -952,17 +952,26 @@ router.post("/sync", async (req, res) => {
             });
         }
 
-        const result = await OrganizationService.syncLibraries({
+        // Generate jobId if not provided
+        const syncJobId = jobId || `sync-${organizationId}-${Date.now()}`;
+
+        // Send initial response immediately (for WebSocket-based sync)
+        res.status(200).json({
+            success: true,
+            message: "Library sync started",
+            jobId: syncJobId,
+        });
+
+        // Start sync process asynchronously with WebSocket updates
+        OrganizationService.syncLibraries({
             organizationId,
             libraryNames,
             orgBusinessUnitId,
             userId,
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Library sync completed",
-            data: result,
+            jobId: syncJobId,
+        }).catch((error) => {
+            console.error("Library Sync Error:", error);
+            // Error will be sent via WebSocket
         });
 
     } catch (error) {

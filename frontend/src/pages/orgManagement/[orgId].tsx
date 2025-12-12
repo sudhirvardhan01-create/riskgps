@@ -14,9 +14,6 @@ import {
   SxProps,
   Theme,
   Button,
-  Popover,
-  Checkbox,
-  FormControlLabel,
   CircularProgress,
 } from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
@@ -73,12 +70,6 @@ function OrgDetailsPage() {
     severity: "error" as "error" | "warning" | "info" | "success",
   });
   const [user, setUser] = useState<{ role?: string; orgId?: string }>({});
-  const [importModalAnchor, setImportModalAnchor] = useState<HTMLButtonElement | null>(null);
-  const [importSelections, setImportSelections] = useState({
-    riskScenario: false,
-    process: false,
-    assets: false,
-  });
 
   // WebSocket integration for library import
   const { importStatus, startImport, stopImport, resetStatus } = useLibraryImport();
@@ -303,32 +294,7 @@ function OrgDetailsPage() {
     router.push("/orgManagement");
   };
 
-  const handleImportLibraryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setImportModalAnchor(event.currentTarget);
-  };
-
-  const handleImportModalClose = () => {
-    setImportModalAnchor(null);
-    // Only reset status if import is not in progress
-    if (!importStatus.isImporting) {
-      resetStatus();
-      // Reset selections
-      setImportSelections({
-        riskScenario: false,
-        process: false,
-        assets: false,
-      });
-    }
-  };
-
-  const handleCheckboxChange = (key: keyof typeof importSelections) => {
-    setImportSelections((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
-  const handleImport = async () => {
+  const handleImportLibraryClick = async () => {
     if (!orgId || typeof orgId !== "string") {
       setToast({
         open: true,
@@ -338,41 +304,37 @@ function OrgDetailsPage() {
       return;
     }
 
-    // Build selectedLibrary array based on importSelections
-    const selectedLibrary: string[] = [];
-    if (importSelections.riskScenario) {
-      selectedLibrary.push("risk-scenarios");
-    }
-    if (importSelections.process) {
-      selectedLibrary.push("process");
-    }
-    if (importSelections.assets) {
-      selectedLibrary.push("assets");
-    }
+    // Get userId from cookies
+    const cookieUser = Cookies.get("user");
+    const parsedUser = cookieUser ? JSON.parse(cookieUser) : null;
+    const userId = parsedUser?.id || null;
 
-    // Check if at least one library is selected
-    if (selectedLibrary.length === 0) {
-      setToast({
-        open: true,
-        message: "Please select at least one library to import",
-        severity: "warning",
-      });
-      return;
-    }
+    // orgBusinessUnitId is optional - pass null for now
+    // Can be enhanced later to get from organization's businessUnits if needed
+    const orgBusinessUnitId: string | null = null;
+
+    // Import all libraries as per the curl request
+    const selectedLibrary: string[] = [
+      "process",
+      "process-attribute",
+      "process-relation",
+      "asset",
+      "asset-attribute",
+      "asset-process",
+      "risk-scenario",
+      "risk-scenario-attribute",
+      "risk-scenario-process",
+      "mitre-threat",
+    ];
 
     try {
       // Start import using WebSocket hook
-      await startImport(orgId as string, selectedLibrary);
-      
-      // Close modal immediately - import is now running in background
-      handleImportModalClose();
-      
-      // Reset selections after starting import
-      setImportSelections({
-        riskScenario: false,
-        process: false,
-        assets: false,
-      });
+      await startImport(
+        orgId as string,
+        selectedLibrary,
+        orgBusinessUnitId,
+        userId
+      );
     } catch (error: any) {
       setToast({
         open: true,
@@ -1132,149 +1094,6 @@ function OrgDetailsPage() {
           </Typography>
         </TabPanel>
       </Box>
-
-      {/* Import Library Modal */}
-      <Popover
-        open={Boolean(importModalAnchor)}
-        anchorEl={importModalAnchor}
-        onClose={handleImportModalClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        PaperProps={{
-          sx: {
-            mt: 1,
-            minWidth: 300,
-            borderRadius: "8px",
-            boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
-            border: "1px solid #E7E7E8",
-          },
-        }}
-      >
-        <Box sx={{ p: 3 }}>
-          <Typography
-            variant="h6"
-            sx={{
-              mb: 2,
-              fontWeight: 500,
-              color: "#484848",
-            }}
-          >
-            Import Library
-          </Typography>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 3 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={importSelections.riskScenario}
-                  onChange={() => handleCheckboxChange("riskScenario")}
-                  sx={{
-                    color: "#04139A",
-                    "&.Mui-checked": {
-                      color: "#04139A",
-                    },
-                  }}
-                />
-              }
-              label="Risk Scenario"
-              sx={{
-                "& .MuiFormControlLabel-label": {
-                  fontSize: "14px",
-                  color: "#484848",
-                },
-              }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={importSelections.process}
-                  onChange={() => handleCheckboxChange("process")}
-                  sx={{
-                    color: "#04139A",
-                    "&.Mui-checked": {
-                      color: "#04139A",
-                    },
-                  }}
-                />
-              }
-              label="Process"
-              sx={{
-                "& .MuiFormControlLabel-label": {
-                  fontSize: "14px",
-                  color: "#484848",
-                },
-              }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={importSelections.assets}
-                  onChange={() => handleCheckboxChange("assets")}
-                  sx={{
-                    color: "#04139A",
-                    "&.Mui-checked": {
-                      color: "#04139A",
-                    },
-                  }}
-                />
-              }
-              label="Assets"
-              sx={{
-                "& .MuiFormControlLabel-label": {
-                  fontSize: "14px",
-                  color: "#484848",
-                },
-              }}
-            />
-          </Box>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={handleImportModalClose}
-              sx={{
-                textTransform: "none",
-                color: "#484848",
-                borderColor: "#E7E7E8",
-                "&:hover": {
-                  borderColor: "#91939A",
-                  backgroundColor: "#F5F5F5",
-                },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleImport}
-              disabled={
-                !importSelections.riskScenario &&
-                !importSelections.process &&
-                !importSelections.assets
-              }
-              sx={{
-                backgroundColor: "#04139A",
-                color: "#FFFFFF",
-                textTransform: "none",
-                fontWeight: 500,
-                "&:hover": {
-                  backgroundColor: "#030d6b",
-                },
-                "&.Mui-disabled": {
-                  backgroundColor: "#E7E7E8",
-                  color: "#91939A",
-                },
-              }}
-            >
-              Import
-            </Button>
-          </Box>
-        </Box>
-      </Popover>
 
       {/* Success Popup Dialog */}
       <Dialog
