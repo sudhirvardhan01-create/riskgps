@@ -167,7 +167,7 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
   }, [data, width, height, xAxisLabel, yAxisLabel, xOrder, yOrder]);
 
   return (
-    <Paper elevation={3} sx={{ p: 3, width: "fit-content" }}>
+    <Paper elevation={0} sx={{ p: 3, width: "fit-content" }}>
       {title && (
         <Typography variant="h6" gutterBottom align="center">
           {title}
