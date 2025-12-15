@@ -759,7 +759,17 @@ class ReportsService {
         transaction: t,
       });
 
-      return updatedOrgControls;
+      const nistControlCategories = Array.from(
+        new Map(
+          updatedOrgControls.map((item) => [
+            item.frameWorkControlCategoryId,
+            item,
+          ])
+        ).values()
+      ).sort((a, b) =>
+        a.frameWorkControlCategoryId.localeCompare(b.frameWorkControlCategoryId)
+      );
+      return nistControlCategories;
     });
   }
 
@@ -780,7 +790,10 @@ class ReportsService {
             modifiedDate: new Date(),
           },
           {
-            where: { organizationId: orgId, orgControlId: row.orgControlId },
+            where: {
+              organizationId: orgId,
+              frameWorkControlCategoryId: row.frameWorkControlCategoryId,
+            },
             transaction: t,
           }
         );
@@ -807,9 +820,9 @@ class ReportsService {
           updatedAt: latestTimeStampFromAssetNistControlScoreTable,
         },
       });
-    const controlCategoryIds = calculatedMitreToNistScores.map(
-      (item) => item.controlCategoryId
-    );
+    // const controlCategoryIds = calculatedMitreToNistScores.map(
+    //   (item) => item.controlCategoryId
+    // );
     const organizationNistControlScores =
       await OrganizationFrameworkControl.findAll({
         where: {
@@ -862,7 +875,10 @@ class ReportsService {
           controlCategory: item.controlCategory,
           controlSubCategoryId: item.controlSubCategoryId,
           controlSubCategory: item.controlSubCategory,
-          calcultatedControlScore: item.calcultatedControlScore === null ? 0 : item.calcultatedControlScore,
+          calcultatedControlScore:
+            item.calcultatedControlScore === null
+              ? 0
+              : item.calcultatedControlScore,
           currentScore: item.currentScore,
           targetScore: item.targetScore,
         });
@@ -871,18 +887,21 @@ class ReportsService {
       }, {})
     );
 
-    const plainorganizationNistControlScoresArray = organizationNistControlScores.map(r => r.toJSON());
+    const plainorganizationNistControlScoresArray =
+      organizationNistControlScores.map((r) => r.toJSON());
     const uniqueByCategory = [
       ...new Map(
-        plainorganizationNistControlScoresArray.map(item => [
-          item.frameWorkControlCategoryId, item
+        plainorganizationNistControlScoresArray.map((item) => [
+          item.frameWorkControlCategoryId,
+          item,
         ])
-      ).values()
+      ).values(),
     ];
     for (const asset of assetLevelReportsData) {
       const controls = asset.controls.map((a) => a.controlCategoryId);
-      const missingControls = uniqueByCategory.filter((c) => !controls.includes(c.frameWorkControlCategoryId));
-      const e = missingControls.map((i)=>i.frameWorkControlCategoryId)
+      const missingControls = uniqueByCategory.filter(
+        (c) => !controls.includes(c.frameWorkControlCategoryId)
+      );
       for (const ctrl of missingControls) {
         asset.controls.push({
           controlCategoryId: ctrl.frameWorkControlCategoryId,
@@ -894,6 +913,9 @@ class ReportsService {
           targetScore: ctrl.targetScore,
         });
       }
+      (asset.controls ?? []).sort((a, b) =>
+        a?.controlCategoryId?.localeCompare(b?.controlCategoryId)
+      );
     }
 
     let whereClause = {
