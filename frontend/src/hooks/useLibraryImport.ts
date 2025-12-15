@@ -21,6 +21,17 @@ export interface UseLibraryImportReturn {
   resetStatus: () => void;
 }
 
+// Helper function to normalize library names to match backend expectations
+const normalizeLibraryNames = (libraryNames: string[]): string[] => {
+  return libraryNames.map((name) => {
+    // Normalize plural forms to singular as expected by backend
+    if (name === "processes") return "process";
+    if (name === "risk-scenarios") return "risk-scenario";
+    if (name === "assets") return "asset";
+    return name;
+  });
+};
+
 export const useLibraryImport = (): UseLibraryImportReturn => {
   const { isConnected, subscribe, sendMessage, connect, disconnect } = useWebSocket();
   const [importStatus, setImportStatus] = useState<LibraryImportStatus>({
@@ -44,8 +55,6 @@ export const useLibraryImport = (): UseLibraryImportReturn => {
 
       // Subscribe to new job
       unsubscribeRef.current = subscribe(importStatus.jobId, (message: WebSocketMessage) => {
-        console.log("Library Import: WebSocket message received", message);
-
         setImportStatus((prev) => {
           const newStatus = { ...prev };
 
@@ -153,16 +162,11 @@ export const useLibraryImport = (): UseLibraryImportReturn => {
     // Try to connect WebSocket if not connected (optional - won't fail if it doesn't work)
     if (!isConnected) {
       try {
-        console.log("Library Import: Attempting to connect WebSocket...");
         await connect();
-        console.log("Library Import: WebSocket connected successfully");
       } catch (error: any) {
-        console.warn("Library Import: WebSocket connection failed, continuing without real-time updates", error);
         // Don't throw error - allow import to proceed without WebSocket
         // The import will work, but without real-time progress updates
       }
-    } else {
-      console.log("Library Import: WebSocket already connected");
     }
 
     // Reset status
@@ -190,6 +194,9 @@ export const useLibraryImport = (): UseLibraryImportReturn => {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
+      // Normalize library names before sending to backend
+      const normalizedLibraryNames = normalizeLibraryNames(selectedLibrary);
+
       // Call the backend API to start the sync
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/organization/sync`,
@@ -200,7 +207,7 @@ export const useLibraryImport = (): UseLibraryImportReturn => {
             organizationId: orgId,
             orgBusinessUnitId: orgBusinessUnitId || null,
             userId: userId || null,
-            libraryNames: selectedLibrary,
+            libraryNames: normalizedLibraryNames,
           }),
         }
       );

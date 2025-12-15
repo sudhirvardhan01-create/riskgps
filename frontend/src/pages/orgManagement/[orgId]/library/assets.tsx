@@ -1047,6 +1047,9 @@ function AssetsPage() {
                   const descriptionText = `Description: ${asset.assetDescription}`;
                   const actualDescription = asset.assetDescription || "";
                   const shouldShowToggle = actualDescription.trim().length > 80;
+                  // Find the full asset data to check for parentObjectId
+                  const fullAsset = orgAssets.find((a: any) => a.id === asset.id);
+                  const hasParentObjectId = fullAsset?.parentObjectId != null;
 
                   return (
                     <Grid size={{ xs: 12, sm: 6 }} key={asset.id}>
@@ -1093,18 +1096,42 @@ function AssetsPage() {
                                 flexDirection: "column",
                               }}
                             >
-                              <Typography
-                                variant="body2"
+                              <Box
                                 sx={{
-                                  color: "#484848",
-                                  fontSize: "14px",
-                                  lineHeight: "20px",
-                                  fontWeight: 600,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
                                   mb: 0.5,
                                 }}
                               >
-                                {asset.applicationName}
-                              </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: "#484848",
+                                    fontSize: "14px",
+                                    lineHeight: "20px",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {asset.applicationName}
+                                </Typography>
+                                {hasParentObjectId && (
+                                  <Chip
+                                    label="Imported"
+                                    size="small"
+                                    sx={{
+                                      backgroundColor: "#04139A",
+                                      color: "#FFFFFF",
+                                      fontSize: "11px",
+                                      height: "20px",
+                                      fontWeight: 500,
+                                      "& .MuiChip-label": {
+                                        px: 1,
+                                      },
+                                    }}
+                                  />
+                                )}
+                              </Box>
                               <Box sx={{ position: "relative" }}>
                                 <Typography
                                   variant="body2"

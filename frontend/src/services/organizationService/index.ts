@@ -498,6 +498,17 @@ export interface SyncLibrariesResponse {
   data: any;
 }
 
+// Helper function to normalize library names to match backend expectations
+const normalizeLibraryNames = (libraryNames: string[]): string[] => {
+  return libraryNames.map((name) => {
+    // Normalize plural forms to singular as expected by backend
+    if (name === "processes") return "process";
+    if (name === "risk-scenarios") return "risk-scenario";
+    if (name === "assets") return "asset";
+    return name;
+  });
+};
+
 export const syncLibraries = async (
   syncData: SyncLibrariesRequest
 ): Promise<SyncLibrariesResponse> => {
@@ -516,12 +527,18 @@ export const syncLibraries = async (
     headers["Authorization"] = `Bearer ${token}`;
   }
 
+  // Normalize library names before sending to backend
+  const normalizedSyncData = {
+    ...syncData,
+    libraryNames: normalizeLibraryNames(syncData.libraryNames),
+  };
+
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/organization/sync`,
     {
       method: "POST",
       headers,
-      body: JSON.stringify(syncData),
+      body: JSON.stringify(normalizedSyncData),
     }
   );
 

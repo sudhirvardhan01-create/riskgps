@@ -53,6 +53,53 @@ export const getOrganizationProcess = async (
   return response.json();
 };
 
+export const getOrganizationProcessesWithoutBU = async (
+  orgId: string | undefined
+) => {
+  if (!orgId) {
+    throw new Error("Organization ID is required");
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/process-for-listing`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.error || errorData.message || "Failed to fetch organization processes";
+    
+    // If error is "No processes found" (404), treat it as empty state, not an error
+    if (response.status === 404 && errorMessage.toLowerCase().includes("no processes found")) {
+      return {
+        data: [],
+        msg: "No processes found"
+      };
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  const res = await response.json();
+  // The API returns { data: [...], msg: "..." }
+  // Transform to match the expected format with pagination structure
+  return {
+    data: {
+      data: res.data || [],
+      total: res.data?.length || 0,
+      page: 0,
+      limit: res.data?.length || 0,
+      totalPages: 1,
+    },
+    msg: res.msg || "Processes fetched successfully"
+  };
+};
+
 export const createOrganizationProcess = async (
   orgId: string | undefined,
   buId: string | undefined,

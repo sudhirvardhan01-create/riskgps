@@ -5,7 +5,7 @@ const wsManager = require("./utils/websocket");
 const port = 8000;
 
 db.sequelize.sync().then(() => {
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log("RiskGPS Server v1.0 started on port " + port);
   });
 
