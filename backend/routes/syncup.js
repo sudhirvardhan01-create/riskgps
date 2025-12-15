@@ -31,7 +31,7 @@ router.get("/v1/last-syncup-details/:orgId", async (req, res) => {
       throw new Error("Org ID required");
     }
     const data = await SyncupService.getLastSyncupDetails(orgId);
-    console.log(data)
+    console.log(data);
 
     res.status(HttpStatusCodes.OK).json({
       data: data,
@@ -39,6 +39,19 @@ router.get("/v1/last-syncup-details/:orgId", async (req, res) => {
     });
   } catch (err) {
     console.log("Failed to get last syncup details", err);
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
+  }
+});
+
+router.get("/export-reports-data/:orgId", async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
+    await SyncupService.downloadOrganizationLatestReportsDataExcel(orgId, res)
+  } catch (err) {
+    console.log("Failed to download reports data", err);
     res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
   }
 });
