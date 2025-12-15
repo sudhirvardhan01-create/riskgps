@@ -112,7 +112,7 @@ export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
   }, [data]);
 
   return (
-    <Paper elevation={3} sx={{ p: 3, width: "100%", height: "455px" }}>
+    <Paper elevation={0} sx={{ p: 3, width: "100%", height: "455px" }}>
       <ResponsiveContainer>
         <RadarChart cx="50%" cy="50%" outerRadius="65%" data={normalizedData}>
           <PolarGrid />
@@ -123,7 +123,7 @@ export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
             tickLine={false}
           />
 
-          <PolarRadiusAxis angle={30} domain={[0, 100]} />
+          {/* <PolarRadiusAxis angle={30} domain={[0, 100]} /> */}
 
           {businessUnits.map((bu, i) => {
             const color = palette[colorKeys[i % colorKeys.length]];

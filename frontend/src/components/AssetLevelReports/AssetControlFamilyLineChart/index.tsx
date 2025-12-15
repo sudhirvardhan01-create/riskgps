@@ -21,15 +21,17 @@ interface AssetControlFamilyLineChartProps {
 const AssetControlFamilyLineChart: React.FC<
   AssetControlFamilyLineChartProps
 > = ({ asset }) => {
-  const data = asset?.controls?.map((item) => {
-    if (item.calcultatedControlScore === null) return null;
-    return {
-      nistCategory: item.controlCategoryId,
-      mitreMappedNistScore: item.calcultatedControlScore,
-      orgCurrentScore: item.currentScore,
-      orgTargeScore: item.targetScore,
-    };
-  }).filter(Boolean);
+  const data = asset?.controls
+    ?.map((item) => {
+      if (item.calcultatedControlScore === null) return null;
+      return {
+        nistCategory: item.controlCategoryId,
+        mitreMappedNistScore: item.calcultatedControlScore,
+        orgCurrentScore: item.currentScore,
+        orgTargeScore: item.targetScore,
+      };
+    })
+    .filter(Boolean);
 
   return (
     <Paper
@@ -80,7 +82,7 @@ const AssetControlFamilyLineChart: React.FC<
             type="monotone"
             dataKey="orgCurrentScore"
             name="Org Current Score"
-            stroke="#1D4ED8"
+            stroke="#12229d"
             strokeWidth={2}
             dot={{ r: 4 }}
           />
@@ -88,7 +90,7 @@ const AssetControlFamilyLineChart: React.FC<
             type="monotone"
             dataKey="orgTargeScore"
             name="Org Target Score"
-            stroke="#0EA5E9"
+            stroke="#6f80eb"
             strokeWidth={2}
             dot={{ r: 4 }}
           />
@@ -96,7 +98,7 @@ const AssetControlFamilyLineChart: React.FC<
             type="monotone"
             dataKey="mitreMappedNistScore"
             name="Asset Current Score"
-            stroke="#F97316"
+            stroke="#ffa500"
             strokeWidth={2}
             dot={{ r: 4 }}
           />

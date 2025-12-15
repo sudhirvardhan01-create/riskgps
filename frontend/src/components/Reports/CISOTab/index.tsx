@@ -416,7 +416,29 @@ const CISOTab: React.FC<CISOTabProps> = ({
             </Paper>
           </Grid>
           <Grid size={12}>
-            {orgData && <ProcessAssetFlow data={orgData} />}
+            {orgData && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fafafa",
+                  height: "100%",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  borderRadius: "10px",
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  textAlign="left"
+                  sx={{ mb: 1 }}
+                >
+                  Process Topology
+                </Typography>
+                <ProcessAssetFlow data={orgData} />
+              </Paper>
+            )}
           </Grid>
         </Grid>
       </Box>
