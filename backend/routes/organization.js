@@ -89,26 +89,34 @@ router.get(
     }
 );
 
+
 /**
+ * @route GET /organization/:orgId/processes
  * @route GET /organization/:orgId/business-unit/:businessUnitId/processes
- * @description Get all processes for a given organization + business unit (both mandatory)
+ * @description Get all processes for a given organization.
+ *              Business unit is optional.
  */
+
 router.get(
-    "/:orgId/business-unit/:businessUnitId/processes",
+    [
+        "/:orgId/processes",
+        "/:orgId/business-unit/:businessUnitId/processes"
+    ],
     async (req, res) => {
         try {
             const { orgId, businessUnitId } = req.params;
-            if (!orgId || !businessUnitId) {
+
+            if (!orgId) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
-                    message:
-                        "Organization ID and Business unit ID is required in the URL",
+                    message: "Organization ID is required in the URL",
                 });
             }
 
-            const processes = await OrganizationService.getOrganizationProcesses(
-                orgId,
-                businessUnitId
-            );
+            const processes =
+                await OrganizationService.getOrganizationProcesses(
+                    orgId,
+                    businessUnitId
+                );
 
             res.status(HttpStatus.OK).json({
                 data: processes,
@@ -122,26 +130,34 @@ router.get(
     }
 );
 
+
+
 /**
- * @route GET /organization/:orgId/business-unit/:businessUnitId/processes
- * @description Get all processes for a given organization + business unit (both mandatory)
+ * @route GET /organization/:orgId/processes-v2
+ * @route GET /organization/:orgId/business-unit/:businessUnitId/processes-v2
+ * @description Get all processes for a given organization.
+ *              Business unit is optional.
  */
 router.get(
-    "/:orgId/business-unit/:businessUnitId/processes-v2",
+    [
+        "/:orgId/processes-v2",
+        "/:orgId/business-unit/:businessUnitId/processes-v2"
+    ],
     async (req, res) => {
         try {
             const { orgId, businessUnitId } = req.params;
 
-            if (!orgId || !businessUnitId) {
+            if (!orgId) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
-                    message:
-                        "Organization ID and Business unit ID is required in the URL",
+                    message: "Organization ID is required in the URL",
                 });
             }
-            const processes = await OrganizationService.getOrganizationProcessesV2(
-                orgId,
-                businessUnitId
-            );
+
+            const processes =
+                await OrganizationService.getOrganizationProcessesV2(
+                    orgId,
+                    businessUnitId
+                );
 
             res.status(HttpStatus.OK).json({
                 data: processes,
@@ -155,24 +171,35 @@ router.get(
     }
 );
 
+
+/**
+ * @route POST /organization/:orgId/add-process
+ * @route POST /organization/:orgId/business-unit/:businessUnitId/add-process
+ * @description Create process for an organization.
+ *              Business unit is optional.
+ */
 router.post(
-    "/:orgId/business-unit/:businessUnitId/add-process",
+    [
+        "/:orgId/add-process",
+        "/:orgId/business-unit/:businessUnitId/add-process"
+    ],
     async (req, res) => {
         try {
             const { orgId, businessUnitId } = req.params;
-            console.log({ orgId, businessUnitId })
-            if (!orgId || !businessUnitId) {
+            console.log({ orgId, businessUnitId });
+
+            if (!orgId) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
-                    message:
-                        "Organization ID and Business unit ID is required in the URL",
+                    message: "Organization ID is required in the URL",
                 });
             }
 
-            const scenarios = await OrganizationService.addProcessByOrgIdAndBuId(
-                orgId,
-                businessUnitId,
-                req.body
-            );
+            const scenarios =
+                await OrganizationService.addProcessByOrgIdAndBuId(
+                    orgId,
+                    businessUnitId,
+                    req.body
+                );
 
             res.status(HttpStatus.OK).json({
                 message: "Organization process created successfully",
@@ -186,24 +213,35 @@ router.post(
     }
 );
 
+
+/**
+ * @route POST /organization/:orgId/process
+ * @route POST /organization/:orgId/business-unit/:businessUnitId/process
+ * @description Create or update organization processes.
+ *              Business unit is optional.
+ */
 router.post(
-    "/:orgId/business-unit/:businessUnitId/process",
+    [
+        "/:orgId/process",
+        "/:orgId/business-unit/:businessUnitId/process"
+    ],
     async (req, res) => {
         try {
             const { orgId, businessUnitId } = req.params;
-            console.log({ orgId, businessUnitId })
-            if (!orgId || !businessUnitId) {
+            console.log({ orgId, businessUnitId });
+
+            if (!orgId) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
-                    message:
-                        "Organization ID and Business unit ID is required in the URL",
+                    message: "Organization ID is required in the URL",
                 });
             }
 
-            const scenarios = await OrganizationService.createProcessByOrgIdAndBuId(
-                orgId,
-                businessUnitId,
-                req.body
-            );
+            const scenarios =
+                await OrganizationService.createProcessByOrgIdAndBuId(
+                    orgId,
+                    businessUnitId,
+                    req.body
+                );
 
             res.status(HttpStatus.OK).json({
                 message: "Organization process created successfully",
@@ -217,25 +255,37 @@ router.post(
     }
 );
 
+
+/**
+ * @route PUT /organization/:orgId/process/:id
+ * @route PUT /organization/:orgId/business-unit/:businessUnitId/process/:id
+ * @description Update organization process.
+ *              Business unit is optional.
+ */
 router.put(
-    "/:orgId/business-unit/:businessUnitId/process/:id",
+    [
+        "/:orgId/process/:id",
+        "/:orgId/business-unit/:businessUnitId/process/:id"
+    ],
     async (req, res) => {
         try {
             const { id, orgId, businessUnitId } = req.params;
-            console.log({ id, orgId, businessUnitId })
-            if (!id || !orgId || !businessUnitId) {
+            console.log({ id, orgId, businessUnitId });
+
+            if (!id || !orgId) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
                     message:
-                        "Process ID, Organization ID and Business unit ID is required in the URL",
+                        "Process ID and Organization ID are required in the URL",
                 });
             }
 
-            const process = await OrganizationService.updateProcess(
-                id,
-                orgId,
-                businessUnitId,
-                req.body
-            );
+            const process =
+                await OrganizationService.updateProcess(
+                    id,
+                    orgId,
+                    businessUnitId,
+                    req.body
+                );
 
             res.status(HttpStatus.OK).json({
                 message: "Organization process updated successfully",
@@ -249,28 +299,40 @@ router.put(
     }
 );
 
+
+/**
+ * @route DELETE /organization/:orgId/process
+ * @route DELETE /organization/:orgId/business-unit/:businessUnitId/process
+ * @description Delete organization processes.
+ *              Business unit is optional.
+ */
 router.delete(
-    "/:orgId/business-unit/:businessUnitId/process",
+    [
+        "/:orgId/process",
+        "/:orgId/business-unit/:businessUnitId/process"
+    ],
     async (req, res) => {
         try {
             const { orgId, businessUnitId } = req.params;
             const ids = req.body.id ?? null;
-            if (!ids || !Array.isArray(ids) || !orgId || !businessUnitId) {
+
+            if (!orgId || !ids || !Array.isArray(ids)) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
                     message:
-                        "Process ID array, Organization ID and Business unit ID is required in the URL",
+                        "Process ID array and Organization ID are required",
                 });
             }
 
-            const process = await OrganizationService.deleteProcess(
-                ids,
-                orgId,
-                businessUnitId,
-            );
+            const deletedCount =
+                await OrganizationService.deleteProcess(
+                    ids,
+                    orgId,
+                    businessUnitId
+                );
 
             res.status(HttpStatus.OK).json({
                 message: "Organization process deleted successfully",
-                data: process,
+                data: deletedCount,
             });
         } catch (err) {
             res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -279,6 +341,8 @@ router.delete(
         }
     }
 );
+
+
 /**
  * @route GET /organization/:orgId/risk-scenarios
  * @desc Get all risk scenarios for an organization
@@ -943,7 +1007,7 @@ router.post("/:orgId/taxonomies", async (req, res) => {
 // POST → Sync Generic Library → Organization Library
 router.post("/sync", async (req, res) => {
     try {
-        const { organizationId, libraryNames, orgBusinessUnitId, userId } = req.body;
+        const { organizationId, libraryNames, orgBusinessUnitId, userId, jobId } = req.body;
 
         if (!organizationId || !libraryNames || !Array.isArray(libraryNames)) {
             return res.status(400).json({
@@ -952,17 +1016,26 @@ router.post("/sync", async (req, res) => {
             });
         }
 
-        const result = await OrganizationService.syncLibraries({
+        // Generate jobId if not provided
+        const syncJobId = jobId || `sync-${organizationId}-${Date.now()}`;
+
+        // Send initial response immediately (for WebSocket-based sync)
+        res.status(200).json({
+            success: true,
+            message: "Library sync started",
+            jobId: syncJobId,
+        });
+
+        // Start sync process asynchronously with WebSocket updates
+        OrganizationService.syncLibraries({
             organizationId,
             libraryNames,
             orgBusinessUnitId,
             userId,
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Library sync completed",
-            data: result,
+            jobId: syncJobId,
+        }).catch((error) => {
+            console.error("Library Sync Error:", error);
+            // Error will be sent via WebSocket
         });
 
     } catch (error) {

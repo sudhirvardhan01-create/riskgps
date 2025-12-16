@@ -13,6 +13,8 @@ import {
   DialogContent,
   SxProps,
   Theme,
+  Button,
+  CircularProgress,
 } from "@mui/material";
 import { ArrowBack, Edit, Close } from "@mui/icons-material";
 import withAuth from "@/hoc/withAuth";
@@ -25,6 +27,7 @@ import OrgDetailsTypography from "@/components/OrgDetailsTypography/OrgDetailsTy
 import ToastComponent from "@/components/ToastComponent";
 import Repository from "@/components/Repository/Repository";
 import Cookies from "js-cookie";
+import { useLibraryImport } from "@/hooks/useLibraryImport";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,6 +70,9 @@ function OrgDetailsPage() {
     severity: "error" as "error" | "warning" | "info" | "success",
   });
   const [user, setUser] = useState<{ role?: string; orgId?: string }>({});
+
+  // WebSocket integration for library import
+  const { importStatus, startImport, stopImport, resetStatus } = useLibraryImport();
 
   useEffect(() => {
     const cookieUser = Cookies.get("user");
@@ -288,6 +294,84 @@ function OrgDetailsPage() {
     router.push("/orgManagement");
   };
 
+  const handleImportLibraryClick = async () => {
+    if (!orgId || typeof orgId !== "string") {
+      setToast({
+        open: true,
+        message: "Organization ID is required",
+        severity: "error",
+      });
+      return;
+    }
+
+    // Get userId from cookies
+    const cookieUser = Cookies.get("user");
+    const parsedUser = cookieUser ? JSON.parse(cookieUser) : null;
+    const userId = parsedUser?.id || null;
+
+    // orgBusinessUnitId is optional - pass null for now
+    // Can be enhanced later to get from organization's businessUnits if needed
+    const orgBusinessUnitId: string | null = null;
+
+    // Import all libraries as per the curl request
+    const selectedLibrary: string[] = [
+      "process",
+      "process-attribute",
+      "process-relation",
+      "asset",
+      "asset-attribute",
+      "asset-process",
+      "risk-scenario",
+      "risk-scenario-attribute",
+      "risk-scenario-process",
+      "mitre-threat",
+    ];
+
+    try {
+      // Start import using WebSocket hook
+      await startImport(
+        orgId as string,
+        selectedLibrary,
+        orgBusinessUnitId,
+        userId
+      );
+    } catch (error: any) {
+      setToast({
+        open: true,
+        message: error.message || "Failed to start import",
+        severity: "error",
+      });
+      resetStatus();
+    }
+  };
+
+  // Handle import status changes from WebSocket
+  useEffect(() => {
+    if (importStatus.status === "completed") {
+      setToast({
+        open: true,
+        message: importStatus.message || "Library imported successfully",
+        severity: "success",
+      });
+      resetStatus();
+    } else if (importStatus.status === "error") {
+      setToast({
+        open: true,
+        message: importStatus.message || "Failed to import library",
+        severity: "error",
+      });
+      resetStatus();
+    } else if (importStatus.status === "stopped") {
+      setToast({
+        open: true,
+        message: importStatus.message || "Import stopped",
+        severity: "warning",
+      });
+      resetStatus();
+    }
+  }, [importStatus.status, importStatus.message, resetStatus]);
+
+
   if (loading) {
     return (
       <Box
@@ -387,53 +471,86 @@ function OrgDetailsPage() {
         {/* Organization Header */}
         <Box sx={{ pl: 8, mb: 2 }}>
           {/* Logo and Company Name on same line */}
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <Box
-              sx={{
-                mr: 2,
-                position: "relative",
-                width: 40,
-                height: 40,
-                borderRadius: "30px",
-                overflow: "hidden",
-                backgroundColor: "#91939A",
-              }}
-            >
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, mr: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               <Box
                 sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#FFFFFF",
-                  fontSize: "22px",
-                  fontWeight: 600,
-                  zIndex: 2,
+                  mr: 2,
+                  position: "relative",
+                  width: 40,
+                  height: 40,
+                  borderRadius: "30px",
+                  overflow: "hidden",
+                  backgroundColor: "#91939A",
                 }}
               >
-                {organization.name?.charAt(0)?.toUpperCase() || "?"}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#FFFFFF",
+                    fontSize: "22px",
+                    fontWeight: 600,
+                    zIndex: 2,
+                  }}
+                >
+                  {organization.name?.charAt(0)?.toUpperCase() || "?"}
+                </Box>
+                {/* Gradient overlay */}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "#0000001F",
+                    borderRadius: "48px",
+                    zIndex: 1,
+                  }}
+                />
               </Box>
-              {/* Gradient overlay */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "#0000001F",
-                  borderRadius: "48px",
-                  zIndex: 1,
-                }}
-              />
+              <Typography variant="h4" sx={{ fontWeight: 500, color: "#484848" }}>
+                {organization.name}
+              </Typography>
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 500, color: "#484848" }}>
-              {organization.name}
-            </Typography>
+            <Button
+              variant="contained"
+              onClick={handleImportLibraryClick}
+              disabled={importStatus.isImporting}
+              startIcon={
+                importStatus.isImporting ? (
+                  <CircularProgress size={16} sx={{ color: "#FFFFFF" }} />
+                ) : null
+              }
+              sx={{
+                backgroundColor: "#04139A",
+                color: "#FFFFFF",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "14px",
+                px: 2,
+                py: 1,
+                "&:hover": {
+                  backgroundColor: "#030d6b",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "#04139A",
+                  color: "#FFFFFF",
+                  opacity: 0.7,
+                },
+              }}
+            >
+              {importStatus.isImporting
+                ? importStatus.message || "Importing..."
+                : "Import Library"}
+            </Button>
           </Box>
 
           {/* Details row below */}

@@ -21,6 +21,7 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "fast-csv": "^5.0.5",
     "jsonwebtoken": "^9.0.2",
@@ -29,6 +30,7 @@
     "pg-hstore": "^2.3.4",
     "pg-query-stream": "^4.10.3",
     "sequelize": "^6.37.7",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "ws": "^8.18.0"
   }
 }
