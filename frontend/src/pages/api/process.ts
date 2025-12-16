@@ -129,6 +129,7 @@ export const fetchOrganizationProcessesForListing = async (orgId: string) => {
       id: item.id,
       processCode: item.processCode,
       processName: item.processName,
+      processDescription: item.processDescription,
     }));
   };
 

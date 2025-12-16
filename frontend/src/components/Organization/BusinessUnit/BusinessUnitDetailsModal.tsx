@@ -15,6 +15,7 @@ import {
   Button,
   CircularProgress,
   Alert,
+  Checkbox,
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 import Image from "next/image";
@@ -23,7 +24,10 @@ import DisableConfirmationModal from "./DisableConfirmationModal";
 import AssessmentTable from "../../Assessment/AssessmentTable";
 import { Assessment } from "@/types/assessment";
 import { BusinessUnitData } from "@/types/business-unit";
+import { ProcessData } from "@/types/process";
 import { getAssessmentsByBusinessUnit } from "@/services/businessUnitService";
+import { fetchOrganizationProcessesForListing, fetchProcessById } from "@/pages/api/process";
+import { createOrganizationProcesses, getOrganizationProcess } from "@/pages/api/organization";
 import ToastComponent from "@/components/ToastComponent";
 
 // Extended interface for modal-specific data
@@ -75,6 +79,14 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   const [assessmentData, setAssessmentData] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [assignedProcesses, setAssignedProcesses] = useState<ProcessData[]>([]);
+  const [processLoading, setProcessLoading] = useState(false);
+  const [processError, setProcessError] = useState<string | null>(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [allProcesses, setAllProcesses] = useState<ProcessData[]>([]);
+  const [allProcessesLoading, setAllProcessesLoading] = useState(false);
+  const [selectedProcessIds, setSelectedProcessIds] = useState<Set<number>>(new Set());
+  const [assigningProcesses, setAssigningProcesses] = useState(false);
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -83,10 +95,17 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
   // Fetch assessment data when modal opens or business unit changes
   useEffect(() => {
-    if (open && businessUnit?.id && activeTab === 1) {
+    if (open && businessUnit?.id && activeTab === 2) {
       fetchAssessmentData();
     }
   }, [open, businessUnit?.id, activeTab]);
+
+  // Fetch assigned processes when Processes tab is active
+  useEffect(() => {
+    if (open && businessUnit?.orgId && businessUnit?.id && activeTab === 1) {
+      fetchAssignedProcesses();
+    }
+  }, [open, businessUnit?.orgId, businessUnit?.id, activeTab]);
 
   const fetchAssessmentData = async () => {
     if (!businessUnit?.id) return;
@@ -121,6 +140,54 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAssignedProcesses = async () => {
+    if (!businessUnit?.orgId || !businessUnit?.id) return;
+
+    setProcessLoading(true);
+    setProcessError(null);
+
+    try {
+      const response = await getOrganizationProcess(
+        businessUnit.orgId,
+        businessUnit.id,
+        0,
+        -1 // Get all processes
+      );
+      const processes = response.data?.data || response.data || [];
+      setAssignedProcesses(Array.isArray(processes) ? processes : []);
+    } catch (err: any) {
+      console.error("Error fetching assigned processes:", err);
+      // If it's a 404 or "no processes found", treat as empty state
+      if (err.message?.toLowerCase().includes("no processes found")) {
+        setAssignedProcesses([]);
+      } else {
+        setProcessError("Failed to load assigned processes");
+        setAssignedProcesses([]);
+      }
+    } finally {
+      setProcessLoading(false);
+    }
+  };
+
+  const fetchAllProcesses = async () => {
+    if (!businessUnit?.orgId) return;
+
+    setAllProcessesLoading(true);
+
+    try {
+      const response = await fetchOrganizationProcessesForListing(
+        businessUnit.orgId
+      );
+      const processes = response.data || [];
+      setAllProcesses(processes);
+    } catch (err) {
+      console.error("Error fetching all processes:", err);
+      setAllProcesses([]);
+    } finally {
+      setAllProcessesLoading(false);
     }
   };
 
@@ -169,6 +236,81 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   const handleCreateAssessment = () => {
     // Navigate to assessment route
     router.push("/assessment");
+  };
+
+  const handleCreateProcess = () => {
+    // Navigate to processes page with orgId and businessUnitId
+    if (businessUnit?.orgId && businessUnit?.id) {
+      router.push(
+        `/orgManagement/${businessUnit.orgId}/library/processes?businessUnitId=${businessUnit.id}`
+      );
+    }
+  };
+
+  const handleProcessCheckboxChange = (processId: number) => {
+    setSelectedProcessIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(processId)) {
+        newSet.delete(processId);
+      } else {
+        newSet.add(processId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleOpenAssignModal = () => {
+    setShowAssignModal(true);
+    setSelectedProcessIds(new Set());
+    fetchAllProcesses();
+  };
+
+  const handleCloseAssignModal = () => {
+    setShowAssignModal(false);
+    setSelectedProcessIds(new Set());
+  };
+
+  const handleAssignProcesses = async () => {
+    if (!businessUnit?.orgId || !businessUnit?.id || selectedProcessIds.size === 0) {
+      return;
+    }
+
+    setAssigningProcesses(true);
+    try {
+      // Fetch full process details for selected processes
+      const selectedProcessIdsArray = Array.from(selectedProcessIds);
+      const fullProcessDetails = await Promise.all(
+        selectedProcessIdsArray.map((processId) => fetchProcessById(processId))
+      );
+
+      // Transform processes to match the API format expected by createOrganizationProcesses
+      // The function will handle the transformation internally
+      await createOrganizationProcesses(
+        businessUnit.orgId,
+        businessUnit.id,
+        fullProcessDetails
+      );
+
+      // Show success toast
+      setToast({
+        open: true,
+        message: `Successfully assigned ${selectedProcessIds.size} process(es) to business unit`,
+        severity: "success",
+      });
+
+      // Close modal and refresh assigned processes
+      handleCloseAssignModal();
+      fetchAssignedProcesses();
+    } catch (err) {
+      console.error("Error assigning processes:", err);
+      setToast({
+        open: true,
+        message: "Failed to assign processes to business unit",
+        severity: "error",
+      });
+    } finally {
+      setAssigningProcesses(false);
+    }
   };
 
   // Early return after all hooks
@@ -259,7 +401,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
             />
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {activeTab !== 1 && (
+            {activeTab !== 2 && (
               <IconButton
                 onClick={handleEdit}
                 sx={{
@@ -336,10 +478,11 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
             }}
           >
             <Tab label="Basic Details" />
+            <Tab label="Assign Processes" />
             <Tab label="Assessments" />
           </Tabs>
 
-          {activeTab === 1 && (
+          {activeTab === 2 && (
             <Button
               variant="contained"
               onClick={handleCreateAssessment}
@@ -369,6 +512,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
               Create Assessment
             </Button>
           )}
+
         </Box>
 
         <DialogContent
@@ -550,6 +694,158 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
           <TabPanel value={activeTab} index={1} sx={{ p: 0, m: 0 }}>
             <Box sx={{ p: 0 }}>
+              {processLoading ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    py: 4,
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              ) : processError ? (
+                <Alert severity="error" sx={{ m: 2 }}>
+                  {processError}
+                </Alert>
+              ) : assignedProcesses.length === 0 ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    py: 4,
+                    minHeight: "400px",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      maxWidth: "500px",
+                    }}
+                  >
+                    {/* Empty state icon */}
+                    <Box
+                      sx={{
+                        width: "120px",
+                        height: "120px",
+                        borderRadius: "8px",
+                        margin: "0 auto 24px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#F5F5F5",
+                      }}
+                    >
+                      <Image
+                        src={"/create.png"}
+                        alt="empty-processes"
+                        width={120}
+                        height={120}
+                      />
+                    </Box>
+
+                    {/* Empty state text */}
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        color: "#484848",
+                        fontWeight: 400,
+                      }}
+                    >
+                      Looks like there are no process assigned yet to BU.
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mb: 3,
+                        color: "#484848",
+                        fontWeight: 400,
+                      }}
+                    >
+                      Click on &apos;Assign Process&apos; to start assigning process to BU.
+                    </Typography>
+
+                    {/* Assign button */}
+                    <Button
+                      variant="contained"
+                      onClick={handleOpenAssignModal}
+                      disabled={businessUnit.status === "disable"}
+                      sx={{
+                        backgroundColor:
+                          businessUnit.status === "disable" ? "#E7E7E8" : "#04139A",
+                        color:
+                          businessUnit.status === "disable" ? "#91939A" : "#FFFFFF",
+                        textTransform: "none",
+                        fontWeight: 500,
+                        padding: "12px 40px",
+                        borderRadius: "4px",
+                        minWidth: "200px",
+                        height: "40px",
+                        "&:hover": {
+                          backgroundColor:
+                            businessUnit.status === "disable" ? "#E7E7E8" : "#030d6b",
+                        },
+                        "&.Mui-disabled": {
+                          backgroundColor: "#E7E7E8",
+                          color: "#91939A",
+                        },
+                      }}
+                    >
+                      Assign Process
+                    </Button>
+                  </Box>
+                </Box>
+              ) : (
+                <Stack spacing={2}>
+                  {assignedProcesses.map((process) => {
+                    return (
+                      <Box
+                        key={process.id ?? process.processCode}
+                        sx={{
+                          backgroundColor: "#E7E7E84D",
+                          border: "1px solid #E7E7E8",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          boxShadow: "0px 1px 3px #E7E7E84D",
+                        }}
+                      >
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 600,
+                              color: "#121212",
+                              mb: 0.5,
+                            }}
+                          >
+                            {process.processCode || "N/A"}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#484848",
+                              fontWeight: 400,
+                            }}
+                          >
+                            {process.processName}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              )}
+            </Box>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={2} sx={{ p: 0, m: 0 }}>
+            <Box sx={{ p: 0 }}>
               {loading ? (
                 <Box
                   sx={{
@@ -594,6 +890,217 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
         onConfirm={handleDisableConfirm}
         businessUnitName={businessUnit.businessUnitName}
       />
+
+      {/* Assign Processes Modal */}
+      <Dialog
+        open={showAssignModal}
+        onClose={handleCloseAssignModal}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "8px",
+            maxHeight: "90vh",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pt: 3,
+            pb: 2,
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 500, color: "#121212" }}>
+            Assign Processes
+          </Typography>
+          <IconButton
+            onClick={handleCloseAssignModal}
+            sx={{
+              width: 24,
+              height: 24,
+              color: "#484848",
+              "&:hover": {
+                backgroundColor: "#f5f5f5",
+              },
+            }}
+          >
+            <CloseIcon sx={{ width: 24, height: 24 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <Divider />
+
+        <DialogContent
+          sx={{
+            p: 3,
+            "&::-webkit-scrollbar": {
+              display: "none",
+            },
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          {allProcessesLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                py: 4,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : allProcesses.length === 0 ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                py: 4,
+              }}
+            >
+              <Typography variant="body2" sx={{ color: "#91939A" }}>
+                No processes available
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={2}>
+              {allProcesses.map((process) => {
+                const processId = process.id;
+                const isSelected =
+                  processId !== undefined && selectedProcessIds.has(processId);
+
+                return (
+                  <Box
+                    key={process.id ?? process.processCode}
+                    sx={{
+                      backgroundColor: "#E7E7E84D",
+                      border: "1px solid #E7E7E8",
+                      borderRadius: "8px",
+                      padding: "12px",
+                      boxShadow: "0px 1px 3px #E7E7E84D",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 2,
+                    }}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onChange={() =>
+                        processId !== undefined &&
+                        handleProcessCheckboxChange(processId)
+                      }
+                      disabled={businessUnit.status === "disable"}
+                      sx={{
+                        color: "#04139A",
+                        "&.Mui-checked": {
+                          color: "#04139A",
+                        },
+                        "&.Mui-disabled": {
+                          color: "#E7E7E8",
+                        },
+                        padding: "4px",
+                      }}
+                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "#121212",
+                          mb: 0.5,
+                        }}
+                      >
+                        {process.processName}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#484848",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {process.processDescription || "No description available"}
+                      </Typography>
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Stack>
+          )}
+        </DialogContent>
+
+        <Divider />
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 2,
+            p: 3,
+            pt: 2,
+          }}
+        >
+          <Button
+            variant="outlined"
+            onClick={handleCloseAssignModal}
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              borderRadius: "2px",
+              borderColor: "#E7E7E8",
+              color: "#484848",
+              "&:hover": {
+                borderColor: "#E7E7E8",
+                backgroundColor: "#F5F5F5",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleAssignProcesses}
+            disabled={
+              businessUnit.status === "disable" ||
+              selectedProcessIds.size === 0 ||
+              assigningProcesses
+            }
+            sx={{
+              backgroundColor:
+                businessUnit.status === "disable" ||
+                selectedProcessIds.size === 0
+                  ? "#E7E7E8"
+                  : "#04139A",
+              color:
+                businessUnit.status === "disable" ||
+                selectedProcessIds.size === 0
+                  ? "#91939A"
+                  : "#FFFFFF",
+              textTransform: "none",
+              fontWeight: 500,
+              borderRadius: "2px",
+              "&:hover": {
+                backgroundColor:
+                  businessUnit.status === "disable" ||
+                  selectedProcessIds.size === 0
+                    ? "#E7E7E8"
+                    : "#030d6b",
+              },
+              "&.Mui-disabled": {
+                backgroundColor: "#E7E7E8",
+                color: "#91939A",
+              },
+            }}
+          >
+            {assigningProcesses ? "Assigning..." : "Assign"}
+          </Button>
+        </Box>
+      </Dialog>
 
       <ToastComponent
         open={toast.open}
