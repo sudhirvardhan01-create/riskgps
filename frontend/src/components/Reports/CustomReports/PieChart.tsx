@@ -46,6 +46,7 @@ const COLORS_OUTER = [
   "#12229d",
   "#233dff",
   "#6f80eb",
+  "#0693e3",
   "#5cb6f9",
   "#cae8ff",
   "#d9d9d9",

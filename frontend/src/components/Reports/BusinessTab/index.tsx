@@ -172,14 +172,21 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
         alignItems={"center"}
         mb={3}
       >
-        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
-          <InputLabel id="business-unit-label">Business Unit</InputLabel>
+        <FormControl variant="outlined" sx={{ height: "48px", width: "200px" }}>
+          <InputLabel
+            id="business-unit-label"
+            shrink
+            sx={{ backgroundColor: "#f5f5f5" }}
+          >
+            Business Unit
+          </InputLabel>
           <Select
             labelId="business-unit-label"
             value={selectedBusinessUnit}
             onChange={(e) => {
               setSelectedBusinessUnit(e.target.value);
             }}
+            sx={{ borderRadius: "8px" }}
           >
             {businessUnits.map((item, index) => (
               <MenuItem value={item} key={index}>
@@ -214,6 +221,7 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
             fontWeight={600}
             textAlign="left"
             sx={{ mb: 1 }}
+            color="text.primary"
           >
             Process Criticality Overview
           </Typography>
@@ -248,6 +256,7 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
             fontWeight={600}
             textAlign="left"
             sx={{ mb: 2 }}
+            color="text.primary"
           >
             Risk Exposure by Business Process
           </Typography>
@@ -285,7 +294,11 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
                     >
                       {item.title}
                     </Typography>
-                    <Typography variant="body1" color="primary.main">
+                    <Typography
+                      variant="body1"
+                      color="primary.main"
+                      fontWeight={500}
+                    >
                       {item.value}
                     </Typography>
                   </Box>

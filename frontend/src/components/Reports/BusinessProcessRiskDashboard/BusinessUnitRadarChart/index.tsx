@@ -1,3 +1,4 @@
+import { customStyles } from "@/styles/customStyles";
 import { RiskRadarRecord } from "@/types/dashboard";
 import { Paper } from "@mui/material";
 import React, { useMemo, useState } from "react";
@@ -16,6 +17,7 @@ import {
 // ---------- Types ----------
 interface MultiBURadarChartProps {
   data: RiskRadarRecord[];
+  height?: number;
 }
 
 interface NormalizedRecord {
@@ -86,6 +88,7 @@ const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
 // ---------- Main Component ----------
 export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
   data,
+  height = 455,
 }) => {
   const [hoveredBU, setHoveredBU] = useState<string | null>(null);
 
@@ -112,14 +115,19 @@ export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
   }, [data]);
 
   return (
-    <Paper elevation={0} sx={{ p: 3, width: "100%", height: "455px" }}>
+    <Paper elevation={0} sx={{ p: 3, width: "100%", height: height }}>
       <ResponsiveContainer>
         <RadarChart cx="50%" cy="50%" outerRadius="65%" data={normalizedData}>
           <PolarGrid />
 
           <PolarAngleAxis
             dataKey="metric"
-            tick={{ fill: "#484848", fontSize: 12, fontWeight: 600 }}
+            tick={{
+              fill: customStyles.fontColor,
+              fontSize: customStyles.xAxisTicks.fontSize,
+              fontWeight: customStyles.xAxisTicks.fontWeight,
+              fontFamily: customStyles.fontFamily,
+            }}
             tickLine={false}
           />
 
@@ -148,7 +156,16 @@ export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
 
           <Legend
             formatter={(value) => (
-              <span style={{ color: "#484848" }}>{value}</span>
+              <span
+                style={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.legend.fontSize,
+                  fontWeight: customStyles.legend.fontWeight,
+                }}
+              >
+                {value}
+              </span>
             )}
             onMouseEnter={(o) => o.value && setHoveredBU(String(o.value))}
             onMouseLeave={() => setHoveredBU(null)}

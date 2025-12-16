@@ -81,7 +81,7 @@ const ERMTab: React.FC<Props> = ({
       }}
     >
       <Grid container spacing={2}>
-        <Grid size={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper
             elevation={0}
             sx={{
@@ -98,6 +98,7 @@ const ERMTab: React.FC<Props> = ({
               fontWeight={600}
               textAlign="left"
               sx={{ mb: 2 }}
+              color="text.primary"
             >
               Business Units(Y) vs Severity Levels(X)
             </Typography>
@@ -106,12 +107,10 @@ const ERMTab: React.FC<Props> = ({
               xAxisLabel="Severity Level"
               yAxisLabel="Business Unit"
               xOrder={severityOrder}
-              width={530}
-              height={400}
             />
           </Paper>
         </Grid>
-        <Grid size={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper
             elevation={0}
             sx={{
@@ -128,13 +127,14 @@ const ERMTab: React.FC<Props> = ({
               fontWeight={600}
               textAlign="left"
               sx={{ mb: 2 }}
+              color="text.primary"
             >
               Business Units - Risk Impact
             </Typography>
             <BusinessUnitRadarChart data={businessUnitRadarChartData} />
           </Paper>
         </Grid>
-        <Grid size={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper
             elevation={0}
             sx={{
@@ -161,7 +161,7 @@ const ERMTab: React.FC<Props> = ({
             />
           </Paper>
         </Grid>
-        <Grid size={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper
             elevation={0}
             sx={{

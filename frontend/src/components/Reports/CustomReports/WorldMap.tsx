@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
-  Box,
   List,
   ListItem,
   ListItemText,
@@ -101,10 +100,36 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
   };
 
   // ✅ More distinct color mapping (blue → red)
+  // const getColor = (v: number): string => {
+  //   const intensity = (v - minVal) / (maxVal - minVal || 1);
+  //   const hue = 200 - intensity * 160;
+  //   return `hsl(${hue}, 75%, 55%)`;
+  // };
+
+  const COLOR_SHADES = [
+    "#12229d",
+    "#233dff",
+    "#6f80eb",
+    "#0693e3",
+    "#5cb6f9",
+    "#cae8ff",
+    "#d9d9d9",
+    "#ffa500",
+  ] as const;
+
   const getColor = (v: number): string => {
-    const intensity = (v - minVal) / (maxVal - minVal || 1);
-    const hue = 200 - intensity * 160;
-    return `hsl(${hue}, 75%, 55%)`;
+    if (maxVal === minVal) {
+      return COLOR_SHADES[0];
+    }
+
+    const normalized = (v - minVal) / (maxVal - minVal);
+
+    const index = Math.min(
+      COLOR_SHADES.length - 1,
+      Math.floor(normalized * COLOR_SHADES.length)
+    );
+
+    return COLOR_SHADES[index];
   };
 
   return (

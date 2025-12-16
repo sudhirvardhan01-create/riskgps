@@ -1,4 +1,5 @@
 "use client";
+import { customStyles } from "@/styles/customStyles";
 import { Paper } from "@mui/material";
 import {
   BarChart,
@@ -23,6 +24,7 @@ interface Props {
   selectedProcess: string | null;
   setSelectedProcess: React.Dispatch<React.SetStateAction<string | null>>;
   riskAppetite: number;
+  height?: number;
 }
 
 const RiskExposureByProcessChart: React.FC<Props> = ({
@@ -30,6 +32,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
   selectedProcess,
   setSelectedProcess,
   riskAppetite,
+  height = 500,
 }) => {
   // Convert raw values into billions
   const formattedData = data.map((item) => ({
@@ -65,7 +68,18 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
 
   const legendFormatter = (value: any, entry: any, index: any) => {
     // You can apply different colors based on the value or index if needed
-    return <span style={{ color: "#484848" }}>{value}</span>;
+    return (
+      <span
+        style={{
+          color: customStyles.fontColor,
+          fontFamily: customStyles.fontFamily,
+          fontSize: customStyles.legend.fontSize,
+          fontWeight: customStyles.legend.fontWeight,
+        }}
+      >
+        {value}
+      </span>
+    );
   };
 
   return (
@@ -76,7 +90,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
         backgroundColor: "#fff",
         borderRadius: 3,
         width: "100%",
-        height: 500,
+        height: height,
         display: "flex",
         flexDirection: "column",
       }}
@@ -90,16 +104,18 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
             if (!e?.activeLabel) setSelectedProcess(null);
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid horizontal={true} vertical={false} />
 
           <XAxis
             dataKey="processName"
-            angle={-45}
-            textAnchor="end"
-            interval={0}
-            height={120}
+            height={60}
             tickMargin={10}
-            tick={{ fontSize: 12 }}
+            tick={{
+              color: customStyles.fontColor,
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.xAxisTicks.fontSize,
+              fontWeight: customStyles.xAxisTicks.fontWeight,
+            }}
           />
 
           <YAxis
@@ -107,9 +123,20 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
               value: "Exposure (in Billion USD)",
               angle: -90,
               position: "insideCentre",
-              style: { fontWeight: "bold", fontSize: 12 },
+              style: {
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.yAxisLabels.fontSize,
+                fontWeight: customStyles.yAxisLabels.fontWeight,
+              },
             }}
             width={100}
+            tick={{
+              color: customStyles.fontColor,
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.yAxisTicks.fontSize,
+              fontWeight: customStyles.yAxisTicks.fontWeight,
+            }}
           />
 
           <Tooltip
@@ -126,7 +153,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
             fill="#12229d"
             shape={<CustomBar />}
             isAnimationActive={false}
-            barSize={24}
+            barSize={customStyles.barSize}
           />
 
           {/* NET EXPOSURE */}
@@ -136,7 +163,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
             fill="#6f80eb"
             shape={<CustomBar />}
             isAnimationActive={false}
-            barSize={24}
+            barSize={customStyles.barSize}
           />
 
           <ReferenceLine
@@ -147,8 +174,8 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
               value: `Risk Appetite ($ ${riskAppetite} Bn)`,
               position: "insideBottomRight",
               fill: "#ffa500",
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: customStyles.referenceLine.fontSize,
+              fontWeight: customStyles.referenceLine.fontWeight,
             }}
           />
         </BarChart>

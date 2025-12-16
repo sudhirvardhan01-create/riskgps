@@ -109,20 +109,27 @@ const CISOTab: React.FC<CISOTabProps> = ({
 
   return (
     <>
-      {/* <Stack
+      <Stack
         direction={"row"}
         justifyContent={"end"}
         alignItems={"center"}
         mb={3}
       >
-        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
-          <InputLabel id="business-unit-label">Business Unit</InputLabel>
+        <FormControl variant="outlined" sx={{ height: "48px", width: "200px" }}>
+          <InputLabel
+            id="business-unit-label"
+            shrink
+            sx={{ backgroundColor: "#f5f5f5" }}
+          >
+            Business Unit
+          </InputLabel>
           <Select
             labelId="business-unit-label"
             value={selectedBusinessUnit}
             onChange={(e) => {
               setSelectedBusinessUnit(e.target.value);
             }}
+            sx={{ borderRadius: "8px" }}
           >
             {businessUnits.map((item, index) => (
               <MenuItem value={item} key={index}>
@@ -131,7 +138,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
             ))}
           </Select>
         </FormControl>
-      </Stack> */}
+      </Stack>
       <Box
         sx={{
           flex: 1,
@@ -142,7 +149,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
           gap: 3,
         }}
       >
-        <Box
+        {/* <Box
           sx={{
             position: "sticky",
             top: 0,
@@ -177,7 +184,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Select>
             </FormControl>
           </Stack>
-        </Box>
+        </Box> */}
 
         <AssetSummaryRow
           assets={Array.from(
@@ -216,7 +223,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               )}
             />
           </Grid>
-          <Grid size={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -243,7 +250,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               />
             </Paper>
           </Grid>
-          <Grid size={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -269,9 +276,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
           <Grid size={12}>
             <AssetTableViewContainer assets={assetLevelReportsData} />
           </Grid>
-          {/* ===== LEFT CARD: GEO MAP ===== */}
-          {/* <Grid size={{ xs: 12, md: 6 }}> */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -304,11 +309,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Box>
             </Paper>
           </Grid>
-
-          {/* ===== RIGHT CARD: BAR CHARTS ===== */}
-          {/* <Grid size={{ xs: 12, md: 6 }}> */}
-          <Grid size={{ xs: 6 }}>
-            {/* ---- Asset Dependencies ---- */}
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -334,10 +335,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Box>
             </Paper>
           </Grid>
-
-          {/* ---- Vendor Dependencies ---- */}
-          {/* <Grid size={12}> */}
-          <Grid size={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -376,7 +374,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Box>
             </Paper>
           </Grid>
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{

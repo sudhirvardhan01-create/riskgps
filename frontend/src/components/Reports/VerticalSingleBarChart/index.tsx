@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Paper, Tooltip as MuiTooltip } from "@mui/material";
+import { customStyles } from "@/styles/customStyles";
 
 export interface BarChartData {
   name: string; // Risk Scenario / Asset Name / Anything
@@ -51,8 +52,14 @@ const CustomXAxisTick = ({
         <text
           dy={16}
           textAnchor="middle"
-          fill="#475569"
-          style={{ fontSize: "12px", cursor: "pointer" }}
+          fill={customStyles.fontColor}
+          style={{
+            color: customStyles.fontColor,
+            fontFamily: customStyles.fontFamily,
+            fontSize: customStyles.xAxisTicks.fontSize,
+            fontWeight: customStyles.xAxisTicks.fontWeight,
+            cursor: "pointer",
+          }}
         >
           {truncatedLabel}
         </text>
@@ -86,16 +93,14 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 20, right: 20, left: 10, bottom: 30 }}
+          margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid horizontal={true} vertical={false} />
 
           <XAxis
             dataKey="name"
+            height={60}
             interval={0}
-            height={40}
-            angle={-45}
-            textAnchor="end"
             tick={(props) => (
               <CustomXAxisTick {...props} maxLabelLength={maxLabelLength} />
             )}
@@ -108,9 +113,20 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
               value: labelYAxis,
               angle: -90,
               position: "insideCentre",
-              style: { fontWeight: "bold", fontSize: 12 },
+              style: {
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.yAxisLabels.fontSize,
+                fontWeight: customStyles.yAxisLabels.fontWeight,
+              },
             }}
             width={100}
+            tick={{
+              color: customStyles.fontColor,
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.yAxisTicks.fontSize,
+              fontWeight: customStyles.yAxisTicks.fontWeight,
+            }}
           />
 
           <Tooltip
@@ -128,6 +144,7 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
             dataKey="value"
             fill={barColor}
             radius={[6, 6, 0, 0]} // Rounded top
+            barSize={customStyles.barSize}
             maxBarSize={60}
           />
         </BarChart>

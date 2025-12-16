@@ -1,4 +1,5 @@
 "use client";
+import { customStyles } from "@/styles/customStyles";
 import { Typography } from "@mui/material";
 import React from "react";
 import {
@@ -56,7 +57,18 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
 
   const legendFormatter = (value: any, entry: any, index: any) => {
     // You can apply different colors based on the value or index if needed
-    return <span style={{ color: "#484848" }}>{value}</span>;
+    return (
+      <span
+        style={{
+          color: customStyles.fontColor,
+          fontFamily: customStyles.fontFamily,
+          fontSize: customStyles.legend.fontSize,
+          fontWeight: customStyles.legend.fontWeight,
+        }}
+      >
+        {value}
+      </span>
+    );
   };
 
   return (
@@ -72,10 +84,29 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
               if (!e?.activeLabel) setSelectedAsset(null);
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid horizontal={false} vertical={true} />
 
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="applicationName" width={200} />
+            <XAxis
+              type="number"
+              height={60}
+              tick={{
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.xAxisTicks.fontSize,
+                fontWeight: customStyles.xAxisTicks.fontWeight,
+              }}
+            />
+            <YAxis
+              type="category"
+              dataKey="applicationName"
+              width={200}
+              tick={{
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.yAxisTicks.fontSize,
+                fontWeight: customStyles.yAxisTicks.fontWeight,
+              }}
+            />
             <Tooltip
               formatter={(value: number) => `${value}`}
               labelStyle={{ fontWeight: "bold" }}
@@ -89,7 +120,7 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
               fill="#12229d"
               shape={<CustomBar />}
               isAnimationActive={false}
-              barSize={24}
+              barSize={customStyles.barSize}
             />
 
             {/* Target Strength Bar */}
@@ -99,7 +130,7 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
               fill="#6f80eb"
               shape={<CustomBar />}
               isAnimationActive={false}
-              barSize={24}
+              barSize={customStyles.barSize}
             />
           </BarChart>
         </ResponsiveContainer>

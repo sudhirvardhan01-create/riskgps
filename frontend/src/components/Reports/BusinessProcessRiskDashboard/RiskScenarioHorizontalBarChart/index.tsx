@@ -1,4 +1,5 @@
 "use client";
+import { customStyles } from "@/styles/customStyles";
 import { Typography } from "@mui/material";
 import React from "react";
 import {
@@ -63,7 +64,18 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
 
   const legendFormatter = (value: any, entry: any, index: any) => {
     // You can apply different colors based on the value or index if needed
-    return <span style={{ color: "#484848" }}>{value}</span>;
+    return (
+      <span
+        style={{
+          color: customStyles.fontColor,
+          fontFamily: customStyles.fontFamily,
+          fontSize: customStyles.legend.fontSize,
+          fontWeight: customStyles.legend.fontWeight,
+        }}
+      >
+        {value}
+      </span>
+    );
   };
 
   return (
@@ -73,13 +85,13 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
           <BarChart
             data={formattedData}
             layout="vertical"
-            margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+            margin={{ top: 20, right: 20, left: 50, bottom: 20 }}
             onClick={(e) => {
               // Clear selection by clicking empty chart area
               if (!e?.activeLabel) setSelectedRiskScenario(null);
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid horizontal={false} vertical={true} />
 
             <XAxis
               type="number"
@@ -87,11 +99,32 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
                 value: "Exposure (in Billion USD)",
                 position: "insideCentre",
                 offset: -5,
-                style: { fontWeight: "bold", fontSize: 10 },
+                style: {
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.xAxisLabels.fontSize,
+                  fontWeight: customStyles.xAxisLabels.fontWeight,
+                },
               }}
               height={60}
+              tick={{
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.xAxisTicks.fontSize,
+                fontWeight: customStyles.xAxisTicks.fontWeight,
+              }}
             />
-            <YAxis type="category" dataKey="riskScenario" width={200} />
+            <YAxis
+              type="category"
+              dataKey="riskScenario"
+              width={200}
+              tick={{
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.yAxisTicks.fontSize,
+                fontWeight: customStyles.yAxisTicks.fontWeight,
+              }}
+            />
             <Tooltip
               formatter={(value: number) => `$ ${value.toFixed(2)} Bn`}
               labelStyle={{ fontWeight: "bold" }}
@@ -105,7 +138,7 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
               fill="#12229d"
               shape={<CustomBar />}
               isAnimationActive={false}
-              barSize={24}
+              barSize={customStyles.barSize}
             />
 
             {/* Net Exposure Bar */}
@@ -115,7 +148,7 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
               fill="#6f80eb"
               shape={<CustomBar />}
               isAnimationActive={false}
-              barSize={24}
+              barSize={customStyles.barSize}
             />
           </BarChart>
         </ResponsiveContainer>
