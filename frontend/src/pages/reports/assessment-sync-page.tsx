@@ -17,6 +17,7 @@ import {
   CheckCircle,
   ErrorOutline,
   InfoOutlined,
+  Download as DownloadIcon, // 👈 add this
 } from "@mui/icons-material";
 import { SyncupService } from "@/services/syncupService";
 import Cookies from "js-cookie";
@@ -37,29 +38,25 @@ const AssessmentSyncPage: React.FC = () => {
     lastDayDateTime: string;
   } | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [orgId, setOrgId] = useState(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
 
   useEffect(() => {
     const cookieUser = Cookies.get("user");
-    let orgIdVar = null;
+    let orgIdVar: string | null = null;
     if (cookieUser) {
       const parsed = JSON.parse(cookieUser);
       orgIdVar = parsed?.orgId || parsed?.org_id || null;
-      console.log(orgIdVar);
       setOrgId(orgIdVar);
     }
+
     const fetchLastSyncDetails = async () => {
       try {
-        await new Promise((res) => setTimeout(res, 800)); // mock delay
-        console.log(orgIdVar)
-        if (orgIdVar == null || orgIdVar === undefined) return;
+        if (orgIdVar == null) return;
         const data = await SyncupService.getLastSyncupDetails(orgIdVar);
         setSyncData(data);
-getBusinessUnitSeverityData(orgIdVar)
-        // Populate existing states
-        setLastSyncedAt(
-          new Date(data.lastDayDateTime).toLocaleString()
-        );
+        getBusinessUnitSeverityData(orgIdVar);
+
+        setLastSyncedAt(new Date(data.lastDayDateTime).toLocaleString());
         setStatus("success");
         setStatusMessage("Fetched last sync details successfully.");
       } catch (err) {
@@ -70,30 +67,48 @@ getBusinessUnitSeverityData(orgIdVar)
     };
 
     fetchLastSyncDetails();
-  }, [orgId, refreshTrigger]);
+  }, [refreshTrigger]);
 
-  // ----------------------------
-  // Sync handler
-  // ----------------------------
-  const handleSync = useCallback(async () => {
-    try {
-            const cookieUser = Cookies.get("user");
-    let orgIdVar = null;
+  // download handler for last sync data
+  const handleDownloadLastSync = async () => {
+    const cookieUser = Cookies.get("user");
+    let orgIdVar: string | null = null;
     if (cookieUser) {
       const parsed = JSON.parse(cookieUser);
       orgIdVar = parsed?.orgId || parsed?.org_id || null;
-      console.log(orgIdVar);
       setOrgId(orgIdVar);
     }
+    try {
+      if (orgIdVar == null) return;
+      await SyncupService.downloadLastSyncupData(orgIdVar);
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+      setStatusMessage("Failed to dowmload last sync details.");
+    }
+  };
+
+  // Sync handler
+  const handleSync = useCallback(async () => {
+    try {
+      const cookieUser = Cookies.get("user");
+      let orgIdVar: string | null = null;
+      if (cookieUser) {
+        const parsed = JSON.parse(cookieUser);
+        orgIdVar = parsed?.orgId || parsed?.org_id || null;
+        setOrgId(orgIdVar);
+      }
+
       setIsSyncing(true);
       setStatus("idle");
       setStatusMessage("");
 
-      if (orgIdVar == null || orgIdVar == undefined) return;
-      const data = await SyncupService.startSyncupJob(orgIdVar);
-      await new Promise((res) => setTimeout(res, 1500)); 
+      if (orgIdVar == null) return;
 
-      setRefreshTrigger(prev => prev + 1);
+      const data = await SyncupService.startSyncupJob(orgIdVar);
+      await new Promise((res) => setTimeout(res, 1500));
+
+      setRefreshTrigger((prev) => prev + 1);
       const nowISO = new Date().toISOString();
 
       let updatedSyncData = {
@@ -299,22 +314,40 @@ getBusinessUnitSeverityData(orgIdVar)
                 </Box>
               )}
 
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<SyncIcon />}
-                disabled={isSyncing}
-                onClick={handleSync}
-                sx={{
-                  mt: 1,
-                  py: 1.2,
-                  fontWeight: 600,
-                  borderRadius: 2,
-                  textTransform: "none",
-                }}
-              >
-                {isSyncing ? "Syncing…" : "Sync Assessment Data"}
-              </Button>
+              <Stack spacing={1.5}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<SyncIcon />}
+                  disabled={isSyncing}
+                  onClick={handleSync}
+                  sx={{
+                    py: 1.2,
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    textTransform: "none",
+                  }}
+                >
+                  {isSyncing ? "Syncing…" : "Sync Assessment Data"}
+                </Button>
+
+                {/* New download button */}
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  disabled={!syncData}
+                  onClick={handleDownloadLastSync}
+                  sx={{
+                    py: 1,
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    textTransform: "none",
+                  }}
+                >
+                  Download last sync data
+                </Button>
+              </Stack>
             </Box>
           </Stack>
         </Paper>
