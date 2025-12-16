@@ -206,24 +206,32 @@ class OrganizationService {
             );
         }
     }
+
     /**
-     * Get processes for an organization + business unit (both mandatory)
-     */
+ * Get processes for an organization.
+ * Business unit is optional.
+ */
     static async getOrganizationProcesses(orgId, businessUnitId) {
         try {
-            if (!orgId || !businessUnitId) {
+            if (!orgId) {
                 throw new CustomError(
-                    "Organization ID and Business Unit ID are required",
+                    "Organization ID is required",
                     HttpStatus.BAD_REQUEST
                 );
             }
 
+            const whereCondition = {
+                organizationId: orgId,
+                isDeleted: false,
+            };
+
+            // Add business unit filter only if provided
+            if (businessUnitId) {
+                whereCondition.orgBusinessUnitId = businessUnitId;
+            }
+
             const processes = await OrganizationProcess.findAll({
-                where: {
-                    organizationId: orgId,
-                    orgBusinessUnitId: businessUnitId,
-                    isDeleted: false,
-                },
+                where: whereCondition,
                 attributes: [
                     "id",
                     "parentObjectId",
@@ -257,7 +265,7 @@ class OrganizationService {
 
             if (!processes || processes.length === 0) {
                 throw new CustomError(
-                    "No processes found for given organization and business unit",
+                    "No processes found for given criteria",
                     HttpStatus.NOT_FOUND
                 );
             }
@@ -271,14 +279,16 @@ class OrganizationService {
         }
     }
 
+
     /**
-     * Get processes for an organization + business unit (both mandatory)
+     * Get processes for an organization.
+     * Business unit is optional.
      */
     static async getOrganizationProcessesV2(orgId, businessUnitId) {
         try {
-            if (!orgId || !businessUnitId) {
+            if (!orgId) {
                 throw new CustomError(
-                    "Organization ID and Business Unit ID are required",
+                    "Organization ID is required",
                     HttpStatus.BAD_REQUEST
                 );
             }
@@ -286,7 +296,7 @@ class OrganizationService {
             const processes =
                 await OrganizationProcessService.fetchOrganizationProcess(
                     orgId,
-                    businessUnitId
+                    businessUnitId || null
                 );
 
             return processes;
@@ -297,40 +307,50 @@ class OrganizationService {
             );
         }
     }
+
+
     static async addProcessByOrgIdAndBuId(orgId, buId, createBody) {
-        if (!orgId || !buId) {
-            throw new Error("OrgID and BuID required");
+        if (!orgId) {
+            throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
         }
+
         if (!createBody) {
-            throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+            throw new CustomError("Invalid request body", HttpStatus.BAD_REQUEST);
         }
+
         return await sequelize.transaction(async (t) => {
-            let insertedCount = 0;
             const data = createBody;
+
             OrganizationProcessService.validateProcessData(data);
 
             const processData =
                 OrganizationProcessService.handleProcessDataColumnMapping(data);
+
             processData.organizationId = orgId;
-            processData.orgBusinessUnitId = buId;
             processData.isDeleted = false;
+
+            // Set business unit only if provided
+            if (buId) {
+                processData.orgBusinessUnitId = buId;
+            }
 
             console.log("Creating process with data:", processData);
 
-            const [process, created] = await OrganizationProcess.upsert(processData, {
+            const [process] = await OrganizationProcess.upsert(processData, {
                 returning: true,
                 transaction: t,
             });
+
             const paddedId = String(process.autoIncrementId).padStart(5, "0");
             const code = `BP${paddedId}`;
             await process.update({ processCode: code }, { transaction: t });
-            console.log(process, "process created");
-            insertedCount++;
 
+            // Cleanup old attributes & relationships
             await OrganizationProcessAttribute.destroy({
                 where: { processId: process.id },
                 transaction: t,
             });
+
             await OrganizationProcessRelationship.destroy({
                 where: {
                     [Op.or]: [
@@ -340,6 +360,7 @@ class OrganizationService {
                 },
                 transaction: t,
             });
+
             if (
                 Array.isArray(data.processDependency) &&
                 data.processDependency.length > 0
@@ -352,7 +373,6 @@ class OrganizationService {
             }
 
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
-                console.log(data.attributes);
                 await OrganizationProcessService.handleProcessAttributes(
                     process.id,
                     data.attributes,
@@ -364,55 +384,79 @@ class OrganizationService {
         });
     }
 
+
     static async createProcessByOrgIdAndBuId(orgId, buId, createBody) {
-        if (!orgId || !buId) {
-            throw new Error("OrgID and BuID required");
+        if (!orgId) {
+            throw new CustomError("Organization ID is required", HttpStatus.BAD_REQUEST);
         }
+
         if (!createBody || !Array.isArray(createBody)) {
-            throw new CustomError("invalid body", HttpStatus.BAD_REQUEST);
+            throw new CustomError("Invalid body", HttpStatus.BAD_REQUEST);
         }
+
         return await sequelize.transaction(async (t) => {
             let insertedCount = 0;
+
             const idsToKeep = createBody
                 .map((item) => item.id)
                 .filter((id) => id !== undefined && id !== null);
+
+            const deleteCondition = {
+                organizationId: orgId,
+            };
+
+            // Apply BU filter only if provided
+            if (buId) {
+                deleteCondition.orgBusinessUnitId = buId;
+            } else {
+                deleteCondition.orgBusinessUnitId = null;
+            }
+
+            if (idsToKeep.length > 0) {
+                deleteCondition.id = { [Op.notIn]: idsToKeep };
+            }
+
             await OrganizationProcess.destroy({
-                where: {
-                    organizationId: orgId,
-                    orgBusinessUnitId: buId,
-                    ...(idsToKeep.length > 0 ? { id: { [Op.notIn]: idsToKeep } } : {}),
-                },
+                where: deleteCondition,
+                transaction: t,
             });
 
             for (let i = 0; i < createBody.length; i++) {
                 const data = createBody[i];
+
                 OrganizationProcessService.validateProcessData(data);
 
                 const processData =
                     OrganizationProcessService.handleProcessDataColumnMapping(data);
+
                 processData.organizationId = orgId;
-                processData.orgBusinessUnitId = buId;
                 processData.isDeleted = false;
+
+                // Set BU only if provided
+                if (buId) {
+                    processData.orgBusinessUnitId = buId;
+                } else {
+                    processData.orgBusinessUnitId = null;
+                }
 
                 console.log("Creating process with data:", processData);
 
-                const [process, created] = await OrganizationProcess.upsert(
-                    processData,
-                    {
-                        returning: true,
-                        transaction: t,
-                    }
-                );
+                const [process] = await OrganizationProcess.upsert(processData, {
+                    returning: true,
+                    transaction: t,
+                });
+
                 const paddedId = String(process.autoIncrementId).padStart(5, "0");
                 const code = `BP${paddedId}`;
                 await process.update({ processCode: code }, { transaction: t });
-                console.log(process, "process created");
+
                 insertedCount++;
 
                 await OrganizationProcessAttribute.destroy({
                     where: { processId: process.id },
                     transaction: t,
                 });
+
                 await OrganizationProcessRelationship.destroy({
                     where: {
                         [Op.or]: [
@@ -422,6 +466,7 @@ class OrganizationService {
                     },
                     transaction: t,
                 });
+
                 if (
                     Array.isArray(data.processDependency) &&
                     data.processDependency.length > 0
@@ -434,7 +479,6 @@ class OrganizationService {
                 }
 
                 if (Array.isArray(data.attributes) && data.attributes.length > 0) {
-                    console.log(data.attributes);
                     await OrganizationProcessService.handleProcessAttributes(
                         process.id,
                         data.attributes,
@@ -447,53 +491,71 @@ class OrganizationService {
         });
     }
 
+
     static async updateProcess(id, orgId, buId, createBody) {
-        if (!id || !orgId || !buId) {
-            throw new Error("process id, OrgID and BuID required");
+        if (!id || !orgId) {
+            throw new CustomError(
+                "Process ID and Organization ID are required",
+                HttpStatus.BAD_REQUEST
+            );
         }
 
         return await sequelize.transaction(async (t) => {
             const data = createBody;
+
             OrganizationProcessService.validateProcessData(data);
 
             const processData =
                 OrganizationProcessService.handleProcessDataColumnMapping(data);
-            processData.orgBusinessUnitId = buId;
-            console.log("Creating process with data:", processData);
 
-            const [updatedCount, updatedRows] = await OrganizationProcess.update(
-                processData,
-                {
-                    where: {
-                        id,
-                        organizationId: orgId,
-                        orgBusinessUnitId: buId,
-                    },
+            // Set BU only if provided
+            if (buId) {
+                processData.orgBusinessUnitId = buId;
+            } else {
+                processData.orgBusinessUnitId = null;
+            }
+
+            const whereCondition = {
+                id,
+                organizationId: orgId,
+            };
+
+            // Apply BU filter only if provided
+            if (buId) {
+                whereCondition.orgBusinessUnitId = buId;
+            } else {
+                whereCondition.orgBusinessUnitId = null;
+            }
+
+            const [updatedCount, updatedRows] =
+                await OrganizationProcess.update(processData, {
+                    where: whereCondition,
                     returning: true,
                     transaction: t,
-                }
-            );
+                });
 
             if (updatedCount < 1) {
-                throw new Error("No process found.");
+                throw new CustomError("No process found.", HttpStatus.NOT_FOUND);
             }
 
             await OrganizationProcessAttribute.destroy({
                 where: { processId: id },
                 transaction: t,
             });
+
             await OrganizationProcessRelationship.destroy({
                 where: {
                     [Op.or]: [{ sourceProcessId: id }, { targetProcessId: id }],
                 },
                 transaction: t,
             });
+
             if (
                 Array.isArray(data.processDependency) &&
                 data.processDependency.length > 0
             ) {
                 await OrganizationProcessService.handleProcessDependencies(
-                    process.id,
+                    id,
                     data.processDependency,
                     t
                 );
@@ -501,7 +563,7 @@ class OrganizationService {
 
             if (Array.isArray(data.attributes) && data.attributes.length > 0) {
                 await OrganizationProcessService.handleProcessAttributes(
-                    process.id,
+                    id,
                     data.attributes,
                     t
                 );
@@ -511,26 +573,35 @@ class OrganizationService {
         });
     }
 
+
     static async deleteProcess(ids, orgId, buId) {
-        if (!ids || !Array.isArray(ids) || !orgId || !buId) {
-            throw new Error("process id array, OrgID and BuID required");
+        if (!ids || !Array.isArray(ids) || !orgId) {
+            throw new CustomError(
+                "Process ID array and Organization ID are required",
+                HttpStatus.BAD_REQUEST
+            );
         }
 
         let deletedCount = 0;
+
         return await sequelize.transaction(async (t) => {
             for (const id of ids) {
-                console.log("deleting process process with data:", id, orgId, buId);
+                const whereCondition = {
+                    id,
+                    organizationId: orgId,
+                };
 
-                const [updatedCount, updatedRows] = await OrganizationProcess.update(
+                // Apply BU filter only if provided
+                if (buId) {
+                    whereCondition.orgBusinessUnitId = buId;
+                } else {
+                    whereCondition.orgBusinessUnitId = null;
+                }
+
+                const [updatedCount] = await OrganizationProcess.update(
+                    { isDeleted: true },
                     {
-                        isDeleted: true,
-                    },
-                    {
-                        where: {
-                            id,
-                            organizationId: orgId,
-                            orgBusinessUnitId: buId,
-                        },
+                        where: whereCondition,
                         returning: true,
                         transaction: t,
                     }
@@ -544,9 +615,13 @@ class OrganizationService {
                     where: { processId: id },
                     transaction: t,
                 });
+
                 await OrganizationProcessRelationship.destroy({
                     where: {
-                        [Op.or]: [{ sourceProcessId: id }, { targetProcessId: id }],
+                        [Op.or]: [
+                            { sourceProcessId: id },
+                            { targetProcessId: id },
+                        ],
                     },
                     transaction: t,
                 });
@@ -565,6 +640,7 @@ class OrganizationService {
             return deletedCount;
         });
     }
+
     /**
      * Get all risk scenarios by organizationId
      */
@@ -1027,50 +1103,50 @@ class OrganizationService {
                 );
             }
 
-      const taxonomies = await Taxonomy.findAll({
-        where: {
-          organizationId: orgId,
-          isDeleted: false,
-        },
-        attributes: [
-          "taxonomyId",
-          "name",
-          "organizationId",
-          "createdBy",
-          "modifiedBy",
-          "createdDate",
-          "modifiedDate",
-          "weightage",
-          "order",
-          "isEdited",
-          "isActive",
-        ],
-        include: [
-          {
-            model: SeverityLevel,
-            as: "severityLevels",
-            where: { isDeleted: false },
-            required: false,
-            attributes: [
-              "severityId",
-              "taxonomyId",
-              "name",
-              "minRange",
-              "maxRange",
-              "createdBy",
-              "modifiedBy",
-              "createdDate",
-              "modifiedDate",
-              "color",
-              "order",
-            ],
-          },
-        ],
-        order: [
-          ["order", "ASC"], // sort taxonomies
-          [{ model: SeverityLevel, as: "severityLevels" }, "order", "ASC"], // sort severityLevels
-        ],
-      });
+            const taxonomies = await Taxonomy.findAll({
+                where: {
+                    organizationId: orgId,
+                    isDeleted: false,
+                },
+                attributes: [
+                    "taxonomyId",
+                    "name",
+                    "organizationId",
+                    "createdBy",
+                    "modifiedBy",
+                    "createdDate",
+                    "modifiedDate",
+                    "weightage",
+                    "order",
+                    "isEdited",
+                    "isActive",
+                ],
+                include: [
+                    {
+                        model: SeverityLevel,
+                        as: "severityLevels",
+                        where: { isDeleted: false },
+                        required: false,
+                        attributes: [
+                            "severityId",
+                            "taxonomyId",
+                            "name",
+                            "minRange",
+                            "maxRange",
+                            "createdBy",
+                            "modifiedBy",
+                            "createdDate",
+                            "modifiedDate",
+                            "color",
+                            "order",
+                        ],
+                    },
+                ],
+                order: [
+                    ["order", "ASC"], // sort taxonomies
+                    [{ model: SeverityLevel, as: "severityLevels" }, "order", "ASC"], // sort severityLevels
+                ],
+            });
 
             return taxonomies;
         } catch (err) {
@@ -1854,144 +1930,144 @@ class OrganizationService {
             modifiedDate: new Date(),
         });
 
-    return { message: "Business unit deleted successfully" };
-  }
+        return { message: "Business unit deleted successfully" };
+    }
 
-  /**
-   * Save or update taxonomies with severity levels for an organization (Option B)
-   */
-  static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
-    try {
-      if (!orgId) {
-        throw new CustomError(
-          "Organization ID is required",
-          HttpStatus.BAD_REQUEST
-        );
-      }
+    /**
+     * Save or update taxonomies with severity levels for an organization (Option B)
+     */
+    static async saveTaxonomiesWithSeverity(orgId, taxonomies) {
+        try {
+            if (!orgId) {
+                throw new CustomError(
+                    "Organization ID is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
 
             const savedTaxonomies = [];
 
-      for (const taxonomyData of taxonomies) {
-        const {
-          taxonomyId,
-          name,
-          weightage,
-          createdBy,
-          order,
-          isEdited,
-          isActive,
-          severityLevels = [],
-        } = taxonomyData;
+            for (const taxonomyData of taxonomies) {
+                const {
+                    taxonomyId,
+                    name,
+                    weightage,
+                    createdBy,
+                    order,
+                    isEdited,
+                    isActive,
+                    severityLevels = [],
+                } = taxonomyData;
 
-        let taxonomy;
+                let taxonomy;
 
-        if (taxonomyId) {
-          taxonomy = await Taxonomy.findOne({
-            where: {
-              taxonomyId,
-              organizationId: orgId,
-              isDeleted: false,
-            },
-          });
+                if (taxonomyId) {
+                    taxonomy = await Taxonomy.findOne({
+                        where: {
+                            taxonomyId,
+                            organizationId: orgId,
+                            isDeleted: false,
+                        },
+                    });
 
-          if (taxonomy) {
-            await taxonomy.update({
-              name,
-              weightage,
-              order: order ?? taxonomy.order,
-              isEdited: isEdited ?? true,
-              isActive: isActive ?? taxonomy.isActive,
-              modifiedBy: createdBy,
-              modifiedDate: new Date(),
-            });
-          } else {
-            taxonomy = await Taxonomy.create({
-              name,
-              weightage,
-              organizationId: orgId,
-              createdBy,
-              createdDate: new Date(),
-              isEdited: isEdited ?? false,
-              isActive: isActive ?? true,
-              order: order ?? 0,
-            });
-          }
-        } else {
-          taxonomy = await Taxonomy.create({
-            name,
-            weightage,
-            organizationId: orgId,
-            createdBy,
-            createdDate: new Date(),
-            isEdited: isEdited ?? false,
-            isActive: isActive ?? true,
-            order: order ?? 0,
-          });
-        }
+                    if (taxonomy) {
+                        await taxonomy.update({
+                            name,
+                            weightage,
+                            order: order ?? taxonomy.order,
+                            isEdited: isEdited ?? true,
+                            isActive: isActive ?? taxonomy.isActive,
+                            modifiedBy: createdBy,
+                            modifiedDate: new Date(),
+                        });
+                    } else {
+                        taxonomy = await Taxonomy.create({
+                            name,
+                            weightage,
+                            organizationId: orgId,
+                            createdBy,
+                            createdDate: new Date(),
+                            isEdited: isEdited ?? false,
+                            isActive: isActive ?? true,
+                            order: order ?? 0,
+                        });
+                    }
+                } else {
+                    taxonomy = await Taxonomy.create({
+                        name,
+                        weightage,
+                        organizationId: orgId,
+                        createdBy,
+                        createdDate: new Date(),
+                        isEdited: isEdited ?? false,
+                        isActive: isActive ?? true,
+                        order: order ?? 0,
+                    });
+                }
 
                 const savedSeverities = [];
 
-        for (const level of severityLevels) {
-          const {
-            severityId,
-            name,
-            minRange,
-            maxRange,
-            color,
-            createdBy,
-            order,
-          } = level;
+                for (const level of severityLevels) {
+                    const {
+                        severityId,
+                        name,
+                        minRange,
+                        maxRange,
+                        color,
+                        createdBy,
+                        order,
+                    } = level;
 
-          let severity;
+                    let severity;
 
-          if (severityId) {
-            severity = await SeverityLevel.findOne({
-              where: {
-                severityId,
-                taxonomyId: taxonomy.taxonomyId,
-                isDeleted: false,
-              },
-            });
+                    if (severityId) {
+                        severity = await SeverityLevel.findOne({
+                            where: {
+                                severityId,
+                                taxonomyId: taxonomy.taxonomyId,
+                                isDeleted: false,
+                            },
+                        });
 
-            if (severity) {
-              await severity.update({
-                name,
-                minRange,
-                maxRange,
-                color,
-                order: order ?? severity.order,
-                modifiedBy: createdBy,
-                modifiedDate: new Date(),
-              });
-            } else {
-              severity = await SeverityLevel.create({
-                taxonomyId: taxonomy.taxonomyId,
-                name,
-                minRange,
-                maxRange,
-                color,
-                createdBy,
-                createdDate: new Date(),
-                isEdited: isEdited ?? false,
-                isActive: isActive ?? true,
-                order: order ?? 0,
-              });
-            }
-          } else {
-            severity = await SeverityLevel.create({
-              taxonomyId: taxonomy.taxonomyId,
-              name,
-              minRange,
-              maxRange,
-              color,
-              createdBy,
-              createdDate: new Date(),
-              order: order ?? 0,
-            });
-          }
+                        if (severity) {
+                            await severity.update({
+                                name,
+                                minRange,
+                                maxRange,
+                                color,
+                                order: order ?? severity.order,
+                                modifiedBy: createdBy,
+                                modifiedDate: new Date(),
+                            });
+                        } else {
+                            severity = await SeverityLevel.create({
+                                taxonomyId: taxonomy.taxonomyId,
+                                name,
+                                minRange,
+                                maxRange,
+                                color,
+                                createdBy,
+                                createdDate: new Date(),
+                                isEdited: isEdited ?? false,
+                                isActive: isActive ?? true,
+                                order: order ?? 0,
+                            });
+                        }
+                    } else {
+                        severity = await SeverityLevel.create({
+                            taxonomyId: taxonomy.taxonomyId,
+                            name,
+                            minRange,
+                            maxRange,
+                            color,
+                            createdBy,
+                            createdDate: new Date(),
+                            order: order ?? 0,
+                        });
+                    }
 
-          savedSeverities.push(severity);
-        }
+                    savedSeverities.push(severity);
+                }
 
                 savedTaxonomies.push({
                     ...taxonomy.get({ plain: true }),

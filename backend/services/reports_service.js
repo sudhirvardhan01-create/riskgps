@@ -807,13 +807,13 @@ class ReportsService {
           updatedAt: latestTimeStampFromAssetNistControlScoreTable,
         },
       });
-    const parentIds = calculatedMitreToNistScores.map(
-      (item) => item.nistControlId
+    const controlCategoryIds = calculatedMitreToNistScores.map(
+      (item) => item.controlCategoryId
     );
     const organizationNistControlScores =
       await OrganizationFrameworkControl.findAll({
         where: {
-          parentObjectId: parentIds,
+          // parentObjectId: parentIds,
           organizationId: orgId,
           frameWorkName: "NIST",
         },
@@ -862,7 +862,7 @@ class ReportsService {
           controlCategory: item.controlCategory,
           controlSubCategoryId: item.controlSubCategoryId,
           controlSubCategory: item.controlSubCategory,
-          calcultatedControlScore: item.calcultatedControlScore,
+          calcultatedControlScore: item.calcultatedControlScore === null ? 0 : item.calcultatedControlScore,
           currentScore: item.currentScore,
           targetScore: item.targetScore,
         });
@@ -870,6 +870,31 @@ class ReportsService {
         return acc;
       }, {})
     );
+
+    const plainorganizationNistControlScoresArray = organizationNistControlScores.map(r => r.toJSON());
+    const uniqueByCategory = [
+      ...new Map(
+        plainorganizationNistControlScoresArray.map(item => [
+          item.frameWorkControlCategoryId, item
+        ])
+      ).values()
+    ];
+    for (const asset of assetLevelReportsData) {
+      const controls = asset.controls.map((a) => a.controlCategoryId);
+      const missingControls = uniqueByCategory.filter((c) => !controls.includes(c.frameWorkControlCategoryId));
+      const e = missingControls.map((i)=>i.frameWorkControlCategoryId)
+      for (const ctrl of missingControls) {
+        asset.controls.push({
+          controlCategoryId: ctrl.frameWorkControlCategoryId,
+          controlCategory: ctrl.frameWorkControlCategory,
+          controlSubCategoryId: ctrl.frameWorkControlSubCategoryId,
+          controlSubCategory: ctrl.frameWorkControlSubCategory,
+          calcultatedControlScore: 0,
+          currentScore: ctrl.currentScore,
+          targetScore: ctrl.targetScore,
+        });
+      }
+    }
 
     let whereClause = {
       orgId,
@@ -1008,7 +1033,8 @@ class ReportsService {
     const reportsData = await ReportsMaster.findAll({
       where: whereClause,
     });
-    const assetRiskScoreinMillionDollar = await this.getAssetRiskInDollarChartsData(reportsData);
+    const assetRiskScoreinMillionDollar =
+      await this.getAssetRiskInDollarChartsData(reportsData);
     return assetRiskScoreinMillionDollar;
   }
 }

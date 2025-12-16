@@ -147,7 +147,7 @@ const CriticalDependenciesBarChart: React.FC<
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="dependencies"
-                fill="#FC816D"
+                fill="#12229d"
                 barSize={14}
                 radius={[0, 4, 4, 0]}
                 animationDuration={800}
