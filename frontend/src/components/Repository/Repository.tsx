@@ -23,7 +23,7 @@ import { constants } from "@/utils/constants";
 import RiskTaxonomy from './RiskTaxonomy';
 import Scales from './Scales';
 import { tooltips } from "@/utils/tooltips";
-import { getOrganizationRisks, getOrganizationAssets, getOrganizationProcessDetails } from "@/pages/api/organization";
+import { getOrganizationRisks, getOrganizationAssets, getOrganizationProcessesWithoutBU } from "@/pages/api/organization";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -162,20 +162,24 @@ function Repository() {
     fetchAssetCount();
   }, [orgId]);
 
-  // Fetch processes count from process-details API
+  // Fetch processes count from process-for-listing API
   useEffect(() => {
     const fetchProcessCount = async () => {
       if (!orgId || typeof orgId !== 'string') return;
 
       try {
-        const response = await getOrganizationProcessDetails(orgId);
-        if (response?.data?.businessUnits && Array.isArray(response.data.businessUnits)) {
-          // Sum up all processes from all business units
-          const totalProcesses = response.data.businessUnits.reduce((total: number, bu: any) => {
-            const processCount = Array.isArray(bu.processes) ? bu.processes.length : 0;
-            return total + processCount;
-          }, 0);
-          setProcessCount(totalProcesses);
+        const response = await getOrganizationProcessesWithoutBU(orgId);
+        // Handle both response formats: { data: [] } or { data: { data: [...], ... } }e 
+        if (response?.data) {
+          if (Array.isArray(response.data)) {
+            // Error case: { data: [] }
+            setProcessCount(response.data.length);
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            // Success case: { data: { data: [...], ... } }
+            setProcessCount(response.data.data.length);
+          } else {
+            setProcessCount(0);
+          }
         } else {
           setProcessCount(0);
         }
