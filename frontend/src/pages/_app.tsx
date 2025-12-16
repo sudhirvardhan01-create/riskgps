@@ -11,6 +11,7 @@ import SideBar from "@/components/SideBar";
 import { AuthProvider } from "@/context/AuthContext";
 import { AssessmentProvider } from "@/context/AssessmentContext";
 import { ConfigProvider } from "@/context/ConfigContext";
+import { WebSocketProvider } from "@/context/WebSocketContext";
 import LandingPage from ".";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import GlobalToastProvider from "@/components/GlobalToastProvider";
@@ -31,8 +32,9 @@ export default function App({ Component, pageProps }: AppProps) {
       <ErrorBoundary>
         <LoaderProvider>
           <AuthProvider>
-            <ConfigProvider>
-              <AssessmentProvider>
+            <WebSocketProvider>
+              <ConfigProvider>
+                <AssessmentProvider>
                 {isLandingPage ? (
                   <>
                     <CssBaseline />
@@ -91,8 +93,9 @@ export default function App({ Component, pageProps }: AppProps) {
                     </ThemeProvider>
                   </>
                 )}
-              </AssessmentProvider>
-            </ConfigProvider>
+                </AssessmentProvider>
+              </ConfigProvider>
+            </WebSocketProvider>
           </AuthProvider>
         </LoaderProvider>
       </ErrorBoundary>

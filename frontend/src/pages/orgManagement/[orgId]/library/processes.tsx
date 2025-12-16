@@ -15,10 +15,6 @@ import {
   FormControlLabel,
   Chip,
   CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -35,7 +31,8 @@ import { ProcessData } from "@/types/process";
 import AddLibraryItemsModal from "@/components/OrgManagement/AddLibraryItemsModal";
 import { ProcessLibraryService } from "@/services/orgLibraryService/processLibraryService";
 import {
-  getOrganizationProcess,
+  getOrganizationProcessesWithoutBU,
+  createOrganizationProcess,
   createOrganizationProcesses,
   updateOrganizationProcess,
   deleteOrganizationProcess,
@@ -45,8 +42,6 @@ import {
   fetchProcessById,
   fetchProcessesForListing,
 } from "@/pages/api/process";
-import { getBusinessUnits } from "@/services/businessUnitService";
-import { BusinessUnitData } from "@/types/business-unit";
 import ProcessFormModal from "@/components/Library/Process/ProcessFormModal";
 import MenuItemComponent from "@/components/MenuItemComponent";
 import { fetchMetaDatas } from "@/pages/api/meta-data";
@@ -58,9 +53,29 @@ interface Process {
   processDescription: string;
 }
 
+const initialProcessData: ProcessData = {
+  processName: "",
+  processDescription: "",
+  seniorExecutiveOwnerName: "",
+  seniorExecutiveOwnerEmail: "",
+  operationsOwnerName: "",
+  operationsOwnerEmail: "",
+  technologyOwnerName: "",
+  technologyOwnerEmail: "",
+  organizationalRevenueImpactPercentage: 0,
+  financialMateriality: false,
+  thirdPartyInvolvement: false,
+  users: [],
+  requlatoryAndCompliance: [],
+  criticalityOfDataProcessed: "",
+  dataProcessed: [],
+  processDependency: [],
+  attributes: [],
+};
+
 function ProcessesPage() {
   const router = useRouter();
-  const { orgId, businessUnitId } = router.query;
+  const { orgId } = router.query;
   const { organization, loading, error } = useOrganization(orgId);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [processes, setProcesses] = useState<Process[]>([]);
@@ -79,11 +94,6 @@ function ProcessesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [currentBusinessUnitId, setCurrentBusinessUnitId] = useState<
-    string | string[] | undefined
-  >(businessUnitId);
-  const [businessUnits, setBusinessUnits] = useState<BusinessUnitData[]>([]);
-  const [loadingBusinessUnits, setLoadingBusinessUnits] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<ProcessData | null>(
     null
@@ -91,6 +101,9 @@ function ProcessesPage() {
   const [processesData, setProcessesData] = useState<any[]>([]);
   const [metaDatas, setMetaDatas] = useState<any[]>([]);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+  const [formData, setFormData] = useState<ProcessData>(initialProcessData);
 
   const handleBackClick = () => {
     router.push(`/orgManagement/${orgId}?tab=1`);
@@ -104,24 +117,19 @@ function ProcessesPage() {
     setIsAddModalOpen(false);
   };
 
-  const fetchOrganizationProcesses = async (
-    buId: string | string[] | undefined
-  ) => {
-    if (
-      !orgId ||
-      typeof orgId !== "string" ||
-      !buId ||
-      typeof buId !== "string"
-    )
-      return;
+  const fetchOrganizationProcesses = async () => {
+    if (!orgId || typeof orgId !== "string") return;
 
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      const response = await getOrganizationProcess(orgId, buId, 0, 10);
+      const response = await getOrganizationProcessesWithoutBU(orgId);
 
       // Backend returns { data: { data: [...], total, page, limit, totalPages }, msg: "..." }
-      const processesData = response?.data?.data || response?.data || [];
+      const responseData = response?.data;
+      const processesData = (responseData && typeof responseData === 'object' && 'data' in responseData) 
+        ? (Array.isArray(responseData.data) ? responseData.data : [])
+        : (Array.isArray(responseData) ? responseData : []);
 
       if (Array.isArray(processesData)) {
         // Store full org processes for matching with library items
@@ -145,7 +153,6 @@ function ProcessesPage() {
         err.message || "Failed to fetch processes. Please try again.";
 
       // If error is "No processes found", treat it as empty state (not an error)
-      // This allows the "Add Processes" section to be visible for new business units
       if (errorMessage.toLowerCase().includes("no processes found")) {
         setErrorMessage(null);
         setOrgProcesses([]);
@@ -161,44 +168,11 @@ function ProcessesPage() {
     }
   };
 
-  // Fetch business units when component mounts
+  // Fetch processes when component mounts
   useEffect(() => {
-    if (!orgId || typeof orgId !== "string") return;
-
-    const fetchBusinessUnits = async () => {
-      try {
-        setLoadingBusinessUnits(true);
-        const data = await getBusinessUnits(orgId);
-        setBusinessUnits(data);
-
-        // If businessUnitId is in query params, use it; otherwise use first business unit
-        if (businessUnitId && typeof businessUnitId === "string") {
-          setCurrentBusinessUnitId(businessUnitId);
-        } else if (data.length > 0) {
-          setCurrentBusinessUnitId(data[0].id);
-        }
-      } catch (err) {
-        console.error("Error fetching business units:", err);
-        setErrorMessage("Failed to fetch business units. Please try again.");
-        setBusinessUnits([]);
-      } finally {
-        setLoadingBusinessUnits(false);
-      }
-    };
-
-    fetchBusinessUnits();
-  }, [orgId]);
-
-  // Fetch processes when business unit is selected
-  useEffect(() => {
-    if (
-      orgId &&
-      typeof orgId === "string" &&
-      currentBusinessUnitId &&
-      typeof currentBusinessUnitId === "string"
-    ) {
+    if (orgId && typeof orgId === "string") {
       setIsInitialLoad(true);
-      fetchOrganizationProcesses(currentBusinessUnitId);
+      fetchOrganizationProcesses();
       (async () => {
         try {
           const [processes] = await Promise.all([
@@ -210,7 +184,7 @@ function ProcessesPage() {
         }
       })();
     }
-  }, [orgId, currentBusinessUnitId]);
+  }, [orgId]);
 
   // Fetch processes and metaDatas for the edit modal
   useEffect(() => {
@@ -227,40 +201,28 @@ function ProcessesPage() {
     })();
   }, []);
 
-  // Handle business unit selection change
-  const handleBusinessUnitChange = (event: any) => {
-    const selectedBuId = event.target.value;
-    setCurrentBusinessUnitId(selectedBuId);
-    // Update URL query param
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, businessUnitId: selectedBuId },
-      },
-      undefined,
-      { shallow: true }
-    );
-  };
 
   const handleAddProcessesFromModal = async (data: any) => {
     // Handle both old format (array) and new format (object with items and businessUnitId)
     const selectedProcessesArray = Array.isArray(data)
       ? data
       : data.items || [];
-    const buId = data.businessUnitId || currentBusinessUnitId;
+    const buId = data.businessUnitId;
 
     if (
       !orgId ||
       typeof orgId !== "string" ||
-      !buId ||
-      typeof buId !== "string" ||
       selectedProcessesArray.length === 0
     ) {
-      if (!buId || typeof buId !== "string") {
-        setErrorMessage(
-          "Please select a business unit before adding processes."
-        );
-      }
+      return;
+    }
+
+    // If no business unit is provided, we can't add processes as the API requires it
+    // For now, we'll skip adding if no business unit is provided
+    if (!buId || typeof buId !== "string") {
+      setErrorMessage(
+        "Business unit is required to add processes from library."
+      );
       return;
     }
 
@@ -339,22 +301,8 @@ function ProcessesPage() {
       // Call the POST API to save to organization
       await createOrganizationProcesses(orgId, buId, formattedData);
 
-      // Update current business unit state and URL if different from current
-      if (buId !== currentBusinessUnitId) {
-        setCurrentBusinessUnitId(buId);
-        // Update URL query param
-        router.push(
-          {
-            pathname: router.pathname,
-            query: { ...router.query, businessUnitId: buId },
-          },
-          undefined,
-          { shallow: true }
-        );
-      }
-
       // Refresh the list
-      await fetchOrganizationProcesses(buId);
+      await fetchOrganizationProcesses();
 
       setSuccessMessage("Success! Processes have been added.");
       setShowSuccessMessage(true);
@@ -378,13 +326,8 @@ function ProcessesPage() {
   };
 
   const handleRemoveSelected = async () => {
-    if (
-      !orgId ||
-      typeof orgId !== "string" ||
-      !currentBusinessUnitId ||
-      typeof currentBusinessUnitId !== "string"
-    ) {
-      setErrorMessage("Organization ID and Business Unit ID are required");
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
       return;
     }
 
@@ -399,10 +342,11 @@ function ProcessesPage() {
       // Convert selected process IDs to strings
       const processIds = selectedProcesses.map((id) => String(id));
 
-      await deleteOrganizationProcess(orgId, currentBusinessUnitId, processIds);
+      // Delete processes
+      await deleteOrganizationProcess(orgId, processIds);
 
       // Refresh the list after successful deletion
-      await fetchOrganizationProcesses(currentBusinessUnitId);
+      await fetchOrganizationProcesses();
 
       setSuccessMessage(
         `Success! ${selectedProcesses.length} process(es) have been deleted.`
@@ -425,13 +369,8 @@ function ProcessesPage() {
   };
 
   const handleDeleteSingleProcess = async (processId: string | number) => {
-    if (
-      !orgId ||
-      typeof orgId !== "string" ||
-      !currentBusinessUnitId ||
-      typeof currentBusinessUnitId !== "string"
-    ) {
-      setErrorMessage("Organization ID and Business Unit ID are required");
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
       return;
     }
 
@@ -439,14 +378,10 @@ function ProcessesPage() {
       setIsLoading(true);
       setErrorMessage(null);
 
-      await deleteOrganizationProcess(
-        orgId,
-        currentBusinessUnitId,
-        String(processId)
-      );
+      await deleteOrganizationProcess(orgId, String(processId));
 
       // Refresh the list after successful deletion
-      await fetchOrganizationProcesses(currentBusinessUnitId);
+      await fetchOrganizationProcesses();
 
       setSuccessMessage("Success! Process has been deleted.");
       setShowSuccessMessage(true);
@@ -485,7 +420,13 @@ function ProcessesPage() {
           typeof fullProcess.thirdPartyInvolvement === "boolean"
             ? fullProcess.thirdPartyInvolvement
             : fullProcess.thirdPartyInvolvement === "true",
-        users: fullProcess.usersCustomers || "",
+        users: fullProcess.usersCustomers 
+          ? (Array.isArray(fullProcess.usersCustomers) 
+              ? fullProcess.usersCustomers 
+              : typeof fullProcess.usersCustomers === 'string' 
+                ? fullProcess.usersCustomers.split(", ").filter(Boolean)
+                : [])
+          : [],
         requlatoryAndCompliance: fullProcess.regulatoryAndCompliance || [],
         criticalityOfDataProcessed:
           fullProcess.criticalityOfDataProcessed || "",
@@ -524,13 +465,7 @@ function ProcessesPage() {
   // Update process
   const handleUpdate = async (status: string) => {
     try {
-      if (
-        !selectedProcess?.id ||
-        !orgId ||
-        typeof orgId !== "string" ||
-        !currentBusinessUnitId ||
-        typeof currentBusinessUnitId !== "string"
-      ) {
+      if (!selectedProcess?.id || !orgId || typeof orgId !== "string") {
         throw new Error("Invalid selection");
       }
 
@@ -539,7 +474,6 @@ function ProcessesPage() {
 
       await updateOrganizationProcess(
         orgId,
-        currentBusinessUnitId,
         String(selectedProcess.id),
         body
       );
@@ -548,7 +482,7 @@ function ProcessesPage() {
       setSelectedProcess(null);
 
       // Refresh the list
-      await fetchOrganizationProcesses(currentBusinessUnitId);
+      await fetchOrganizationProcesses();
 
       setSuccessMessage("Success! Process has been updated.");
       setShowSuccessMessage(true);
@@ -591,13 +525,80 @@ function ProcessesPage() {
         .includes(searchTerm.toLowerCase())
   );
 
-  if (
-    loading ||
-    (isInitialLoad &&
-      isLoading &&
-      currentBusinessUnitId &&
-      typeof currentBusinessUnitId === "string")
-  ) {
+  const handleOpenCreateProcesses = () => {
+    setFormData(initialProcessData);
+    setIsAddOpen(true);
+  };
+
+  // Create process
+  const handleCreate = async (status: string) => {
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // Transform the formData to match the API format
+      // Map users to usersCustomers and requlatoryAndCompliance to regulatoryAndCompliance
+      const body = {
+        ...formData,
+        usersCustomers: formData.users || [],
+        regulatoryAndCompliance: formData.requlatoryAndCompliance || [],
+        status,
+      };
+
+      await createOrganizationProcess(orgId, body);
+
+      setIsAddOpen(false);
+      setFormData(initialProcessData);
+
+      // Refresh the list
+      await fetchOrganizationProcesses();
+
+      setSuccessMessage("Success! Process has been created.");
+      setShowSuccessMessage(true);
+      setErrorMessage(null);
+    } catch (err: any) {
+      console.error("Failed to create process:", err);
+      setErrorMessage(
+        err.message || "Failed to create process. Please try again."
+      );
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Form validation before create
+  const handleFormValidation = async (status: string) => {
+    if (!orgId || typeof orgId !== "string") {
+      setErrorMessage("Organization ID is required");
+      return;
+    }
+
+    try {
+      // Check if process with same name already exists in organization
+      const existingProcesses = orgProcesses.filter(
+        (p: any) => p.processName?.trim().toLowerCase() === formData.processName.trim().toLowerCase()
+      );
+
+      if (existingProcesses.length > 0) {
+        setErrorMessage("Process already exists in this organization");
+        setShowSuccessMessage(false);
+      } else {
+        handleCreate(status);
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Failed to validate process");
+      setShowSuccessMessage(false);
+    }
+  };
+
+  if (loading || (isInitialLoad && isLoading)) {
     return (
       <Box
         sx={{
@@ -704,64 +705,6 @@ function ProcessesPage() {
         </Box>
       </Stack>
 
-      {/* Show message if no business units available */}
-      {!loadingBusinessUnits &&
-        businessUnits.length === 0 &&
-        orgId &&
-        typeof orgId === "string" && (
-          <Box
-            sx={{
-              height: "calc(100vh - 95px)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "#F0F2FB",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 1000,
-            }}
-          >
-            <Box
-              sx={{
-                textAlign: "center",
-                p: 4,
-                maxWidth: "600px",
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  mb: 3,
-                  color: "#484848",
-                  fontWeight: 500,
-                  fontSize: "18px",
-                }}
-              >
-                No business units found for this organization. Please create a
-                business unit first to select process.
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => router.push(`/orgManagement/${orgId}?tab=2`)}
-                sx={{
-                  backgroundColor: "#04139A",
-                  color: "#FFFFFF",
-                  textTransform: "none",
-                  fontWeight: 500,
-                  p: "12px 40px",
-                  borderRadius: "4px",
-                  "&:hover": {
-                    backgroundColor: "#030d6b",
-                  },
-                }}
-              >
-                Create Business Unit
-              </Button>
-            </Box>
-          </Box>
-        )}
 
       {/* Success Toast */}
       <Snackbar
@@ -875,7 +818,7 @@ function ProcessesPage() {
                   gap: 2,
                 }}
               >
-                <Button
+                {/* <Button
                   variant="contained"
                   onClick={handleAddProcesses}
                   disabled={
@@ -901,63 +844,25 @@ function ProcessesPage() {
                   }}
                 >
                   Add Processes
+                </Button> */}
+                <Button
+                  variant="contained"
+                  onClick={handleOpenCreateProcesses}
+                  sx={{
+                    backgroundColor: "#04139A",
+                    color: "#FFFFFF",
+                    p: "12px, 40px",
+                    height: "40px",
+                    borderRadius: "4px",
+                    textTransform: "none",
+                    fontWeight: 500,
+                    "&:hover": {
+                      backgroundColor: "#030d6b",
+                    },
+                  }}
+                >
+                  Create Processes
                 </Button>
-
-                {/* Business Unit Selection */}
-                {businessUnits.length > 0 && (
-                  <FormControl
-                    sx={{
-                      minWidth: 250,
-                      "& .MuiOutlinedInput-root": {
-                        height: "40px",
-                        backgroundColor: "#FFFFFF",
-                        borderRadius: "4px",
-                        "& fieldset": {
-                          borderColor: "#E7E7E8",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "#04139A",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#04139A",
-                        },
-                      },
-                    }}
-                  >
-                    <InputLabel
-                      id="empty-state-business-unit-label"
-                      sx={{
-                        fontSize: "14px",
-                        "&.Mui-focused": {
-                          color: "#04139A",
-                        },
-                      }}
-                    >
-                      Business Unit
-                    </InputLabel>
-                    <Select
-                      labelId="empty-state-business-unit-label"
-                      id="empty-state-business-unit-select"
-                      value={currentBusinessUnitId || ""}
-                      onChange={handleBusinessUnitChange}
-                      label="Business Unit"
-                      disabled={loadingBusinessUnits}
-                      sx={{
-                        fontSize: "14px",
-                        color: "#484848",
-                        "& .MuiSvgIcon-root": {
-                          color: "#04139A",
-                        },
-                      }}
-                    >
-                      {businessUnits.map((bu) => (
-                        <MenuItem key={bu.id} value={bu.id}>
-                          {bu.businessUnitName || bu.buCode || bu.id}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
               </Box>
             </Box>
           </Box>
@@ -994,62 +899,6 @@ function ProcessesPage() {
                 >
                   Processes
                 </Typography>
-
-                {/* Business Unit Dropdown */}
-                {businessUnits.length > 0 && (
-                  <FormControl
-                    sx={{
-                      minWidth: 250,
-                      "& .MuiOutlinedInput-root": {
-                        height: "40px",
-                        backgroundColor: "#FFFFFF",
-                        borderRadius: "4px",
-                        "& fieldset": {
-                          borderColor: "#E7E7E8",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "#04139A",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#04139A",
-                        },
-                      },
-                    }}
-                  >
-                    <InputLabel
-                      id="business-unit-label"
-                      sx={{
-                        fontSize: "14px",
-                        "&.Mui-focused": {
-                          color: "#04139A",
-                        },
-                      }}
-                    >
-                      Business Unit
-                    </InputLabel>
-                    <Select
-                      labelId="business-unit-label"
-                      id="business-unit-select"
-                      value={currentBusinessUnitId || ""}
-                      onChange={handleBusinessUnitChange}
-                      label="Business Unit"
-                      disabled={loadingBusinessUnits}
-                      sx={{
-                        fontSize: "14px",
-                        color: "#484848",
-                        "& .MuiSvgIcon-root": {
-                          color: "#04139A",
-                        },
-                      }}
-                    >
-                      {businessUnits.map((bu) => (
-                        <MenuItem key={bu.id} value={bu.id}>
-                          {bu.businessUnitName || bu.buCode || bu.id}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
               </Box>
 
               {/* Search Bar and Action Buttons Row */}
@@ -1093,7 +942,7 @@ function ProcessesPage() {
                     },
                   }}
                 />
-                <Button
+                {/* <Button
                   variant="contained"
                   onClick={handleAddProcesses}
                   disabled={
@@ -1117,6 +966,23 @@ function ProcessesPage() {
                   }}
                 >
                   Add Processes
+                </Button> */}
+                <Button
+                  variant="contained"
+                  onClick={handleOpenCreateProcesses}
+                  sx={{
+                    backgroundColor: "#04139A",
+                    color: "#FFFFFF",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    p: "12px 40px",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      backgroundColor: "#030d6b",
+                    },
+                  }}
+                >
+                  Create Processes
                 </Button>
               </Box>
 
@@ -1212,6 +1078,9 @@ function ProcessesPage() {
                   const descriptionText = `Description: ${process.processDescription}`;
                   const actualDescription = process.processDescription || "";
                   const shouldShowToggle = actualDescription.trim().length > 80;
+                  // Find the full process data to check for parentObjectId
+                  const fullProcess = orgProcesses.find((p: any) => p.id === process.id);
+                  const hasParentObjectId = fullProcess?.parentObjectId != null;
 
                   return (
                     <Grid size={{ xs: 12, sm: 6 }} key={process.id}>
@@ -1258,18 +1127,42 @@ function ProcessesPage() {
                                 flexDirection: "column",
                               }}
                             >
-                              <Typography
-                                variant="body2"
+                              <Box
                                 sx={{
-                                  color: "#484848",
-                                  fontSize: "14px",
-                                  lineHeight: "20px",
-                                  fontWeight: 600,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
                                   mb: 0.5,
                                 }}
                               >
-                                {process.processName}
-                              </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: "#484848",
+                                    fontSize: "14px",
+                                    lineHeight: "20px",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {process.processName}
+                                </Typography>
+                                {hasParentObjectId && (
+                                  <Chip
+                                    label="Imported"
+                                    size="small"
+                                    sx={{
+                                      backgroundColor: "#04139A",
+                                      color: "#FFFFFF",
+                                      fontSize: "11px",
+                                      height: "20px",
+                                      fontWeight: 500,
+                                      "& .MuiChip-label": {
+                                        px: 1,
+                                      },
+                                    }}
+                                  />
+                                )}
+                              </Box>
                               <Box sx={{ position: "relative" }}>
                                 <Typography
                                   variant="body2"
@@ -1377,8 +1270,22 @@ function ProcessesPage() {
         itemType="processes"
         alreadyAddedIds={processes.map((process) => process.id)}
         orgId={orgId}
-        initialBusinessUnitId={currentBusinessUnitId}
       />
+
+      {/* Add Process Modal */}
+      {isAddOpen && (
+        <ProcessFormModal
+          operation="create"
+          open={isAddOpen}
+          processData={formData}
+          setProcessData={setFormData}
+          processes={processesData}
+          processForListing={processesData}
+          metaDatas={metaDatas}
+          onSubmit={handleFormValidation}
+          onClose={() => setIsAddConfirmOpen(true)}
+        />
+      )}
 
       {/* Edit Process Modal */}
       {isEditOpen && selectedProcess && (
@@ -1400,6 +1307,21 @@ function ProcessesPage() {
           onClose={() => setIsEditConfirmOpen(true)}
         />
       )}
+
+      {/* Confirm Dialog for Add Cancellation */}
+      <ConfirmDialog
+        open={isAddConfirmOpen}
+        onClose={() => setIsAddConfirmOpen(false)}
+        title="Cancel Process Creation?"
+        description="Are you sure you want to cancel the process creation? Any unsaved changes will be lost."
+        onConfirm={() => {
+          setIsAddConfirmOpen(false);
+          setFormData(initialProcessData);
+          setIsAddOpen(false);
+        }}
+        cancelText="Continue Editing"
+        confirmText="Yes, Cancel"
+      />
 
       {/* Confirm Dialog for Edit Cancellation */}
       <ConfirmDialog

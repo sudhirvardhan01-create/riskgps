@@ -19,6 +19,12 @@
     Process,
     Asset,
     RiskScenario,
+    ProcessAttribute,
+    ProcessRelationship,
+    AssetAttribute,
+    AssetProcessMappings,
+    RiskScenarioAttribute,
+    ProcessRiskScenarioMappings,
     sequelize,
 } = require("../models");
 const { Op } = Sequelize;
@@ -28,6 +34,7 @@ const Messages = require("../constants/messages");
 const OrganizationRiskScenarioService = require("./organization_risk_scenario_service");
 const OrganizationProcessService = require("./organization_process_service");
 const OrganizationAssetService = require("./organization_asset_service");
+const wsManager = require("../utils/websocket");
 
 class OrganizationService {
     /**
@@ -150,6 +157,8 @@ class OrganizationService {
             if (businessUnitId) {
                 whereClause.orgBusinessUnitId = businessUnitId;
             }
+            // If businessUnitId is null/undefined, don't filter by orgBusinessUnitId
+            // This will return all processes for the organization, including those with null orgBusinessUnitId
 
             const processes = await OrganizationProcess.findAll({
                 where: whereClause,
@@ -185,10 +194,8 @@ class OrganizationService {
             });
 
             if (!processes || processes.length === 0) {
-                throw new CustomError(
-                    "No processes found for given organization",
-                    HttpStatus.NOT_FOUND
-                );
+                // Return empty array instead of throwing error (consistent with risk scenarios and assets)
+                return [];
             }
 
             return processes;
@@ -2078,38 +2085,170 @@ class OrganizationService {
         }
     }
 
-    static async syncLibraries({ organizationId, libraryNames, orgBusinessUnitId, userId }) {
+    static async syncLibraries({ organizationId, libraryNames, orgBusinessUnitId, userId, jobId }) {
         const output = {};
+        const totalLibraries = libraryNames.length;
+        let completedLibraries = 0;
 
-        for (const name of libraryNames) {
-            switch (name) {
-
-                case "process":
-                case "process_attribute":
-                case "process":
-                case "process_relation":
-                case "riskScenario":
-                case "risk_scenario_attribute":
-                case "risk_scenario_process":
-                case "asset":
-                case "asset_attribute":
-                case "asset_process":
-                    output[name] = await this.syncSingleLibrary(
-                        name,
-                        organizationId,
-                        orgBusinessUnitId,
-                        userId
-                    );
-                    break;
-
-                default:
-                    output[name] = { skipped: true, error: "Unknown library type." };
-            }
+        // Send started message
+        if (jobId) {
+            wsManager.sendToJob(jobId, {
+                type: "sync_status",
+                status: "started",
+                message: "Library sync started",
+                progress: 0,
+                totalLibraries,
+                completedLibraries: 0,
+            });
         }
-        return output;
+
+        try {
+            for (let i = 0; i < libraryNames.length; i++) {
+                const name = libraryNames[i];
+                const libraryDisplayName = this.getLibraryDisplayName(name);
+
+                // Send progress message for current library
+                if (jobId) {
+                    wsManager.sendToJob(jobId, {
+                        type: "sync_status",
+                        status: "progress",
+                        message: `Syncing ${libraryDisplayName}...`,
+                        progress: Math.round((i / totalLibraries) * 100),
+                        currentLibrary: libraryDisplayName,
+                        totalLibraries,
+                        completedLibraries,
+                    });
+                }
+
+                try {
+                    // Normalize library name (frontend may send plural forms)
+                    let normalizedName = name;
+                    if (name === "risk-scenarios") {
+                        normalizedName = "risk-scenario";
+                    } else if (name === "assets") {
+                        normalizedName = "asset";
+                    } else if (name === "processes") {
+                        normalizedName = "process";
+                    }
+
+                    switch (normalizedName) {
+                        case "process":
+                            output[name] = await this.syncSingleLibrary(
+                                normalizedName,
+                                organizationId,
+                                orgBusinessUnitId,
+                                userId,
+                                jobId
+                            );
+                            completedLibraries++;
+                            break;
+                        case "process-attribute":
+                        case "process-relation":
+                        case "risk-scenario":
+                        case "risk-scenario-attribute":
+                        case "risk-scenario-process":
+                        case "asset":
+                        case "asset-attribute":
+                        case "asset-process":
+                            output[name] = await this.syncSingleLibrary(
+                                normalizedName,
+                                organizationId,
+                                orgBusinessUnitId,
+                                userId,
+                                jobId
+                            );
+                            completedLibraries++;
+                            break;
+
+                        default:
+                            output[name] = { skipped: true, error: "Unknown library type." };
+                            completedLibraries++;
+                    }
+
+                    // Send completion message for this library
+                    if (jobId && output[name] && !output[name].error) {
+                        wsManager.sendToJob(jobId, {
+                            type: "sync_status",
+                            status: "progress",
+                            message: `${libraryDisplayName} synced successfully`,
+                            progress: Math.round(((i + 1) / totalLibraries) * 100),
+                            currentLibrary: libraryDisplayName,
+                            totalLibraries,
+                            completedLibraries,
+                            libraryResult: output[name],
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error syncing library ${name}:`, error);
+                    output[name] = { error: error.message || "Failed to sync library" };
+                    completedLibraries++;
+
+                    // Send error message for this library
+                    if (jobId) {
+                        wsManager.sendToJob(jobId, {
+                            type: "sync_status",
+                            status: "progress",
+                            message: `Error syncing ${libraryDisplayName}`,
+                            progress: Math.round(((i + 1) / totalLibraries) * 100),
+                            currentLibrary: libraryDisplayName,
+                            totalLibraries,
+                            completedLibraries,
+                            error: error.message || "Failed to sync library",
+                        });
+                    }
+                }
+            }
+
+            // Send completion message
+            if (jobId) {
+                wsManager.sendToJob(jobId, {
+                    type: "sync_status",
+                    status: "completed",
+                    message: "Library sync completed successfully",
+                    progress: 100,
+                    totalLibraries,
+                    completedLibraries,
+                    data: output,
+                });
+            }
+
+            return output;
+        } catch (error) {
+            console.error("Library sync error:", error);
+            
+            // Send error message
+            if (jobId) {
+                wsManager.sendToJob(jobId, {
+                    type: "sync_status",
+                    status: "error",
+                    message: error.message || "Library sync failed",
+                    progress: Math.round((completedLibraries / totalLibraries) * 100),
+                    totalLibraries,
+                    completedLibraries,
+                    error: error.message || "Library sync failed",
+                });
+            }
+            
+            throw error;
+        }
     }
 
-    static async syncSingleLibrary(name, organizationId, orgBusinessUnitId, userId) {
+    static getLibraryDisplayName(name) {
+        const displayNames = {
+            "process": "Processes",
+            "process-attribute": "Process Attributes",
+            "process-relation": "Process Relations",
+            "risk-scenarios": "Risk Scenarios",
+            "risk-scenario-attribute": "Risk Scenario Attributes",
+            "risk-scenario-process": "Risk Scenario Processes",
+            "assets": "Assets",
+            "asset-attribute": "Asset Attributes",
+            "asset-process": "Asset Processes",
+        };
+        return displayNames[name] || name;
+    }
+
+    static async syncSingleLibrary(name, organizationId, orgBusinessUnitId, userId, jobId = null) {
 
         let GenericModel, OrgModel, mappingFields;
 
@@ -2125,7 +2264,8 @@ class OrganizationService {
                     parentObjectId: item.id,
                     organizationId,
                     orgBusinessUnitId,
-                    processCode: item.processCode,
+                    // Don't set processCode - let afterCreate hook generate it from autoIncrementId
+                    // This ensures unique codes per organization
                     processName: item.processName,
                     processDescription: item.processDescription,
                     seniorExecutiveOwnerName: item.seniorExecutiveOwnerName,
@@ -2488,22 +2628,40 @@ class OrganizationService {
             // -------------------------------------------------
             // DEFAULT SYNC (process, asset, risk scenario)
             // -------------------------------------------------
+            // Check if already exists by parentObjectId + organizationId
             const exists = await OrgModel.findOne({
                 where: { parentObjectId: g.id, organizationId }
             });
 
             if (exists) { skipped++; continue; }
 
-            await OrgModel.create(mappingFields(g));
-            inserted++;
+            // Note: We no longer check for duplicate process_code here because:
+            // 1. We don't set processCode during sync (it's auto-generated by afterCreate hook)
+            // 2. The afterCreate hook generates unique codes based on autoIncrementId
+            // 3. This ensures each organization gets unique process codes
+
+            try {
+                const mappedData = mappingFields(g);
+                const created = await OrgModel.create(mappedData);
+                inserted++;
+            } catch (error) {
+                // Handle duplicate process_code errors gracefully
+                if (error.name === 'SequelizeUniqueConstraintError' && error.fields?.process_code) {
+                    skipped++;
+                } else {
+                    skipped++;
+                }
+            }
         }
 
-        return {
+        const result = {
             library: name,
             inserted,
             skipped,
             total: genericItems.length,
         };
+        
+        return result;
     }
 
 }
