@@ -1,3 +1,4 @@
+const ExcelJS = require("exceljs");
 const { QueryTypes } = require("sequelize");
 const models = require("../models");
 
@@ -1717,6 +1718,85 @@ class SyncupService {
     );
     result[0].lastDayDateTime = latestTimeStamp;
     return result[0];
+  }
+
+  static async downloadOrganizationLatestReportsDataExcel(orgId, res) {
+    try {
+      const latestTimeStamp =
+      await ReportsService.getLatestTimeStampFromReportsTableForOrg(orgId);
+      const latestTimeStampFromAssetScoreTable =
+      await ReportsService.getLatestTimeStampFromReportsAssetNistControlScoreTableForOrg(orgId);
+      const reportsMasterData = await models.ReportsMaster.findAll({
+        where: {
+          orgId,
+          updatedAt: latestTimeStamp
+        },
+        raw: true,
+      });
+
+      const nistControlScoreData =
+        await models.ReportsAssetNistControlScore.findAll({
+          where:{
+          orgId,
+          updatedAt: latestTimeStampFromAssetScoreTable
+          },
+          raw: true,
+        });
+
+      // 2️⃣ Create workbook
+      const workbook = new ExcelJS.Workbook();
+
+      // ============================
+      // Sheet 1: Reports Master
+      // ============================
+      const reportsMasterSheet = workbook.addWorksheet("Reports Data");
+
+      if (reportsMasterData.length > 0) {
+        reportsMasterSheet.columns = Object.keys(reportsMasterData[0]).map(
+          (key) => ({
+            header: key,
+            key: key,
+            width: 30,
+          })
+        );
+
+        reportsMasterData.forEach((row) => {
+          reportsMasterSheet.addRow(row);
+        });
+      }
+
+      // ============================
+      // Sheet 2: NIST Control Scores
+      // ============================
+      const nistSheet = workbook.addWorksheet("Asset NIST Control Scores");
+
+      if (nistControlScoreData.length > 0) {
+        nistSheet.columns = Object.keys(nistControlScoreData[0]).map((key) => ({
+          header: key,
+          key: key,
+          width: 30,
+        }));
+
+        nistControlScoreData.forEach((row) => {
+          nistSheet.addRow(row);
+        });
+      }
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=reports_data_export.xlsx"
+      );
+
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error("Excel download failed:", error);
+      res.status(500).json({ message: "Failed to download Excel file" });
+    }
   }
 }
 
