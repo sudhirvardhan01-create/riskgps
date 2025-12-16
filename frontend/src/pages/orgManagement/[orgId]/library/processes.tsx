@@ -339,27 +339,11 @@ function ProcessesPage() {
       setIsLoading(true);
       setErrorMessage(null);
 
-      // Get business unit IDs from selected processes
-      const processesToDelete = orgProcesses.filter((p: any) =>
-        selectedProcesses.includes(p.id)
-      );
-      
-      // Group by business unit and delete in batches
-      const processesByBU = new Map<string, string[]>();
-      processesToDelete.forEach((process: any) => {
-        const buId = process.orgBusinessUnitId;
-        if (buId) {
-          if (!processesByBU.has(buId)) {
-            processesByBU.set(buId, []);
-          }
-          processesByBU.get(buId)!.push(String(process.id));
-        }
-      });
+      // Convert selected process IDs to strings
+      const processIds = selectedProcesses.map((id) => String(id));
 
-      // Delete processes grouped by business unit
-      for (const [buId, processIds] of processesByBU.entries()) {
-        await deleteOrganizationProcess(orgId, buId, processIds);
-      }
+      // Delete processes
+      await deleteOrganizationProcess(orgId, processIds);
 
       // Refresh the list after successful deletion
       await fetchOrganizationProcesses();
@@ -394,19 +378,7 @@ function ProcessesPage() {
       setIsLoading(true);
       setErrorMessage(null);
 
-      // Find the process to get its business unit ID
-      const process = orgProcesses.find((p: any) => p.id === processId);
-      if (!process || !process.orgBusinessUnitId) {
-        setErrorMessage("Process business unit not found");
-        setIsLoading(false);
-        return;
-      }
-
-      await deleteOrganizationProcess(
-        orgId,
-        process.orgBusinessUnitId,
-        String(processId)
-      );
+      await deleteOrganizationProcess(orgId, String(processId));
 
       // Refresh the list after successful deletion
       await fetchOrganizationProcesses();
@@ -497,18 +469,11 @@ function ProcessesPage() {
         throw new Error("Invalid selection");
       }
 
-      // Find the process to get its business unit ID
-      const process = orgProcesses.find((p: any) => p.id === selectedProcess.id);
-      if (!process || !process.orgBusinessUnitId) {
-        throw new Error("Process business unit not found");
-      }
-
       // Transform the selectedProcess to match the API format
       const body = { ...selectedProcess, status };
 
       await updateOrganizationProcess(
         orgId,
-        process.orgBusinessUnitId,
         String(selectedProcess.id),
         body
       );
@@ -572,13 +537,39 @@ function ProcessesPage() {
       return;
     }
 
-    // Note: Creating processes still requires a business unit in the backend
-    // For now, we'll show an error message
-    // To enable creation, you would need to either:
-    // 1. Create a backend endpoint that doesn't require business unit
-    // 2. Or fetch business units and allow user to select one during creation
-    setErrorMessage("Creating processes requires a business unit. Please use the 'Add Processes' option to add processes from the library instead.");
-    setShowSuccessMessage(false);
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // Transform the formData to match the API format
+      // Map users to usersCustomers and requlatoryAndCompliance to regulatoryAndCompliance
+      const body = {
+        ...formData,
+        usersCustomers: formData.users || [],
+        regulatoryAndCompliance: formData.requlatoryAndCompliance || [],
+        status,
+      };
+
+      await createOrganizationProcess(orgId, body);
+
+      setIsAddOpen(false);
+      setFormData(initialProcessData);
+
+      // Refresh the list
+      await fetchOrganizationProcesses();
+
+      setSuccessMessage("Success! Process has been created.");
+      setShowSuccessMessage(true);
+      setErrorMessage(null);
+    } catch (err: any) {
+      console.error("Failed to create process:", err);
+      setErrorMessage(
+        err.message || "Failed to create process. Please try again."
+      );
+      setShowSuccessMessage(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Form validation before create

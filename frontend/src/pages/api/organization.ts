@@ -102,11 +102,10 @@ export const getOrganizationProcessesWithoutBU = async (
 
 export const createOrganizationProcess = async (
   orgId: string | undefined,
-  buId: string | undefined,
   processData: any
 ) => {
-  if (!orgId || !buId) {
-    throw new Error("Organization ID and Business Unit ID are required");
+  if (!orgId) {
+    throw new Error("Organization ID is required");
   }
 
   // Transform the data to match backend expectations
@@ -153,7 +152,7 @@ export const createOrganizationProcess = async (
   };
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/add-process`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/add-process`,
     {
       method: "POST",
       headers: {
@@ -241,12 +240,11 @@ export const createOrganizationProcesses = async (
 
 export const updateOrganizationProcess = async (
   orgId: string | undefined,
-  buId: string | undefined,
   processId: string | undefined,
   processData: any
 ) => {
-  if (!orgId || !buId || !processId) {
-    throw new Error("Organization ID, Business Unit ID, and Process ID are required");
+  if (!orgId || !processId) {
+    throw new Error("Organization ID and Process ID are required");
   }
 
   // Transform the data to match backend expectations
@@ -301,7 +299,7 @@ export const updateOrganizationProcess = async (
   };
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/process/${processId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/process/${processId}`,
     {
       method: "PUT",
       headers: {
@@ -797,18 +795,17 @@ export const deleteOrganizationAsset = async (
 
 export const deleteOrganizationProcess = async (
   orgId: string | undefined,
-  buId: string | undefined,
   processIds: string[] | string | undefined
 ) => {
-  if (!orgId || !buId || !processIds) {
-    throw new Error("Organization ID, Business Unit ID, and Process ID(s) are required");
+  if (!orgId || !processIds) {
+    throw new Error("Organization ID and Process ID(s) are required");
   }
 
   // Convert single ID to array for consistency
   const ids = Array.isArray(processIds) ? processIds : [processIds];
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${buId}/process`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/process`,
     {
       method: "DELETE",
       headers: {
