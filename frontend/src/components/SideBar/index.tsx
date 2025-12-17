@@ -58,6 +58,11 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
           : `/orgManagement/${user.orgId}`,
       icon: <OrgManagementIcon />,
     },
+    {
+      name: user?.role === "Admin" ? "Settings" : "My Settings",
+      path: "/reports/assessment-sync-page",
+      icon: <OrgManagementIcon />,
+    },
   ];
 
   return (
