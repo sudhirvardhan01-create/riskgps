@@ -20,6 +20,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
+import { customStyles } from "@/styles/customStyles";
 
 interface BusinessTabProps {
   riskExposureProcessChartData: RiskExposureByProcessChartItem[];
@@ -223,7 +224,7 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
             sx={{ mb: 1 }}
             color="text.primary"
           >
-            Process Criticality Overview
+            BU - Process Criticality Chart
           </Typography>
           <Grid container spacing={2}>
             {processCriticalityCardItems.map((item, index) => (
@@ -258,7 +259,7 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
             sx={{ mb: 2 }}
             color="text.primary"
           >
-            Risk Exposure by Business Process
+            BU - Money Chart
           </Typography>
           <Paper
             elevation={0}
@@ -290,7 +291,7 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
                     <Typography
                       variant="body1"
                       fontWeight={600}
-                      color="text.primary"
+                      color={customStyles.fontColor}
                     >
                       {item.title}
                     </Typography>

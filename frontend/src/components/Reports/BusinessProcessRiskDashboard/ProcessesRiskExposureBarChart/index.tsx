@@ -108,13 +108,24 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
 
           <XAxis
             dataKey="processName"
-            height={60}
+            height={70}
             tickMargin={10}
             tick={{
               color: customStyles.fontColor,
               fontFamily: customStyles.fontFamily,
               fontSize: customStyles.xAxisTicks.fontSize,
               fontWeight: customStyles.xAxisTicks.fontWeight,
+            }}
+            label={{
+              value: "Business Process",
+              angle: 0,
+              position: "outsideCentre",
+              style: {
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.xAxisLabels.fontSize,
+                fontWeight: customStyles.xAxisLabels.fontWeight,
+              },
             }}
           />
 

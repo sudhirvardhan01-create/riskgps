@@ -24,6 +24,7 @@ interface VerticalBarChartProps {
   barColor?: string;
   maxLabelLength?: number; // For truncation
   labelYAxis?: string;
+  labelXAxis?: string;
 }
 
 /** Truncate long labels */
@@ -50,7 +51,7 @@ const CustomXAxisTick = ({
     <g transform={`translate(${x},${y})`}>
       <MuiTooltip title={originalLabel} arrow placement="top">
         <text
-          dy={16}
+          dy={10}
           textAnchor="middle"
           fill={customStyles.fontColor}
           style={{
@@ -74,6 +75,7 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
   barColor = "#12229d",
   maxLabelLength = 10,
   labelYAxis,
+  labelXAxis,
 }) => {
   if (!data || data.length === 0)
     return <p className="text-center text-gray-500">No data available</p>;
@@ -104,6 +106,17 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
             tick={(props) => (
               <CustomXAxisTick {...props} maxLabelLength={maxLabelLength} />
             )}
+            label={{
+              value: labelXAxis,
+              angle: 0,
+              position: "outsideCentre",
+              style: {
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.xAxisLabels.fontSize,
+                fontWeight: customStyles.xAxisLabels.fontWeight,
+              },
+            }}
             // tickMargin={10}
             // tick={{ fontSize: 12 }}
           />

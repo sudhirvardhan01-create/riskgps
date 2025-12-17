@@ -1,6 +1,6 @@
 export const customStyles = {
-  fontFamily: "Inter",
-  fontColor: "#484848",
+  fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
+  fontColor: "#91939A",
   xAxisLabels: { fontSize: "12px", fontWeight: 600 },
   yAxisLabels: { fontSize: "12px", fontWeight: 600 },
   xAxisTicks: { fontSize: "12px", fontWeight: 600 },

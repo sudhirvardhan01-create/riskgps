@@ -88,12 +88,23 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
 
             <XAxis
               type="number"
-              height={60}
+              height={70}
               tick={{
                 color: customStyles.fontColor,
                 fontFamily: customStyles.fontFamily,
                 fontSize: customStyles.xAxisTicks.fontSize,
                 fontWeight: customStyles.xAxisTicks.fontWeight,
+              }}
+              label={{
+                value: "Control Strength",
+                angle: 0,
+                position: "outsideCentre",
+                style: {
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.xAxisLabels.fontSize,
+                  fontWeight: customStyles.xAxisLabels.fontWeight,
+                },
               }}
             />
             <YAxis
@@ -116,7 +127,7 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
             {/* Control Strength Bar */}
             <Bar
               dataKey="controlStrength"
-              name="Control Strength"
+              name="Current Control Strength"
               fill="#12229d"
               shape={<CustomBar />}
               isAnimationActive={false}

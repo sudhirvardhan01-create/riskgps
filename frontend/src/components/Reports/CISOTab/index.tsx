@@ -12,10 +12,9 @@ import {
 } from "@mui/material";
 import AssetsRiskScoreBarChart from "../BoardTab/AssetsRiskScoreBarChart";
 import VerticalSingleBarChart from "../VerticalSingleBarChart";
-import AssetSummaryRow from "@/components/AssetLevelReports/AssetSummaryRow/indext";
 import AssetControlFamilyLineChart from "@/components/AssetLevelReports/AssetControlFamilyLineChart";
 import AssetStrengthBarChart from "@/components/AssetLevelReports/AssetStrengthBarChart";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import HorizontalBarChart from "../CustomReports/HorizontalBarChart";
 import WorldMap from "../CustomReports/WorldMap";
@@ -26,6 +25,13 @@ import Cookies from "js-cookie";
 import { AssetLevelReportsData } from "@/types/reports";
 import { getProcessList } from "@/pages/api/reports";
 import ProcessAssetFlow from "../ProcessAssetFlow";
+import ProcessCriticalityCard from "../BusinessProcessRiskDashboard/ProcessCriticalityCard";
+import ReportIcon from "@mui/icons-material/Report";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import InfoIcon from "@mui/icons-material/Info";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
 
 const PieChartComponent = dynamic(() => import("../CustomReports/PieChart"), {
   ssr: false,
@@ -107,6 +113,73 @@ const CISOTab: React.FC<CISOTabProps> = ({
     assetLevelReportsData.find((a) => a.assetId === selectedAssetId) ??
     assetLevelReportsData[0];
 
+  const assets = Array.from(
+    new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
+  );
+
+  const assetSummaryCardItems = useMemo(
+    () => ({
+      critical: assets.filter((a) => a.residualRiskLevel === "critical").length,
+      high: assets.filter((a) => a.residualRiskLevel === "high").length,
+      moderate: assets.filter((a) => a.residualRiskLevel === "moderate").length,
+      low: assets.filter((a) => a.residualRiskLevel === "low").length,
+      veryLow: assets.filter((a) => a.residualRiskLevel === "very low").length,
+      total: assets.length,
+    }),
+    [assets]
+  );
+
+  const assetCriticalityCardItems = [
+    {
+      cardBackgroundColor: "primary.900",
+      cardBorderColor: "#04139A",
+      cardIcon: <ReportIcon sx={{ color: "#ffffff" }} />,
+      cardText: "Critical",
+      cardTextColor: "#ffffff",
+      processesCount: assetSummaryCardItems.critical,
+    },
+    {
+      cardBackgroundColor: "primary.700",
+      cardBorderColor: "#12229d",
+      cardIcon: <WarningAmberIcon sx={{ color: "#ffffff" }} />,
+      cardText: "High",
+      cardTextColor: "#ffffff",
+      processesCount: assetSummaryCardItems.high,
+    },
+    {
+      cardBackgroundColor: "primary.500",
+      cardBorderColor: "#233dff",
+      cardIcon: <InfoIcon sx={{ color: "#ffffff" }} />,
+      cardText: "Moderate",
+      cardTextColor: "#ffffff",
+      processesCount: assetSummaryCardItems.moderate,
+    },
+    {
+      cardBackgroundColor: "primary.300",
+      cardBorderColor: "#6f80eb",
+      cardIcon: <CheckCircleOutlineIcon sx={{ color: "#214f73" }} />,
+      cardText: "Low",
+      cardTextColor: "#214f73",
+      processesCount: assetSummaryCardItems.low,
+    },
+    {
+      cardBackgroundColor: "primary.100",
+      cardBorderColor: "#5cb6f9",
+      cardIcon: <CheckCircleIcon sx={{ color: "#214f73" }} />,
+      cardText: "Very Low",
+      cardTextColor: "#214f73",
+      processesCount: assetSummaryCardItems.veryLow,
+    },
+    {
+      cardBackgroundColor: "#e0ecedff",
+      cardBorderColor: "#cae8ff",
+      cardIcon: <AnalyticsIcon sx={{ color: "#214f73" }} />,
+      cardText: "Total",
+      cardTextColor: "#214f73",
+      processesCount: assetSummaryCardItems.total,
+    },
+  ];
+
   return (
     <>
       <Stack
@@ -185,12 +258,40 @@ const CISOTab: React.FC<CISOTabProps> = ({
             </FormControl>
           </Stack>
         </Box> */}
-
-        <AssetSummaryRow
-          assets={Array.from(
-            new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
-          )}
-        />
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            backgroundColor: "#fafafa",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            borderRadius: 2,
+            border: "1px solid #E5E7EB",
+          }}
+        >
+          <Typography
+            variant="body2"
+            fontWeight={600}
+            textAlign="left"
+            sx={{ mb: 1 }}
+            color="text.primary"
+          >
+            BU - Asset Criticality Chart
+          </Typography>
+          <Grid container spacing={2}>
+            {assetCriticalityCardItems.map((item, index) => (
+              <Grid size={{ xs: 2 }} key={index}>
+                <ProcessCriticalityCard
+                  cardBackgroundColor={item.cardBackgroundColor}
+                  cardBorderColor={item.cardBorderColor}
+                  cardIcon={item.cardIcon}
+                  cardText={item.cardText}
+                  cardTextColor={item.cardTextColor}
+                  processesCount={item.processesCount}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Paper>
         <Grid size={12}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {Array.from(
@@ -245,8 +346,9 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Typography>
               <VerticalSingleBarChart
                 data={topAssets}
-                labelYAxis="Net Risk Score"
+                labelYAxis="Residual Risk Score"
                 height={460}
+                labelXAxis="Assets"
               />
             </Paper>
           </Grid>
@@ -268,7 +370,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                Risk Prioritised Assets
+                BU - Risk Prioritised Asset Chart
               </Typography>
               <AssetsRiskScoreBarChart data={riskPrioritisedAssets} />
             </Paper>
@@ -294,7 +396,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 1 }}
               >
-                Assets by Geography
+                Concentration Risk - Assets by Geography
               </Typography>
 
               <Box
@@ -327,7 +429,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 1 }}
               >
-                Asset / Critical Process Dependencies
+                Concentration Risk - Assets by Process
               </Typography>
 
               <Box sx={{ width: "100%", height: "100%" }}>
@@ -352,11 +454,20 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 fontWeight={600}
                 textAlign="left"
                 sx={{ mb: 1 }}
+                color="text.primary"
               >
-                Vendors / Critical Process Dependencies
+                Concentration Risk - Assets by Vendors
               </Typography>
 
-              <Box sx={{ width: "100%", height: "100%" }}>
+              <Box
+                sx={{
+                  p: 2,
+                  width: "100%",
+                  height: "calc(100% - 30px)",
+                  borderRadius: 3,
+                  backgroundColor: "#fff",
+                }}
+              >
                 <PieChartComponent
                   innerData={[
                     {
@@ -391,11 +502,20 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 fontWeight={600}
                 textAlign="left"
                 sx={{ mb: 1 }}
+                color="text.primary"
               >
-                Networks / Critical Process Dependencies
+                Concentration Risk - Assets by Networks
               </Typography>
 
-              <Box sx={{ width: "100%", height: "100%" }}>
+              <Box
+                sx={{
+                  p: 2,
+                  width: "100%",
+                  height: "calc(100% - 30px)",
+                  borderRadius: 3,
+                  backgroundColor: "#fff",
+                }}
+              >
                 <PieChartComponent
                   innerData={[
                     {

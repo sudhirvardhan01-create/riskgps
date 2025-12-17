@@ -134,7 +134,7 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
             {/* Risk Exposure Bar */}
             <Bar
               dataKey="riskExposureBillion"
-              name="Risk Exposure (B)"
+              name="Risk Exposure"
               fill="#12229d"
               shape={<CustomBar />}
               isAnimationActive={false}
@@ -144,7 +144,7 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
             {/* Net Exposure Bar */}
             <Bar
               dataKey="netExposureBillion"
-              name="Net Exposure (B)"
+              name="Net Exposure"
               fill="#6f80eb"
               shape={<CustomBar />}
               isAnimationActive={false}

@@ -16,6 +16,7 @@ import {
   ValueType,
   NameType,
 } from "recharts/types/component/DefaultTooltipContent";
+import { customStyles } from "@/styles/customStyles";
 
 // ✅ Define the shape of your data
 export interface BarChartData {
@@ -46,9 +47,11 @@ const CustomYAxisTick: React.FC<CustomYAxisTickProps> = ({
     x={x - 10}
     y={y + 4}
     textAnchor="end"
-    fontSize={11}
-    fontWeight="bold"
-    fill="#444"
+    fontSize={customStyles.yAxisTicks.fontSize}
+    fontWeight={customStyles.yAxisTicks.fontWeight}
+    fontFamily={customStyles.fontFamily}
+    color={customStyles.fontColor}
+    fill={customStyles.fontColor}
     style={{
       whiteSpace: "nowrap",
       overflow: "hidden",
@@ -122,18 +125,28 @@ const CriticalDependenciesBarChart: React.FC<
               data={data}
               margin={{ top: 10, right: 30, left: 30, bottom: 10 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <CartesianGrid horizontal={false} vertical={true} />
               <XAxis
                 type="number"
                 domain={[0, "dataMax + 1"]}
-                tick={{ fontSize: 11 }}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.xAxisTicks.fontSize,
+                  fontWeight: customStyles.xAxisTicks.fontWeight,
+                }}
                 axisLine={{ stroke: "#ddd" }}
                 tickLine={false}
                 label={{
                   value: "Number of Critical Process Dependencies",
                   position: "insideBottom",
                   offset: -5,
-                  style: { fontWeight: "bold", fontSize: 10 },
+                  style: {
+                    fontWeight: customStyles.xAxisLabels.fontWeight,
+                    fontSize: customStyles.xAxisLabels.fontSize,
+                    color: customStyles.fontColor,
+                    fontFamily: customStyles.fontFamily,
+                  },
                 }}
               />
               <YAxis
@@ -148,7 +161,7 @@ const CriticalDependenciesBarChart: React.FC<
               <Bar
                 dataKey="dependencies"
                 fill="#12229d"
-                barSize={14}
+                barSize={customStyles.barSize}
                 radius={[0, 4, 4, 0]}
                 animationDuration={800}
                 animationEasing="ease-in-out"

@@ -71,12 +71,23 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
             dataKey="assetName"
             interval={0}
             height={60}
-            tickMargin={10}
+            tickMargin={2}
             tick={{
               color: customStyles.fontColor,
               fontFamily: customStyles.fontFamily,
               fontSize: customStyles.xAxisTicks.fontSize,
               fontWeight: customStyles.xAxisTicks.fontWeight,
+            }}
+            label={{
+              value: "Assets",
+              angle: 0,
+              position: "outsideCentre",
+              style: {
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.xAxisLabels.fontSize,
+                fontWeight: customStyles.xAxisLabels.fontWeight,
+              },
             }}
           />
 

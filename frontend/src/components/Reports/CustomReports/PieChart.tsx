@@ -1,5 +1,6 @@
 "use client";
 
+import { customStyles } from "@/styles/customStyles";
 import { Asset } from "@/types/assessment";
 import { List, ListItem, ListItemText, Paper, Typography } from "@mui/material";
 import React, { useState } from "react";
@@ -121,6 +122,22 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
     return null;
   };
 
+  const legendFormatter = (value: any, entry: any, index: any) => {
+    // You can apply different colors based on the value or index if needed
+    return (
+      <span
+        style={{
+          color: customStyles.fontColor,
+          fontFamily: customStyles.fontFamily,
+          fontSize: customStyles.legend.fontSize,
+          fontWeight: customStyles.legend.fontWeight,
+        }}
+      >
+        {value}
+      </span>
+    );
+  };
+
   return (
     <div className="w-full bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-center gap-6">
       <div className="w-full md:w-2/3">
@@ -227,9 +244,12 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
               verticalAlign="bottom"
               iconType="circle"
               wrapperStyle={{
-                fontSize: "12px",
-                fontFamily: "Inter, Helvetica, Arial, sans-serif",
+                fontSize: customStyles.legend.fontSize,
+                fontFamily: customStyles.fontFamily,
+                fontWeight: customStyles.legend.fontWeight,
+                color: customStyles.fontColor,
               }}
+              formatter={legendFormatter}
             />
           </PieChart>
         </ResponsiveContainer>

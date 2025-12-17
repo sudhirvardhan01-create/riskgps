@@ -9,6 +9,7 @@ interface TableViewRiskScenarioCardProps {
   netExposure: string;
   netExposureLevel?: "very low" | "low" | "moderate" | "high" | "critical";
   processName?: string;
+  showCIAColumn?: boolean;
 }
 
 const TableViewRiskScenarioCard: React.FC<TableViewRiskScenarioCardProps> = ({
@@ -19,6 +20,7 @@ const TableViewRiskScenarioCard: React.FC<TableViewRiskScenarioCardProps> = ({
   netExposure,
   netExposureLevel,
   processName,
+  showCIAColumn = true,
 }) => {
   return (
     <Box
@@ -41,16 +43,18 @@ const TableViewRiskScenarioCard: React.FC<TableViewRiskScenarioCardProps> = ({
             </Typography>
           </Grid>
         )}
-        <Grid size={processName ? 3.5 : 4}>
+        <Grid size={4}>
           <Typography variant="body2" color="text.primary" fontWeight={500}>
             {riskScenario}
           </Typography>
         </Grid>
-        <Grid size={processName ? 0.5 : 1}>
-          <Typography variant="body2" color="text.primary" fontWeight={500}>
-            {ciaMapping}
-          </Typography>
-        </Grid>
+        {showCIAColumn && (
+          <Grid size={1}>
+            <Typography variant="body2" color="text.primary" fontWeight={500}>
+              {ciaMapping}
+            </Typography>
+          </Grid>
+        )}
         <Grid size={processName ? 1 : 1.5}>
           <Typography variant="body2" color="text.primary" fontWeight={500}>
             {riskExposure}
