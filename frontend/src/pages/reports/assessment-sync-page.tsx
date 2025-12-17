@@ -151,7 +151,7 @@ const AssessmentSyncPage: React.FC = () => {
         {/* Header / Breadcrumb row */}
         <Stack
           direction={{ xs: "column", sm: "row" }}
-          alignItems={{ xs: "flex-start", sm: "center" }}
+          alignItems={{ xs: "flex-end", sm: "center" }}
           justifyContent="space-between"
           spacing={2}
           sx={{ mb: { xs: 3, md: 4 } }}
@@ -166,7 +166,7 @@ const AssessmentSyncPage: React.FC = () => {
                 color: theme.palette.text.secondary,
               }}
             >
-              Back to Reports
+              Go to Reports
             </Button>
           </Stack>
 
