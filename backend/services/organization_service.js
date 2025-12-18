@@ -574,6 +574,32 @@ class OrganizationService {
             );
         }
 
+        //Fetch existing processes for validation
+        const existingProcesses = await OrganizationProcess.findAll({
+            where: {
+                organizationId: orgId,
+                id: {
+                    [Op.in]: processIds,
+                },
+            },
+            attributes: ["id"],
+        });
+
+        const existingProcessIds = existingProcesses.map(p => p.id);
+
+        //Check for invalid / non-existing process IDs
+        const invalidProcessIds = processIds.filter(
+            id => !existingProcessIds.includes(id)
+        );
+
+        if (invalidProcessIds.length > 0) {
+            throw new CustomError(
+                `Invalid process IDs: ${invalidProcessIds.join(", ")}`,
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        //Update BU only after validation passes
         const [updatedCount, updatedRows] =
             await OrganizationProcess.update(
                 {
