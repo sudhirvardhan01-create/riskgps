@@ -32,6 +32,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
+import { constants } from "@/utils/constants";
 
 const PieChartComponent = dynamic(() => import("../CustomReports/PieChart"), {
   ssr: false,
@@ -137,6 +138,9 @@ const CISOTab: React.FC<CISOTabProps> = ({
       cardText: "Critical",
       cardTextColor: "#ffffff",
       processesCount: assetSummaryCardItems.critical,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "critical")
+        .map((i) => i.asset),
     },
     {
       cardBackgroundColor: "primary.700",
@@ -145,6 +149,9 @@ const CISOTab: React.FC<CISOTabProps> = ({
       cardText: "High",
       cardTextColor: "#ffffff",
       processesCount: assetSummaryCardItems.high,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "high")
+        .map((i) => i.asset),
     },
     {
       cardBackgroundColor: "primary.500",
@@ -153,6 +160,9 @@ const CISOTab: React.FC<CISOTabProps> = ({
       cardText: "Moderate",
       cardTextColor: "#ffffff",
       processesCount: assetSummaryCardItems.moderate,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "moderate")
+        .map((i) => i.asset),
     },
     {
       cardBackgroundColor: "primary.300",
@@ -161,6 +171,9 @@ const CISOTab: React.FC<CISOTabProps> = ({
       cardText: "Low",
       cardTextColor: "#214f73",
       processesCount: assetSummaryCardItems.low,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "low")
+        .map((i) => i.asset),
     },
     {
       cardBackgroundColor: "primary.100",
@@ -169,6 +182,9 @@ const CISOTab: React.FC<CISOTabProps> = ({
       cardText: "Very Low",
       cardTextColor: "#214f73",
       processesCount: assetSummaryCardItems.veryLow,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "very low")
+        .map((i) => i.asset),
     },
     {
       cardBackgroundColor: "#e0ecedff",
@@ -177,6 +193,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
       cardText: "Total",
       cardTextColor: "#214f73",
       processesCount: assetSummaryCardItems.total,
+      names: assets.map((i) => i.asset),
     },
   ];
 
@@ -275,7 +292,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
             sx={{ mb: 1 }}
             color="text.primary"
           >
-            BU - Asset Criticality Chart
+            {constants.assetCriticalityCardsChart}
           </Typography>
           <Grid container spacing={2}>
             {assetCriticalityCardItems.map((item, index) => (
@@ -287,6 +304,8 @@ const CISOTab: React.FC<CISOTabProps> = ({
                   cardText={item.cardText}
                   cardTextColor={item.cardTextColor}
                   processesCount={item.processesCount}
+                  names={item.names}
+                  module="Assets"
                 />
               </Grid>
             ))}
@@ -313,16 +332,58 @@ const CISOTab: React.FC<CISOTabProps> = ({
         </Grid>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 7 }}>
-            <AssetControlFamilyLineChart asset={selectedAsset} />
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                backgroundColor: "#fafafa",
+                height: 520,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                borderRadius: 2,
+                border: "1px solid #E5E7EB",
+              }}
+            >
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                textAlign="left"
+                sx={{ mb: 2 }}
+                color="text.primary"
+              >
+                {constants.assetControlFamilyLineChart}
+              </Typography>
+              <AssetControlFamilyLineChart asset={selectedAsset} />
+            </Paper>
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
-            <AssetStrengthBarChart
-              assets={Array.from(
-                new Map(
-                  assetLevelReportsData.map((a) => [a.assetId, a])
-                ).values()
-              )}
-            />
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                backgroundColor: "#fafafa",
+                height: 520,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                borderRadius: 2,
+                border: "1px solid #E5E7EB",
+              }}
+            >
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                textAlign="left"
+                sx={{ mb: 2 }}
+                color="text.primary"
+              >
+                {constants.assetControlStrengthChart}
+              </Typography>
+              <AssetStrengthBarChart
+                assets={Array.from(
+                  new Map(
+                    assetLevelReportsData.map((a) => [a.assetId, a])
+                  ).values()
+                )}
+              />
+            </Paper>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             <Paper
@@ -342,7 +403,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                Top Assets
+                {constants.topAssets}
               </Typography>
               <VerticalSingleBarChart
                 data={topAssets}
@@ -370,7 +431,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                BU - Risk Prioritised Asset Chart
+                {constants.riskPrioritisedAssetChart}
               </Typography>
               <AssetsRiskScoreBarChart data={riskPrioritisedAssets} />
             </Paper>
@@ -396,7 +457,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 1 }}
               >
-                Concentration Risk - Assets by Geography
+                {constants.assetsByGeography}
               </Typography>
 
               <Box
@@ -429,7 +490,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 1 }}
               >
-                Concentration Risk - Assets by Process
+                {constants.assetsByProcess}
               </Typography>
 
               <Box sx={{ width: "100%", height: "100%" }}>
@@ -456,7 +517,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 sx={{ mb: 1 }}
                 color="text.primary"
               >
-                Concentration Risk - Assets by Vendors
+                {constants.assetsByVendor}
               </Typography>
 
               <Box
@@ -504,7 +565,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 sx={{ mb: 1 }}
                 color="text.primary"
               >
-                Concentration Risk - Assets by Networks
+                {constants.assetsByNetwork}
               </Typography>
 
               <Box
@@ -552,7 +613,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                   textAlign="left"
                   sx={{ mb: 1 }}
                 >
-                  Process Topology
+                  {constants.orgTreeViewChart}
                 </Typography>
                 <ProcessAssetFlow data={orgData} />
               </Paper>

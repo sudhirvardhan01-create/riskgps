@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import type { LatLngExpression } from "leaflet";
 import { Asset } from "@/types/assessment";
+import { customStyles } from "@/styles/customStyles";
 
 // ✅ Dynamic imports to avoid SSR errors
 const MapContainer = dynamic(
@@ -107,14 +108,13 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
   // };
 
   const COLOR_SHADES = [
-    "#12229d",
-    "#233dff",
-    "#6f80eb",
-    "#0693e3",
     "#5cb6f9",
-    "#cae8ff",
-    "#d9d9d9",
-    "#ffa500",
+    "#0693e3",
+    "#3B82F6",
+    "#6f80eb",
+    "#8B5CF6",
+    "#233dff",
+    "#12229d",
   ] as const;
 
   const getColor = (v: number): string => {
@@ -211,10 +211,14 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
                   sx={{ display: "flex", alignItems: "start" }}
                 >
                   <Typography
-                    variant="subtitle2"
-                    fontWeight="bold"
                     gutterBottom
-                    sx={{ pl: 2 }}
+                    sx={{
+                      pl: 2,
+                      fontFamily: customStyles.fontFamily,
+                      fontSize: customStyles.tooltipTitleFontSize,
+                      fontWeight: customStyles.tooltipDarkFontWeight,
+                      color: customStyles.tooltipFontColor,
+                    }}
                   >
                     {item.name}
                   </Typography>
@@ -226,7 +230,12 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
                         <ListItem key={index} sx={{ py: 0.25 }}>
                           <ListItemText
                             primary={x.applicationName}
-                            primaryTypographyProps={{ fontSize: "0.8rem" }}
+                            primaryTypographyProps={{
+                              fontFamily: customStyles.fontFamily,
+                              fontSize: customStyles.tooltipTextFontSize,
+                              fontWeight: customStyles.tooltipLightFontWeight,
+                              color: customStyles.tooltipFontColor,
+                            }}
                           />
                         </ListItem>
                       ))}

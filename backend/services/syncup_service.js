@@ -1575,8 +1575,8 @@ class SyncupService {
       const stats = groupMap.get(key);
       const rawInherentRiskScoreRiskDashboardCIOTab =
         stats.countBusinessProcessInherentRisk > 0
-          ? stats?.totalBusinessProcessInherentRisk ??
-            0 / stats.countBusinessProcessInherentRisk
+          ? (stats?.totalBusinessProcessInherentRisk ?? 0) /
+            stats.countBusinessProcessInherentRisk
           : 0;
       const inherentRiskScoreRiskDashboardCIOTab = roundToOneDecimal(
         rawInherentRiskScoreRiskDashboardCIOTab
@@ -1723,22 +1723,24 @@ class SyncupService {
   static async downloadOrganizationLatestReportsDataExcel(orgId, res) {
     try {
       const latestTimeStamp =
-      await ReportsService.getLatestTimeStampFromReportsTableForOrg(orgId);
+        await ReportsService.getLatestTimeStampFromReportsTableForOrg(orgId);
       const latestTimeStampFromAssetScoreTable =
-      await ReportsService.getLatestTimeStampFromReportsAssetNistControlScoreTableForOrg(orgId);
+        await ReportsService.getLatestTimeStampFromReportsAssetNistControlScoreTableForOrg(
+          orgId
+        );
       const reportsMasterData = await models.ReportsMaster.findAll({
         where: {
           orgId,
-          updatedAt: latestTimeStamp
+          updatedAt: latestTimeStamp,
         },
         raw: true,
       });
 
       const nistControlScoreData =
         await models.ReportsAssetNistControlScore.findAll({
-          where:{
-          orgId,
-          updatedAt: latestTimeStampFromAssetScoreTable
+          where: {
+            orgId,
+            updatedAt: latestTimeStampFromAssetScoreTable,
           },
           raw: true,
         });

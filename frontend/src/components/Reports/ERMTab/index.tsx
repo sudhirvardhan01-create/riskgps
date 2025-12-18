@@ -17,6 +17,7 @@ import { RiskRadarRecord, RiskScenarioTableChartItem } from "@/types/dashboard";
 import { riskScenariosHeaderDataWithProcess } from "@/constants/constant";
 import { BusinessUnitRadarChart } from "../BusinessProcessRiskDashboard/BusinessUnitRadarChart";
 import HeatmapChart from "../HeatmapChart";
+import { constants } from "@/utils/constants";
 
 interface Props {
   riskScenariosTableChartData: RiskScenarioTableChartItem[];
@@ -138,7 +139,7 @@ const ERMTab: React.FC<Props> = ({
                 sx={{ mb: 2 }}
                 color="text.primary"
               >
-                Business Units(Y) vs Severity Levels(X)
+                {constants.buHeatmapChart}
               </Typography>
               <HeatmapChart
                 data={businessUnitSeverityData}
@@ -167,7 +168,7 @@ const ERMTab: React.FC<Props> = ({
                 sx={{ mb: 2 }}
                 color="text.primary"
               >
-                BU - Risk Impact Radar Chart
+                {constants.riskImpactRadarChart}
               </Typography>
               <BusinessUnitRadarChart data={businessUnitRadarChartData} />
             </Paper>
@@ -190,7 +191,7 @@ const ERMTab: React.FC<Props> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                Top Risk Scenarios
+                {constants.topRiskScenarios}
               </Typography>
               <VerticalSingleBarChart
                 data={topRiskScenarios}
@@ -218,7 +219,7 @@ const ERMTab: React.FC<Props> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                Top Assets
+                {constants.topAssets}
               </Typography>
               <VerticalSingleBarChart
                 data={topAssets}
@@ -246,7 +247,7 @@ const ERMTab: React.FC<Props> = ({
                 alignItems={"center"}
               >
                 <Typography variant="body2" fontWeight={600} textAlign="left">
-                  Detailed - Risk Scenarios Table
+                  {constants.riskScenariosTableChart}
                 </Typography>
                 <Stack
                   direction={"row"}

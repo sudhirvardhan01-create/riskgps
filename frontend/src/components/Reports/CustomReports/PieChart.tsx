@@ -85,16 +85,21 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
           elevation={3}
           sx={{
             p: 1.5,
-            borderRadius: "12px",
-            border: "1px solid #ddd",
+            borderRadius: customStyles.tooltipBorderRadius,
+            backgroundColor: customStyles.tooltipBackgroundColor,
+            border: `1px solid ${customStyles.tooltipBorderColor}`,
             boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-            minWidth: 180,
           }}
         >
           <Typography
-            variant="subtitle2"
-            fontWeight="bold"
-            sx={{ mb: 0.5, textAlign: "left", pl: 2 }}
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTitleFontSize,
+              fontWeight: customStyles.tooltipDarkFontWeight,
+              color: customStyles.tooltipFontColor,
+              mb: 0.5,
+              pl: 2,
+            }}
           >
             {`${item.name} (${item.value} dependencies)`}
           </Typography>
@@ -109,7 +114,12 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
                   <ListItem key={index} sx={{ py: 0.25 }}>
                     <ListItemText
                       primary={x.applicationName}
-                      primaryTypographyProps={{ fontSize: "0.8rem" }}
+                      primaryTypographyProps={{
+                        fontFamily: customStyles.fontFamily,
+                        fontSize: customStyles.tooltipTextFontSize,
+                        fontWeight: customStyles.tooltipLightFontWeight,
+                        color: customStyles.tooltipFontColor,
+                      }}
                     />
                   </ListItem>
                 ))}

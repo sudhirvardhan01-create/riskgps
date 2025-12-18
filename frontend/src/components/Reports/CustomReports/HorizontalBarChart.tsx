@@ -11,7 +11,7 @@ import {
   CartesianGrid,
   TooltipProps,
 } from "recharts";
-import { Paper, Typography, Box } from "@mui/material";
+import { Paper, Typography, Box, Stack } from "@mui/material";
 import {
   ValueType,
   NameType,
@@ -76,11 +76,11 @@ const CustomTooltip: React.FC<TooltipProps<ValueType, NameType>> = (props) => {
       <Paper
         elevation={3}
         sx={{
-          p: 1,
-          backgroundColor: "#fff",
-          borderRadius: 2,
-          border: "1px solid #eee",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          p: 1.5,
+          borderRadius: customStyles.tooltipBorderRadius,
+          backgroundColor: customStyles.tooltipBackgroundColor,
+          border: `1px solid ${customStyles.tooltipBorderColor}`,
+          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
         }}
       >
         <Typography
@@ -90,9 +90,30 @@ const CustomTooltip: React.FC<TooltipProps<ValueType, NameType>> = (props) => {
         >
           {label}
         </Typography>
-        <Typography variant="caption" sx={{ color: "#517ca0" }}>
-          Dependencies: {data.value}
-        </Typography>
+        <Stack direction={"row"} gap={0.5}>
+          <Typography
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTextFontSize,
+              fontWeight: customStyles.tooltipLightFontWeight,
+              color: customStyles.tooltipFontColor,
+              lineHeight: 1.6,
+            }}
+          >
+            Dependencies:
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTextFontSize,
+              fontWeight: customStyles.tooltipDarkFontWeight,
+              color: customStyles.tooltipFontColor,
+              lineHeight: 1.6,
+            }}
+          >
+            {data.value}
+          </Typography>
+        </Stack>
       </Paper>
     );
   }

@@ -9,8 +9,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  TooltipProps,
 } from "recharts";
-import { Paper, Tooltip as MuiTooltip } from "@mui/material";
+import { Paper, Tooltip as MuiTooltip, Typography, Stack } from "@mui/material";
 import { customStyles } from "@/styles/customStyles";
 
 export interface BarChartData {
@@ -77,6 +78,67 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
   labelYAxis,
   labelXAxis,
 }) => {
+  const CustomTooltip: React.FC<TooltipProps<number, string>> = (props) => {
+    const { active, payload, label } = props as TooltipProps<number, string> & {
+      payload?: { payload: any }[];
+      label: string;
+    };
+    if (!active || !payload || !payload.length) return null;
+
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          p: 1.5,
+          borderRadius: customStyles.tooltipBorderRadius,
+          backgroundColor: customStyles.tooltipBackgroundColor,
+          border: `1px solid ${customStyles.tooltipBorderColor}`,
+          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: customStyles.fontFamily,
+            fontSize: customStyles.tooltipTitleFontSize,
+            fontWeight: customStyles.tooltipDarkFontWeight,
+            color: customStyles.tooltipFontColor,
+            mb: 0.5,
+          }}
+        >
+          {label}
+        </Typography>
+
+        {/* Values */}
+        {payload.map((entry: any, index: number) => (
+          <Stack key={index} direction={"row"} gap={0.5}>
+            <Typography
+              sx={{
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.tooltipTextFontSize,
+                fontWeight: customStyles.tooltipLightFontWeight,
+                color: customStyles.tooltipFontColor,
+                lineHeight: 1.6,
+              }}
+            >
+              {labelYAxis}:
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.tooltipTextFontSize,
+                fontWeight: customStyles.tooltipDarkFontWeight,
+                color: customStyles.tooltipFontColor,
+                lineHeight: 1.6,
+              }}
+            >
+              $ {Number(entry.value).toFixed(2)} Bn
+            </Typography>
+          </Stack>
+        ))}
+      </Paper>
+    );
+  };
+
   if (!data || data.length === 0)
     return <p className="text-center text-gray-500">No data available</p>;
 
@@ -142,16 +204,7 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
             }}
           />
 
-          <Tooltip
-            wrapperStyle={{ zIndex: 100 }}
-            formatter={(value: number) => [value, "Value"]}
-            contentStyle={{
-              borderRadius: "10px",
-              padding: "8px 12px",
-              background: "white",
-              border: "1px solid #ddd",
-            }}
-          />
+          <Tooltip content={<CustomTooltip />} />
 
           <Bar
             dataKey="value"

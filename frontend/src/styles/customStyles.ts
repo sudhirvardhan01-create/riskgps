@@ -8,4 +8,12 @@ export const customStyles = {
   legend: { fontSize: "12px", fontWeight: 600 },
   referenceLine: { fontSize: "12px", fontWeight: 600 },
   barSize: 20,
+  tooltipBorderRadius: "12px",
+  tooltipBorderColor: "#ddd",
+  tooltipBackgroundColor: "#fff",
+  tooltipFontColor: "#484848",
+  tooltipTitleFontSize: "14px",
+  tooltipTextFontSize: "12px",
+  tooltipDarkFontWeight: 600,
+  tooltipLightFontWeight: 500,
 };

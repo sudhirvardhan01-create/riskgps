@@ -64,7 +64,7 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
 
     d3.select(svgRef.current).selectAll("*").remove();
 
-    const margin = { top: 10, right: 10, bottom: 20, left: 120 };
+    const margin = { top: 10, right: 10, bottom: 40, left: 120 };
     const width = dimensions.width;
     const height = dimensions.height;
 
@@ -125,14 +125,15 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
 
             if (tooltipRef.current) {
               tooltipRef.current.style.display = "block";
-              tooltipRef.current.style.backgroundColor = "#fff";
-              tooltipRef.current.style.border = "1px solid #ddd";
+              tooltipRef.current.style.backgroundColor =
+                customStyles.tooltipBackgroundColor;
+              tooltipRef.current.style.border = `1px solid ${customStyles.tooltipBorderColor}`;
               tooltipRef.current.style.left = `${event.pageX + 10}px`;
               tooltipRef.current.style.top = `${event.pageY - 10}px`;
               tooltipRef.current.innerHTML = `
-                <div style="margin-bottom: 4px; color: #484848"><strong>${y}</strong></div>
-                <div style="margin-bottom: 2px; color: #484848">${xAxisLabel}: ${x}</div>
-                <div style="color: #484848">Risk Scenarios: <strong>${value}</strong></div>
+                <div style="margin-bottom: 4px; color: ${customStyles.tooltipFontColor}; font-weight: ${customStyles.tooltipDarkFontWeight}; font-size: ${customStyles.tooltipTitleFontSize}">${y}</div>
+                <div style="margin-bottom: 2px; color: ${customStyles.tooltipFontColor}; font-size: ${customStyles.tooltipTextFontSize}">${xAxisLabel}: <strong>${x}</strong></div>
+                <div style="color: ${customStyles.tooltipFontColor}; font-size: ${customStyles.tooltipTextFontSize}">Risk Scenarios: <strong>${value}</strong></div>
               `;
             }
           })
@@ -168,6 +169,29 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
       .style("font-family", customStyles.fontFamily)
       .style("font-weight", customStyles.yAxisTicks.fontWeight)
       .style("color", customStyles.fontColor);
+
+    // X-axis label
+    svg
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", height - 2)
+      .attr("text-anchor", "middle")
+      .style("font-size", customStyles.yAxisLabels.fontSize)
+      .style("font-weight", customStyles.xAxisLabels.fontWeight)
+      .style("fill", customStyles.fontColor)
+      .text(xAxisLabel);
+
+    // Y-axis label
+    svg
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -height / 2)
+      .attr("y", 15)
+      .attr("text-anchor", "middle")
+      .style("font-size", customStyles.yAxisLabels.fontSize)
+      .style("font-weight", customStyles.yAxisLabels.fontWeight)
+      .style("fill", customStyles.fontColor)
+      .text(yAxisLabel);
   }, [data, dimensions, xAxisLabel, yAxisLabel, xOrder, yOrder]);
 
   return (
