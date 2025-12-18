@@ -566,6 +566,43 @@ class OrganizationService {
         });
     }
 
+    static async updateProcessesForBusinessUnit(orgId, buId, processIds) {
+        if (!orgId || !buId || !Array.isArray(processIds) || processIds.length === 0) {
+            throw new CustomError(
+                "Organization ID, Business Unit ID and processIds are required",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        const [updatedCount, updatedRows] =
+            await OrganizationProcess.update(
+                {
+                    orgBusinessUnitId: buId,
+                },
+                {
+                    where: {
+                        organizationId: orgId,
+                        id: {
+                            [Op.in]: processIds,
+                        },
+                    },
+                    returning: true,
+                }
+            );
+
+        if (updatedCount < 1) {
+            throw new CustomError(
+                "No matching processes found to update",
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return {
+            updatedCount,
+            processes: updatedRows,
+        };
+    }
+
 
     static async deleteProcess(ids, orgId, buId) {
         if (!ids || !Array.isArray(ids) || !orgId) {

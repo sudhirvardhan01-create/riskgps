@@ -299,6 +299,48 @@ router.put(
     }
 );
 
+/**
+ * @route PUT /organization/:orgId/business-unit/:businessUnitId/processes
+ * @description Link multiple processes to a Business Unit.
+ */
+router.put(
+    "/:orgId/business-unit/:businessUnitId/processes",
+    async (req, res) => {
+        try {
+            const { orgId, businessUnitId } = req.params;
+            const { processIds } = req.body;
+
+            if (!orgId || !businessUnitId) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message: "Organization ID and Business Unit ID are required",
+                });
+            }
+
+            if (!Array.isArray(processIds) || processIds.length === 0) {
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message: "processIds must be a non-empty array",
+                });
+            }
+
+            const result =
+                await OrganizationService.updateProcessesForBusinessUnit(
+                    orgId,
+                    businessUnitId,
+                    processIds
+                );
+
+            res.status(HttpStatus.OK).json({
+                message: "Processes linked to Business Unit successfully",
+                data: result,
+            });
+        } catch (err) {
+            res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: err.message || "Failed to update processes for Business Unit",
+            });
+        }
+    }
+);
+
 
 /**
  * @route DELETE /organization/:orgId/process
@@ -972,26 +1014,26 @@ router.delete("/business-unit/:id", async (req, res) => {
  * @desc Create taxonomies with severity levels for an organization
  */
 router.post("/:orgId/taxonomies", async (req, res) => {
-  try {
-    const { orgId } = req.params;
-    const { taxonomies } = req.body; // Expecting an array of taxonomy objects with severity levels
+    try {
+        const { orgId } = req.params;
+        const { taxonomies } = req.body; // Expecting an array of taxonomy objects with severity levels
 
-    if (!orgId) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "Organization ID is required in the URL",
-      });
-    }
+        if (!orgId) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "Organization ID is required in the URL",
+            });
+        }
 
-    if (!Array.isArray(taxonomies) || taxonomies.length === 0) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: "At least one taxonomy with severity levels is required",
-      });
-    }
+        if (!Array.isArray(taxonomies) || taxonomies.length === 0) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                message: "At least one taxonomy with severity levels is required",
+            });
+        }
 
-    const result = await OrganizationService.saveTaxonomiesWithSeverity(
-      orgId,
-      taxonomies
-    );
+        const result = await OrganizationService.saveTaxonomiesWithSeverity(
+            orgId,
+            taxonomies
+        );
 
         res.status(HttpStatus.CREATED).json({
             message: "Organization taxonomies and severity levels saved successfully",
