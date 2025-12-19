@@ -10,6 +10,7 @@ import OrgManagementIcon from "@/icons/orgManagement.svg";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
+import { SettingsOutlined } from "@mui/icons-material";
 
 const ACTIVE_BG = "#00000014";
 const HOVER_BG = "#EEF2FF";
@@ -25,7 +26,10 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
 
   useEffect(() => {
     const cookieUser = Cookies.get("user");
-    if (cookieUser) setUser(JSON.parse(cookieUser));
+    if (cookieUser) {
+      setUser(JSON.parse(cookieUser));
+      console.log(JSON.parse(cookieUser), "Aaa");
+    }
   }, []);
 
   const links = [
@@ -58,6 +62,15 @@ const SideBar = ({ collapsed, setCollapsed }: SideBarProps) => {
           : `/orgManagement/${user.orgId}`,
       icon: <OrgManagementIcon />,
     },
+    ...(user?.orgId
+      ? [
+          {
+            name: user?.role === "Admin" ? "Settings" : "My Settings",
+            path: "/reports/assessment-sync-page",
+            icon: <SettingsOutlined />,
+          },
+        ]
+      : []),
   ];
 
   return (
