@@ -17,7 +17,7 @@ import {
   Alert,
   Checkbox,
 } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import { Close as CloseIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import DisableConfirmationModal from "./DisableConfirmationModal";
@@ -26,8 +26,8 @@ import { Assessment } from "@/types/assessment";
 import { BusinessUnitData } from "@/types/business-unit";
 import { ProcessData } from "@/types/process";
 import { getAssessmentsByBusinessUnit } from "@/services/businessUnitService";
-import { fetchOrganizationProcessesForListing, fetchProcessById } from "@/pages/api/process";
-import { createOrganizationProcesses, getOrganizationProcess } from "@/pages/api/organization";
+import { fetchOrganizationProcessesForListing } from "@/pages/api/process";
+import { getOrganizationProcess, deleteOrganizationProcess, assignProcessesToBusinessUnit } from "@/pages/api/organization";
 import ToastComponent from "@/components/ToastComponent";
 
 // Extended interface for modal-specific data
@@ -101,6 +101,8 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   }, [open, businessUnit?.id, activeTab]);
 
   // Fetch assigned processes when Processes tab is active
+  // This will only show processes linked to the current business unit
+  // If there are multiple business units in the org, each BU will only see its own processes
   useEffect(() => {
     if (open && businessUnit?.orgId && businessUnit?.id && activeTab === 1) {
       fetchAssignedProcesses();
@@ -150,6 +152,9 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
     setProcessError(null);
 
     try {
+      // This API call filters processes by the specific business unit ID
+      // Only processes linked to this business unit will be returned
+      // If there are multiple BUs in the org, each BU will only see its own processes
       const response = await getOrganizationProcess(
         businessUnit.orgId,
         businessUnit.id,
@@ -173,7 +178,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   };
 
   const fetchAllProcesses = async () => {
-    if (!businessUnit?.orgId) return;
+    if (!businessUnit?.orgId || !businessUnit?.id) return;
 
     setAllProcessesLoading(true);
 
@@ -182,7 +187,27 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
         businessUnit.orgId
       );
       const processes = response.data || [];
-      setAllProcesses(processes);
+      
+      // Filter processes:
+      // 1. Show processes not assigned to any BU (orgBusinessUnitId is null/undefined)
+      // 2. Show processes assigned to current BU (to show as checked and disabled)
+      // 3. Hide processes assigned to other BUs
+      const filteredProcesses = processes.filter((process: ProcessData) => {
+        const processBuId = process.orgBusinessUnitId;
+        // Show if not assigned to any BU or assigned to current BU
+        return !processBuId || processBuId === businessUnit.id;
+      });
+      
+      setAllProcesses(filteredProcesses);
+      
+      // Pre-check processes that are already assigned to current business unit
+      const alreadyAssignedProcessIds = new Set<number>();
+      filteredProcesses.forEach((process: ProcessData) => {
+        if (process.orgBusinessUnitId === businessUnit.id && process.id) {
+          alreadyAssignedProcessIds.add(process.id);
+        }
+      });
+      setSelectedProcessIds(alreadyAssignedProcessIds);
     } catch (err) {
       console.error("Error fetching all processes:", err);
       setAllProcesses([]);
@@ -248,6 +273,16 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
   };
 
   const handleProcessCheckboxChange = (processId: number) => {
+    // Find the process to check if it's already assigned
+    const process = allProcesses.find((p) => p.id === processId);
+    const processBuId = process?.orgBusinessUnitId;
+    const isAlreadyAssigned = processBuId === businessUnit?.id;
+    
+    // Prevent unchecking already assigned processes
+    if (isAlreadyAssigned) {
+      return;
+    }
+    
     setSelectedProcessIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(processId)) {
@@ -277,24 +312,50 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
 
     setAssigningProcesses(true);
     try {
-      // Fetch full process details for selected processes
+      // Get selected processes from allProcesses array based on selected IDs
       const selectedProcessIdsArray = Array.from(selectedProcessIds);
-      const fullProcessDetails = await Promise.all(
-        selectedProcessIdsArray.map((processId) => fetchProcessById(processId))
-      );
+      
+      // Filter out processes that are already assigned to current business unit
+      const selectedProcesses = allProcesses.filter((process) => {
+        const processId = process.id;
+        const processBuId = process.orgBusinessUnitId;
+        const isAlreadyAssigned = processBuId === businessUnit.id;
+        
+        // Only include if selected and not already assigned
+        return (
+          processId !== undefined &&
+          selectedProcessIdsArray.includes(processId) &&
+          !isAlreadyAssigned
+        );
+      });
 
-      // Transform processes to match the API format expected by createOrganizationProcesses
-      // The function will handle the transformation internally
-      await createOrganizationProcesses(
+      if (selectedProcesses.length === 0) {
+        setToast({
+          open: true,
+          message: "No new processes to assign",
+          severity: "warning",
+        });
+        setAssigningProcesses(false);
+        return;
+      }
+
+      // Extract process IDs and convert to strings (UUIDs)
+      const processIds = selectedProcesses
+        .map((process) => process.id)
+        .filter((id) => id !== undefined)
+        .map((id) => String(id));
+
+      // Call PUT API to assign processes
+      await assignProcessesToBusinessUnit(
         businessUnit.orgId,
         businessUnit.id,
-        fullProcessDetails
+        processIds
       );
 
       // Show success toast
       setToast({
         open: true,
-        message: `Successfully assigned ${selectedProcessIds.size} process(es) to business unit`,
+        message: `Successfully assigned ${selectedProcesses.length} process(es) to business unit`,
         severity: "success",
       });
 
@@ -313,8 +374,44 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
     }
   };
 
+  const handleDeleteProcess = async (processId: number | undefined) => {
+    if (!businessUnit?.orgId || !businessUnit?.id || !processId) return;
+
+    try {
+      await deleteOrganizationProcess(
+        businessUnit.orgId,
+        [String(processId)],
+        businessUnit.id
+      );
+
+      // Show success toast
+      setToast({
+        open: true,
+        message: "Process removed successfully",
+        severity: "success",
+      });
+
+      // Refresh assigned processes
+      fetchAssignedProcesses();
+    } catch (err) {
+      console.error("Error deleting process:", err);
+      setToast({
+        open: true,
+        message: "Failed to remove process",
+        severity: "error",
+      });
+    }
+  };
+
   // Early return after all hooks
   if (!businessUnit) return null;
+
+  // Calculate count of new processes (not already assigned) for button disabled state
+  const newProcessCount = Array.from(selectedProcessIds).filter((processId) => {
+    const process = allProcesses.find((p) => p.id === processId);
+    const processBuId = process?.orgBusinessUnitId;
+    return processBuId !== businessUnit.id;
+  }).length;
 
   const contactRoles = [
     {
@@ -482,6 +579,36 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
             <Tab label="Assessments" />
           </Tabs>
 
+          {activeTab === 1 && assignedProcesses.length > 0 && (
+            <Button
+              variant="contained"
+              onClick={handleOpenAssignModal}
+              disabled={businessUnit.status === "disable"}
+              sx={{
+                minHeight: "32px",
+                height: "32px",
+                backgroundColor:
+                  businessUnit.status === "disable" ? "#E7E7E8" : "#04139A",
+                color:
+                  businessUnit.status === "disable" ? "#91939A" : "#FFFFFF",
+                textTransform: "none",
+                fontWeight: 500,
+                padding: "7px 12px",
+                borderRadius: "2px",
+                "&:hover": {
+                  backgroundColor:
+                    businessUnit.status === "disable" ? "#E7E7E8" : "#04139A",
+                  opacity: businessUnit.status === "disable" ? 1 : 0.9,
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "#E7E7E8",
+                  color: "#91939A",
+                },
+              }}
+            >
+              Assign Process
+            </Button>
+          )}
           {activeTab === 2 && (
             <Button
               variant="contained"
@@ -813,6 +940,9 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                           borderRadius: "8px",
                           padding: "12px",
                           boxShadow: "0px 1px 3px #E7E7E84D",
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 2,
                         }}
                       >
                         <Box sx={{ flex: 1 }}>
@@ -824,7 +954,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                               mb: 0.5,
                             }}
                           >
-                            {process.processCode || "N/A"}
+                            {process.processName}
                           </Typography>
                           <Typography
                             variant="body2"
@@ -833,9 +963,27 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                               fontWeight: 400,
                             }}
                           >
-                            {process.processName}
+                            {process.processDescription || "No description available"}
                           </Typography>
                         </Box>
+                        <IconButton
+                          onClick={() => handleDeleteProcess(process.id)}
+                          disabled={businessUnit.status === "disable"}
+                          sx={{
+                            color: "#91939A",
+                            "&:hover": {
+                              color: "#d32f2f",
+                              backgroundColor: "#ffebee",
+                            },
+                            "&.Mui-disabled": {
+                              color: "#E7E7E8",
+                            },
+                            padding: "4px",
+                          }}
+                          size="small"
+                        >
+                          <DeleteIcon sx={{ fontSize: "20px" }} />
+                        </IconButton>
                       </Box>
                     );
                   })}
@@ -973,6 +1121,10 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                 const processId = process.id;
                 const isSelected =
                   processId !== undefined && selectedProcessIds.has(processId);
+                // Check if process is already assigned to current business unit
+                const processBuId = process.orgBusinessUnitId;
+                const isAlreadyAssigned = processBuId === businessUnit.id;
+                const isDisabled = businessUnit.status === "disable" || isAlreadyAssigned;
 
                 return (
                   <Box
@@ -986,6 +1138,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                       display: "flex",
                       alignItems: "flex-start",
                       gap: 2,
+                      opacity: isAlreadyAssigned ? 0.7 : 1,
                     }}
                   >
                     <Checkbox
@@ -994,7 +1147,7 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
                         processId !== undefined &&
                         handleProcessCheckboxChange(processId)
                       }
-                      disabled={businessUnit.status === "disable"}
+                      disabled={isDisabled}
                       sx={{
                         color: "#04139A",
                         "&.Mui-checked": {
@@ -1067,8 +1220,8 @@ const BusinessUnitDetailsModal: React.FC<BusinessUnitDetailsModalProps> = ({
             onClick={handleAssignProcesses}
             disabled={
               businessUnit.status === "disable" ||
-              selectedProcessIds.size === 0 ||
-              assigningProcesses
+              assigningProcesses ||
+              newProcessCount === 0
             }
             sx={{
               backgroundColor:
