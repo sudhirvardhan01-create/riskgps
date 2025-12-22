@@ -1,12 +1,12 @@
+import { customStyles } from "@/styles/customStyles";
 import { RiskRadarRecord } from "@/types/dashboard";
-import { Paper } from "@mui/material";
+import { Paper, Stack, Typography } from "@mui/material";
 import React, { useMemo, useState } from "react";
 import {
   RadarChart,
   Radar,
   PolarGrid,
   PolarAngleAxis,
-  PolarRadiusAxis,
   Tooltip,
   Legend,
   ResponsiveContainer,
@@ -16,6 +16,7 @@ import {
 // ---------- Types ----------
 interface MultiBURadarChartProps {
   data: RiskRadarRecord[];
+  height?: number;
 }
 
 interface NormalizedRecord {
@@ -60,32 +61,61 @@ const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
   const { metric, originalValues } = first.payload;
 
   return (
-    <div
-      style={{
-        background: "white",
-        padding: 10,
-        borderRadius: 6,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        fontSize: 12,
+    <Paper
+      elevation={3}
+      sx={{
+        p: 1.5,
+        borderRadius: customStyles.tooltipBorderRadius,
+        backgroundColor: customStyles.tooltipBackgroundColor,
+        border: `1px solid ${customStyles.tooltipBorderColor}`,
+        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
       }}
     >
-      <strong>{metric}</strong>
-      <br />
+      <Typography
+        sx={{
+          fontFamily: customStyles.fontFamily,
+          fontSize: customStyles.tooltipTitleFontSize,
+          fontWeight: customStyles.tooltipDarkFontWeight,
+          color: customStyles.tooltipFontColor,
+          mb: 0.5,
+        }}
+      >
+        {metric}
+      </Typography>
       {Object.entries(originalValues).map(([bu, raw]) => (
-        <div key={bu}>
-          {bu}:{" "}
-          <b>
+        <Stack key={bu} direction={"row"} gap={0.5}>
+          <Typography
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTextFontSize,
+              fontWeight: customStyles.tooltipLightFontWeight,
+              color: customStyles.tooltipFontColor,
+              lineHeight: 1.6,
+            }}
+          >
+            {bu}:
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTextFontSize,
+              fontWeight: customStyles.tooltipDarkFontWeight,
+              color: customStyles.tooltipFontColor,
+              lineHeight: 1.6,
+            }}
+          >
             {convertValue(raw).toFixed(2)} {getUnit(raw)}
-          </b>
-        </div>
+          </Typography>
+        </Stack>
       ))}
-    </div>
+    </Paper>
   );
 };
 
 // ---------- Main Component ----------
 export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
   data,
+  height = 455,
 }) => {
   const [hoveredBU, setHoveredBU] = useState<string | null>(null);
 
@@ -112,18 +142,21 @@ export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
   }, [data]);
 
   return (
-    <Paper elevation={0} sx={{ p: 3, width: "100%", height: "455px" }}>
+    <Paper elevation={0} sx={{ p: 3, width: "100%", height: height }}>
       <ResponsiveContainer>
         <RadarChart cx="50%" cy="50%" outerRadius="65%" data={normalizedData}>
           <PolarGrid />
 
           <PolarAngleAxis
             dataKey="metric"
-            tick={{ fill: "#484848", fontSize: 12, fontWeight: 600 }}
+            tick={{
+              fill: customStyles.fontColor,
+              fontSize: customStyles.xAxisTicks.fontSize,
+              fontWeight: customStyles.xAxisTicks.fontWeight,
+              fontFamily: customStyles.fontFamily,
+            }}
             tickLine={false}
           />
-
-          {/* <PolarRadiusAxis angle={30} domain={[0, 100]} /> */}
 
           {businessUnits.map((bu, i) => {
             const color = palette[colorKeys[i % colorKeys.length]];
@@ -148,7 +181,16 @@ export const BusinessUnitRadarChart: React.FC<MultiBURadarChartProps> = ({
 
           <Legend
             formatter={(value) => (
-              <span style={{ color: "#484848" }}>{value}</span>
+              <span
+                style={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.legend.fontSize,
+                  fontWeight: customStyles.legend.fontWeight,
+                }}
+              >
+                {value}
+              </span>
             )}
             onMouseEnter={(o) => o.value && setHoveredBU(String(o.value))}
             onMouseLeave={() => setHoveredBU(null)}

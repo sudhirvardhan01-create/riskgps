@@ -12,10 +12,9 @@ import {
 } from "@mui/material";
 import AssetsRiskScoreBarChart from "../BoardTab/AssetsRiskScoreBarChart";
 import VerticalSingleBarChart from "../VerticalSingleBarChart";
-import AssetSummaryRow from "@/components/AssetLevelReports/AssetSummaryRow/indext";
 import AssetControlFamilyLineChart from "@/components/AssetLevelReports/AssetControlFamilyLineChart";
 import AssetStrengthBarChart from "@/components/AssetLevelReports/AssetStrengthBarChart";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import HorizontalBarChart from "../CustomReports/HorizontalBarChart";
 import WorldMap from "../CustomReports/WorldMap";
@@ -26,6 +25,14 @@ import Cookies from "js-cookie";
 import { AssetLevelReportsData } from "@/types/reports";
 import { getProcessList } from "@/pages/api/reports";
 import ProcessAssetFlow from "../ProcessAssetFlow";
+import ProcessCriticalityCard from "../BusinessProcessRiskDashboard/ProcessCriticalityCard";
+import ReportIcon from "@mui/icons-material/Report";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import InfoIcon from "@mui/icons-material/Info";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import { constants } from "@/utils/constants";
 
 const PieChartComponent = dynamic(() => import("../CustomReports/PieChart"), {
   ssr: false,
@@ -107,22 +114,114 @@ const CISOTab: React.FC<CISOTabProps> = ({
     assetLevelReportsData.find((a) => a.assetId === selectedAssetId) ??
     assetLevelReportsData[0];
 
+  const assets = Array.from(
+    new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
+  );
+
+  const assetSummaryCardItems = useMemo(
+    () => ({
+      critical: assets.filter((a) => a.residualRiskLevel === "critical").length,
+      high: assets.filter((a) => a.residualRiskLevel === "high").length,
+      moderate: assets.filter((a) => a.residualRiskLevel === "moderate").length,
+      low: assets.filter((a) => a.residualRiskLevel === "low").length,
+      veryLow: assets.filter((a) => a.residualRiskLevel === "very low").length,
+      total: assets.length,
+    }),
+    [assets]
+  );
+
+  const assetCriticalityCardItems = [
+    {
+      cardBackgroundColor: "primary.900",
+      cardBorderColor: "#04139A",
+      cardIcon: <ReportIcon sx={{ color: "#ffffff" }} />,
+      cardText: "Critical",
+      cardTextColor: "#ffffff",
+      processesCount: assetSummaryCardItems.critical,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "critical")
+        .map((i) => i.asset),
+    },
+    {
+      cardBackgroundColor: "primary.700",
+      cardBorderColor: "#12229d",
+      cardIcon: <WarningAmberIcon sx={{ color: "#ffffff" }} />,
+      cardText: "High",
+      cardTextColor: "#ffffff",
+      processesCount: assetSummaryCardItems.high,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "high")
+        .map((i) => i.asset),
+    },
+    {
+      cardBackgroundColor: "primary.500",
+      cardBorderColor: "#233dff",
+      cardIcon: <InfoIcon sx={{ color: "#ffffff" }} />,
+      cardText: "Moderate",
+      cardTextColor: "#ffffff",
+      processesCount: assetSummaryCardItems.moderate,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "moderate")
+        .map((i) => i.asset),
+    },
+    {
+      cardBackgroundColor: "primary.300",
+      cardBorderColor: "#6f80eb",
+      cardIcon: <CheckCircleOutlineIcon sx={{ color: "#214f73" }} />,
+      cardText: "Low",
+      cardTextColor: "#214f73",
+      processesCount: assetSummaryCardItems.low,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "low")
+        .map((i) => i.asset),
+    },
+    {
+      cardBackgroundColor: "primary.100",
+      cardBorderColor: "#5cb6f9",
+      cardIcon: <CheckCircleIcon sx={{ color: "#214f73" }} />,
+      cardText: "Very Low",
+      cardTextColor: "#214f73",
+      processesCount: assetSummaryCardItems.veryLow,
+      names: assets
+        .filter((a) => a.residualRiskLevel === "very low")
+        .map((i) => i.asset),
+    },
+    {
+      cardBackgroundColor: "#e0ecedff",
+      cardBorderColor: "#cae8ff",
+      cardIcon: <AnalyticsIcon sx={{ color: "#214f73" }} />,
+      cardText: "Total",
+      cardTextColor: "#214f73",
+      processesCount: assetSummaryCardItems.total,
+      names: assets.map((i) => i.asset),
+    },
+  ];
+
+  console.log(assetData);
+
   return (
     <>
-      {/* <Stack
+      <Stack
         direction={"row"}
         justifyContent={"end"}
         alignItems={"center"}
         mb={3}
       >
-        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
-          <InputLabel id="business-unit-label">Business Unit</InputLabel>
+        <FormControl variant="outlined" sx={{ height: "48px", width: "200px" }}>
+          <InputLabel
+            id="business-unit-label"
+            shrink
+            sx={{ backgroundColor: "#f5f5f5" }}
+          >
+            Business Unit
+          </InputLabel>
           <Select
             labelId="business-unit-label"
             value={selectedBusinessUnit}
             onChange={(e) => {
               setSelectedBusinessUnit(e.target.value);
             }}
+            sx={{ borderRadius: "8px" }}
           >
             {businessUnits.map((item, index) => (
               <MenuItem value={item} key={index}>
@@ -131,7 +230,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
             ))}
           </Select>
         </FormControl>
-      </Stack> */}
+      </Stack>
       <Box
         sx={{
           flex: 1,
@@ -142,7 +241,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
           gap: 3,
         }}
       >
-        <Box
+        {/* <Box
           sx={{
             position: "sticky",
             top: 0,
@@ -177,14 +276,44 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Select>
             </FormControl>
           </Stack>
-        </Box>
-
-        <AssetSummaryRow
-          assets={Array.from(
-            new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
-          )}
-        />
-        <Grid size={12}>
+        </Box> */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            backgroundColor: "#fafafa",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            borderRadius: 2,
+            border: "1px solid #E5E7EB",
+          }}
+        >
+          <Typography
+            variant="body2"
+            fontWeight={600}
+            textAlign="left"
+            sx={{ mb: 1 }}
+            color="text.primary"
+          >
+            {constants.assetCriticalityCardsChart}
+          </Typography>
+          <Grid container spacing={2}>
+            {assetCriticalityCardItems.map((item, index) => (
+              <Grid size={{ xs: 2 }} key={index}>
+                <ProcessCriticalityCard
+                  cardBackgroundColor={item.cardBackgroundColor}
+                  cardBorderColor={item.cardBorderColor}
+                  cardIcon={item.cardIcon}
+                  cardText={item.cardText}
+                  cardTextColor={item.cardTextColor}
+                  processesCount={item.processesCount}
+                  names={item.names}
+                  module="Assets"
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Paper>
+        {/* <Grid size={12}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {Array.from(
               new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
@@ -202,27 +331,15 @@ const CISOTab: React.FC<CISOTabProps> = ({
               />
             ))}
           </Stack>
-        </Grid>
+        </Grid> */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 7 }}>
-            <AssetControlFamilyLineChart asset={selectedAsset} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 5 }}>
-            <AssetStrengthBarChart
-              assets={Array.from(
-                new Map(
-                  assetLevelReportsData.map((a) => [a.assetId, a])
-                ).values()
-              )}
-            />
-          </Grid>
-          <Grid size={6}>
             <Paper
               elevation={0}
               sx={{
                 p: 2,
                 backgroundColor: "#fafafa",
-                height: "530px",
+                height: 520,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                 borderRadius: 2,
                 border: "1px solid #E5E7EB",
@@ -233,17 +350,102 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 fontWeight={600}
                 textAlign="left"
                 sx={{ mb: 2 }}
+                color="text.primary"
               >
-                Top Assets
+                {constants.assetControlFamilyLineChart}
               </Typography>
-              <VerticalSingleBarChart
-                data={topAssets}
-                labelYAxis="Net Risk Score"
-                height={460}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fff",
+                  borderRadius: 3,
+                  width: "100%",
+                  height: 450,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Stack direction={"row"} justifyContent={"space-between"}>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    textAlign="left"
+                    color="text.primary"
+                  >
+                    {
+                      assetLevelReportsData.find(
+                        (i) => i.assetId === selectedAssetId
+                      )?.asset
+                    }
+                  </Typography>
+                  <FormControl variant="outlined" sx={{ width: "200px" }}>
+                    <InputLabel
+                      id="asset-label"
+                      shrink
+                      sx={{ backgroundColor: "#fff" }}
+                    >
+                      Asset
+                    </InputLabel>
+                    <Select
+                      labelId="asset-label"
+                      value={selectedAssetId}
+                      onChange={(e) => {
+                        setSelectedAssetId(e.target.value);
+                      }}
+                      sx={{
+                        borderRadius: "8px",
+                        height: "40px",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {Array.from(
+                        new Map(
+                          assetLevelReportsData.map((a) => [a.assetId, a])
+                        ).values()
+                      ).map((asset) => (
+                        <MenuItem value={asset.assetId} key={asset.assetId}>
+                          {asset.asset}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+                <AssetControlFamilyLineChart asset={selectedAsset} />
+              </Paper>
+            </Paper>
+          </Grid>
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                backgroundColor: "#fafafa",
+                height: 520,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                borderRadius: 2,
+                border: "1px solid #E5E7EB",
+              }}
+            >
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                textAlign="left"
+                sx={{ mb: 2 }}
+                color="text.primary"
+              >
+                {constants.assetControlStrengthChart}
+              </Typography>
+              <AssetStrengthBarChart
+                assets={Array.from(
+                  new Map(
+                    assetLevelReportsData.map((a) => [a.assetId, a])
+                  ).values()
+                )}
               />
             </Paper>
           </Grid>
-          <Grid size={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -261,17 +463,57 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                Risk Prioritised Assets
+                {constants.topAssets}
               </Typography>
-              <AssetsRiskScoreBarChart data={riskPrioritisedAssets} />
+              <VerticalSingleBarChart
+                data={
+                  selectedBusinessUnit === "All"
+                    ? topAssets
+                    : topAssets.filter(
+                        (i) => i.businessUnit === selectedBusinessUnit
+                      )
+                }
+                labelYAxis="Residual Risk Score"
+                height={460}
+                labelXAxis="Assets"
+              />
+            </Paper>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                backgroundColor: "#fafafa",
+                height: "530px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                borderRadius: 2,
+                border: "1px solid #E5E7EB",
+              }}
+            >
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                textAlign="left"
+                sx={{ mb: 2 }}
+              >
+                {constants.riskPrioritisedAssetChart}
+              </Typography>
+              <AssetsRiskScoreBarChart
+                data={
+                  selectedBusinessUnit === "All"
+                    ? riskPrioritisedAssets
+                    : riskPrioritisedAssets.filter(
+                        (i) => i.businessUnit === selectedBusinessUnit
+                      )
+                }
+              />
             </Paper>
           </Grid>
           <Grid size={12}>
             <AssetTableViewContainer assets={assetLevelReportsData} />
           </Grid>
-          {/* ===== LEFT CARD: GEO MAP ===== */}
-          {/* <Grid size={{ xs: 12, md: 6 }}> */}
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -289,7 +531,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 1 }}
               >
-                Assets by Geography
+                {constants.assetsByGeography}
               </Typography>
 
               <Box
@@ -304,11 +546,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Box>
             </Paper>
           </Grid>
-
-          {/* ===== RIGHT CARD: BAR CHARTS ===== */}
-          {/* <Grid size={{ xs: 12, md: 6 }}> */}
-          <Grid size={{ xs: 6 }}>
-            {/* ---- Asset Dependencies ---- */}
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -326,7 +564,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 1 }}
               >
-                Asset / Critical Process Dependencies
+                {constants.assetsByProcess}
               </Typography>
 
               <Box sx={{ width: "100%", height: "100%" }}>
@@ -334,10 +572,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Box>
             </Paper>
           </Grid>
-
-          {/* ---- Vendor Dependencies ---- */}
-          {/* <Grid size={12}> */}
-          <Grid size={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -354,11 +589,20 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 fontWeight={600}
                 textAlign="left"
                 sx={{ mb: 1 }}
+                color="text.primary"
               >
-                Vendors / Critical Process Dependencies
+                {constants.assetsByVendor}
               </Typography>
 
-              <Box sx={{ width: "100%", height: "100%" }}>
+              <Box
+                sx={{
+                  p: 2,
+                  width: "100%",
+                  height: "calc(100% - 30px)",
+                  borderRadius: 3,
+                  backgroundColor: "#fff",
+                }}
+              >
                 <PieChartComponent
                   innerData={[
                     {
@@ -376,7 +620,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               </Box>
             </Paper>
           </Grid>
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={0}
               sx={{
@@ -393,11 +637,20 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 fontWeight={600}
                 textAlign="left"
                 sx={{ mb: 1 }}
+                color="text.primary"
               >
-                Networks / Critical Process Dependencies
+                {constants.assetsByNetwork}
               </Typography>
 
-              <Box sx={{ width: "100%", height: "100%" }}>
+              <Box
+                sx={{
+                  p: 2,
+                  width: "100%",
+                  height: "calc(100% - 30px)",
+                  borderRadius: 3,
+                  backgroundColor: "#fff",
+                }}
+              >
                 <PieChartComponent
                   innerData={[
                     {
@@ -434,7 +687,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                   textAlign="left"
                   sx={{ mb: 1 }}
                 >
-                  Process Topology
+                  {constants.orgTreeViewChart}
                 </Typography>
                 <ProcessAssetFlow data={orgData} />
               </Paper>

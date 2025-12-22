@@ -573,6 +573,69 @@ class OrganizationService {
         });
     }
 
+    static async updateProcessesForBusinessUnit(orgId, buId, processIds) {
+        if (!orgId || !buId || !Array.isArray(processIds) || processIds.length === 0) {
+            throw new CustomError(
+                "Organization ID, Business Unit ID and processIds are required",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        //Fetch existing processes for validation
+        const existingProcesses = await OrganizationProcess.findAll({
+            where: {
+                organizationId: orgId,
+                id: {
+                    [Op.in]: processIds,
+                },
+            },
+            attributes: ["id"],
+        });
+
+        const existingProcessIds = existingProcesses.map(p => p.id);
+
+        //Check for invalid / non-existing process IDs
+        const invalidProcessIds = processIds.filter(
+            id => !existingProcessIds.includes(id)
+        );
+
+        if (invalidProcessIds.length > 0) {
+            throw new CustomError(
+                `Invalid process IDs: ${invalidProcessIds.join(", ")}`,
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        //Update BU only after validation passes
+        const [updatedCount, updatedRows] =
+            await OrganizationProcess.update(
+                {
+                    orgBusinessUnitId: buId,
+                },
+                {
+                    where: {
+                        organizationId: orgId,
+                        id: {
+                            [Op.in]: processIds,
+                        },
+                    },
+                    returning: true,
+                }
+            );
+
+        if (updatedCount < 1) {
+            throw new CustomError(
+                "No matching processes found to update",
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return {
+            updatedCount,
+            processes: updatedRows,
+        };
+    }
+
 
     static async deleteProcess(ids, orgId, buId) {
         if (!ids || !Array.isArray(ids) || !orgId) {
