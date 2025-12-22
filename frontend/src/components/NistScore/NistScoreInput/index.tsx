@@ -77,7 +77,7 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
   };
 
   return (
-    <Box sx={{ width: "100%", p: 3, mb: 5, maxHeight: 420 }}>
+    <Box sx={{ width: "100%", p: 3, mb: 5 }}>
       <Box
         sx={{
           position: "sticky",

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import {
   Box,
   Typography,
@@ -10,20 +10,25 @@ import {
   SxProps,
   Theme,
   Tooltip,
-} from '@mui/material';
-import {
-  Info as InfoIcon,
-} from '@mui/icons-material';
+} from "@mui/material";
+import { Info as InfoIcon } from "@mui/icons-material";
 import LibraryCardIcon from "@/icons/risk-scenario-card.svg";
 import ThreatCardIcon from "@/icons/threats-card.svg";
 import AssetCardIcon from "@/icons/assets-card.svg";
 import ControlCardIcon from "@/icons/controls-card.svg";
 import ProcessCardIcon from "@/icons/processes-card.svg";
 import { constants } from "@/utils/constants";
-import RiskTaxonomy from './RiskTaxonomy';
-import Scales from './Scales';
+import RiskTaxonomy from "./RiskTaxonomy";
+import Scales from "./Scales";
 import { tooltips } from "@/utils/tooltips";
-import { getOrganizationRisks, getOrganizationAssets, getOrganizationProcessesWithoutBU } from "@/pages/api/organization";
+import {
+  getOrganizationRisks,
+  getOrganizationAssets,
+  getOrganizationProcessesWithoutBU,
+} from "@/pages/api/organization";
+import { DashboardService } from "@/services/dashboardService";
+import { OrganizationFrameworkControl } from "@/types/reports";
+import NistControlScoreCardList from "../NistScore/NistScoreInput";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -57,7 +62,14 @@ interface RepositoryCardProps {
   disabled?: boolean;
 }
 
-function RepositoryCard({ name, description, icon, href, count, disabled = false }: RepositoryCardProps) {
+function RepositoryCard({
+  name,
+  description,
+  icon,
+  href,
+  count,
+  disabled = false,
+}: RepositoryCardProps) {
   const router = useRouter();
 
   const handleCardClick = () => {
@@ -78,21 +90,19 @@ function RepositoryCard({ name, description, icon, href, count, disabled = false
         borderRadius: 2,
         boxShadow: "0px 4px 4px 0px #D9D9D98F",
         cursor: disabled ? "not-allowed" : "pointer",
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         opacity: disabled ? 0.5 : 1,
         backgroundColor: disabled ? "#F5F5F5" : "inherit",
         pointerEvents: disabled ? "none" : "auto",
       }}
       onClick={handleCardClick}
     >
-      <Stack
-        direction="row"
-        spacing={2}
-        alignItems="center"
-      >
-        <Box sx={{ height: 24, width: 24, opacity: disabled ? 0.5 : 1 }}>{icon}</Box>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box sx={{ height: 24, width: 24, opacity: disabled ? 0.5 : 1 }}>
+          {icon}
+        </Box>
         <Typography
           variant="h6"
           fontWeight={600}
@@ -101,7 +111,11 @@ function RepositoryCard({ name, description, icon, href, count, disabled = false
           {name} ({count})
         </Typography>
       </Stack>
-      <Typography variant="body1" color={disabled ? "#B0B0B0" : "#91939A"} sx={{ mt: 3 }}>
+      <Typography
+        variant="body1"
+        color={disabled ? "#B0B0B0" : "#91939A"}
+        sx={{ mt: 3 }}
+      >
         {description}
       </Typography>
     </Box>
@@ -115,15 +129,21 @@ function Repository() {
   const [riskScenarioCount, setRiskScenarioCount] = useState(0);
   const [assetCount, setAssetCount] = useState(0);
   const [processCount, setProcessCount] = useState(0);
+  const [orgFrameworkControls, setOrgFrameworkControls] = useState<
+    OrganizationFrameworkControl[]
+  >([]);
 
-  const handleRepositoryTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleRepositoryTabChange = (
+    event: React.SyntheticEvent,
+    newValue: number
+  ) => {
     setRepositoryTabValue(newValue);
   };
 
   // Fetch risk scenarios count from organization API
   useEffect(() => {
     const fetchRiskScenarioCount = async () => {
-      if (!orgId || typeof orgId !== 'string') return;
+      if (!orgId || typeof orgId !== "string") return;
 
       try {
         const response = await getOrganizationRisks(orgId);
@@ -144,7 +164,7 @@ function Repository() {
   // Fetch assets count from organization API
   useEffect(() => {
     const fetchAssetCount = async () => {
-      if (!orgId || typeof orgId !== 'string') return;
+      if (!orgId || typeof orgId !== "string") return;
 
       try {
         const response = await getOrganizationAssets(orgId);
@@ -165,11 +185,11 @@ function Repository() {
   // Fetch processes count from process-for-listing API
   useEffect(() => {
     const fetchProcessCount = async () => {
-      if (!orgId || typeof orgId !== 'string') return;
+      if (!orgId || typeof orgId !== "string") return;
 
       try {
         const response = await getOrganizationProcessesWithoutBU(orgId);
-        // Handle both response formats: { data: [] } or { data: { data: [...], ... } }e 
+        // Handle both response formats: { data: [] } or { data: { data: [...], ... } }e
         if (response?.data) {
           if (Array.isArray(response.data)) {
             // Error case: { data: [] }
@@ -192,6 +212,29 @@ function Repository() {
     fetchProcessCount();
   }, [orgId]);
 
+  async function fetchOrganizationNistControlScores() {
+    if (!orgId) return;
+    const nistControlScores =
+      await DashboardService.getOrganizationNistControlScores(orgId as string);
+    setOrgFrameworkControls(nistControlScores.data ?? []);
+  }
+  useEffect(() => {
+    if (!orgId) return;
+
+    fetchOrganizationNistControlScores();
+  }, [orgId]);
+
+  const handleSaveOrganizationNistControls = async (
+    scores: OrganizationFrameworkControl[]
+  ) => {
+    if (!orgId) return;
+    const res = await DashboardService.updateOrganizationNistControlScores(
+      orgId as string,
+      scores
+    );
+    await fetchOrganizationNistControlScores();
+  };
+
   const repositoryCards = [
     {
       name: constants.libRiskScenarioTitle,
@@ -199,7 +242,7 @@ function Repository() {
       icon: <LibraryCardIcon height={24} width={24} />,
       href: "/riskScenarios",
       count: riskScenarioCount,
-      disabled: false
+      disabled: false,
     },
     {
       name: constants.libAssetTitle,
@@ -207,7 +250,7 @@ function Repository() {
       icon: <AssetCardIcon height={24} width={24} />,
       href: "/assets",
       count: assetCount,
-      disabled: false
+      disabled: false,
     },
     {
       name: constants.libProcessTitle,
@@ -215,7 +258,7 @@ function Repository() {
       icon: <ProcessCardIcon height={24} width={24} />,
       href: "/processes",
       count: processCount,
-      disabled: false
+      disabled: false,
     },
     {
       name: constants.libThreatTitle,
@@ -223,7 +266,7 @@ function Repository() {
       icon: <ThreatCardIcon height={24} width={24} />,
       href: "/threats",
       count: 0,
-      disabled: true
+      disabled: true,
     },
     {
       name: constants.libControlTitle,
@@ -231,7 +274,7 @@ function Repository() {
       icon: <ControlCardIcon height={24} width={24} />,
       href: "/controls",
       count: 0,
-      disabled: true
+      disabled: true,
     },
   ];
 
@@ -241,7 +284,8 @@ function Repository() {
       <Box
         sx={{
           mb: "14px",
-          pl: "25px", pr: "25px"
+          pl: "25px",
+          pr: "25px",
         }}
       >
         <Tabs
@@ -249,46 +293,53 @@ function Repository() {
           onChange={handleRepositoryTabChange}
           aria-label="repository tabs"
           sx={{
-            '& .MuiTabs-flexContainer': {
-              gap: '8px',
+            "& .MuiTabs-flexContainer": {
+              gap: "8px",
             },
-            '& .MuiTab-root': {
-              textTransform: 'none',
+            "& .MuiTab-root": {
+              textTransform: "none",
               fontWeight: 500,
-              minHeight: '32px',
-              border: '1px solid #E7E7E8',
-              borderRadius: '4px',
-              backgroundColor: '#FFFFFF',
-              color: '#484848',
-              padding: '7px 16px',
-              '&:hover': {
-                backgroundColor: '#F5F5F5',
-                color: '#484848',
+              minHeight: "32px",
+              border: "1px solid #E7E7E8",
+              borderRadius: "4px",
+              backgroundColor: "#FFFFFF",
+              color: "#484848",
+              padding: "7px 16px",
+              "&:hover": {
+                backgroundColor: "#F5F5F5",
+                color: "#484848",
               },
-              '&.Mui-selected': {
-                backgroundColor: '#EDF3FCA3',
-                color: '#484848',
-                border: '1px solid #04139A',
+              "&.Mui-selected": {
+                backgroundColor: "#EDF3FCA3",
+                color: "#484848",
+                border: "1px solid #04139A",
                 fontWeight: 500,
               },
             },
-            '& .MuiTabs-indicator': {
-              display: 'none',
+            "& .MuiTabs-indicator": {
+              display: "none",
             },
           }}
         >
           <Tab label="Library" />
           <Tab
             label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 Risk Taxonomy
                 <Tooltip
                   title={
                     <Box sx={{ p: 1 }}>
-                      <Typography variant="h6" fontWeight={600} sx={{ mb: 1, color: '#484848' }}>
+                      <Typography
+                        variant="h6"
+                        fontWeight={600}
+                        sx={{ mb: 1, color: "#484848" }}
+                      >
                         {tooltips.RiskTaxonomyLabel}
                       </Typography>
-                      <Typography variant="body2" sx={{ lineHeight: 1.4, color: '#91939A' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ lineHeight: 1.4, color: "#91939A" }}
+                      >
                         {tooltips.RiskTaxonomyDes}
                       </Typography>
                     </Box>
@@ -298,39 +349,48 @@ function Repository() {
                   componentsProps={{
                     tooltip: {
                       sx: {
-                        backgroundColor: '#FFFFFF',
-                        color: '#484848',
-                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-                        borderRadius: '8px',
-                        border: '1px solid #E7E7E8',
-                        maxWidth: '300px',
-                        fontSize: '0.875rem',
-                        '& .MuiTooltip-arrow': {
-                          color: '#FFFFFF',
-                          '&::before': {
-                            border: '1px solid #E7E7E8',
-                          }
-                        }
-                      }
-                    }
+                        backgroundColor: "#FFFFFF",
+                        color: "#484848",
+                        boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+                        borderRadius: "8px",
+                        border: "1px solid #E7E7E8",
+                        maxWidth: "300px",
+                        fontSize: "0.875rem",
+                        "& .MuiTooltip-arrow": {
+                          color: "#FFFFFF",
+                          "&::before": {
+                            border: "1px solid #E7E7E8",
+                          },
+                        },
+                      },
+                    },
                   }}
                 >
-                  <InfoIcon sx={{ fontSize: 14, color: '#04139A', cursor: 'pointer' }} />
+                  <InfoIcon
+                    sx={{ fontSize: 14, color: "#04139A", cursor: "pointer" }}
+                  />
                 </Tooltip>
               </Box>
             }
           />
           <Tab
             label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 Scales
                 <Tooltip
                   title={
                     <Box sx={{ p: 1 }}>
-                      <Typography variant="h6" fontWeight={600} sx={{ mb: 1, color: '#484848' }}>
+                      <Typography
+                        variant="h6"
+                        fontWeight={600}
+                        sx={{ mb: 1, color: "#484848" }}
+                      >
                         {tooltips.scaleLabel}
                       </Typography>
-                      <Typography variant="body2" sx={{ lineHeight: 1.4, color: '#91939A' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ lineHeight: 1.4, color: "#91939A" }}
+                      >
                         {tooltips.scaleDes}
                       </Typography>
                     </Box>
@@ -340,33 +400,94 @@ function Repository() {
                   componentsProps={{
                     tooltip: {
                       sx: {
-                        backgroundColor: '#FFFFFF',
-                        color: '#484848',
-                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-                        borderRadius: '8px',
-                        border: '1px solid #E7E7E8',
-                        maxWidth: '300px',
-                        fontSize: '0.875rem',
-                        '& .MuiTooltip-arrow': {
-                          color: '#FFFFFF',
-                          '&::before': {
-                            border: '1px solid #E7E7E8',
-                          }
-                        }
-                      }
-                    }
+                        backgroundColor: "#FFFFFF",
+                        color: "#484848",
+                        boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+                        borderRadius: "8px",
+                        border: "1px solid #E7E7E8",
+                        maxWidth: "300px",
+                        fontSize: "0.875rem",
+                        "& .MuiTooltip-arrow": {
+                          color: "#FFFFFF",
+                          "&::before": {
+                            border: "1px solid #E7E7E8",
+                          },
+                        },
+                      },
+                    },
                   }}
                 >
-                  <InfoIcon sx={{ fontSize: 14, color: '#04139A', cursor: 'pointer' }} />
+                  <InfoIcon
+                    sx={{ fontSize: 14, color: "#04139A", cursor: "pointer" }}
+                  />
                 </Tooltip>
               </Box>
             }
           />
+
+          {/* NIST SCORES TAB */}
+          {orgId && typeof orgId === "string" && (
+            <Tab
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  NIST Score
+                  <Tooltip
+                    title={
+                      <Box sx={{ p: 1 }}>
+                        <Typography
+                          variant="h6"
+                          fontWeight={600}
+                          sx={{ mb: 1, color: "#484848" }}
+                        >
+                          {tooltips.NISTScoreTabLabel}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ lineHeight: 1.4, color: "#91939A" }}
+                        >
+                          {tooltips.NISTScoreTabDes}
+                        </Typography>
+                      </Box>
+                    }
+                    placement="bottom"
+                    arrow
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          backgroundColor: "#FFFFFF",
+                          color: "#484848",
+                          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+                          borderRadius: "8px",
+                          border: "1px solid #E7E7E8",
+                          maxWidth: "300px",
+                          fontSize: "0.875rem",
+                          "& .MuiTooltip-arrow": {
+                            color: "#FFFFFF",
+                            "&::before": {
+                              border: "1px solid #E7E7E8",
+                            },
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    <InfoIcon
+                      sx={{ fontSize: 14, color: "#04139A", cursor: "pointer" }}
+                    />
+                  </Tooltip>
+                </Box>
+              }
+            />
+          )}
         </Tabs>
       </Box>
 
       {/* Repository Tab Content */}
-      <TabPanel value={repositoryTabValue} index={0} sx={{ pl: "25px", pr: "25px" }}>
+      <TabPanel
+        value={repositoryTabValue}
+        index={0}
+        sx={{ pl: "25px", pr: "25px" }}
+      >
         <Grid
           container
           rowSpacing={3}
@@ -388,12 +509,32 @@ function Repository() {
         </Grid>
       </TabPanel>
 
-      <TabPanel value={repositoryTabValue} index={1} sx={{ pl: "25px", pr: "25px" }}>
+      <TabPanel
+        value={repositoryTabValue}
+        index={1}
+        sx={{ pl: "25px", pr: "25px" }}
+      >
         <RiskTaxonomy />
       </TabPanel>
 
-      <TabPanel value={repositoryTabValue} index={2} sx={{ pl: "25px", pr: "25px" }}>
+      <TabPanel
+        value={repositoryTabValue}
+        index={2}
+        sx={{ pl: "25px", pr: "25px" }}
+      >
         <Scales />
+      </TabPanel>
+      <TabPanel
+        value={repositoryTabValue}
+        index={3}
+        sx={{ pl: "25px", pr: "25px" }}
+      >
+        <>
+          <NistControlScoreCardList
+            controls={orgFrameworkControls}
+            onSave={handleSaveOrganizationNistControls}
+          />
+        </>
       </TabPanel>
     </Box>
   );
