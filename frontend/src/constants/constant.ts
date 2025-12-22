@@ -76,7 +76,7 @@ export const assetsHeaderData = [
   },
   {
     columnSize: 2,
-    columnTitle: "Target Strength",
+    columnTitle: "Target Control Strength",
   },
   {
     columnSize: 2,

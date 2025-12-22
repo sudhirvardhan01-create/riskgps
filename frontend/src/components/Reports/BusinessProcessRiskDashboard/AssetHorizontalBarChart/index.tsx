@@ -144,7 +144,11 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
               if (!e?.activeLabel) setSelectedAsset(null);
             }}
           >
-            <CartesianGrid horizontal={false} vertical={true} />
+            <CartesianGrid
+              horizontal={true}
+              vertical={true}
+              strokeDasharray={"3 3"}
+            />
 
             <XAxis
               type="number"
@@ -194,7 +198,7 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
             {/* Target Strength Bar */}
             <Bar
               dataKey="targetStrength"
-              name="Target Strength"
+              name="Target Control Strength"
               fill="#6f80eb"
               shape={<CustomBar />}
               isAnimationActive={false}

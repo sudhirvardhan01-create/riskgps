@@ -33,6 +33,7 @@ interface RawAsset {
   geographicLocation?: string | null;
   networkName?: string | null;
   processes: ProcessUnit[];
+  assetCriticality: string;
 }
 
 const CITY_COORDS: Record<string, [number, number]> = {
@@ -223,7 +224,7 @@ export function transformAssetData(apiData: RawAsset[]) {
   // 3️⃣ Locations for the map
   const cityMap = new Map<
     string,
-    { name: string; value: number; coords: LatLngExpression }
+    { name: string; value: number; coords: LatLngExpression; severity: string }
   >();
 
   apiData.forEach((item) => {
@@ -245,6 +246,7 @@ export function transformAssetData(apiData: RawAsset[]) {
         name: city,
         value: processCount,
         coords,
+        severity: item.assetCriticality,
       });
     }
   });

@@ -167,7 +167,11 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
             if (!e?.activeLabel) setSelectedProcess(null);
           }}
         >
-          <CartesianGrid horizontal={true} vertical={false} />
+          <CartesianGrid
+            horizontal={true}
+            vertical={true}
+            strokeDasharray={"3 3"}
+          />
 
           <XAxis
             dataKey="processName"
@@ -179,17 +183,17 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
               fontSize: customStyles.xAxisTicks.fontSize,
               fontWeight: customStyles.xAxisTicks.fontWeight,
             }}
-            label={{
-              value: "Business Process",
-              angle: 0,
-              position: "outsideCentre",
-              style: {
-                color: customStyles.fontColor,
-                fontFamily: customStyles.fontFamily,
-                fontSize: customStyles.xAxisLabels.fontSize,
-                fontWeight: customStyles.xAxisLabels.fontWeight,
-              },
-            }}
+            // label={{
+            //   value: "Business Process",
+            //   angle: 0,
+            //   position: "outsideCentre",
+            //   style: {
+            //     color: customStyles.fontColor,
+            //     fontFamily: customStyles.fontFamily,
+            //     fontSize: customStyles.xAxisLabels.fontSize,
+            //     fontWeight: customStyles.xAxisLabels.fontWeight,
+            //   },
+            // }}
           />
 
           <YAxis

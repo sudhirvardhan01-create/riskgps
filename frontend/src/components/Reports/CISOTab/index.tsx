@@ -110,6 +110,8 @@ const CISOTab: React.FC<CISOTabProps> = ({
     fetchData();
   }, [orgId, selectedBusinessUnit]);
 
+  console.log(assetData);
+
   const selectedAsset =
     assetLevelReportsData.find((a) => a.assetId === selectedAssetId) ??
     assetLevelReportsData[0];
@@ -463,7 +465,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                {constants.topAssets}
+                {constants.riskPrioritisedAssetChart}
               </Typography>
               <VerticalSingleBarChart
                 data={
@@ -497,7 +499,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 textAlign="left"
                 sx={{ mb: 2 }}
               >
-                {constants.riskPrioritisedAssetChart}
+                {constants.impactPrioritisedAssetChart}
               </Typography>
               <AssetsRiskScoreBarChart
                 data={

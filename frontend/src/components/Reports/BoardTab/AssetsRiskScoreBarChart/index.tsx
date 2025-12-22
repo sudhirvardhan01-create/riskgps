@@ -125,7 +125,11 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
           data={formattedData}
           margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
         >
-          <CartesianGrid horizontal={true} vertical={false} />
+          <CartesianGrid
+            horizontal={true}
+            vertical={true}
+            strokeDasharray={"3 3"}
+          />
 
           <XAxis
             dataKey="assetName"

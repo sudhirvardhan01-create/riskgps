@@ -115,7 +115,11 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({
           layout="vertical"
           margin={{ top: 20, right: 40, left: 10, bottom: 20 }}
         >
-          <CartesianGrid horizontal={true} vertical={false} />
+          <CartesianGrid
+            horizontal={true}
+            vertical={true}
+            strokeDasharray={"3 3"}
+          />
           <XAxis
             type="number"
             domain={[0, 5]}
@@ -160,12 +164,12 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({
           />
           <ReferenceLine
             x={avgCurrent}
-            stroke="#12229d"
+            stroke="#233dff"
             strokeWidth={2}
             label={{
               value: `Current Score: ${avgCurrent.toFixed(2)}`,
               position: "insideBottomRight",
-              fill: "#233dff",
+              fill: "#484848",
               fontSize: 11,
               // dy: 12,
             }}
@@ -177,7 +181,7 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({
             label={{
               value: `Target Score: ${targetScore.toFixed(2)}`,
               position: "insideBottomRight",
-              fill: "#6f80eb",
+              fill: "#484848",
               dy: -20,
               fontSize: 11,
             }}

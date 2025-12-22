@@ -146,7 +146,11 @@ const CriticalDependenciesBarChart: React.FC<
               data={data}
               margin={{ top: 10, right: 30, left: 30, bottom: 10 }}
             >
-              <CartesianGrid horizontal={false} vertical={true} />
+              <CartesianGrid
+                horizontal={true}
+                vertical={true}
+                strokeDasharray={"3 3"}
+              />
               <XAxis
                 type="number"
                 domain={[0, "dataMax + 1"]}

@@ -159,7 +159,11 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
           data={data}
           margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
         >
-          <CartesianGrid horizontal={true} vertical={false} />
+          <CartesianGrid
+            horizontal={true}
+            vertical={true}
+            strokeDasharray={"3 3"}
+          />
 
           <XAxis
             dataKey="name"
