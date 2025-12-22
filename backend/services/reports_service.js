@@ -1006,6 +1006,7 @@ class ReportsService {
       return {
         name: item.asset,
         value: item.aggAssetResidualRiskScoreRiskDashboardCIOTab,
+        inherentRiskScore: item.aggAssetInherentRiskScoreRiskDashboardCIOTab,
         businessUnitId: item.businessUnitId,
         businessUnit: item.businessUnit,
       };
@@ -1038,6 +1039,7 @@ class ReportsService {
       return {
         name: risk.riskScenario,
         value: risk.residualRiskScoreRiskDashboardERMTab,
+        inherentRiskScore: risk.inherentRiskScoreRiskDashboardERMTab,
         businessUnitId: risk.businessUnitId,
         businessUnit: risk.businessUnit,
       };

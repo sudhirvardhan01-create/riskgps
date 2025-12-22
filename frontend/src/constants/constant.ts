@@ -105,10 +105,10 @@ export const reportsPageTabs = [
     tabName: "Board",
     tabVlaue: 3,
   },
-  {
-    tabName: "NIST Score",
-    tabVlaue: 4,
-  },
+  // {
+  //   tabName: "NIST Score",
+  //   tabVlaue: 4,
+  // },
 ];
 
 export const dashboardPageTabs = [
