@@ -1,7 +1,18 @@
 "use client";
 
-import React from "react";
-import { Box, Paper, Stack, Typography, Grid, Chip } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box,
+  Paper,
+  Stack,
+  Typography,
+  Grid,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import SeverityScale from "@/components/Reports/SeverityScale";
 import { AssetLevelReportsData } from "@/types/reports";
 
@@ -26,17 +37,15 @@ const AssetTableHeader: React.FC = () => (
   <Box
     sx={{
       borderRadius: 1,
-      border: "1px solid #E7E7E8ff",
-      px: 1.5,
-      py: 1,
-      mb: 1,
-      bgcolor: "#F9FAFB",
+      p: 1.5,
+      my: 2,
+      backgroundColor: "#E7E7E84D",
     }}
   >
     <Grid container spacing={2} alignItems="center">
       {assetHeaderCols.map((col, idx) => (
         <Grid size={col.columnSize} key={idx}>
-          <Typography variant="caption" color="text.secondary" fontWeight={600}>
+          <Typography variant="body2" color="text.primary" fontWeight={600}>
             {col.columnTitle}
           </Typography>
         </Grid>
@@ -87,7 +96,11 @@ const AssetTableRowCard: React.FC<AssetLevelReportsData> = ({
         </Typography>
       </Grid>
       <Grid size={1.5}>
-        {residualRiskLevel ? <SeverityScale severity={residualRiskLevel} height={8} /> : "-"}
+        {residualRiskLevel ? (
+          <SeverityScale severity={residualRiskLevel} height={8} />
+        ) : (
+          "-"
+        )}
       </Grid>
     </Grid>
   </Box>
@@ -96,41 +109,72 @@ const AssetTableRowCard: React.FC<AssetLevelReportsData> = ({
 interface Props {
   assets: AssetLevelReportsData[];
 }
-const AssetTableViewContainer: React.FC<Props> = ({ assets}) => (
-  <Paper
-    elevation={0}
-    sx={{
-      p: 2,
-      backgroundColor: "#fafafa",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-      borderRadius: 2,
-      border: "1px solid #E5E7EB",
-    }}
-  >
-    <Stack
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      mb={2}
+const AssetTableViewContainer: React.FC<Props> = ({ assets }) => {
+  const [selectedProcessTableChart, setSelectedProcessTableChart] =
+    useState<string>("All");
+  const processesForDropdown = [
+    ...new Set(assets.map((i) => i.businessProcess)),
+  ];
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        backgroundColor: "#fafafa",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+        borderRadius: 2,
+        border: "1px solid #E5E7EB",
+      }}
     >
-      <Typography variant="body2" fontWeight={600}>
-        Critical Asset Control Strength (Table View)
-      </Typography>
-      <Chip
-        label={`${assets?.length} assets`}
-        size="small"
-        sx={{ borderRadius: 2 }}
-      />
-    </Stack>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
+        <Typography variant="body2" fontWeight={600}>
+          Detailed - Asset Controls Table
+        </Typography>
+        <FormControl variant="outlined" sx={{ height: "48px", width: "200px" }}>
+          <InputLabel
+            id="process-table-chart-label"
+            shrink
+            sx={{ backgroundColor: "#fafafa" }}
+          >
+            Business Process
+          </InputLabel>
+          <Select
+            labelId="process-table-chart-label"
+            value={selectedProcessTableChart}
+            onChange={(e) => {
+              setSelectedProcessTableChart(e.target.value);
+            }}
+            sx={{ borderRadius: "8px" }}
+          >
+            <MenuItem value="All">All</MenuItem>
+            {processesForDropdown.map((item, index) => (
+              <MenuItem value={item} key={index}>
+                {item}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
 
-    <AssetTableHeader />
+      <AssetTableHeader />
 
-    <Stack direction="column" spacing={1.5}>
-      {(assets ?? []).map((row, idx) => (
-        <AssetTableRowCard key={idx} {...row} />
-      ))}
-    </Stack>
-  </Paper>
-);
+      <Stack direction="column" spacing={1.5}>
+        {(selectedProcessTableChart === "All"
+          ? assets
+          : assets.filter(
+              (i) => i.businessProcess === selectedProcessTableChart
+            ) ?? []
+        ).map((row, idx) => (
+          <AssetTableRowCard key={idx} {...row} />
+        ))}
+      </Stack>
+    </Paper>
+  );
+};
 
 export default AssetTableViewContainer;

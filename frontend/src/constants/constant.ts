@@ -14,7 +14,7 @@ export const riskScenariosHeaderData = [
   },
   {
     columnSize: 1,
-    columnTitle: "CIA",
+    columnTitle: "Classification",
   },
   {
     columnSize: 1.5,
@@ -40,13 +40,13 @@ export const riskScenariosHeaderDataWithProcess = [
     columnTitle: "Business Process",
   },
   {
-    columnSize: 3.5,
+    columnSize: 4,
     columnTitle: "Risk Scenarios",
   },
-  {
-    columnSize: 0.5,
-    columnTitle: "CIA",
-  },
+  // {
+  //   columnSize: 0.5,
+  //   columnTitle: "CIA",
+  // },
   {
     columnSize: 1,
     columnTitle: "Risk Exposure",
@@ -72,7 +72,7 @@ export const assetsHeaderData = [
   },
   {
     columnSize: 2,
-    columnTitle: "Control Strength",
+    columnTitle: "Current Control Strength",
   },
   {
     columnSize: 2,
@@ -90,19 +90,19 @@ export const assetsHeaderData = [
 
 export const reportsPageTabs = [
   {
-    tabName: "Process",
+    tabName: "Business",
     tabVlaue: 0,
   },
   {
-    tabName: "Asset",
+    tabName: "ERM",
     tabVlaue: 1,
   },
   {
-    tabName: "Concentration Risks",
+    tabName: "CISO",
     tabVlaue: 2,
   },
   {
-    tabName: "Org View",
+    tabName: "Board",
     tabVlaue: 3,
   },
   {
@@ -128,8 +128,8 @@ export const dashboardPageTabs = [
     tabName: "Board",
     tabVlaue: 3,
   },
-  {
-    tabName: "Nist Score",
-    tabVlaue: 4,
-  },
+  // {
+  //   tabName: "Nist Score",
+  //   tabVlaue: 4,
+  // },
 ];

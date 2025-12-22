@@ -500,6 +500,8 @@ class ReportsService {
         netRiskScore: convertMillionToValue(
           asset.aggAssetResidualImpactInMillionDollarsRiskDashboardCIOTab ?? 0
         ),
+        businessUnitId: asset.businessUnitId,
+        businessUnit: asset.businessUnit,
       };
     });
     return assetsData;
@@ -1004,6 +1006,8 @@ class ReportsService {
       return {
         name: item.asset,
         value: item.aggAssetResidualRiskScoreRiskDashboardCIOTab,
+        businessUnitId: item.businessUnitId,
+        businessUnit: item.businessUnit,
       };
     });
     return riskyAssets;
@@ -1034,6 +1038,8 @@ class ReportsService {
       return {
         name: risk.riskScenario,
         value: risk.residualRiskScoreRiskDashboardERMTab,
+        businessUnitId: risk.businessUnitId,
+        businessUnit: risk.businessUnit,
       };
     });
     return topRisKScenarios;

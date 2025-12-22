@@ -39,7 +39,9 @@ const getCardColors = (current: number | null, target: number | null) => {
 
 const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
   const [items, setItems] = useState<OrganizationFrameworkControl[]>([]);
-  const [initialItems, setInitialItems] = useState<OrganizationFrameworkControl[]>([]);
+  const [initialItems, setInitialItems] = useState<
+    OrganizationFrameworkControl[]
+  >([]);
 
   useEffect(() => {
     setItems(controls);
@@ -51,8 +53,8 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
     key: "currentScore" | "targetScore",
     value: number | null
   ) => {
-    setItems(prev =>
-      prev.map(c =>
+    setItems((prev) =>
+      prev.map((c) =>
         c.orgControlId === orgControlId ? { ...c, [key]: value } : c
       )
     );
@@ -61,12 +63,15 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
   const isDirty = useMemo(() => {
     if (items.length !== initialItems.length) return true;
     const mapInitial = new Map(
-      initialItems.map(c => [c.orgControlId, c] as const)
+      initialItems.map((c) => [c.orgControlId, c] as const)
     );
-    return items.some(c => {
+    return items.some((c) => {
       const base = mapInitial.get(c.orgControlId);
       if (!base) return true;
-      return base.currentScore !== c.currentScore || base.targetScore !== c.targetScore;
+      return (
+        base.currentScore !== c.currentScore ||
+        base.targetScore !== c.targetScore
+      );
     });
   }, [items, initialItems]);
 
@@ -77,7 +82,7 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
   };
 
   return (
-    <Box sx={{ width: "100%", p: 3, mb: 5, maxHeight: 420 }}>
+    <Box sx={{ width: "100%", p: 3, mb: 5 }}>
       <Box
         sx={{
           position: "sticky",
@@ -99,7 +104,7 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
               NIST Control Category Scores
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Set current and target scores (0–10) for each category.
+              Set current and target scores (0–5) for each category.
             </Typography>
           </Box>
           <Button
@@ -119,9 +124,9 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
           No NIST control categories configured.
         </Typography>
       ) : (
-        <Box sx={{ maxHeight: 600, overflowY: "auto", mt: 2, pr: 1 }}>
+        <Box sx={{ maxHeight: 440, overflowY: "auto", mt: 2, pr: 1 }}>
           <Grid container spacing={3} sx={{ width: "100%", mt: 1 }}>
-            {items.map(control => {
+            {items.map((control) => {
               const { bg, border } = getCardColors(
                 control.currentScore,
                 control.targetScore
@@ -180,7 +185,7 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
                                   ? -1
                                   : control.currentScore
                               }
-                              onChange={e =>
+                              onChange={(e) =>
                                 updateScore(
                                   control.orgControlId,
                                   "currentScore",
@@ -191,7 +196,7 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
                               }
                             >
                               <MenuItem value={-1}>Not Scored</MenuItem>
-                              {scoreOptions.map(v => (
+                              {scoreOptions.map((v) => (
                                 <MenuItem key={v} value={v}>
                                   {v}
                                 </MenuItem>
@@ -215,7 +220,7 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
                                   ? -1
                                   : control.targetScore
                               }
-                              onChange={e =>
+                              onChange={(e) =>
                                 updateScore(
                                   control.orgControlId,
                                   "targetScore",
@@ -226,7 +231,7 @@ const NistControlScoreCardList: React.FC<Props> = ({ controls, onSave }) => {
                               }
                             >
                               <MenuItem value={-1}>Not Scored</MenuItem>
-                              {scoreOptions.map(v => (
+                              {scoreOptions.map((v) => (
                                 <MenuItem key={v} value={v}>
                                   {v}
                                 </MenuItem>

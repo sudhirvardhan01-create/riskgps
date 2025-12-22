@@ -291,3 +291,12 @@ export const formatCurrencyCompact = (value: number): string => {
   // For values < 1,000, show as is
   return `$${Math.round(value)}`;
 };
+
+export const chartPalette = {
+  900: "#12229d",
+  700: "#233dff",
+  500: "#6f80eb",
+  300: "#5cb6f9",
+  100: "#cae8ff",
+  neutral: "#e0ecedff",
+};

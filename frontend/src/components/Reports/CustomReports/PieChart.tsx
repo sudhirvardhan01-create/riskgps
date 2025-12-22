@@ -1,5 +1,6 @@
 "use client";
 
+import { customStyles } from "@/styles/customStyles";
 import { Asset } from "@/types/assessment";
 import { List, ListItem, ListItemText, Paper, Typography } from "@mui/material";
 import React, { useState } from "react";
@@ -46,6 +47,7 @@ const COLORS_OUTER = [
   "#12229d",
   "#233dff",
   "#6f80eb",
+  "#0693e3",
   "#5cb6f9",
   "#cae8ff",
   "#d9d9d9",
@@ -83,16 +85,21 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
           elevation={3}
           sx={{
             p: 1.5,
-            borderRadius: "12px",
-            border: "1px solid #ddd",
+            borderRadius: customStyles.tooltipBorderRadius,
+            backgroundColor: customStyles.tooltipBackgroundColor,
+            border: `1px solid ${customStyles.tooltipBorderColor}`,
             boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-            minWidth: 180,
           }}
         >
           <Typography
-            variant="subtitle2"
-            fontWeight="bold"
-            sx={{ mb: 0.5, textAlign: "left", pl: 2 }}
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTitleFontSize,
+              fontWeight: customStyles.tooltipDarkFontWeight,
+              color: customStyles.tooltipFontColor,
+              mb: 0.5,
+              pl: 2,
+            }}
           >
             {`${item.name} (${item.value} dependencies)`}
           </Typography>
@@ -107,7 +114,12 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
                   <ListItem key={index} sx={{ py: 0.25 }}>
                     <ListItemText
                       primary={x.applicationName}
-                      primaryTypographyProps={{ fontSize: "0.8rem" }}
+                      primaryTypographyProps={{
+                        fontFamily: customStyles.fontFamily,
+                        fontSize: customStyles.tooltipTextFontSize,
+                        fontWeight: customStyles.tooltipLightFontWeight,
+                        color: customStyles.tooltipFontColor,
+                      }}
                     />
                   </ListItem>
                 ))}
@@ -118,6 +130,22 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
     }
 
     return null;
+  };
+
+  const legendFormatter = (value: any, entry: any, index: any) => {
+    // You can apply different colors based on the value or index if needed
+    return (
+      <span
+        style={{
+          color: customStyles.fontColor,
+          fontFamily: customStyles.fontFamily,
+          fontSize: customStyles.legend.fontSize,
+          fontWeight: customStyles.legend.fontWeight,
+        }}
+      >
+        {value}
+      </span>
+    );
   };
 
   return (
@@ -226,9 +254,12 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
               verticalAlign="bottom"
               iconType="circle"
               wrapperStyle={{
-                fontSize: "12px",
-                fontFamily: "Inter, Helvetica, Arial, sans-serif",
+                fontSize: customStyles.legend.fontSize,
+                fontFamily: customStyles.fontFamily,
+                fontWeight: customStyles.legend.fontWeight,
+                color: customStyles.fontColor,
               }}
+              formatter={legendFormatter}
             />
           </PieChart>
         </ResponsiveContainer>

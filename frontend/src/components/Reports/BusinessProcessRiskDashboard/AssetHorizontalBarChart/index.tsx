@@ -1,5 +1,6 @@
 "use client";
-import { Typography } from "@mui/material";
+import { customStyles } from "@/styles/customStyles";
+import { Paper, Stack, Typography } from "@mui/material";
 import React from "react";
 import {
   BarChart,
@@ -10,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
   CartesianGrid,
+  TooltipProps,
 } from "recharts";
 
 export interface AssetItem {
@@ -56,7 +58,77 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
 
   const legendFormatter = (value: any, entry: any, index: any) => {
     // You can apply different colors based on the value or index if needed
-    return <span style={{ color: "#484848" }}>{value}</span>;
+    return (
+      <span
+        style={{
+          color: customStyles.fontColor,
+          fontFamily: customStyles.fontFamily,
+          fontSize: customStyles.legend.fontSize,
+          fontWeight: customStyles.legend.fontWeight,
+        }}
+      >
+        {value}
+      </span>
+    );
+  };
+
+  const CustomTooltip: React.FC<TooltipProps<number, string>> = (props) => {
+    const { active, payload, label } = props as TooltipProps<number, string> & {
+      payload?: { payload: any }[];
+      label: string;
+    };
+    if (!active || !payload || !payload.length) return null;
+
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          p: 1.5,
+          borderRadius: customStyles.tooltipBorderRadius,
+          backgroundColor: customStyles.tooltipBackgroundColor,
+          border: `1px solid ${customStyles.tooltipBorderColor}`,
+          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: customStyles.fontFamily,
+            fontSize: customStyles.tooltipTitleFontSize,
+            fontWeight: customStyles.tooltipDarkFontWeight,
+            color: customStyles.tooltipFontColor,
+            mb: 0.5,
+          }}
+        >
+          {label}
+        </Typography>
+        {payload.map((entry: any, index: number) => (
+          <Stack key={index} direction={"row"} gap={0.5}>
+            <Typography
+              sx={{
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.tooltipTextFontSize,
+                fontWeight: customStyles.tooltipLightFontWeight,
+                color: customStyles.tooltipFontColor,
+                lineHeight: 1.6,
+              }}
+            >
+              {entry.name}:
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.tooltipTextFontSize,
+                fontWeight: customStyles.tooltipDarkFontWeight,
+                color: customStyles.tooltipFontColor,
+                lineHeight: 1.6,
+              }}
+            >
+              {Number(entry.value)}
+            </Typography>
+          </Stack>
+        ))}
+      </Paper>
+    );
   };
 
   return (
@@ -72,24 +144,51 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
               if (!e?.activeLabel) setSelectedAsset(null);
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid horizontal={false} vertical={true} />
 
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="applicationName" width={200} />
-            <Tooltip
-              formatter={(value: number) => `${value}`}
-              labelStyle={{ fontWeight: "bold" }}
+            <XAxis
+              type="number"
+              height={70}
+              tick={{
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.xAxisTicks.fontSize,
+                fontWeight: customStyles.xAxisTicks.fontWeight,
+              }}
+              label={{
+                value: "Control Strength",
+                angle: 0,
+                position: "outsideCentre",
+                style: {
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.xAxisLabels.fontSize,
+                  fontWeight: customStyles.xAxisLabels.fontWeight,
+                },
+              }}
             />
+            <YAxis
+              type="category"
+              dataKey="applicationName"
+              width={200}
+              tick={{
+                color: customStyles.fontColor,
+                fontFamily: customStyles.fontFamily,
+                fontSize: customStyles.yAxisTicks.fontSize,
+                fontWeight: customStyles.yAxisTicks.fontWeight,
+              }}
+            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend formatter={legendFormatter} />
 
             {/* Control Strength Bar */}
             <Bar
               dataKey="controlStrength"
-              name="Control Strength"
+              name="Current Control Strength"
               fill="#12229d"
               shape={<CustomBar />}
               isAnimationActive={false}
-              barSize={24}
+              barSize={customStyles.barSize}
             />
 
             {/* Target Strength Bar */}
@@ -99,7 +198,7 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
               fill="#6f80eb"
               shape={<CustomBar />}
               isAnimationActive={false}
-              barSize={24}
+              barSize={customStyles.barSize}
             />
           </BarChart>
         </ResponsiveContainer>
