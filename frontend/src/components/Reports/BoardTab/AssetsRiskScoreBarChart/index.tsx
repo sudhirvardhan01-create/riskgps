@@ -152,7 +152,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
 
           <YAxis
             label={{
-              value: "Risk Score (in Billion USD)",
+              value: "Impact (in Billion USD)",
               angle: -90,
               position: "insideCentre",
               style: {
@@ -178,7 +178,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
           {/* Inherent Risk Score */}
           <Bar
             dataKey="inherentRiskScore"
-            name="Inherent Risk Score"
+            name="Inherent Impact"
             fill="#12229d"
             isAnimationActive={false}
             barSize={customStyles.barSize}
@@ -188,7 +188,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
           {/* Net Risk Score */}
           <Bar
             dataKey="netRiskScore"
-            name="Residual Risk Score"
+            name="Residual Impact"
             fill="#6f80eb"
             isAnimationActive={false}
             barSize={customStyles.barSize}

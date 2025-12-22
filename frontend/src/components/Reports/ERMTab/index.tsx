@@ -43,6 +43,9 @@ const ERMTab: React.FC<Props> = ({
   //   useState<string>("All");
   const [selectedProcessTableChart, setSelectedProcessTableChart] =
     useState<string>("All");
+  // const [filteredTopRiskScenarios, setFilteredTopRiskScenarios] =
+  //   useState<any[]>(topRiskScenarios);
+  // const [filteredTopAssets, setFilteredTopAssets] = useState<any[]>(topAssets);
 
   useEffect(() => {
     let filtered = [...riskScenariosTableChartData];
@@ -59,12 +62,34 @@ const ERMTab: React.FC<Props> = ({
       );
     }
 
+    if (selectedBusinessUnit !== "All") {
+      filtered = filtered.filter(
+        (item) => item.businessUnit === selectedBusinessUnit
+      );
+    }
+
     setRiskScenariosTableChart(filtered);
   }, [
     // selectedCIATableChart,
     selectedProcessTableChart,
+    selectedBusinessUnit,
     riskScenariosTableChartData,
   ]);
+
+  // useEffect(() => {
+  //   let filteredRiskScenarios = [...filteredTopRiskScenarios];
+  //   let filteredAssets = [...filteredTopAssets];
+  //   if (selectedBusinessUnit !== "All") {
+  //     filteredRiskScenarios = filteredRiskScenarios.filter(
+  //       (item) => item.businessUnit === selectedBusinessUnit
+  //     );
+  //     filteredAssets = filteredAssets.filter(
+  //       (i) => i.businessUnit === selectedBusinessUnit
+  //     );
+  //   }
+  //   setFilteredTopRiskScenarios(filteredRiskScenarios);
+  //   setFilteredTopAssets(filteredAssets);
+  // }, [selectedBusinessUnit, topRiskScenarios, topAssets]);
 
   const processesForDropdown = [
     ...new Set(riskScenariosTableChartData.map((i) => i.businessProcess)),
@@ -194,7 +219,13 @@ const ERMTab: React.FC<Props> = ({
                 {constants.topRiskScenarios}
               </Typography>
               <VerticalSingleBarChart
-                data={topRiskScenarios}
+                data={
+                  selectedBusinessUnit === "All"
+                    ? topRiskScenarios
+                    : topRiskScenarios.filter(
+                        (i) => i.businessUnit === selectedBusinessUnit
+                      )
+                }
                 labelYAxis="Residual Risk Score"
                 height={380}
                 labelXAxis="Risk Scenarios"
@@ -222,7 +253,13 @@ const ERMTab: React.FC<Props> = ({
                 {constants.topAssets}
               </Typography>
               <VerticalSingleBarChart
-                data={topAssets}
+                data={
+                  selectedBusinessUnit === "All"
+                    ? topAssets
+                    : topAssets.filter(
+                        (i) => i.businessUnit === selectedBusinessUnit
+                      )
+                }
                 labelYAxis="Residual Risk Score"
                 height={380}
                 barColor="#233dff"

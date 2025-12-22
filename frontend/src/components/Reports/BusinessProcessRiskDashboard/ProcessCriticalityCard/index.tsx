@@ -56,16 +56,26 @@ const ProcessCriticalityCard: React.FC<ProcessCriticalityCardProps> = ({
           }}
         >
           {names.length !== 0 ? (
-            names.map((i, index) => (
+            <>
               <Typography
                 variant="body2"
                 color={customStyles.tooltipFontColor}
-                key={index}
-                fontWeight={customStyles.tooltipLightFontWeight}
+                fontWeight={customStyles.tooltipDarkFontWeight}
+                sx={{ mb: 0.5 }}
               >
-                {index + 1}. {i}
+                {module}:
               </Typography>
-            ))
+              {names.map((i, index) => (
+                <Typography
+                  variant="body2"
+                  color={customStyles.tooltipFontColor}
+                  key={index}
+                  fontWeight={customStyles.tooltipLightFontWeight}
+                >
+                  {index + 1}. {i}
+                </Typography>
+              ))}
+            </>
           ) : (
             <Typography
               variant="body2"

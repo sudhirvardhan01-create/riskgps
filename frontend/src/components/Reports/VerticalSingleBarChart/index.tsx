@@ -131,7 +131,7 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
                 lineHeight: 1.6,
               }}
             >
-              $ {Number(entry.value).toFixed(2)} Bn
+              {Number(entry.value)}
             </Typography>
           </Stack>
         ))}

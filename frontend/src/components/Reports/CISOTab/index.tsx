@@ -197,6 +197,8 @@ const CISOTab: React.FC<CISOTabProps> = ({
     },
   ];
 
+  console.log(assetData);
+
   return (
     <>
       <Stack
@@ -311,7 +313,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
             ))}
           </Grid>
         </Paper>
-        <Grid size={12}>
+        {/* <Grid size={12}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {Array.from(
               new Map(assetLevelReportsData.map((a) => [a.assetId, a])).values()
@@ -329,7 +331,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
               />
             ))}
           </Stack>
-        </Grid>
+        </Grid> */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 7 }}>
             <Paper
@@ -352,7 +354,65 @@ const CISOTab: React.FC<CISOTabProps> = ({
               >
                 {constants.assetControlFamilyLineChart}
               </Typography>
-              <AssetControlFamilyLineChart asset={selectedAsset} />
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: "#fff",
+                  borderRadius: 3,
+                  width: "100%",
+                  height: 450,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Stack direction={"row"} justifyContent={"space-between"}>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    textAlign="left"
+                    color="text.primary"
+                  >
+                    {
+                      assetLevelReportsData.find(
+                        (i) => i.assetId === selectedAssetId
+                      )?.asset
+                    }
+                  </Typography>
+                  <FormControl variant="outlined" sx={{ width: "200px" }}>
+                    <InputLabel
+                      id="asset-label"
+                      shrink
+                      sx={{ backgroundColor: "#fff" }}
+                    >
+                      Asset
+                    </InputLabel>
+                    <Select
+                      labelId="asset-label"
+                      value={selectedAssetId}
+                      onChange={(e) => {
+                        setSelectedAssetId(e.target.value);
+                      }}
+                      sx={{
+                        borderRadius: "8px",
+                        height: "40px",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {Array.from(
+                        new Map(
+                          assetLevelReportsData.map((a) => [a.assetId, a])
+                        ).values()
+                      ).map((asset) => (
+                        <MenuItem value={asset.assetId} key={asset.assetId}>
+                          {asset.asset}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+                <AssetControlFamilyLineChart asset={selectedAsset} />
+              </Paper>
             </Paper>
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
@@ -406,7 +466,13 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 {constants.topAssets}
               </Typography>
               <VerticalSingleBarChart
-                data={topAssets}
+                data={
+                  selectedBusinessUnit === "All"
+                    ? topAssets
+                    : topAssets.filter(
+                        (i) => i.businessUnit === selectedBusinessUnit
+                      )
+                }
                 labelYAxis="Residual Risk Score"
                 height={460}
                 labelXAxis="Assets"
@@ -433,7 +499,15 @@ const CISOTab: React.FC<CISOTabProps> = ({
               >
                 {constants.riskPrioritisedAssetChart}
               </Typography>
-              <AssetsRiskScoreBarChart data={riskPrioritisedAssets} />
+              <AssetsRiskScoreBarChart
+                data={
+                  selectedBusinessUnit === "All"
+                    ? riskPrioritisedAssets
+                    : riskPrioritisedAssets.filter(
+                        (i) => i.businessUnit === selectedBusinessUnit
+                      )
+                }
+              />
             </Paper>
           </Grid>
           <Grid size={12}>
