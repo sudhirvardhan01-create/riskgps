@@ -121,6 +121,9 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "critical"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "critical")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.700",
@@ -131,6 +134,9 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "high"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "high")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.500",
@@ -141,6 +147,9 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "moderate"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "moderate")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.300",
@@ -151,6 +160,9 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "low"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "low")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.100",
@@ -161,6 +173,9 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "very low"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "very low")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "#e0ecedff",
@@ -169,6 +184,7 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
       cardText: "Total",
       cardTextColor: "#214f73",
       processesCount: processes.length,
+      names: processes.map((i) => i.processName),
     },
   ];
 
@@ -280,6 +296,8 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
                   cardText={item.cardText}
                   cardTextColor={item.cardTextColor}
                   processesCount={item.processesCount}
+                  names={item.names}
+                  module="Processes"
                 />
               </Grid>
             ))}
@@ -311,8 +329,6 @@ const ProcessTab: React.FC<ProcessTabProps> = ({
                 xAxisLabel="Severity Level"
                 yAxisLabel="Business Unit"
                 xOrder={severityOrder}
-                width={530}
-                height={400}
               />
             </Paper>
           </Grid>

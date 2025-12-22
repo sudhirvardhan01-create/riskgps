@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
-  Box,
   List,
   ListItem,
   ListItemText,
@@ -14,6 +13,7 @@ import {
 } from "@mui/material";
 import type { LatLngExpression } from "leaflet";
 import { Asset } from "@/types/assessment";
+import { customStyles } from "@/styles/customStyles";
 
 // ✅ Dynamic imports to avoid SSR errors
 const MapContainer = dynamic(
@@ -101,10 +101,35 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
   };
 
   // ✅ More distinct color mapping (blue → red)
+  // const getColor = (v: number): string => {
+  //   const intensity = (v - minVal) / (maxVal - minVal || 1);
+  //   const hue = 200 - intensity * 160;
+  //   return `hsl(${hue}, 75%, 55%)`;
+  // };
+
+  const COLOR_SHADES = [
+    "#5cb6f9",
+    "#0693e3",
+    "#3B82F6",
+    "#6f80eb",
+    "#8B5CF6",
+    "#233dff",
+    "#12229d",
+  ] as const;
+
   const getColor = (v: number): string => {
-    const intensity = (v - minVal) / (maxVal - minVal || 1);
-    const hue = 200 - intensity * 160;
-    return `hsl(${hue}, 75%, 55%)`;
+    if (maxVal === minVal) {
+      return COLOR_SHADES[0];
+    }
+
+    const normalized = (v - minVal) / (maxVal - minVal);
+
+    const index = Math.min(
+      COLOR_SHADES.length - 1,
+      Math.floor(normalized * COLOR_SHADES.length)
+    );
+
+    return COLOR_SHADES[index];
   };
 
   return (
@@ -186,10 +211,14 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
                   sx={{ display: "flex", alignItems: "start" }}
                 >
                   <Typography
-                    variant="subtitle2"
-                    fontWeight="bold"
                     gutterBottom
-                    sx={{ pl: 2 }}
+                    sx={{
+                      pl: 2,
+                      fontFamily: customStyles.fontFamily,
+                      fontSize: customStyles.tooltipTitleFontSize,
+                      fontWeight: customStyles.tooltipDarkFontWeight,
+                      color: customStyles.tooltipFontColor,
+                    }}
                   >
                     {item.name}
                   </Typography>
@@ -201,7 +230,12 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
                         <ListItem key={index} sx={{ py: 0.25 }}>
                           <ListItemText
                             primary={x.applicationName}
-                            primaryTypographyProps={{ fontSize: "0.8rem" }}
+                            primaryTypographyProps={{
+                              fontFamily: customStyles.fontFamily,
+                              fontSize: customStyles.tooltipTextFontSize,
+                              fontWeight: customStyles.tooltipLightFontWeight,
+                              color: customStyles.tooltipFontColor,
+                            }}
                           />
                         </ListItem>
                       ))}

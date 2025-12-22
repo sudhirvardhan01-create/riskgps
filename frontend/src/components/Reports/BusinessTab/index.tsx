@@ -20,6 +20,8 @@ import InfoIcon from "@mui/icons-material/Info";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
+import { customStyles } from "@/styles/customStyles";
+import { constants } from "@/utils/constants";
 
 interface BusinessTabProps {
   riskExposureProcessChartData: RiskExposureByProcessChartItem[];
@@ -63,6 +65,9 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "critical"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "critical")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.700",
@@ -73,6 +78,9 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "high"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "high")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.500",
@@ -83,6 +91,9 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "moderate"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "moderate")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.300",
@@ -93,6 +104,9 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "low"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "low")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "primary.100",
@@ -103,6 +117,9 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
       processesCount: processes.filter(
         (item) => item.severity.toLowerCase() === "very low"
       ).length,
+      names: processes
+        .filter((item) => item.severity.toLowerCase() === "very low")
+        .map((i) => i.processName),
     },
     {
       cardBackgroundColor: "#e0ecedff",
@@ -111,6 +128,7 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
       cardText: "Total",
       cardTextColor: "#214f73",
       processesCount: processes.length,
+      names: processes.map((i) => i.processName),
     },
   ];
 
@@ -172,14 +190,21 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
         alignItems={"center"}
         mb={3}
       >
-        <FormControl variant="filled" sx={{ height: "48px", width: "200px" }}>
-          <InputLabel id="business-unit-label">Business Unit</InputLabel>
+        <FormControl variant="outlined" sx={{ height: "48px", width: "200px" }}>
+          <InputLabel
+            id="business-unit-label"
+            shrink
+            sx={{ backgroundColor: "#f5f5f5" }}
+          >
+            Business Unit
+          </InputLabel>
           <Select
             labelId="business-unit-label"
             value={selectedBusinessUnit}
             onChange={(e) => {
               setSelectedBusinessUnit(e.target.value);
             }}
+            sx={{ borderRadius: "8px" }}
           >
             {businessUnits.map((item, index) => (
               <MenuItem value={item} key={index}>
@@ -214,8 +239,9 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
             fontWeight={600}
             textAlign="left"
             sx={{ mb: 1 }}
+            color="text.primary"
           >
-            Process Criticality Overview
+            {constants.processCriticalityCardsChart}
           </Typography>
           <Grid container spacing={2}>
             {processCriticalityCardItems.map((item, index) => (
@@ -227,6 +253,8 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
                   cardText={item.cardText}
                   cardTextColor={item.cardTextColor}
                   processesCount={item.processesCount}
+                  names={item.names}
+                  module="Processes"
                 />
               </Grid>
             ))}
@@ -248,8 +276,9 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
             fontWeight={600}
             textAlign="left"
             sx={{ mb: 2 }}
+            color="text.primary"
           >
-            Risk Exposure by Business Process
+            {constants.moneyChart}
           </Typography>
           <Paper
             elevation={0}
@@ -281,11 +310,15 @@ const BusinessTab: React.FC<BusinessTabProps> = ({
                     <Typography
                       variant="body1"
                       fontWeight={600}
-                      color="text.primary"
+                      color={customStyles.fontColor}
                     >
                       {item.title}
                     </Typography>
-                    <Typography variant="body1" color="primary.main">
+                    <Typography
+                      variant="body1"
+                      color="primary.main"
+                      fontWeight={500}
+                    >
                       {item.value}
                     </Typography>
                   </Box>

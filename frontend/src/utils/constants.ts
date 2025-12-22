@@ -41,4 +41,23 @@ export const constants = {
   libQuestionnaireDescription:
     "Implement and manage security controls strategically, fortifying client assets against potential threats within the risk assessment framework.",
   allQuestionnaireTitle: "All Questionnaire",
+
+  //Charts Titles
+  processCriticalityCardsChart: "BU - Process Criticality Chart",
+  moneyChart: "BU - Money Chart",
+  buHeatmapChart: "Business Units(Y) vs Severity Levels(X)",
+  riskImpactRadarChart: "BU - Risk Impact Radar Chart",
+  topRiskScenarios: "Top Risk Scenarios",
+  topAssets: "Top Assets",
+  riskScenariosTableChart: "Detailed - Risk Scenarios Table",
+  assetCriticalityCardsChart: "BU - Asset Criticality Chart",
+  assetControlStrengthChart: "BU - Asset Control Strength Chart",
+  assetControlFamilyLineChart: "Org vs Asset Control Scores",
+  riskPrioritisedAssetChart: "BU - Risk Prioritised Asset Chart",
+  assetsTableChart: "Detailed - Assets Control Table",
+  assetsByGeography: "Concentration Risk - Assets by Geography",
+  assetsByProcess: "Concentration Risk - Assets by Process",
+  assetsByVendor: "Concentration Risk - Assets by Vendor",
+  assetsByNetwork: "Concentration Risk - Assets by Network",
+  orgTreeViewChart: "Process Topology",
 };

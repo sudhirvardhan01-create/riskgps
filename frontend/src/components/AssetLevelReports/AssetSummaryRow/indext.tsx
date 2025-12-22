@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import {
-  Box,
-  Paper,
-  Stack,
-  Typography,
-  Grid,
-} from "@mui/material";
+import { Box, Paper, Stack, Typography, Grid } from "@mui/material";
 import ReportIcon from "@mui/icons-material/Report";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import InfoIcon from "@mui/icons-material/Info";
@@ -16,12 +10,11 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import { AssetLevelReportsData } from "@/types/reports";
 
-
 interface AssetSummaryRowProps {
   assets: AssetLevelReportsData[];
 }
 
-const AssetSummaryRow: React.FC<AssetSummaryRowProps> = ({assets} ) => {
+const AssetSummaryRow: React.FC<AssetSummaryRowProps> = ({ assets }) => {
   const assetSummaryCardItems = useMemo(
     () => ({
       critical: assets.filter((a) => a.residualRiskLevel === "critical").length,
@@ -101,6 +94,7 @@ const AssetSummaryRow: React.FC<AssetSummaryRowProps> = ({assets} ) => {
         fontWeight={600}
         textAlign="left"
         sx={{ mb: 1 }}
+        color="text.primary"
       >
         Asset Criticality Overview
       </Typography>
@@ -149,7 +143,12 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
       opacity: 0.9,
     }}
   >
-    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
+    <Stack
+      direction="row"
+      justifyContent="space-between"
+      alignItems="center"
+      mb={0.5}
+    >
       {cardIcon}
       <Typography color={cardTextColor} fontWeight={600}>
         {processesCount}

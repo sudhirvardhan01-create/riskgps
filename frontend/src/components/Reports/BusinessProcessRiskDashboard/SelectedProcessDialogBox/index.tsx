@@ -84,7 +84,7 @@ const SelectedProcessDialogBox: React.FC<SelectedProcessDialogBoxProps> = ({
       onClose={() => {
         setSelectedProcess(null);
       }}
-      maxWidth="md"
+      maxWidth="xl"
       fullWidth
       slotProps={{
         paper: {

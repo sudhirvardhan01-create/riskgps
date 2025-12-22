@@ -236,7 +236,7 @@
 import { Box, Tab, Tabs, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { dashboardPageTabs } from "@/constants/constant";
+import { reportsPageTabs } from "@/constants/constant";
 import BoardTab from "@/components/Reports/BoardTab";
 import ERMTab from "@/components/Reports/ERMTab";
 import {
@@ -392,7 +392,7 @@ export default function DashboardContainer() {
           variant="scrollable"
           scrollButtons
         >
-          {dashboardPageTabs.map((item, index) => (
+          {reportsPageTabs.map((item, index) => (
             <Tab
               key={index}
               label={
