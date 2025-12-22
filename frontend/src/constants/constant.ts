@@ -128,8 +128,8 @@ export const dashboardPageTabs = [
     tabName: "Board",
     tabVlaue: 3,
   },
-  {
-    tabName: "NIST Score",
-    tabVlaue: 4,
-  },
+  // {
+  //   tabName: "Nist Score",
+  //   tabVlaue: 4,
+  // },
 ];

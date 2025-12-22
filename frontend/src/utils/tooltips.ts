@@ -84,6 +84,8 @@ export const tooltips = {
   scaleDes:
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula.",
 
+  NISTScoreTabLabel: "Organization NIST Scores",
+  NISTScoreTabDes: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo in urna at vehicula.",
   //Questionnaire
   questionnaireAssetCategory: "Select the Asset Category(s)",
   questionText: "Enter the question",
