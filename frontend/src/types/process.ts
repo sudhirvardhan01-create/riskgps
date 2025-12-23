@@ -34,4 +34,5 @@ export interface ProcessData {
   domain?: string[];
   lastUpdated?: Date;
   createdAt?: Date | string;
+  orgBusinessUnitId?: string | null; // Business unit ID if process is assigned to a business unit
 }
