@@ -795,7 +795,8 @@ export const deleteOrganizationAsset = async (
 
 export const deleteOrganizationProcess = async (
   orgId: string | undefined,
-  processIds: string[] | string | undefined
+  processIds: string[] | string | undefined,
+  businessUnitId?: string | undefined
 ) => {
   if (!orgId || !processIds) {
     throw new Error("Organization ID and Process ID(s) are required");
@@ -804,22 +805,60 @@ export const deleteOrganizationProcess = async (
   // Convert single ID to array for consistency
   const ids = Array.isArray(processIds) ? processIds : [processIds];
 
+  // Use business-unit route if businessUnitId is provided
+  const url = businessUnitId
+    ? `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${businessUnitId}/process`
+    : `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/process`;
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id: ids,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to delete organization process");
+  }
+
+  return response.json();
+};
+
+export const assignProcessesToBusinessUnit = async (
+  orgId: string | undefined,
+  businessUnitId: string | undefined,
+  processIds: string[]
+) => {
+  if (!orgId || !businessUnitId) {
+    throw new Error("Organization ID and Business Unit ID are required");
+  }
+
+  if (!Array.isArray(processIds) || processIds.length === 0) {
+    throw new Error("processIds must be a non-empty array");
+  }
+
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/process`,
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${orgId}/business-unit/${businessUnitId}/processes`,
     {
-      method: "DELETE",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        id: ids,
+        processIds: processIds,
       }),
     }
   );
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || "Failed to delete organization process");
+    throw new Error(
+      errorData.error || errorData.message || "Failed to assign processes to business unit"
+    );
   }
 
   return response.json();
