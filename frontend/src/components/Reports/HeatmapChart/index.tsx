@@ -128,8 +128,8 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
               tooltipRef.current.style.backgroundColor =
                 customStyles.tooltipBackgroundColor;
               tooltipRef.current.style.border = `1px solid ${customStyles.tooltipBorderColor}`;
-              tooltipRef.current.style.left = `${event.pageX + 10}px`;
-              tooltipRef.current.style.top = `${event.pageY - 10}px`;
+              tooltipRef.current.style.left = `${event.clientX + 10}px`;
+              tooltipRef.current.style.top = `${event.clientY - 10}px`;
               tooltipRef.current.innerHTML = `
                 <div style="margin-bottom: 4px; color: ${customStyles.tooltipFontColor}; font-weight: ${customStyles.tooltipDarkFontWeight}; font-size: ${customStyles.tooltipTitleFontSize}">${y}</div>
                 <div style="margin-bottom: 2px; color: ${customStyles.tooltipFontColor}; font-size: ${customStyles.tooltipTextFontSize}">${xAxisLabel}: <strong>${x}</strong></div>
@@ -139,8 +139,8 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
           })
           .on("mousemove", (event) => {
             if (tooltipRef.current) {
-              tooltipRef.current.style.left = `${event.pageX + 10}px`;
-              tooltipRef.current.style.top = `${event.pageY - 10}px`;
+              tooltipRef.current.style.left = `${event.clientX + 10}px`;
+              tooltipRef.current.style.top = `${event.clientY - 10}px`;
             }
           })
           .on("mouseleave", function () {

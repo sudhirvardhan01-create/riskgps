@@ -229,17 +229,17 @@ const AssetControlFamilyLineChart: React.FC<
           type="monotone"
           dataKey="orgCurrentScore"
           name="Org Current Score"
-          stroke="#233dff"
+          stroke="#6f80eb"
           strokeWidth={2}
-          dot={{ r: 4 }}
+          dot={false}
         />
         <Line
           type="monotone"
           dataKey="orgTargeScore"
           name="Org Target Score"
-          stroke="#6f80eb"
+          stroke="#5cb6f9"
           strokeWidth={2}
-          dot={{ r: 4 }}
+          dot={false}
         />
         <Line
           type="monotone"
@@ -247,7 +247,7 @@ const AssetControlFamilyLineChart: React.FC<
           name="Asset Current Score"
           stroke="#12229d"
           strokeWidth={2}
-          dot={{ r: 4 }}
+          dot={false}
         />
       </LineChart>
     </ResponsiveContainer>

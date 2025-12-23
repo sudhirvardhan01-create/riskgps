@@ -26,6 +26,7 @@ interface VerticalBarChartProps {
   maxLabelLength?: number; // For truncation
   labelYAxis?: string;
   labelXAxis?: string;
+  xAxisHeight?: number;
 }
 
 /** Truncate long labels */
@@ -77,6 +78,7 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
   maxLabelLength = 10,
   labelYAxis,
   labelXAxis,
+  xAxisHeight = 60,
 }) => {
   const CustomTooltip: React.FC<TooltipProps<number, string>> = (props) => {
     const { active, payload, label } = props as TooltipProps<number, string> & {
@@ -167,7 +169,7 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
 
           <XAxis
             dataKey="name"
-            height={60}
+            height={xAxisHeight}
             interval={0}
             tick={(props) => (
               <CustomXAxisTick {...props} maxLabelLength={maxLabelLength} />

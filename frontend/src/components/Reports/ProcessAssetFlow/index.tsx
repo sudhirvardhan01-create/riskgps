@@ -367,6 +367,7 @@ const ProcessAssetFlow = ({ data }: { data: any }) => {
           proOptions={{ hideAttribution: true }}
         >
           <MiniMap
+            position="top-left"
             nodeColor={(n) =>
               n.data.type === "process"
                 ? "#6f80eb"

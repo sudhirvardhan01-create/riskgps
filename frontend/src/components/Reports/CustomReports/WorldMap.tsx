@@ -14,7 +14,6 @@ import {
 import type { LatLngExpression } from "leaflet";
 import { Asset } from "@/types/assessment";
 import { customStyles } from "@/styles/customStyles";
-import SeverityScale from "../SeverityScale";
 import LegendScale from "../LegendScale";
 
 // ✅ Dynamic imports to avoid SSR errors

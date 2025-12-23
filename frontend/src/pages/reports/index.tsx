@@ -251,7 +251,7 @@ import { getOrganizationAssets } from "@/pages/api/organization";
 import { OrganizationFrameworkControl } from "@/types/reports";
 import NistControlScoreCardList from "@/components/NistScore/NistScoreInput";
 import {
-  getRiskPrioritisedAssetsData,
+  getAssetsImpactAndRiskData,
   getTopOrgRiskScenariosAssets,
 } from "../api/reports";
 
@@ -274,9 +274,9 @@ export default function DashboardContainer() {
   >([]);
   const [topRiskScenarios, setTopRiskScenarios] = useState<any[]>([]);
   const [topAssets, setTopAssets] = useState<any[]>([]);
-  const [riskPrioritisedAssetsData, setRiskPrioritisedAssetsData] = useState<
-    any[]
-  >([]);
+  const [assetsImpactAndRiskData, setAssetsImpactAndRiskData] = useState<any[]>(
+    []
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -303,7 +303,7 @@ export default function DashboardContainer() {
           businessUnitRadarChartRes,
           assetRes,
           topRiskScenariosAssetsRes,
-          riskPrioritisedAssetsRes,
+          assetsImpactAndRiskRes,
         ] = await Promise.all([
           DashboardService.getRiskExposureBusinessProcessChartData(orgId),
           DashboardService.getRiskScenariosTableChartData(orgId),
@@ -311,7 +311,7 @@ export default function DashboardContainer() {
           DashboardService.getBusinessUnitRadarChartData(orgId),
           getOrganizationAssets(orgId),
           getTopOrgRiskScenariosAssets(orgId),
-          getRiskPrioritisedAssetsData(orgId),
+          getAssetsImpactAndRiskData(orgId),
         ]);
         setRiskExposureProcessChartData(riskExposureProcessChartRes.data ?? []);
         setRiskScenariosTableChartData(riskScenarioTableChartRes.data ?? []);
@@ -320,7 +320,7 @@ export default function DashboardContainer() {
         setAssetData(assetRes.data ?? []);
         setTopRiskScenarios(topRiskScenariosAssetsRes.data.riskScenarios ?? []);
         setTopAssets(topRiskScenariosAssetsRes.data.assets ?? []);
-        setRiskPrioritisedAssetsData(riskPrioritisedAssetsRes.data ?? []);
+        setAssetsImpactAndRiskData(assetsImpactAndRiskRes.data ?? []);
       } catch (error) {
         console.error("Error fetching reports data:", error);
       }
@@ -441,7 +441,7 @@ export default function DashboardContainer() {
             <CISOTab
               assetData={assetData}
               topAssets={topAssets}
-              riskPrioritisedAssets={riskPrioritisedAssetsData}
+              impactAndRiskPrioritisedAssets={assetsImpactAndRiskData}
             />
           </>
         )}

@@ -239,6 +239,7 @@ const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
           {/* Process Description field */}
           <Grid mt={1} size={{ xs: 12 }}>
             <TextFieldStyled /// text
+              required
               multiline
               minRows={1}
               label={labels.processDescription}

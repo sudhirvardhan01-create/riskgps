@@ -1,6 +1,5 @@
 import {
   Box,
-  Chip,
   FormControl,
   Grid,
   InputLabel,
@@ -41,13 +40,13 @@ const PieChartComponent = dynamic(() => import("../CustomReports/PieChart"), {
 interface CISOTabProps {
   assetData: any;
   topAssets: any[];
-  riskPrioritisedAssets: any[];
+  impactAndRiskPrioritisedAssets: any;
 }
 
 const CISOTab: React.FC<CISOTabProps> = ({
   assetData,
   topAssets,
-  riskPrioritisedAssets,
+  impactAndRiskPrioritisedAssets,
 }) => {
   const [orgId, setOrgId] = useState<string | null>();
   const [selectedBusinessUnit, setSelectedBusinessUnit] =
@@ -110,7 +109,21 @@ const CISOTab: React.FC<CISOTabProps> = ({
     fetchData();
   }, [orgId, selectedBusinessUnit]);
 
-  console.log(assetData);
+  const impactPrioritisedAssetsFormatted =
+    impactAndRiskPrioritisedAssets?.assetRiskScoreinMillionDollar.map(
+      (i: any) => ({
+        ...i,
+        bar1Value: i.inherentRiskScore / 1_000_000_000,
+        bar2Value: i.netRiskScore / 1_000_000_000,
+      })
+    );
+
+  const riskPrioritisedAssetsFormatted =
+    impactAndRiskPrioritisedAssets?.assetRiskScore.map((i: any) => ({
+      ...i,
+      bar1Value: i.inherentRiskScore,
+      bar2Value: i.netRiskScore,
+    }));
 
   const selectedAsset =
     assetLevelReportsData.find((a) => a.assetId === selectedAssetId) ??
@@ -198,8 +211,6 @@ const CISOTab: React.FC<CISOTabProps> = ({
       names: assets.map((i) => i.asset),
     },
   ];
-
-  console.log(assetData);
 
   return (
     <>
@@ -467,17 +478,19 @@ const CISOTab: React.FC<CISOTabProps> = ({
               >
                 {constants.riskPrioritisedAssetChart}
               </Typography>
-              <VerticalSingleBarChart
+              <AssetsRiskScoreBarChart
                 data={
                   selectedBusinessUnit === "All"
-                    ? topAssets
-                    : topAssets.filter(
-                        (i) => i.businessUnit === selectedBusinessUnit
+                    ? riskPrioritisedAssetsFormatted
+                    : riskPrioritisedAssetsFormatted.filter(
+                        (i: any) => i.businessUnit === selectedBusinessUnit
                       )
                 }
-                labelYAxis="Residual Risk Score"
-                height={460}
-                labelXAxis="Assets"
+                bar1Label="Inherent Risk Score"
+                bar2Label="Residual Risk Score"
+                dataConvertedIntoBillion={false}
+                yAxisLabel="Risk Score"
+                xAxisHeight={30}
               />
             </Paper>
           </Grid>
@@ -504,11 +517,16 @@ const CISOTab: React.FC<CISOTabProps> = ({
               <AssetsRiskScoreBarChart
                 data={
                   selectedBusinessUnit === "All"
-                    ? riskPrioritisedAssets
-                    : riskPrioritisedAssets.filter(
-                        (i) => i.businessUnit === selectedBusinessUnit
+                    ? impactPrioritisedAssetsFormatted
+                    : impactPrioritisedAssetsFormatted.filter(
+                        (i: any) => i.businessUnit === selectedBusinessUnit
                       )
                 }
+                bar1Label="Inherent Impact"
+                bar2Label="Residual Impact"
+                dataConvertedIntoBillion={true}
+                yAxisLabel="Impact (in Billion USD)"
+                xAxisHeight={30}
               />
             </Paper>
           </Grid>

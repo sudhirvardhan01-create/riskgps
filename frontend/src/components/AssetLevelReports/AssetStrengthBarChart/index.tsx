@@ -164,7 +164,7 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({
           />
           <ReferenceLine
             x={avgCurrent}
-            stroke="#233dff"
+            stroke="#6f80eb"
             strokeWidth={2}
             label={{
               value: `Current Score: ${avgCurrent.toFixed(2)}`,
@@ -176,7 +176,7 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({
           />
           <ReferenceLine
             x={targetScore}
-            stroke="#6f80eb"
+            stroke="#5cb6f9"
             strokeWidth={2}
             label={{
               value: `Target Score: ${targetScore.toFixed(2)}`,

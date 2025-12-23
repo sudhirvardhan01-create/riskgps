@@ -13,25 +13,27 @@ import {
   TooltipProps,
 } from "recharts";
 
-interface AssetRiskScoreItem {
-  assetName: string;
-  inherentRiskScore: number;
-  netRiskScore: number;
-}
-
 interface Props {
-  data: AssetRiskScoreItem[];
+  data: any[];
+  bar1Label: string;
+  bar2Label: string;
+  dataConvertedIntoBillion: boolean;
   height?: number;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  xAxisHeight?: number;
 }
 
-const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
-  // Convert raw values into billions
-  const formattedData = data?.map((item) => ({
-    ...item,
-    inherentRiskScore: item.inherentRiskScore / 1_000_000_000,
-    netRiskScore: item.netRiskScore / 1_000_000_000,
-  }));
-
+const AssetsRiskScoreBarChart: React.FC<Props> = ({
+  data,
+  height = 460,
+  bar1Label,
+  bar2Label,
+  xAxisLabel,
+  yAxisLabel,
+  xAxisHeight = 70,
+  dataConvertedIntoBillion = false,
+}) => {
   const legendFormatter = (value: any, entry: any, index: any) => {
     // You can apply different colors based on the value or index if needed
     return (
@@ -99,7 +101,9 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
                 lineHeight: 1.6,
               }}
             >
-              $ {Number(entry.value).toFixed(2)} Bn
+              {dataConvertedIntoBillion
+                ? `$ ${Number(entry.value).toFixed(2)} Bn`
+                : Number(entry.value)}
             </Typography>
           </Stack>
         ))}
@@ -122,7 +126,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
     >
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={formattedData}
+          data={data}
           margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
         >
           <CartesianGrid
@@ -133,7 +137,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
 
           <XAxis
             dataKey="assetName"
-            height={70}
+            height={xAxisHeight}
             tickMargin={2}
             tick={{
               color: customStyles.fontColor,
@@ -142,7 +146,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
               fontWeight: customStyles.xAxisTicks.fontWeight,
             }}
             label={{
-              value: "Assets",
+              value: xAxisLabel,
               angle: 0,
               position: "outsideCentre",
               style: {
@@ -156,7 +160,7 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
 
           <YAxis
             label={{
-              value: "Impact (in Billion USD)",
+              value: yAxisLabel,
               angle: -90,
               position: "insideCentre",
               style: {
@@ -181,8 +185,8 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
 
           {/* Inherent Risk Score */}
           <Bar
-            dataKey="inherentRiskScore"
-            name="Inherent Impact"
+            dataKey="bar1Value"
+            name={bar1Label}
             fill="#12229d"
             isAnimationActive={false}
             barSize={customStyles.barSize}
@@ -191,8 +195,8 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({ data, height = 460 }) => {
 
           {/* Net Risk Score */}
           <Bar
-            dataKey="netRiskScore"
-            name="Residual Impact"
+            dataKey="bar2Value"
+            name={bar2Label}
             fill="#6f80eb"
             isAnimationActive={false}
             barSize={customStyles.barSize}
