@@ -3,11 +3,22 @@ name: Docker Build, Scan, and Push to AWS ECR
 on:
   push:
     branches:
+      - dev
       - main
     paths:
       - "frontend/**"
       - "backend/**"
+      - ".github/workflows/release.yml"
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment to build and push'
+        required: true
+        type: choice
+        default: 'dev'
+        options:
+          - dev
+          - prod
 
 permissions:
   id-token: write
@@ -15,13 +26,36 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  SSM_EC2_CREDENTIALS: /bluocean/ec2/credentials
-  SSM_CREDS: /bluocean/creds
 
 jobs:
+  determine-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      run-tests: ${{ steps.set-env.outputs.run-tests }}
+    steps:
+      - name: Determine environment based on branch
+        id: set-env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "run-tests=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+            echo "run-tests=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+            echo "run-tests=false" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+            echo "run-tests=true" >> $GITHUB_OUTPUT
+          fi
+          echo "Branch: ${{ github.ref }}, Environment: $(cat /tmp/env.txt 2>/dev/null || echo 'unknown')"
+
   get-services:
     name: Get Services from SSM
     runs-on: ubuntu-latest
+    needs: determine-environment
     outputs:
       services: ${{ steps.set-services.outputs.services }}
     steps:
@@ -37,24 +71,53 @@ jobs:
       - name: Get ECR Repository URLs
         id: set-services
         run: |
+          SSM_EC2_CREDENTIALS="/bluocean/ec2/credentials/${{ needs.determine-environment.outputs.environment }}"
           CREDENTIALS=$(aws ssm get-parameter \
-            --name "${{ env.SSM_EC2_CREDENTIALS }}" \
+            --name "$SSM_EC2_CREDENTIALS" \
             --region ${{ env.AWS_REGION }} \
             --with-decryption \
             --query Parameter.Value \
             --output text)
           SERVICES=$(echo "$CREDENTIALS" | jq -c '[.ecr_registry_repository_url[] | split("/")[1] | sub("^riskgps-"; "")] | select(length > 0)')
           if [ -z "$SERVICES" ] || [ "$SERVICES" = "[]" ]; then
-            echo "Error: No services found in ecr_registry_repository_url"
+            echo "Error: No services found in ecr_registry_repository_url for ${{ needs.determine-environment.outputs.environment }} environment"
             exit 1
           fi
           echo "Raw SERVICES: $SERVICES"
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
+  run-tests:
+    name: Run Tests (Dev Branch)
+    runs-on: ubuntu-latest
+    needs: [get-services, determine-environment]
+    if: needs.determine-environment.outputs.run-tests == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.get-services.outputs.services) }}
+    defaults:
+      run:
+        working-directory: ./${{ matrix.service }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --passWithNoTests
+
   scan-files:
     name: Scan Source Files with Trivy
     runs-on: ubuntu-latest
-    needs: get-services
+    needs: [get-services, determine-environment]
     strategy:
       matrix:
         service: ${{ fromJson(needs.get-services.outputs.services) }}
@@ -86,7 +149,10 @@ jobs:
   build-scan-push:
     name: Build, Scan, and Push Docker Image
     runs-on: ubuntu-latest
-    needs: [scan-files, get-services]
+    needs: [scan-files, get-services, determine-environment, run-tests]
+    if: |
+      always() &&
+      (needs.run-tests.result == 'success' || needs.run-tests.result == 'skipped')
     strategy:
       matrix:
         service: ${{ fromJson(needs.get-services.outputs.services) }}
@@ -105,8 +171,10 @@ jobs:
 
       - name: Get ECR Repository URLs and Versioning from SSM
         run: |
+          SSM_EC2_CREDENTIALS="/bluocean/ec2/credentials/${{ needs.determine-environment.outputs.environment }}"
+          SSM_CREDS="/bluocean/creds/${{ needs.determine-environment.outputs.environment }}"
           CREDENTIALS=$(aws ssm get-parameter \
-            --name "${{ env.SSM_EC2_CREDENTIALS }}" \
+            --name "$SSM_EC2_CREDENTIALS" \
             --region ${{ env.AWS_REGION }} \
             --with-decryption \
             --query Parameter.Value \
@@ -115,7 +183,7 @@ jobs:
           REPO_NAME=riskgps-${{ matrix.service }}
           ECR_IMAGE=$(echo $CREDENTIALS | jq -r ".ecr_registry_repository_url[] | select(contains(\"$REPO_NAME\"))")
           CREDS=$(aws ssm get-parameter \
-            --name "${{ env.SSM_CREDS }}" \
+            --name "$SSM_CREDS" \
             --region ${{ env.AWS_REGION }} \
             --with-decryption \
             --query Parameter.Value \
@@ -123,11 +191,12 @@ jobs:
           MAJOR_VERSION=$(echo "$CREDS" | grep '^MAJOR_VERSION=' | cut -d '=' -f 2)
           MINOR_VERSION=$(echo "$CREDS" | grep '^MINOR_VERSION=' | cut -d '=' -f 2)
           if [ -z "$MAJOR_VERSION" ] || [ -z "$MINOR_VERSION" ]; then
-            echo "Error: MAJOR_VERSION or MINOR_VERSION not found in /bluocean/creds"
+            echo "Error: MAJOR_VERSION or MINOR_VERSION not found in $SSM_CREDS"
             exit 1
           fi
           echo "MAJOR_VERSION: $MAJOR_VERSION"
           echo "MINOR_VERSION: $MINOR_VERSION"
+          echo "ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}"
           echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
           echo "MINOR_VERSION=$MINOR_VERSION" >> $GITHUB_ENV
           echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
@@ -163,3 +232,26 @@ jobs:
         run: |
           docker tag ${{ env.IMAGE_NAME }} ${{ env.ECR_IMAGE }}
           docker push ${{ env.ECR_IMAGE }}
+
+  workflow-summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: [build-scan-push, determine-environment]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## Docker Build and Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ needs.determine-environment.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tests Run**: ${{ needs.determine-environment.outputs.run-tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ needs.build-scan-push.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Details:**" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.determine-environment.outputs.environment }}" == "dev" ]]; then
+            echo "✅ Built and pushed to **DEV** ECR repository with tests" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Built and pushed to **PROD** ECR repository (no tests)" >> $GITHUB_STEP_SUMMARY
+          fi
