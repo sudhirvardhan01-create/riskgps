@@ -59,10 +59,16 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({
 
   const CustomTooltip: React.FC<TooltipProps<number, string>> = (props) => {
     const { active, payload, label } = props as TooltipProps<number, string> & {
-      payload?: { payload: any }[];
+      payload?: any[];
       label: string;
     };
     if (!active || !payload || !payload.length) return null;
+
+    const bar1 = payload[0]?.value ?? 0;
+    const bar2 = payload[1]?.value ?? 0;
+
+    const diff = bar1 - bar2;
+    const diffAbs = Math.abs(diff);
 
     return (
       <Paper
@@ -114,6 +120,30 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({
             </Typography>
           </Stack>
         ))}
+        {/* Difference */}
+        <Stack direction="row" gap={0.5}>
+          <Typography
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTextFontSize,
+              fontWeight: customStyles.tooltipLightFontWeight,
+              color: customStyles.tooltipFontColor,
+            }}
+          >
+            Difference:
+          </Typography>
+
+          <Typography
+            sx={{
+              fontFamily: customStyles.fontFamily,
+              fontSize: customStyles.tooltipTextFontSize,
+              fontWeight: customStyles.tooltipDarkFontWeight,
+              color: customStyles.tooltipFontColor,
+            }}
+          >
+            {dataConvertedIntoBillion ? `$ ${diffAbs.toFixed(2)} Bn` : diffAbs}
+          </Typography>
+        </Stack>
       </Paper>
     );
   };

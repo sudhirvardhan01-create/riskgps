@@ -521,7 +521,7 @@ module.exports = {
     const supportedValues = industryMetadata.supported_values;
 
     const organization = await Organization.findOne({
-      where: { name: "Default Org 1" },
+      where: { name: "Demo Org 1" },
     });
     if (!organization || !organization.organizationId) {
       throw new Error("Organization not found");

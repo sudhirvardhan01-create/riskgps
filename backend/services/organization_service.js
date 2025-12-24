@@ -1369,7 +1369,17 @@ class OrganizationService {
         ],
       });
 
-      const reportsTableData = await ReportsService.reportsTableData(orgId);
+      // Try to get reports data, but continue even if there's no reports data
+      let reportsTableData = [];
+      try {
+        reportsTableData = await ReportsService.reportsTableData(orgId);
+      } catch (err) {
+        // If there's no reports data, continue with empty array
+        // This allows assets to be returned even without reports data
+        console.log(
+          `No reports data found for org ${orgId}, continuing without asset criticality data`
+        );
+      }
       const assetMap = new Map();
       reportsTableData.map((item) => {
         const assetId = item.assetId ?? null;
