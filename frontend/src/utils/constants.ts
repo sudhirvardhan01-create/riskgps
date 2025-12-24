@@ -57,7 +57,7 @@ export const constants = {
   impactPrioritisedAssetChart: "BU - Impact Prioritised Asset Chart",
   assetsTableChart: "Detailed - Assets Controls Table",
   assetsByGeography: "Concentration Risk - Assets by Geography",
-  assetsByProcess: "Concentration Risk - Assets by Processes",
+  assetsByProcess: "Concentration Risk - Assets by Process",
   assetsByVendor: "Concentration Risk - Assets by Vendors",
   assetsByNetwork: "Concentration Risk - Assets by Networks",
   orgTreeViewChart: "Org - Processes and Assets Dependency View",
