@@ -11,7 +11,13 @@ import {
   ResponsiveContainer,
   TooltipProps,
 } from "recharts";
-import { Paper, Tooltip as MuiTooltip, Typography, Stack } from "@mui/material";
+import {
+  Paper,
+  Tooltip as MuiTooltip,
+  Typography,
+  Stack,
+  Box,
+} from "@mui/material";
 import { customStyles } from "@/styles/customStyles";
 
 export interface BarChartData {
@@ -26,6 +32,7 @@ interface VerticalBarChartProps {
   maxLabelLength?: number; // For truncation
   labelYAxis?: string;
   labelXAxis?: string;
+  xAxisHeight?: number;
 }
 
 /** Truncate long labels */
@@ -55,12 +62,15 @@ const CustomXAxisTick = ({
           dy={10}
           textAnchor="middle"
           fill={customStyles.fontColor}
+          color={customStyles.fontColor}
+          fontFamily={customStyles.fontFamily}
+          fontSize={customStyles.xAxisTicks.fontSize}
+          fontWeight={customStyles.xAxisTicks.fontWeight}
           style={{
-            color: customStyles.fontColor,
-            fontFamily: customStyles.fontFamily,
-            fontSize: customStyles.xAxisTicks.fontSize,
-            fontWeight: customStyles.xAxisTicks.fontWeight,
             cursor: "pointer",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           {truncatedLabel}
@@ -77,6 +87,7 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
   maxLabelLength = 10,
   labelYAxis,
   labelXAxis,
+  xAxisHeight = 60,
 }) => {
   const CustomTooltip: React.FC<TooltipProps<number, string>> = (props) => {
     const { active, payload, label } = props as TooltipProps<number, string> & {
@@ -139,14 +150,11 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
     );
   };
 
-  if (!data || data.length === 0)
-    return <p className="text-center text-gray-500">No data available</p>;
-
   return (
     <Paper
       elevation={0}
       sx={{
-        p: 2,
+        p: 2.5,
         backgroundColor: "#fff",
         borderRadius: 3,
         height,
@@ -154,67 +162,81 @@ const VerticalSingleBarChart: React.FC<VerticalBarChartProps> = ({
         flexDirection: "column",
       }}
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={data}
-          margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
-        >
-          <CartesianGrid horizontal={true} vertical={false} />
+      <Box sx={{ flexGrow: 1 }}>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+            >
+              <CartesianGrid
+                horizontal={true}
+                vertical={true}
+                strokeDasharray={"3 3"}
+              />
 
-          <XAxis
-            dataKey="name"
-            height={60}
-            interval={0}
-            tick={(props) => (
-              <CustomXAxisTick {...props} maxLabelLength={maxLabelLength} />
-            )}
-            label={{
-              value: labelXAxis,
-              angle: 0,
-              position: "outsideCentre",
-              style: {
-                color: customStyles.fontColor,
-                fontFamily: customStyles.fontFamily,
-                fontSize: customStyles.xAxisLabels.fontSize,
-                fontWeight: customStyles.xAxisLabels.fontWeight,
-              },
-            }}
-            // tickMargin={10}
-            // tick={{ fontSize: 12 }}
-          />
+              <XAxis
+                dataKey="name"
+                height={xAxisHeight}
+                interval={0}
+                tick={(props) => (
+                  <CustomXAxisTick {...props} maxLabelLength={maxLabelLength} />
+                )}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+                label={{
+                  value: labelXAxis,
+                  angle: 0,
+                  position: "outsideCentre",
+                  style: {
+                    color: customStyles.fontColor,
+                    fontFamily: customStyles.fontFamily,
+                    fontSize: customStyles.xAxisLabels.fontSize,
+                    fontWeight: customStyles.xAxisLabels.fontWeight,
+                  },
+                }}
+                // tickMargin={10}
+                // tick={{ fontSize: 12 }}
+              />
 
-          <YAxis
-            label={{
-              value: labelYAxis,
-              angle: -90,
-              position: "insideCentre",
-              style: {
-                color: customStyles.fontColor,
-                fontFamily: customStyles.fontFamily,
-                fontSize: customStyles.yAxisLabels.fontSize,
-                fontWeight: customStyles.yAxisLabels.fontWeight,
-              },
-            }}
-            width={100}
-            tick={{
-              color: customStyles.fontColor,
-              fontFamily: customStyles.fontFamily,
-              fontSize: customStyles.yAxisTicks.fontSize,
-              fontWeight: customStyles.yAxisTicks.fontWeight,
-            }}
-          />
+              <YAxis
+                label={{
+                  value: labelYAxis,
+                  angle: -90,
+                  position: "insideCentre",
+                  style: {
+                    color: customStyles.fontColor,
+                    fontFamily: customStyles.fontFamily,
+                    fontSize: customStyles.yAxisLabels.fontSize,
+                    fontWeight: customStyles.yAxisLabels.fontWeight,
+                  },
+                }}
+                width={100}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.yAxisTicks.fontSize,
+                  fontWeight: customStyles.yAxisTicks.fontWeight,
+                }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+              />
 
-          <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} />
 
-          <Bar
-            dataKey="value"
-            fill={barColor}
-            radius={[6, 6, 0, 0]} // Rounded top
-            barSize={customStyles.barSize}
-            maxBarSize={60}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+              <Bar
+                dataKey="value"
+                fill={barColor}
+                radius={[6, 6, 0, 0]} // Rounded top
+                barSize={customStyles.barSize}
+                maxBarSize={60}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Typography>No data available</Typography>
+        )}
+      </Box>
     </Paper>
   );
 };

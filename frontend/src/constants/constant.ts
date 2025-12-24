@@ -76,7 +76,7 @@ export const assetsHeaderData = [
   },
   {
     columnSize: 2,
-    columnTitle: "Target Strength",
+    columnTitle: "Target Control Strength",
   },
   {
     columnSize: 2,
@@ -105,10 +105,10 @@ export const reportsPageTabs = [
     tabName: "Board",
     tabVlaue: 3,
   },
-  {
-    tabName: "NIST Score",
-    tabVlaue: 4,
-  },
+  // {
+  //   tabName: "NIST Score",
+  //   tabVlaue: 4,
+  // },
 ];
 
 export const dashboardPageTabs = [

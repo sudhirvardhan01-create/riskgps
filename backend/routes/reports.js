@@ -273,4 +273,26 @@ router.get("/:orgId/asset-million-dollar-risk-chart", async (req, res) => {
   }
 });
 
+router.get("/:orgId/asset-risk-score", async (req, res) => {
+  try {
+    const { orgId } = req.params;
+    if (!orgId) {
+      throw new Error("Org ID required");
+    }
+    const dollar = req.query.dollar === "false" ? false : true;
+    const score = req.query.score === "false" ? false : true;
+    const data = await ReportsService.assetRiskScores(orgId, dollar, score);
+    res.status(HttpStatusCodes.OK).json({
+      data: data,
+      msg: "fetched organization asset risk in million dollar",
+    });
+  } catch (err) {
+    console.log(
+      "Failed to fetch organization asset risk in million dollar",
+      err
+    );
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ error: err.message });
+  }
+});
+
 module.exports = router;

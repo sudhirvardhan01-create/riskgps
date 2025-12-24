@@ -14,6 +14,7 @@ import {
 import type { LatLngExpression } from "leaflet";
 import { Asset } from "@/types/assessment";
 import { customStyles } from "@/styles/customStyles";
+import LegendScale from "../LegendScale";
 
 // ✅ Dynamic imports to avoid SSR errors
 const MapContainer = dynamic(
@@ -35,6 +36,7 @@ export interface LocationData {
   name: string;
   value: number;
   coords: LatLngExpression;
+  severity: string;
 }
 
 interface GreyWorldMapProps {
@@ -63,6 +65,8 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
 
   const mapData = data.length ? data : [];
 
+  console.log(mapData);
+
   if (!mounted || !L)
     return (
       <Paper
@@ -84,10 +88,6 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
   // ✅ Map bounds
   const bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
 
-  // ✅ Calculate scaling & color
-  const minVal = Math.min(...mapData.map((d) => d.value));
-  const maxVal = Math.max(...mapData.map((d) => d.value));
-
   // ✅ Enhanced bubble scaling (logarithmic for better visual range)
   // 🟢 Bubble size based on difference from 0
   const getSize = (v: number): number => {
@@ -101,83 +101,88 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
   };
 
   // ✅ More distinct color mapping (blue → red)
-  // const getColor = (v: number): string => {
-  //   const intensity = (v - minVal) / (maxVal - minVal || 1);
-  //   const hue = 200 - intensity * 160;
-  //   return `hsl(${hue}, 75%, 55%)`;
-  // };
 
-  const COLOR_SHADES = [
-    "#5cb6f9",
-    "#0693e3",
-    "#3B82F6",
-    "#6f80eb",
-    "#8B5CF6",
-    "#233dff",
-    "#12229d",
-  ] as const;
-
-  const getColor = (v: number): string => {
-    if (maxVal === minVal) {
-      return COLOR_SHADES[0];
+  const getBubbleColor = (s: string): string => {
+    let bubbleColor = "";
+    switch (s) {
+      case "critical":
+        bubbleColor = "#12229d";
+        break;
+      case "high":
+        bubbleColor = "#233dff";
+        break;
+      case "moderate":
+        bubbleColor = "#6f80eb";
+        break;
+      case "low":
+        bubbleColor = "#5cb6f9";
+        break;
+      case "very low":
+        bubbleColor = "#cae8ff";
+        break;
+      default:
+        bubbleColor = "#e0ecedff";
+        break;
     }
-
-    const normalized = (v - minVal) / (maxVal - minVal);
-
-    const index = Math.min(
-      COLOR_SHADES.length - 1,
-      Math.floor(normalized * COLOR_SHADES.length)
-    );
-
-    return COLOR_SHADES[index];
+    return bubbleColor;
   };
 
   return (
     <Paper
+      elevation={0}
       sx={{
         width: "100%",
         height: 300,
-        borderRadius: 3,
-        overflow: "hidden",
-        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-        position: "relative",
+        borderRadius: 0,
+        background: "transparent",
       }}
     >
-      <MapContainer
-        center={[37.0902, -95.7129]}
-        zoom={4}
-        minZoom={2}
-        maxZoom={6}
-        scrollWheelZoom
-        zoomControl
-        maxBounds={bounds}
-        maxBoundsViscosity={1.0}
-        style={{
-          height: "100%",
-          width: "100%",
-          filter: "contrast(1.05)",
-        }}
-      >
-        {/* 🗺️ Theme-based tile */}
-        <TileLayer
-          url={
-            theme.palette.mode === "dark"
-              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          }
-          noWrap
-        />
+      <Stack direction={"row"} spacing={1}>
+        <Paper
+          sx={{
+            width: "calc(100% - 40px)",
+            height: 300,
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            position: "relative",
+          }}
+        >
+          <MapContainer
+            center={[37.0902, -95.7129]}
+            zoom={4}
+            minZoom={2}
+            maxZoom={6}
+            scrollWheelZoom
+            zoomControl
+            maxBounds={bounds}
+            maxBoundsViscosity={1.0}
+            style={{
+              height: "100%",
+              width: "100%",
+              filter: "contrast(1.05)",
+            }}
+          >
+            {/* 🗺️ Theme-based tile */}
+            <TileLayer
+              url={
+                theme.palette.mode === "dark"
+                  ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              }
+              noWrap
+            />
 
-        {mapData.map((item, idx) => {
-          const size = getSize(item.value);
-          const color = getColor(item.value);
-          const isHovered = hoveredIndex === idx;
-          const markerSize = isHovered ? size * 1.25 : size;
-          const glow = isHovered ? `${color}` : `${color}99`;
+            {mapData.map((item, idx) => {
+              const size = getSize(item.value);
+              const color = getBubbleColor(item.severity);
+              const isHovered = hoveredIndex === idx;
+              const markerSize = isHovered ? size * 1.25 : size;
+              const glow = isHovered ? `${color}` : `${color}99`;
 
-          const icon = L.divIcon({
-            className: "custom-marker",
-            html: `
+              const icon = L.divIcon({
+                className: "custom-marker",
+                html: `
               <div 
                 style="
                   width:${markerSize}px;
@@ -191,61 +196,88 @@ const GreyWorldMap: React.FC<GreyWorldMapProps> = ({
                 "
               ></div>
             `,
-            iconSize: [markerSize, markerSize],
-            iconAnchor: [markerSize / 2, markerSize / 2],
-          });
+                iconSize: [markerSize, markerSize],
+                iconAnchor: [markerSize / 2, markerSize / 2],
+              });
 
-          return (
-            <Marker
-              key={idx}
-              position={item.coords}
-              icon={icon}
-              eventHandlers={{
-                mouseover: () => setHoveredIndex(idx),
-                mouseout: () => setHoveredIndex(null),
-              }}
-            >
-              <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                <Stack
-                  direction={"column"}
-                  sx={{ display: "flex", alignItems: "start" }}
+              return (
+                <Marker
+                  key={idx}
+                  position={item.coords}
+                  icon={icon}
+                  eventHandlers={{
+                    mouseover: () => setHoveredIndex(idx),
+                    mouseout: () => setHoveredIndex(null),
+                  }}
                 >
-                  <Typography
-                    gutterBottom
-                    sx={{
-                      pl: 2,
-                      fontFamily: customStyles.fontFamily,
-                      fontSize: customStyles.tooltipTitleFontSize,
-                      fontWeight: customStyles.tooltipDarkFontWeight,
-                      color: customStyles.tooltipFontColor,
-                    }}
-                  >
-                    {item.name}
-                  </Typography>
+                  <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+                    <Stack
+                      direction={"column"}
+                      sx={{ display: "flex", alignItems: "start" }}
+                    >
+                      <Typography
+                        gutterBottom
+                        sx={{
+                          pl: 2,
+                          fontFamily: customStyles.fontFamily,
+                          fontSize: customStyles.tooltipTitleFontSize,
+                          fontWeight: customStyles.tooltipDarkFontWeight,
+                          color: customStyles.tooltipFontColor,
+                        }}
+                      >
+                        {item.name}
+                      </Typography>
 
-                  <List dense sx={{ py: 0, maxHeight: 150, overflowY: "auto" }}>
-                    {tooltipData
-                      .filter((asset) => asset.geographicLocation === item.name)
-                      .map((x, index) => (
-                        <ListItem key={index} sx={{ py: 0.25 }}>
-                          <ListItemText
-                            primary={x.applicationName}
-                            primaryTypographyProps={{
-                              fontFamily: customStyles.fontFamily,
-                              fontSize: customStyles.tooltipTextFontSize,
-                              fontWeight: customStyles.tooltipLightFontWeight,
-                              color: customStyles.tooltipFontColor,
-                            }}
-                          />
-                        </ListItem>
-                      ))}
-                  </List>
-                </Stack>
-              </Tooltip>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+                      <List
+                        dense
+                        sx={{ py: 0, maxHeight: 150, overflowY: "auto" }}
+                      >
+                        {tooltipData
+                          .filter(
+                            (asset) => asset.geographicLocation === item.name
+                          )
+                          .map((x, index) => (
+                            <ListItem key={index} sx={{ py: 0.25 }}>
+                              <ListItemText
+                                primary={x.applicationName}
+                                primaryTypographyProps={{
+                                  fontFamily: customStyles.fontFamily,
+                                  fontSize: customStyles.tooltipTextFontSize,
+                                  fontWeight:
+                                    customStyles.tooltipLightFontWeight,
+                                  color: customStyles.tooltipFontColor,
+                                }}
+                              />
+                            </ListItem>
+                          ))}
+                      </List>
+                      <Typography
+                        gutterBottom
+                        sx={{
+                          pl: 2,
+                          fontFamily: customStyles.fontFamily,
+                          fontSize: customStyles.tooltipTextFontSize,
+                          fontWeight: customStyles.tooltipLightFontWeight,
+                          color: customStyles.tooltipFontColor,
+                        }}
+                      >
+                        Linked Processes: {item.value}
+                      </Typography>
+                    </Stack>
+                  </Tooltip>
+                </Marker>
+              );
+            })}
+          </MapContainer>
+        </Paper>
+        <Stack
+          direction={"row"}
+          justifyContent={"center"}
+          alignItems={"center"}
+        >
+          <LegendScale orientation="vertical" />
+        </Stack>
+      </Stack>
     </Paper>
   );
 };

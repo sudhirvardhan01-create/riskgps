@@ -54,9 +54,16 @@ export const getTopOrgRiskScenariosAssets = async (
   return res.data;
 };
 
-export const getRiskPrioritisedAssetsData = async (orgId: string) => {
+export const getAssetsImpactAndRiskData = async (
+  orgId: string,
+  impactValues: boolean = true,
+  riskValues: boolean = true
+) => {
+  const params = new URLSearchParams();
+  params.append("dollar", impactValues.toString());
+  params.append("score", riskValues.toString());
   const res = await apiClient.get(
-    `reports/${orgId}/asset-million-dollar-risk-chart`
+    `reports/${orgId}/asset-risk-score?${params}`
   );
   return res.data;
 };

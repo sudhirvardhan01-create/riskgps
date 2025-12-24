@@ -151,7 +151,11 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
               if (!e?.activeLabel) setSelectedRiskScenario(null);
             }}
           >
-            <CartesianGrid horizontal={false} vertical={true} />
+            <CartesianGrid
+              horizontal={true}
+              vertical={true}
+              strokeDasharray={"3 3"}
+            />
 
             <XAxis
               type="number"
@@ -173,6 +177,8 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
                 fontSize: customStyles.xAxisTicks.fontSize,
                 fontWeight: customStyles.xAxisTicks.fontWeight,
               }}
+              axisLine={{ stroke: "#ddd" }}
+              tickLine={false}
             />
             <YAxis
               type="category"
@@ -184,6 +190,8 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
                 fontSize: customStyles.yAxisTicks.fontSize,
                 fontWeight: customStyles.yAxisTicks.fontWeight,
               }}
+              axisLine={{ stroke: "#ddd" }}
+              tickLine={false}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend formatter={legendFormatter} />

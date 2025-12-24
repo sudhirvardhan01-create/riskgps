@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import SeverityScale from "@/components/Reports/SeverityScale";
 import { AssetLevelReportsData } from "@/types/reports";
+import { constants } from "@/utils/constants";
 
 // Types
 type StrengthLevel = "very low" | "low" | "moderate" | "high" | "critical";
@@ -133,7 +134,7 @@ const AssetTableViewContainer: React.FC<Props> = ({ assets }) => {
         mb={2}
       >
         <Typography variant="body2" fontWeight={600}>
-          Detailed - Asset Controls Table
+          {constants.assetsTableChart}
         </Typography>
         <FormControl variant="outlined" sx={{ height: "48px", width: "200px" }}>
           <InputLabel

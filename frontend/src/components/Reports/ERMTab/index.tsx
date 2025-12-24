@@ -43,9 +43,6 @@ const ERMTab: React.FC<Props> = ({
   //   useState<string>("All");
   const [selectedProcessTableChart, setSelectedProcessTableChart] =
     useState<string>("All");
-  // const [filteredTopRiskScenarios, setFilteredTopRiskScenarios] =
-  //   useState<any[]>(topRiskScenarios);
-  // const [filteredTopAssets, setFilteredTopAssets] = useState<any[]>(topAssets);
 
   useEffect(() => {
     let filtered = [...riskScenariosTableChartData];
@@ -76,24 +73,16 @@ const ERMTab: React.FC<Props> = ({
     riskScenariosTableChartData,
   ]);
 
-  // useEffect(() => {
-  //   let filteredRiskScenarios = [...filteredTopRiskScenarios];
-  //   let filteredAssets = [...filteredTopAssets];
-  //   if (selectedBusinessUnit !== "All") {
-  //     filteredRiskScenarios = filteredRiskScenarios.filter(
-  //       (item) => item.businessUnit === selectedBusinessUnit
-  //     );
-  //     filteredAssets = filteredAssets.filter(
-  //       (i) => i.businessUnit === selectedBusinessUnit
-  //     );
-  //   }
-  //   setFilteredTopRiskScenarios(filteredRiskScenarios);
-  //   setFilteredTopAssets(filteredAssets);
-  // }, [selectedBusinessUnit, topRiskScenarios, topAssets]);
-
-  const processesForDropdown = [
-    ...new Set(riskScenariosTableChartData.map((i) => i.businessProcess)),
-  ];
+  const processesForDropdown =
+    selectedBusinessUnit === "All"
+      ? [...new Set(riskScenariosTableChartData.map((i) => i.businessProcess))]
+      : [
+          ...new Set(
+            riskScenariosTableChartData
+              .filter((r) => r.businessUnit === selectedBusinessUnit)
+              .map((i) => i.businessProcess)
+          ),
+        ];
 
   const severityOrder = ["Very Low", "Low", "Moderate", "High", "Critical"];
 
@@ -228,7 +217,8 @@ const ERMTab: React.FC<Props> = ({
                 }
                 labelYAxis="Residual Risk Score"
                 height={380}
-                labelXAxis="Risk Scenarios"
+                xAxisHeight={40}
+                // labelXAxis="Risk Scenarios"
               />
             </Paper>
           </Grid>
@@ -263,7 +253,8 @@ const ERMTab: React.FC<Props> = ({
                 labelYAxis="Residual Risk Score"
                 height={380}
                 barColor="#233dff"
-                labelXAxis="Assets"
+                xAxisHeight={40}
+                // labelXAxis="Assets"
               />
             </Paper>
           </Grid>

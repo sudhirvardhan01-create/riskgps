@@ -222,7 +222,7 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
             {/* ✅ Center Text for Inner Total */}
             <text
               x="50%"
-              y="42%"
+              y="45.5%"
               textAnchor="middle"
               dominantBaseline="middle"
               style={{
@@ -237,7 +237,7 @@ const DualDonutChart: React.FC<DualDonutChartProps> = ({
 
             <text
               x="50%"
-              y="47%"
+              y="49.5%"
               textAnchor="middle"
               dominantBaseline="middle"
               style={{

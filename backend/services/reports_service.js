@@ -506,6 +506,30 @@ class ReportsService {
     });
     return assetsData;
   }
+
+  static async getAssetRiskScoresData(dataArray) {
+    const map = new Map();
+
+    for (const item of dataArray) {
+      const key = item.assetId;
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    }
+
+    let assetsData = [...map.values()];
+    assetsData = assetsData?.map((asset) => {
+      return {
+        assetName: asset.asset,
+        businessUnitId: asset.businessUnitId,
+        businessUnit: asset.businessUnit,
+        inherentRiskScore:
+          asset.aggAssetInherentRiskScoreRiskDashboardCIOTab ?? 0,
+        netRiskScore: asset.aggAssetResidualRiskScoreRiskDashboardCIOTab,
+      };
+    });
+    return assetsData;
+  }
   static async getTopNRiskyAssets(dataArray, requiredCount = 5) {
     const map = new Map();
 
@@ -1006,6 +1030,7 @@ class ReportsService {
       return {
         name: item.asset,
         value: item.aggAssetResidualRiskScoreRiskDashboardCIOTab,
+        inherentRiskScore: item.aggAssetInherentRiskScoreRiskDashboardCIOTab,
         businessUnitId: item.businessUnitId,
         businessUnit: item.businessUnit,
       };
@@ -1038,6 +1063,7 @@ class ReportsService {
       return {
         name: risk.riskScenario,
         value: risk.residualRiskScoreRiskDashboardERMTab,
+        inherentRiskScore: risk.inherentRiskScoreRiskDashboardERMTab,
         businessUnitId: risk.businessUnitId,
         businessUnit: risk.businessUnit,
       };
@@ -1064,6 +1090,40 @@ class ReportsService {
     const assetRiskScoreinMillionDollar =
       await this.getAssetRiskInDollarChartsData(reportsData);
     return assetRiskScoreinMillionDollar;
+  }
+
+  static async assetRiskScores(orgId, dollar = true, score = true) {
+    if (!orgId) {
+      throw new Error("Organization id required");
+    }
+    let data = {};
+    const latestTimeStamp = await this.getLatestTimeStampFromReportsTableForOrg(
+      orgId
+    );
+
+    let whereClause = {
+      orgId,
+      updatedAt: latestTimeStamp,
+    };
+
+    const reportsData = await ReportsMaster.findAll({
+      where: whereClause,
+    });
+
+    if (score) {
+      const assetRiskScore = await this.getAssetRiskScoresData(
+        reportsData
+      );
+      data.assetRiskScore = assetRiskScore;
+    }
+    if (dollar) {
+      const assetRiskScoreinMillionDollar = await this.getAssetRiskInDollarChartsData(
+        reportsData
+      );
+      data.assetRiskScoreinMillionDollar = assetRiskScoreinMillionDollar;
+    }
+
+    return data;
   }
 }
 
