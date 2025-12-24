@@ -6,7 +6,6 @@ module.exports = {
     const roles = [
       { name: "Admin", roleKey: "admin" },
       { name: "User", roleKey: "user" },
-      { name: "Organization Admin", roleKey: "org_admin" },
     ];
 
     await safeSeed(Role, roles, "name");

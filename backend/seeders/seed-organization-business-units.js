@@ -5,7 +5,7 @@ const { safeSeed } = require("../utils/seedHelper");
 module.exports = {
   async up() {
     const org = await Organization.findOne({
-      where: { name: "Default Org 1" },
+      where: { name: "Demo Org 1" },
     });
 
     const units = [
