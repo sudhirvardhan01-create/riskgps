@@ -153,17 +153,26 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
       });
     });
 
-    g.append("g")
+    const xAxisGroup = g
+      .append("g")
       .attr("transform", `translate(0,${innerHeight})`)
-      .call(d3.axisBottom(xScale))
+      .call(d3.axisBottom(xScale));
+
+    xAxisGroup.selectAll(".tick line").remove();
+
+    xAxisGroup
       .selectAll("text")
       .style("font-size", customStyles.xAxisTicks.fontSize)
       .style("font-family", customStyles.fontFamily)
       .style("font-weight", customStyles.xAxisTicks.fontWeight)
-      .style("color", customStyles.fontColor);
+      .style("color", customStyles.fontColor)
+      .attr("stroke-width", 0);
 
-    g.append("g")
-      .call(d3.axisLeft(yScale))
+    const yAxisGroup = g.append("g").call(d3.axisLeft(yScale));
+
+    yAxisGroup.selectAll(".tick line").remove();
+
+    yAxisGroup
       .selectAll("text")
       .style("font-size", customStyles.yAxisTicks.fontSize)
       .style("font-family", customStyles.fontFamily)

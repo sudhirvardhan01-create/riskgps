@@ -177,6 +177,8 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
                 fontSize: customStyles.xAxisTicks.fontSize,
                 fontWeight: customStyles.xAxisTicks.fontWeight,
               }}
+              axisLine={{ stroke: "#ddd" }}
+              tickLine={false}
             />
             <YAxis
               type="category"
@@ -188,6 +190,8 @@ const RiskScenarioHorizontalBarChart: React.FC<Props> = ({
                 fontSize: customStyles.yAxisTicks.fontSize,
                 fontWeight: customStyles.yAxisTicks.fontWeight,
               }}
+              axisLine={{ stroke: "#ddd" }}
+              tickLine={false}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend formatter={legendFormatter} />

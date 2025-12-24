@@ -1,6 +1,6 @@
 "use client";
 import { customStyles } from "@/styles/customStyles";
-import { Paper, Stack, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 import {
   BarChart,
   Bar,
@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
   TooltipProps,
+  ReferenceLine,
 } from "recharts";
 
 interface Props {
@@ -22,6 +23,9 @@ interface Props {
   xAxisLabel?: string;
   yAxisLabel?: string;
   xAxisHeight?: number;
+  showReferenceLine?: boolean;
+  referenceLineValue?: number;
+  referenceLineLabelValue?: string;
 }
 
 const AssetsRiskScoreBarChart: React.FC<Props> = ({
@@ -33,6 +37,9 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({
   yAxisLabel,
   xAxisHeight = 70,
   dataConvertedIntoBillion = false,
+  showReferenceLine = false,
+  referenceLineValue,
+  referenceLineLabelValue,
 }) => {
   const legendFormatter = (value: any, entry: any, index: any) => {
     // You can apply different colors based on the value or index if needed
@@ -124,86 +131,111 @@ const AssetsRiskScoreBarChart: React.FC<Props> = ({
         flexDirection: "column",
       }}
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={data}
-          margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
-        >
-          <CartesianGrid
-            horizontal={true}
-            vertical={true}
-            strokeDasharray={"3 3"}
-          />
+      <Box sx={{ flexGrow: 1 }}>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+            >
+              <CartesianGrid
+                horizontal={true}
+                vertical={true}
+                strokeDasharray={"3 3"}
+              />
 
-          <XAxis
-            dataKey="assetName"
-            height={xAxisHeight}
-            tickMargin={2}
-            tick={{
-              color: customStyles.fontColor,
-              fontFamily: customStyles.fontFamily,
-              fontSize: customStyles.xAxisTicks.fontSize,
-              fontWeight: customStyles.xAxisTicks.fontWeight,
-            }}
-            label={{
-              value: xAxisLabel,
-              angle: 0,
-              position: "outsideCentre",
-              style: {
-                color: customStyles.fontColor,
-                fontFamily: customStyles.fontFamily,
-                fontSize: customStyles.xAxisLabels.fontSize,
-                fontWeight: customStyles.xAxisLabels.fontWeight,
-              },
-            }}
-          />
+              <XAxis
+                dataKey="assetName"
+                height={xAxisHeight}
+                tickMargin={2}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.xAxisTicks.fontSize,
+                  fontWeight: customStyles.xAxisTicks.fontWeight,
+                }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+                label={{
+                  value: xAxisLabel,
+                  angle: 0,
+                  position: "outsideCentre",
+                  style: {
+                    color: customStyles.fontColor,
+                    fontFamily: customStyles.fontFamily,
+                    fontSize: customStyles.xAxisLabels.fontSize,
+                    fontWeight: customStyles.xAxisLabels.fontWeight,
+                  },
+                }}
+              />
 
-          <YAxis
-            label={{
-              value: yAxisLabel,
-              angle: -90,
-              position: "insideCentre",
-              style: {
-                color: customStyles.fontColor,
-                fontFamily: customStyles.fontFamily,
-                fontSize: customStyles.yAxisLabels.fontSize,
-                fontWeight: customStyles.yAxisLabels.fontWeight,
-              },
-            }}
-            width={100}
-            tick={{
-              color: customStyles.fontColor,
-              fontFamily: customStyles.fontFamily,
-              fontSize: customStyles.yAxisTicks.fontSize,
-              fontWeight: customStyles.yAxisTicks.fontWeight,
-            }}
-          />
+              <YAxis
+                label={{
+                  value: yAxisLabel,
+                  angle: -90,
+                  position: "insideCentre",
+                  style: {
+                    color: customStyles.fontColor,
+                    fontFamily: customStyles.fontFamily,
+                    fontSize: customStyles.yAxisLabels.fontSize,
+                    fontWeight: customStyles.yAxisLabels.fontWeight,
+                  },
+                }}
+                width={100}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.yAxisTicks.fontSize,
+                  fontWeight: customStyles.yAxisTicks.fontWeight,
+                }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+              />
 
-          <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} />
 
-          <Legend formatter={legendFormatter} />
+              <Legend formatter={legendFormatter} />
 
-          {/* Inherent Risk Score */}
-          <Bar
-            dataKey="bar1Value"
-            name={bar1Label}
-            fill="#12229d"
-            isAnimationActive={false}
-            barSize={customStyles.barSize}
-            radius={[6, 6, 0, 0]}
-          />
+              {/* Inherent Risk Score */}
+              <Bar
+                dataKey="bar1Value"
+                name={bar1Label}
+                fill="#12229d"
+                isAnimationActive={false}
+                barSize={customStyles.barSize}
+                radius={[6, 6, 0, 0]}
+              />
 
-          {/* Net Risk Score */}
-          <Bar
-            dataKey="bar2Value"
-            name={bar2Label}
-            fill="#6f80eb"
-            isAnimationActive={false}
-            barSize={customStyles.barSize}
-            radius={[6, 6, 0, 0]}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+              {/* Net Risk Score */}
+              <Bar
+                dataKey="bar2Value"
+                name={bar2Label}
+                fill="#6f80eb"
+                isAnimationActive={false}
+                barSize={customStyles.barSize}
+                radius={[6, 6, 0, 0]}
+              />
+
+              {showReferenceLine && (
+                <ReferenceLine
+                  // y={riskAppetite}
+                  stroke="#ffa500"
+                  strokeWidth={2}
+                  label={{
+                    // value: `Risk Appetite ($ ${riskAppetite} Bn)`,
+                    position: "insideBottomRight",
+                    fill: "#ffa500",
+                    fontSize: customStyles.referenceLine.fontSize,
+                    fontWeight: customStyles.referenceLine.fontWeight,
+                  }}
+                />
+              )}
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Typography>No data available</Typography>
+        )}
+      </Box>
     </Paper>
   );
 };

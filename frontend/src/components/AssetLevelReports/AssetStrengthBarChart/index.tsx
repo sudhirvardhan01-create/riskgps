@@ -109,85 +109,95 @@ const AssetStrengthBarChart: React.FC<AssetStrengthBarChartProps> = ({
         flexDirection: "column",
       }}
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={data}
-          layout="vertical"
-          margin={{ top: 20, right: 40, left: 10, bottom: 20 }}
-        >
-          <CartesianGrid
-            horizontal={true}
-            vertical={true}
-            strokeDasharray={"3 3"}
-          />
-          <XAxis
-            type="number"
-            domain={[0, 5]}
-            height={60}
-            tickFormatter={(v) => v.toFixed(1)}
-            tick={{
-              color: customStyles.fontColor,
-              fontFamily: customStyles.fontFamily,
-              fontSize: customStyles.xAxisTicks.fontSize,
-              fontWeight: customStyles.xAxisTicks.fontWeight,
-            }}
-            label={{
-              value: "Control Score",
-              angle: 0,
-              position: "outsideCentre",
-              style: {
-                color: customStyles.fontColor,
-                fontFamily: customStyles.fontFamily,
-                fontSize: customStyles.xAxisLabels.fontSize,
-                fontWeight: customStyles.xAxisLabels.fontWeight,
-              },
-            }}
-          />
-          <YAxis
-            type="category"
-            dataKey="assetName"
-            width={100}
-            tick={{
-              color: customStyles.fontColor,
-              fontFamily: customStyles.fontFamily,
-              fontSize: customStyles.yAxisTicks.fontSize,
-              fontWeight: customStyles.yAxisTicks.fontWeight,
-            }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar
-            dataKey="controlStrength"
-            name="Asset Control Strength"
-            fill="#12229d"
-            barSize={customStyles.barSize}
-            radius={[0, 4, 4, 0]}
-          />
-          <ReferenceLine
-            x={avgCurrent}
-            stroke="#6f80eb"
-            strokeWidth={2}
-            label={{
-              value: `Current Score: ${avgCurrent.toFixed(2)}`,
-              position: "insideBottomRight",
-              fill: "#484848",
-              fontSize: 11,
-              // dy: 12,
-            }}
-          />
-          <ReferenceLine
-            x={targetScore}
-            stroke="#5cb6f9"
-            strokeWidth={2}
-            label={{
-              value: `Target Score: ${targetScore.toFixed(2)}`,
-              position: "insideBottomRight",
-              fill: "#484848",
-              dy: -20,
-              fontSize: 11,
-            }}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+      <Box sx={{ flexGrow: 1 }}>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              layout="vertical"
+              margin={{ top: 20, right: 40, left: 10, bottom: 20 }}
+            >
+              <CartesianGrid
+                horizontal={true}
+                vertical={true}
+                strokeDasharray={"3 3"}
+              />
+              <XAxis
+                type="number"
+                domain={[0, 5]}
+                height={60}
+                tickFormatter={(v) => v.toFixed(1)}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.xAxisTicks.fontSize,
+                  fontWeight: customStyles.xAxisTicks.fontWeight,
+                }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+                label={{
+                  value: "Control Score",
+                  angle: 0,
+                  position: "outsideCentre",
+                  style: {
+                    color: customStyles.fontColor,
+                    fontFamily: customStyles.fontFamily,
+                    fontSize: customStyles.xAxisLabels.fontSize,
+                    fontWeight: customStyles.xAxisLabels.fontWeight,
+                  },
+                }}
+              />
+              <YAxis
+                type="category"
+                dataKey="assetName"
+                width={100}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.yAxisTicks.fontSize,
+                  fontWeight: customStyles.yAxisTicks.fontWeight,
+                }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar
+                dataKey="controlStrength"
+                name="Asset Control Strength"
+                fill="#12229d"
+                barSize={customStyles.barSize}
+                radius={[0, 4, 4, 0]}
+              />
+              <ReferenceLine
+                x={avgCurrent}
+                stroke="#6f80eb"
+                strokeWidth={2}
+                label={{
+                  value: `Current Score: ${avgCurrent.toFixed(2)}`,
+                  position: "insideBottomRight",
+                  fill: "#484848",
+                  fontSize: 11,
+                  // dy: 12,
+                }}
+              />
+              <ReferenceLine
+                x={targetScore}
+                stroke="#5cb6f9"
+                strokeWidth={2}
+                label={{
+                  value: `Target Score: ${targetScore.toFixed(2)}`,
+                  position: "insideBottomRight",
+                  fill: "#484848",
+                  dy: -20,
+                  fontSize: 11,
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Typography>No data available</Typography>
+        )}
+      </Box>
     </Paper>
   );
 };

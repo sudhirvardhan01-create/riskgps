@@ -1,6 +1,6 @@
 "use client";
 import { customStyles } from "@/styles/customStyles";
-import { Paper, Stack, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 import {
   BarChart,
   Bar,
@@ -149,7 +149,7 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
     <Paper
       elevation={0}
       sx={{
-        p: 2,
+        p: 2.5,
         backgroundColor: "#fff",
         borderRadius: 3,
         width: "100%",
@@ -158,103 +158,112 @@ const RiskExposureByProcessChart: React.FC<Props> = ({
         flexDirection: "column",
       }}
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={formattedData}
-          margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
-          onClick={(e) => {
-            // Clear selection by clicking empty chart area
-            if (!e?.activeLabel) setSelectedProcess(null);
-          }}
-        >
-          <CartesianGrid
-            horizontal={true}
-            vertical={true}
-            strokeDasharray={"3 3"}
-          />
+      <Box sx={{ flexGrow: 1 }}>
+        {formattedData.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={formattedData}
+              margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
+              onClick={(e) => {
+                // Clear selection by clicking empty chart area
+                if (!e?.activeLabel) setSelectedProcess(null);
+              }}
+            >
+              <CartesianGrid
+                horizontal={true}
+                vertical={true}
+                strokeDasharray={"3 3"}
+              />
 
-          <XAxis
-            dataKey="processName"
-            height={70}
-            tickMargin={10}
-            tick={{
-              color: customStyles.fontColor,
-              fontFamily: customStyles.fontFamily,
-              fontSize: customStyles.xAxisTicks.fontSize,
-              fontWeight: customStyles.xAxisTicks.fontWeight,
-            }}
-            // label={{
-            //   value: "Business Process",
-            //   angle: 0,
-            //   position: "outsideCentre",
-            //   style: {
-            //     color: customStyles.fontColor,
-            //     fontFamily: customStyles.fontFamily,
-            //     fontSize: customStyles.xAxisLabels.fontSize,
-            //     fontWeight: customStyles.xAxisLabels.fontWeight,
-            //   },
-            // }}
-          />
+              <XAxis
+                dataKey="processName"
+                height={70}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.xAxisTicks.fontSize,
+                  fontWeight: customStyles.xAxisTicks.fontWeight,
+                }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+                // label={{
+                //   value: "Business Process",
+                //   angle: 0,
+                //   position: "insideBottom",
+                //   style: {
+                //     color: customStyles.fontColor,
+                //     fontFamily: customStyles.fontFamily,
+                //     fontSize: customStyles.xAxisLabels.fontSize,
+                //     fontWeight: customStyles.xAxisLabels.fontWeight,
+                //   },
+                // }}
+              />
 
-          <YAxis
-            label={{
-              value: "Exposure (in Billion USD)",
-              angle: -90,
-              position: "insideCentre",
-              style: {
-                color: customStyles.fontColor,
-                fontFamily: customStyles.fontFamily,
-                fontSize: customStyles.yAxisLabels.fontSize,
-                fontWeight: customStyles.yAxisLabels.fontWeight,
-              },
-            }}
-            width={100}
-            tick={{
-              color: customStyles.fontColor,
-              fontFamily: customStyles.fontFamily,
-              fontSize: customStyles.yAxisTicks.fontSize,
-              fontWeight: customStyles.yAxisTicks.fontWeight,
-            }}
-          />
+              <YAxis
+                label={{
+                  value: "Exposure (in Billion USD)",
+                  angle: -90,
+                  position: "insideCentre",
+                  style: {
+                    color: customStyles.fontColor,
+                    fontFamily: customStyles.fontFamily,
+                    fontSize: customStyles.yAxisLabels.fontSize,
+                    fontWeight: customStyles.yAxisLabels.fontWeight,
+                  },
+                }}
+                width={100}
+                tick={{
+                  color: customStyles.fontColor,
+                  fontFamily: customStyles.fontFamily,
+                  fontSize: customStyles.yAxisTicks.fontSize,
+                  fontWeight: customStyles.yAxisTicks.fontWeight,
+                }}
+                axisLine={{ stroke: "#ddd" }}
+                tickLine={false}
+              />
 
-          <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} />
 
-          <Legend formatter={legendFormatter} />
+              <Legend formatter={legendFormatter} />
 
-          {/* RISK EXPOSURE */}
-          <Bar
-            dataKey="maxRiskExposureBillion"
-            name="Max Risk Exposure"
-            fill="#12229d"
-            shape={<CustomBar />}
-            isAnimationActive={false}
-            barSize={customStyles.barSize}
-          />
+              {/* RISK EXPOSURE */}
+              <Bar
+                dataKey="maxRiskExposureBillion"
+                name="Max Risk Exposure"
+                fill="#12229d"
+                shape={<CustomBar />}
+                isAnimationActive={false}
+                barSize={customStyles.barSize}
+              />
 
-          {/* NET EXPOSURE */}
-          <Bar
-            dataKey="maxNetExposureBillion"
-            name="Max Net Exposure"
-            fill="#6f80eb"
-            shape={<CustomBar />}
-            isAnimationActive={false}
-            barSize={customStyles.barSize}
-          />
+              {/* NET EXPOSURE */}
+              <Bar
+                dataKey="maxNetExposureBillion"
+                name="Max Net Exposure"
+                fill="#6f80eb"
+                shape={<CustomBar />}
+                isAnimationActive={false}
+                barSize={customStyles.barSize}
+              />
 
-          <ReferenceLine
-            y={riskAppetite}
-            stroke="#ffa500"
-            strokeWidth={2}
-            label={{
-              value: `Risk Appetite ($ ${riskAppetite} Bn)`,
-              position: "insideBottomRight",
-              fill: "#ffa500",
-              fontSize: customStyles.referenceLine.fontSize,
-              fontWeight: customStyles.referenceLine.fontWeight,
-            }}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+              <ReferenceLine
+                y={riskAppetite}
+                stroke="#ffa500"
+                strokeWidth={2}
+                label={{
+                  value: `Risk Appetite ($ ${riskAppetite} Bn)`,
+                  position: "insideBottomRight",
+                  fill: "#ffa500",
+                  fontSize: customStyles.referenceLine.fontSize,
+                  fontWeight: customStyles.referenceLine.fontWeight,
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Typography>No data available</Typography>
+        )}
+      </Box>
     </Paper>
   );
 };

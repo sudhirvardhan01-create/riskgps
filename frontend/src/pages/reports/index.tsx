@@ -368,6 +368,7 @@ export default function DashboardContainer() {
       <Box
         p={5}
         pb="0px !important"
+        width={"100%"}
         sx={{
           height: "calc(100vh - 128px)",
           overflow: "hidden",
@@ -388,8 +389,9 @@ export default function DashboardContainer() {
             "& .MuiTabs-indicator": { display: "none" },
             mx: -5,
             mb: 3,
+            px: 5,
           }}
-          variant="scrollable"
+          variant="fullWidth"
           scrollButtons
         >
           {reportsPageTabs.map((item, index) => (

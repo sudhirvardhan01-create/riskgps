@@ -3,36 +3,38 @@ import { Box, Stack, Typography } from "@mui/material";
 import { customStyles } from "@/styles/customStyles";
 
 interface LegendScaleProps {
-  height?: number;
+  width?: number | string;
+  height?: number | string;
+  barHeightWidth?: number;
   showLabel?: boolean;
+  orientation?: "horizontal" | "vertical";
 }
 
 const severityColors = ["#cae8ff", "#5cb6f9", "#6f80eb", "#233dff", "#12229d"];
 
 const LegendScale: React.FC<LegendScaleProps> = ({
-  height = 8,
+  barHeightWidth = 8,
   showLabel = true,
+  orientation = "horizontal",
 }) => {
-  const segmentWidth = 20; // Width percentage for each segment
+  const segmentHeightWidth = 20;
+  const isHorizontal = orientation === "horizontal";
 
   return (
     <Box
       sx={{
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        width: "100%",
-        minWidth: "100px",
-        maxWidth: "200px",
+        flexDirection: isHorizontal ? "column" : "row",
+        width: isHorizontal ? "50%" : "100%",
+        height: "50%",
       }}
     >
-      {/* Label above the dot */}
       {showLabel && (
         <Stack
-          direction={"row"}
+          direction={isHorizontal ? "row" : "column"}
           justifyContent={"space-between"}
-          width={"100%"}
-          mt={1}
+          height={"100%"}
+          mr={isHorizontal ? 0 : 1}
         >
           <Typography
             variant="caption"
@@ -40,11 +42,10 @@ const LegendScale: React.FC<LegendScaleProps> = ({
               fontSize: "10px",
               fontWeight: 600,
               color: customStyles.fontColor,
-              marginBottom: "4px",
               whiteSpace: "nowrap",
             }}
           >
-            Low
+            {isHorizontal ? "Low" : "Critical"}
           </Typography>
           <Typography
             variant="caption"
@@ -52,11 +53,10 @@ const LegendScale: React.FC<LegendScaleProps> = ({
               fontSize: "10px",
               fontWeight: 600,
               color: customStyles.fontColor,
-              marginBottom: "4px",
               whiteSpace: "nowrap",
             }}
           >
-            Critical
+            {isHorizontal ? "Critical" : "Low"}
           </Typography>
         </Stack>
       )}
@@ -64,9 +64,10 @@ const LegendScale: React.FC<LegendScaleProps> = ({
       <Box
         sx={{
           display: "flex",
-          width: "100%",
-          height: `${height}px`,
-          borderRadius: `${height / 2}px`,
+          flexDirection: isHorizontal ? "row" : "column-reverse",
+          width: isHorizontal ? "100%" : `${barHeightWidth}px`,
+          height: isHorizontal ? `${barHeightWidth}px` : "100%",
+          borderRadius: `${barHeightWidth / 2}px`,
           overflow: "hidden",
         }}
       >
@@ -74,9 +75,13 @@ const LegendScale: React.FC<LegendScaleProps> = ({
           <Box
             key={index}
             sx={{
-              width: `${segmentWidth}%`,
+              width: isHorizontal ? `${segmentHeightWidth}%` : barHeightWidth,
+              height: isHorizontal ? barHeightWidth : `${segmentHeightWidth}%`,
               backgroundColor: color,
-              borderRight: index < 4 ? "1px solid #fff" : "none",
+              borderRight:
+                isHorizontal && index < 4 ? "1px solid #fff" : "none",
+              borderBottom:
+                !isHorizontal && index < 4 ? "1px solid #fff" : "none",
             }}
           />
         ))}

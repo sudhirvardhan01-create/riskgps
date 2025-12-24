@@ -159,6 +159,8 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
                 fontSize: customStyles.xAxisTicks.fontSize,
                 fontWeight: customStyles.xAxisTicks.fontWeight,
               }}
+              axisLine={{ stroke: "#ddd" }}
+              tickLine={false}
               label={{
                 value: "Control Strength",
                 angle: 0,
@@ -181,6 +183,8 @@ const AssetHorizontalBarChart: React.FC<Props> = ({
                 fontSize: customStyles.yAxisTicks.fontSize,
                 fontWeight: customStyles.yAxisTicks.fontWeight,
               }}
+              axisLine={{ stroke: "#ddd" }}
+              tickLine={false}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend formatter={legendFormatter} />

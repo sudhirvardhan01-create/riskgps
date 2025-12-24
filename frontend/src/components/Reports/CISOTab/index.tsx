@@ -527,6 +527,7 @@ const CISOTab: React.FC<CISOTabProps> = ({
                 dataConvertedIntoBillion={true}
                 yAxisLabel="Impact (in Billion USD)"
                 xAxisHeight={30}
+                showReferenceLine={true}
               />
             </Paper>
           </Grid>
