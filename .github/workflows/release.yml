@@ -4,7 +4,15 @@ on:
   push:
     branches:
       - dev
-      - main
+      - prod
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/release.yml"
+  pull_request:
+    branches:
+      - dev
+      - prod
     paths:
       - "frontend/**"
       - "backend/**"
@@ -26,6 +34,8 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
+  ORGANIZATION: bluocean
+  PROJECT_NAME: riskgps
 
 jobs:
   determine-environment:
@@ -33,24 +43,50 @@ jobs:
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
       run-tests: ${{ steps.set-env.outputs.run-tests }}
+      is-push-event: ${{ steps.set-env.outputs.is-push-event }}
+      should-build: ${{ steps.set-env.outputs.should-build }}
     steps:
-      - name: Determine environment based on branch
+      - name: Determine environment based on branch and event
         id: set-env
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-            echo "run-tests=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            echo "environment=dev" >> $GITHUB_OUTPUT
-            echo "run-tests=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "environment=prod" >> $GITHUB_OUTPUT
-            echo "run-tests=false" >> $GITHUB_OUTPUT
+          BRANCH="${{ github.ref_name }}"
+          EVENT_NAME="${{ github.event_name }}"
+          
+          # Determine if this is a push event (not a PR)
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            IS_PUSH="true"
           else
-            echo "environment=dev" >> $GITHUB_OUTPUT
-            echo "run-tests=true" >> $GITHUB_OUTPUT
+            IS_PUSH="false"
           fi
-          echo "Branch: ${{ github.ref }}, Environment: $(cat /tmp/env.txt 2>/dev/null || echo 'unknown')"
+          
+          # Determine environment and whether to run tests
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+            RUN_TESTS="true"
+            SHOULD_BUILD="true"
+          elif [[ "$BRANCH" == "dev" ]]; then
+            ENVIRONMENT="dev"
+            RUN_TESTS="true"
+            SHOULD_BUILD="true"
+          elif [[ "$BRANCH" == "prod" ]]; then
+            ENVIRONMENT="prod"
+            RUN_TESTS="false"
+            SHOULD_BUILD="true"
+          else
+            echo "❌ Error: Branch '$BRANCH' is not supported. Only 'dev' and 'prod' branches are allowed."
+            exit 1
+          fi
+          
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "run-tests=$RUN_TESTS" >> $GITHUB_OUTPUT
+          echo "is-push-event=$IS_PUSH" >> $GITHUB_OUTPUT
+          echo "should-build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+          
+          echo "✅ Environment: $ENVIRONMENT"
+          echo "✅ Event: $EVENT_NAME"
+          echo "✅ Branch: $BRANCH"
+          echo "✅ Run Tests: $RUN_TESTS"
+          echo "✅ Push Event: $IS_PUSH"
 
   get-services:
     name: Get Services from SSM
@@ -68,26 +104,42 @@ jobs:
           role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get ECR Repository URLs
+      - name: Get ECR Repository URLs from SSM
         id: set-services
         run: |
-          SSM_EC2_CREDENTIALS="/bluocean/ec2/credentials/${{ needs.determine-environment.outputs.environment }}"
+          ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
+          SSM_EC2_CREDENTIALS="/${{ env.ORGANIZATION }}/${{ env.PROJECT_NAME }}/${ENVIRONMENT}/ec2/credentials"
+          
+          echo "📋 Fetching credentials from SSM parameter: $SSM_EC2_CREDENTIALS"
+          
+          # Fetch SSM parameter with error handling
           CREDENTIALS=$(aws ssm get-parameter \
             --name "$SSM_EC2_CREDENTIALS" \
             --region ${{ env.AWS_REGION }} \
             --with-decryption \
             --query Parameter.Value \
-            --output text)
-          SERVICES=$(echo "$CREDENTIALS" | jq -c '[.ecr_registry_repository_url[] | split("/")[1] | sub("^riskgps-"; "")] | select(length > 0)')
-          if [ -z "$SERVICES" ] || [ "$SERVICES" = "[]" ]; then
-            echo "Error: No services found in ecr_registry_repository_url for ${{ needs.determine-environment.outputs.environment }} environment"
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Error: Failed to retrieve SSM parameter: $SSM_EC2_CREDENTIALS"
+            echo "Return value: $CREDENTIALS"
             exit 1
           fi
-          echo "Raw SERVICES: $SERVICES"
+          
+          # Parse repository URLs and extract service names
+          SERVICES=$(echo "$CREDENTIALS" | jq -c '[.ecr_registry_repository_url[] | split("/")[1] | sub("'\"${{ env.ORGANIZATION }}\"'-'\"${{ env.PROJECT_NAME }}\"'-'\"${ENVIRONMENT}\"'-"; "")] | select(length > 0)' 2>&1)
+          
+          if [ $? -ne 0 ] || [ -z "$SERVICES" ] || [ "$SERVICES" = "[]" ]; then
+            echo "❌ Error: No services found or failed to parse ecr_registry_repository_url"
+            echo "Services output: $SERVICES"
+            exit 1
+          fi
+          
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
+          echo "✅ Services detected: $SERVICES"
 
   run-tests:
-    name: Run Tests (Dev Branch)
+    name: Run Tests (${{ needs.determine-environment.outputs.environment }} Environment)
     runs-on: ubuntu-latest
     needs: [get-services, determine-environment]
     if: needs.determine-environment.outputs.run-tests == 'true'
@@ -109,13 +161,18 @@ jobs:
           cache-dependency-path: ${{ matrix.service }}/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          echo "📦 Installing dependencies for ${{ matrix.service }}"
+          npm ci || { echo "❌ Failed to install dependencies"; exit 1; }
 
       - name: Run unit tests
-        run: npm test -- --passWithNoTests
+        run: |
+          echo "🧪 Running tests for ${{ matrix.service }}"
+          npm test -- --passWithNoTests || { echo "❌ Tests failed"; exit 1; }
+          echo "✅ Tests passed for ${{ matrix.service }}"
 
   scan-files:
-    name: Scan Source Files with Trivy
+    name: Scan Source Files with Trivy (${{ needs.determine-environment.outputs.environment }})
     runs-on: ubuntu-latest
     needs: [get-services, determine-environment]
     strategy:
@@ -132,8 +189,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo "📦 Installing dependencies for ${{ matrix.service }}"
           cd ${{ matrix.service }}
-          npm ci
+          npm ci || { echo "❌ Failed to install dependencies"; exit 1; }
 
       - name: Trivy Filesystem Scan
         uses: aquasecurity/trivy-action@master
@@ -141,17 +199,19 @@ jobs:
           scan-type: "fs"
           scan-ref: "."
           format: "table"
-          exit-code: "0"
+          exit-code: "1"
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
 
   build-scan-push:
-    name: Build, Scan, and Push Docker Image
+    name: Build, Scan, and Push to ${{ needs.determine-environment.outputs.environment | upper }} ECR
     runs-on: ubuntu-latest
     needs: [scan-files, get-services, determine-environment, run-tests]
     if: |
       always() &&
+      needs.determine-environment.outputs.should-build == 'true' &&
+      (needs.scan-files.result == 'success' || needs.scan-files.result == 'skipped') &&
       (needs.run-tests.result == 'success' || needs.run-tests.result == 'skipped')
     strategy:
       matrix:
@@ -171,39 +231,85 @@ jobs:
 
       - name: Get ECR Repository URLs and Versioning from SSM
         run: |
-          SSM_EC2_CREDENTIALS="/bluocean/ec2/credentials/${{ needs.determine-environment.outputs.environment }}"
-          SSM_CREDS="/bluocean/creds/${{ needs.determine-environment.outputs.environment }}"
+          ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
+          SSM_EC2_CREDENTIALS="/${{ env.ORGANIZATION }}/${{ env.PROJECT_NAME }}/${ENVIRONMENT}/ec2/credentials"
+          SSM_CREDS="/${{ env.ORGANIZATION }}/creds/${ENVIRONMENT}"
+          
+          echo "📋 Fetching EC2 credentials from: $SSM_EC2_CREDENTIALS"
+          
+          # Fetch EC2 credentials
           CREDENTIALS=$(aws ssm get-parameter \
             --name "$SSM_EC2_CREDENTIALS" \
             --region ${{ env.AWS_REGION }} \
             --with-decryption \
             --query Parameter.Value \
-            --output text)
-          ECR_REGISTRY=$(echo $CREDENTIALS | jq -r '.ecr_registry_repository_url[0]' | cut -d '/' -f 1)
-          REPO_NAME=riskgps-${{ matrix.service }}
-          ECR_IMAGE=$(echo $CREDENTIALS | jq -r ".ecr_registry_repository_url[] | select(contains(\"$REPO_NAME\"))")
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Error: Failed to fetch EC2 credentials from $SSM_EC2_CREDENTIALS"
+            exit 1
+          fi
+          
+          # Extract ECR registry
+          ECR_REGISTRY=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_url[0]' 2>&1 | cut -d '/' -f 1)
+          
+          if [ $? -ne 0 ] || [ -z "$ECR_REGISTRY" ]; then
+            echo "❌ Error: Failed to extract ECR registry"
+            exit 1
+          fi
+          
+          # Build repository name
+          REPO_NAME="${{ env.ORGANIZATION }}-${{ env.PROJECT_NAME }}-${ENVIRONMENT}-${{ matrix.service }}"
+          
+          # Get the full ECR image URL
+          ECR_IMAGE=$(echo "$CREDENTIALS" | jq -r ".ecr_registry_repository_url[] | select(contains(\"$REPO_NAME\"))" 2>&1)
+          
+          if [ $? -ne 0 ] || [ -z "$ECR_IMAGE" ]; then
+            echo "❌ Error: Failed to find ECR repository for $REPO_NAME"
+            exit 1
+          fi
+          
+          # Fetch versioning from SSM credentials parameter
+          echo "📋 Fetching version info from: $SSM_CREDS"
+          
           CREDS=$(aws ssm get-parameter \
             --name "$SSM_CREDS" \
             --region ${{ env.AWS_REGION }} \
             --with-decryption \
             --query Parameter.Value \
-            --output text)
-          MAJOR_VERSION=$(echo "$CREDS" | grep '^MAJOR_VERSION=' | cut -d '=' -f 2)
-          MINOR_VERSION=$(echo "$CREDS" | grep '^MINOR_VERSION=' | cut -d '=' -f 2)
-          if [ -z "$MAJOR_VERSION" ] || [ -z "$MINOR_VERSION" ]; then
-            echo "Error: MAJOR_VERSION or MINOR_VERSION not found in $SSM_CREDS"
-            exit 1
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ]; then
+            echo "⚠️  Warning: Could not fetch version info from $SSM_CREDS, using defaults"
+            MAJOR_VERSION="1"
+            MINOR_VERSION="0"
+          else
+            MAJOR_VERSION=$(echo "$CREDS" | grep '^MAJOR_VERSION=' | cut -d '=' -f 2)
+            MINOR_VERSION=$(echo "$CREDS" | grep '^MINOR_VERSION=' | cut -d '=' -f 2)
+            
+            if [ -z "$MAJOR_VERSION" ] || [ -z "$MINOR_VERSION" ]; then
+              echo "⚠️  Warning: MAJOR_VERSION or MINOR_VERSION not found, using defaults"
+              MAJOR_VERSION="1"
+              MINOR_VERSION="0"
+            fi
           fi
-          echo "MAJOR_VERSION: $MAJOR_VERSION"
-          echo "MINOR_VERSION: $MINOR_VERSION"
-          echo "ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}"
+          
+          TAG="v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}"
+          IMAGE_NAME="${{ matrix.service }}:${TAG}"
+          
+          echo "✅ ECR Registry: $ECR_REGISTRY"
+          echo "✅ Repository: $REPO_NAME"
+          echo "✅ Tag: $TAG"
+          echo "✅ Environment: $ENVIRONMENT"
+          
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
           echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
           echo "MINOR_VERSION=$MINOR_VERSION" >> $GITHUB_ENV
           echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-          echo "TAG=v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=riskgps-${{ matrix.service }}:v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
-          echo "ECR_IMAGE=$ECR_IMAGE:v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "ECR_IMAGE=$ECR_IMAGE:${TAG}" >> $GITHUB_ENV
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -214,24 +320,41 @@ jobs:
 
       - name: Build Docker image
         run: |
+          echo "🔨 Building Docker image: ${{ env.IMAGE_NAME }}"
           cd ${{ matrix.service }}
-          docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile .
+          docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile . || { echo "❌ Docker build failed"; exit 1; }
+          echo "✅ Docker image built successfully"
 
-      - name: Scan local Docker image with Trivy
+      - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: image
           image-ref: ${{ env.IMAGE_NAME }}
           format: "table"
-          exit-code: "0"
+          exit-code: "1"
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
 
-      - name: Tag and push Docker image to ECR
+      - name: Tag Docker image
         run: |
-          docker tag ${{ env.IMAGE_NAME }} ${{ env.ECR_IMAGE }}
-          docker push ${{ env.ECR_IMAGE }}
+          echo "🏷️  Tagging image as: ${{ env.ECR_IMAGE }}"
+          docker tag ${{ env.IMAGE_NAME }} ${{ env.ECR_IMAGE }} || { echo "❌ Failed to tag image"; exit 1; }
+          echo "✅ Image tagged successfully"
+
+      - name: Push Docker image to ECR
+        run: |
+          echo "📤 Pushing image to ECR: ${{ env.ECR_IMAGE }}"
+          docker push ${{ env.ECR_IMAGE }} || { echo "❌ Failed to push image to ECR"; exit 1; }
+          echo "✅ Image pushed to ECR successfully"
+
+      - name: Image Summary
+        run: |
+          echo "📊 Build Summary"
+          echo "  Environment: ${{ env.ENVIRONMENT }}"
+          echo "  Service: ${{ matrix.service }}"
+          echo "  Image: ${{ env.ECR_IMAGE }}"
+          echo "  Tag: ${{ env.TAG }}"
 
   workflow-summary:
     name: Workflow Summary
@@ -239,19 +362,57 @@ jobs:
     needs: [build-scan-push, determine-environment]
     if: always()
     steps:
-      - name: Generate Summary
+      - name: Check Job Status
         run: |
-          echo "## Docker Build and Push Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ needs.determine-environment.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tests Run**: ${{ needs.determine-environment.outputs.run-tests }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ${{ needs.build-scan-push.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow Details:**" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ needs.determine-environment.outputs.environment }}" == "dev" ]]; then
-            echo "✅ Built and pushed to **DEV** ECR repository with tests" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ Built and pushed to **PROD** ECR repository (no tests)" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.build-scan-push.result }}" == "failure" ]]; then
+            echo "❌ Workflow failed: Build, Scan, or Push step failed"
+            exit 1
           fi
+
+      - name: Generate Success Summary
+        if: needs.build-scan-push.result == 'success'
+        run: |
+          echo "## 🎉 Docker Build and Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Key | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | ${{ needs.determine-environment.outputs.environment | upper }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Event** | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tests Run** | ${{ needs.determine-environment.outputs.run-tests }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ✅ SUCCESS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit SHA** | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run Number** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Workflow Details:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.determine-environment.outputs.environment }}" == "dev" ]]; then
+            echo "✅ **Dev Environment**: Ran tests, built, scanned, and pushed to DEV ECR repository" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Prod Environment**: Built, scanned, and pushed to PROD ECR repository (tests skipped)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor the deployment pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "- Check ECR for the newly pushed images" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify image tags: v*.*.* format" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate Failure Summary
+        if: needs.build-scan-push.result != 'success'
+        run: |
+          echo "## ❌ Workflow Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Key | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | ${{ needs.determine-environment.outputs.environment | upper }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ❌ FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Reason** | Build, Scan, or Push stage failed |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Troubleshooting:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the logs for specific error messages" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify SSM parameters exist and are accessible" >> $GITHUB_STEP_SUMMARY
+          echo "3. Check AWS credentials and IAM permissions" >> $GITHUB_STEP_SUMMARY
+          echo "4. Verify Docker image builds without errors" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          exit 1
