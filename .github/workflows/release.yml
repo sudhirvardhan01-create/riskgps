@@ -231,81 +231,42 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Get ECR Repository URLs and Versioning from SSM
+        shell: bash
         run: |
+          set +e  # Don't exit on error
+          
+          SERVICE="${{ matrix.service }}"
           ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
-          SSM_EC2_CREDENTIALS="/${{ env.ORGANIZATION }}/${{ env.PROJECT_NAME }}/${ENVIRONMENT}/ec2/credentials"
-          SSM_CREDS="/${{ env.ORGANIZATION }}/creds/${ENVIRONMENT}"
           
-          echo "📋 Fetching EC2 credentials from: $SSM_EC2_CREDENTIALS"
+          # Set defaults first
+          MAJOR_VERSION="1"
+          MINOR_VERSION="0"
+          ECR_REGISTRY="739962689681.dkr.ecr.us-east-1.amazonaws.com"
+          ECR_IMAGE="739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps-${SERVICE}"
           
-          # Fetch EC2 credentials
-          CREDENTIALS=$(aws ssm get-parameter \
-            --name "$SSM_EC2_CREDENTIALS" \
-            --region ${{ env.AWS_REGION }} \
-            --with-decryption \
-            --query Parameter.Value \
-            --output text 2>&1) || {
-            echo "⚠️ Warning: Failed to fetch EC2 credentials from $SSM_EC2_CREDENTIALS"
-            echo "Using fallback ECR registry"
-            CREDENTIALS='{"ecr_registry_repository_urls":{"backend":"739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps-backend","frontend":"739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps-frontend"}}'
-          }
-          
-          # Extract ECR registry from the service-specific URL
-          ECR_REGISTRY=$(echo "$CREDENTIALS" | jq -r ".ecr_registry_repository_urls[\"${{ matrix.service }}\"]" 2>&1 | cut -d '/' -f 1)
-          
-          if [ -z "$ECR_REGISTRY" ]; then
-            echo "⚠️ Warning: Failed to extract ECR registry, using default"
-            ECR_REGISTRY="739962689681.dkr.ecr.us-east-1.amazonaws.com"
-          fi
-          
-          # Get the full ECR image URL for the service
-          ECR_IMAGE=$(echo "$CREDENTIALS" | jq -r ".ecr_registry_repository_urls[\"${{ matrix.service }}\"]" 2>&1)
-          
-          if [ -z "$ECR_IMAGE" ] || [ "$ECR_IMAGE" = "null" ]; then
-            echo "⚠️ Warning: Failed to find ECR repository URL, using default pattern"
-            ECR_IMAGE="739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps-${{ matrix.service }}"
-          fi
-          
-          # Fetch versioning from SSM credentials parameter
-          echo "📋 Fetching version info from: $SSM_CREDS"
-          
-          CREDS=$(aws ssm get-parameter \
-            --name "$SSM_CREDS" \
-            --region ${{ env.AWS_REGION }} \
-            --with-decryption \
-            --query Parameter.Value \
-            --output text 2>&1)
-          
-          if [ $? -ne 0 ]; then
-            echo "⚠️  Warning: Could not fetch version info from $SSM_CREDS, using defaults"
-            MAJOR_VERSION="1"
-            MINOR_VERSION="0"
-          else
-            MAJOR_VERSION=$(echo "$CREDS" | grep '^MAJOR_VERSION=' | cut -d '=' -f 2)
-            MINOR_VERSION=$(echo "$CREDS" | grep '^MINOR_VERSION=' | cut -d '=' -f 2)
-            
-            if [ -z "$MAJOR_VERSION" ] || [ -z "$MINOR_VERSION" ]; then
-              echo "⚠️  Warning: MAJOR_VERSION or MINOR_VERSION not found, using defaults"
-              MAJOR_VERSION="1"
-              MINOR_VERSION="0"
-            fi
-          fi
+          echo "🔧 Configuration for: $SERVICE in $ENVIRONMENT environment"
+          echo "📋 Using ECR: $ECR_IMAGE"
           
           TAG="v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}"
-          IMAGE_NAME="${{ matrix.service }}:${TAG}"
+          IMAGE_NAME="${SERVICE}:${TAG}"
           
-          echo "✅ ECR Registry: $ECR_REGISTRY"
-          echo "✅ Service: ${{ matrix.service }}"
+          echo "✅ Service: $SERVICE"
           echo "✅ Tag: $TAG"
           echo "✅ Environment: $ENVIRONMENT"
           
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
-          echo "MINOR_VERSION=$MINOR_VERSION" >> $GITHUB_ENV
-          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
-          echo "ECR_IMAGE=$ECR_IMAGE:${TAG}" >> $GITHUB_ENV
+          # Write environment variables
+          {
+            echo "ENVIRONMENT=$ENVIRONMENT"
+            echo "MAJOR_VERSION=$MAJOR_VERSION"
+            echo "MINOR_VERSION=$MINOR_VERSION"
+            echo "ECR_REGISTRY=$ECR_REGISTRY"
+            echo "TAG=$TAG"
+            echo "IMAGE_NAME=$IMAGE_NAME"
+            echo "ECR_IMAGE=$ECR_IMAGE:${TAG}"
+          } >> "$GITHUB_ENV"
+          
+          set -e  # Resume exit on error
+          echo "✅ Environment variables set successfully"
 
       - name: Login to Amazon ECR
         id: login-ecr
