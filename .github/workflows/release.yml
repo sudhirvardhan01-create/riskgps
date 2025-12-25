@@ -34,8 +34,6 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  ORGANIZATION: bluocean
-  PROJECT_NAME: riskgps
 
 jobs:
   determine-environment:
@@ -94,6 +92,7 @@ jobs:
     needs: determine-environment
     outputs:
       services: ${{ steps.set-services.outputs.services }}
+      aws_region: ${{ steps.set-services.outputs.aws_region }}
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -102,29 +101,32 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
 
       - name: Get ECR Repository URLs from SSM
         id: set-services
         run: |
           ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
-          SSM_EC2_CREDENTIALS="/${{ env.ORGANIZATION }}/${{ env.PROJECT_NAME }}/${ENVIRONMENT}/ec2/credentials"
+          SSM_PARAMETER="/bluocean/riskgps/${ENVIRONMENT}/ec2/credentials"
           
-          echo "📋 Fetching credentials from SSM parameter: $SSM_EC2_CREDENTIALS"
+          echo "📋 Fetching credentials from SSM parameter: $SSM_PARAMETER"
           
           # Fetch SSM parameter with error handling
           CREDENTIALS=$(aws ssm get-parameter \
-            --name "$SSM_EC2_CREDENTIALS" \
-            --region ${{ env.AWS_REGION }} \
+            --name "$SSM_PARAMETER" \
+            --region us-east-1 \
             --with-decryption \
             --query Parameter.Value \
             --output text 2>&1)
           
           if [ $? -ne 0 ]; then
-            echo "❌ Error: Failed to retrieve SSM parameter: $SSM_EC2_CREDENTIALS"
+            echo "❌ Error: Failed to retrieve SSM parameter: $SSM_PARAMETER"
             echo "Return value: $CREDENTIALS"
             exit 1
           fi
+          
+          # Extract AWS region from availability_zone (e.g., "us-east-1a" -> "us-east-1")
+          AWS_REGION=$(echo "$CREDENTIALS" | jq -r '.availability_zone' | sed 's/[a-z]$//')
           
           # Parse repository URLs and extract service names from object keys
           # ecr_registry_repository_urls structure: {"backend": "...", "frontend": "..."}
@@ -137,7 +139,9 @@ jobs:
           fi
           
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
+          echo "aws_region=$AWS_REGION" >> $GITHUB_OUTPUT
           echo "✅ Services detected: $SERVICES"
+          echo "✅ AWS Region extracted: $AWS_REGION"
 
   run-tests:
     name: Run Tests (${{ needs.determine-environment.outputs.environment }} Environment)
@@ -228,45 +232,87 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ needs.get-services.outputs.aws_region }}
 
       - name: Get ECR Repository URLs and Versioning from SSM
         shell: bash
         run: |
-          set +e  # Don't exit on error
-          
-          SERVICE="${{ matrix.service }}"
           ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
+          SERVICE="${{ matrix.service }}"
+          AWS_REGION="${{ needs.get-services.outputs.aws_region }}"
           
-          # Set defaults first
+          # Hardcoded SSM parameter path: /bluocean/riskgps/{environment}/ec2/credentials
+          SSM_PARAMETER="/bluocean/riskgps/${ENVIRONMENT}/ec2/credentials"
+          
+          echo "🔍 Fetching configuration from SSM Parameter Store..."
+          echo "📍 Parameter: $SSM_PARAMETER"
+          echo "📍 AWS Region: $AWS_REGION"
+          
+          # Fetch EC2 credentials from SSM (with decryption)
+          CREDENTIALS=$(aws ssm get-parameter \
+            --name "$SSM_PARAMETER" \
+            --region "$AWS_REGION" \
+            --with-decryption \
+            --query 'Parameter.Value' \
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to fetch credentials from SSM: $SSM_PARAMETER"
+            echo "Error: $CREDENTIALS"
+            exit 1
+          fi
+          
+          # Verify we got valid JSON
+          echo "$CREDENTIALS" | jq . > /dev/null 2>&1
+          if [ $? -ne 0 ]; then
+            echo "❌ Invalid JSON returned from SSM parameter"
+            exit 1
+          fi
+          
+          # Extract ECR image URL for the specific service from SSM
+          ECR_IMAGE=$(echo "$CREDENTIALS" | jq -r ".ecr_registry_repository_urls[\"$SERVICE\"]")
+          
+          if [ -z "$ECR_IMAGE" ] || [ "$ECR_IMAGE" = "null" ]; then
+            echo "❌ Failed to find ECR repository URL for service: $SERVICE"
+            echo "Available services: $(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_urls | keys | join(", ")')"
+            exit 1
+          fi
+          
+          # Extract ECR registry (everything before the last /)
+          ECR_REGISTRY=$(echo "$ECR_IMAGE" | sed 's|/[^/]*$||')
+          
+          # Generate tag and image name (using a default version)
           MAJOR_VERSION="1"
           MINOR_VERSION="0"
-          ECR_REGISTRY="739962689681.dkr.ecr.us-east-1.amazonaws.com"
-          ECR_IMAGE="739962689681.dkr.ecr.us-east-1.amazonaws.com/riskgps-${SERVICE}"
-          
-          echo "🔧 Configuration for: $SERVICE in $ENVIRONMENT environment"
-          echo "📋 Using ECR: $ECR_IMAGE"
-          
           TAG="v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}"
           IMAGE_NAME="${SERVICE}:${TAG}"
+          ECR_IMAGE_WITH_TAG="${ECR_IMAGE}:${TAG}"
           
-          echo "✅ Service: $SERVICE"
-          echo "✅ Tag: $TAG"
-          echo "✅ Environment: $ENVIRONMENT"
+          # Log the configuration
+          echo ""
+          echo "✅ Configuration loaded from SSM:"
+          echo "   Environment: $ENVIRONMENT"
+          echo "   Service: $SERVICE"
+          echo "   AWS Region: $AWS_REGION"
+          echo "   ECR Registry: $ECR_REGISTRY"
+          echo "   ECR Repository: $ECR_IMAGE"
+          echo "   Image Tag: $TAG"
+          echo "   Full Image: $ECR_IMAGE_WITH_TAG"
+          echo ""
           
-          # Write environment variables
+          # Export as environment variables
           {
             echo "ENVIRONMENT=$ENVIRONMENT"
-            echo "MAJOR_VERSION=$MAJOR_VERSION"
-            echo "MINOR_VERSION=$MINOR_VERSION"
+            echo "SERVICE=$SERVICE"
+            echo "AWS_REGION=$AWS_REGION"
             echo "ECR_REGISTRY=$ECR_REGISTRY"
             echo "TAG=$TAG"
             echo "IMAGE_NAME=$IMAGE_NAME"
-            echo "ECR_IMAGE=$ECR_IMAGE:${TAG}"
+            echo "ECR_IMAGE=$ECR_IMAGE"
+            echo "ECR_IMAGE_WITH_TAG=$ECR_IMAGE_WITH_TAG"
           } >> "$GITHUB_ENV"
           
-          set -e  # Resume exit on error
-          echo "✅ Environment variables set successfully"
+          echo "✅ Environment variables exported to $GITHUB_ENV"
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -300,22 +346,24 @@ jobs:
 
       - name: Tag Docker image
         run: |
-          echo "🏷️  Tagging image as: ${{ env.ECR_IMAGE }}"
-          docker tag ${{ env.IMAGE_NAME }} ${{ env.ECR_IMAGE }} || { echo "❌ Failed to tag image"; exit 1; }
+          echo "🏷️  Tagging image as: ${{ env.ECR_IMAGE_WITH_TAG }}"
+          docker tag ${{ env.IMAGE_NAME }} ${{ env.ECR_IMAGE_WITH_TAG }} || { echo "❌ Failed to tag image"; exit 1; }
           echo "✅ Image tagged successfully"
 
       - name: Push Docker image to ECR
         run: |
-          echo "📤 Pushing image to ECR: ${{ env.ECR_IMAGE }}"
-          docker push ${{ env.ECR_IMAGE }} || { echo "❌ Failed to push image to ECR"; exit 1; }
+          echo "📤 Pushing image to ECR: ${{ env.ECR_IMAGE_WITH_TAG }}"
+          docker push ${{ env.ECR_IMAGE_WITH_TAG }} || { echo "❌ Failed to push image to ECR"; exit 1; }
           echo "✅ Image pushed to ECR successfully"
 
       - name: Image Summary
         run: |
           echo "📊 Build Summary"
           echo "  Environment: ${{ env.ENVIRONMENT }}"
-          echo "  Service: ${{ matrix.service }}"
-          echo "  Image: ${{ env.ECR_IMAGE }}"
+          echo "  Service: ${{ env.SERVICE }}"
+          echo "  AWS Region: ${{ env.AWS_REGION }}"
+          echo "  ECR Repository: ${{ env.ECR_IMAGE }}"
+          echo "  Image with Tag: ${{ env.ECR_IMAGE_WITH_TAG }}"
           echo "  Tag: ${{ env.TAG }}"
 
   workflow-summary:
