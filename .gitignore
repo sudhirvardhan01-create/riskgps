@@ -10,5 +10,3 @@ node_modules
 .vscode
 .vs
 
-backend/uploads
-workflows/

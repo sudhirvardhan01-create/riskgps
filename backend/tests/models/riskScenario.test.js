@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize');
-const defineRiskScenario = require('../../modules/library/models/riskScenario');
+const defineRiskScenario = require('../../models/riskScenario');
 
 describe('RiskScenario Model', () => {
   let sequelize;
