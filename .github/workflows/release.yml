@@ -126,11 +126,12 @@ jobs:
             exit 1
           fi
           
-          # Parse repository URLs and extract service names
-          SERVICES=$(echo "$CREDENTIALS" | jq -c '[.ecr_registry_repository_url[] | split("/")[1] | sub("'\"${{ env.ORGANIZATION }}\"'-'\"${{ env.PROJECT_NAME }}\"'-'\"${ENVIRONMENT}\"'-"; "")] | select(length > 0)' 2>&1)
+          # Parse repository URLs and extract service names from object keys
+          # ecr_registry_repository_urls structure: {"backend": "...", "frontend": "..."}
+          SERVICES=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_urls | keys | @json' 2>&1)
           
           if [ $? -ne 0 ] || [ -z "$SERVICES" ] || [ "$SERVICES" = "[]" ]; then
-            echo "❌ Error: No services found or failed to parse ecr_registry_repository_url"
+            echo "❌ Error: No services found or failed to parse ecr_registry_repository_urls"
             echo "Services output: $SERVICES"
             exit 1
           fi
@@ -250,22 +251,19 @@ jobs:
             exit 1
           fi
           
-          # Extract ECR registry
-          ECR_REGISTRY=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_url[0]' 2>&1 | cut -d '/' -f 1)
+          # Extract ECR registry from the service-specific URL
+          ECR_REGISTRY=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_urls["${{ matrix.service }}"]' 2>&1 | cut -d '/' -f 1)
           
           if [ $? -ne 0 ] || [ -z "$ECR_REGISTRY" ]; then
-            echo "❌ Error: Failed to extract ECR registry"
+            echo "❌ Error: Failed to extract ECR registry for service ${{ matrix.service }}"
             exit 1
           fi
           
-          # Build repository name
-          REPO_NAME="${{ env.ORGANIZATION }}-${{ env.PROJECT_NAME }}-${ENVIRONMENT}-${{ matrix.service }}"
-          
-          # Get the full ECR image URL
-          ECR_IMAGE=$(echo "$CREDENTIALS" | jq -r ".ecr_registry_repository_url[] | select(contains(\"$REPO_NAME\"))" 2>&1)
+          # Get the full ECR image URL for the service
+          ECR_IMAGE=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_urls["${{ matrix.service }}"]' 2>&1)
           
           if [ $? -ne 0 ] || [ -z "$ECR_IMAGE" ]; then
-            echo "❌ Error: Failed to find ECR repository for $REPO_NAME"
+            echo "❌ Error: Failed to find ECR repository URL for ${{ matrix.service }}"
             exit 1
           fi
           
@@ -298,7 +296,7 @@ jobs:
           IMAGE_NAME="${{ matrix.service }}:${TAG}"
           
           echo "✅ ECR Registry: $ECR_REGISTRY"
-          echo "✅ Repository: $REPO_NAME"
+          echo "✅ Service: ${{ matrix.service }}"
           echo "✅ Tag: $TAG"
           echo "✅ Environment: $ENVIRONMENT"
           
@@ -306,7 +304,6 @@ jobs:
           echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
           echo "MINOR_VERSION=$MINOR_VERSION" >> $GITHUB_ENV
           echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "ECR_IMAGE=$ECR_IMAGE:${TAG}" >> $GITHUB_ENV
