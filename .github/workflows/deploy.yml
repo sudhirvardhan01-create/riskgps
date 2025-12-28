@@ -201,25 +201,34 @@ jobs:
         run: |
           echo "🔍 Fetching latest image tags from ECR"
           
+          # Extract repository names from the image URLs
+          FRONTEND_REPO=$(echo "${{ env.FRONTEND_IMAGE_URL }}" | cut -d '/' -f 2)
+          BACKEND_REPO=$(echo "${{ env.BACKEND_IMAGE_URL }}" | cut -d '/' -f 2)
+          
+          echo "Frontend Repository: $FRONTEND_REPO"
+          echo "Backend Repository: $BACKEND_REPO"
+          
           FRONTEND_TAG=$(aws ecr describe-images \
-            --repository-name riskgps-frontend \
+            --repository-name "$FRONTEND_REPO" \
             --region ${{ env.AWS_REGION }} \
             --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
             --output text 2>&1)
           
           if [ $? -ne 0 ] || [ -z "$FRONTEND_TAG" ] || [ "$FRONTEND_TAG" = "None" ]; then
             echo "❌ Failed to retrieve frontend image tag"
+            echo "Error: $FRONTEND_TAG"
             exit 1
           fi
           
           BACKEND_TAG=$(aws ecr describe-images \
-            --repository-name riskgps-backend \
+            --repository-name "$BACKEND_REPO" \
             --region ${{ env.AWS_REGION }} \
             --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
             --output text 2>&1)
           
           if [ $? -ne 0 ] || [ -z "$BACKEND_TAG" ] || [ "$BACKEND_TAG" = "None" ]; then
             echo "❌ Failed to retrieve backend image tag"
+            echo "Error: $BACKEND_TAG"
             exit 1
           fi
           
