@@ -128,12 +128,13 @@ jobs:
           echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
           
           # Extract PEM key and properly handle escaped newlines
-          echo "$CREDENTIALS" | jq -r '.pem' | sed 's/\\n/\n/g' > ssh_key.pem
+          echo "$CREDENTIALS" | jq -r '.pem_private_key' | sed 's/\\n/\n/g' > ssh_key.pem
           chmod 600 ssh_key.pem
           
           # Verify the SSH key is valid
           if ! ssh-keygen -l -f ssh_key.pem > /dev/null 2>&1; then
             echo "❌ SSH key format is invalid"
+            cat ssh_key.pem
             exit 1
           fi
           
