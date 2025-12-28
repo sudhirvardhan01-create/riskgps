@@ -325,9 +325,14 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "cd ${{ env.EC2_DEST_DIR }} && (docker-compose down || true)" 2>&1
+            "cd ${{ env.EC2_DEST_DIR }} && \
+            (docker-compose down || true) && \
+            (docker container prune -f || true) && \
+            (docker network prune -f || true) && \
+            sleep 3 && \
+            echo 'Cleanup completed'" 2>&1
           
-          echo "✅ Docker-compose services stopped (or already stopped)"
+          echo "✅ Docker-compose services stopped and cleaned up"
 
       - name: Run docker-compose on EC2
         run: |
