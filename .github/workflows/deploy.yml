@@ -1,0 +1,435 @@
+name: Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["Docker Build, Scan, and Push to AWS ECR"]
+    branches:
+      - dev
+      - prod
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment to deploy'
+        required: true
+        type: choice
+        default: 'dev'
+        options:
+          - dev
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  EC2_SSH_USER: ubuntu
+  EC2_DEST_DIR: /home/ubuntu/riskgps
+
+jobs:
+  determine-environment:
+    name: Determine Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      should-deploy: ${{ steps.set-env.outputs.should-deploy }}
+    steps:
+      - name: Determine environment based on event
+        id: set-env
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          BRANCH="${{ github.ref_name }}"
+          
+          SHOULD_DEPLOY="false"
+          
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+            SHOULD_DEPLOY="true"
+          elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            # Determine environment from branch that triggered the release workflow
+            if [[ "$BRANCH" == "dev" ]]; then
+              ENVIRONMENT="dev"
+              # Only deploy if the release workflow succeeded
+              if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+                SHOULD_DEPLOY="true"
+              fi
+            elif [[ "$BRANCH" == "prod" ]]; then
+              ENVIRONMENT="prod"
+              # Only deploy if the release workflow succeeded
+              if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+                SHOULD_DEPLOY="true"
+              fi
+            else
+              echo "❌ Error: Branch '$BRANCH' is not supported. Only 'dev' and 'prod' are allowed."
+              SHOULD_DEPLOY="false"
+            fi
+          else
+            echo "❌ Error: Unsupported event type: $EVENT_NAME"
+            SHOULD_DEPLOY="false"
+          fi
+          
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "should-deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          
+          echo "✅ Environment: $ENVIRONMENT"
+          echo "✅ Event: $EVENT_NAME"
+          echo "✅ Branch: $BRANCH"
+          echo "✅ Should Deploy: $SHOULD_DEPLOY"
+
+  deploy:
+    name: Deploy to ${{ needs.determine-environment.outputs.environment }} EC2
+    runs-on: ubuntu-latest
+    needs: determine-environment
+    if: needs.determine-environment.outputs.should-deploy == 'true'
+    env:
+      ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
+      SSM_EC2_CREDENTIALS: /bluocean/riskgps/${{ needs.determine-environment.outputs.environment }}/ec2/credentials
+      SSM_CREDS: /bluocean/${{ needs.determine-environment.outputs.environment }}/creds
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get EC2 and ECR Credentials from SSM
+        id: get-ec2-creds
+        run: |
+          echo "🔍 Fetching EC2 credentials from SSM: ${{ env.SSM_EC2_CREDENTIALS }}"
+          
+          CREDENTIALS=$(aws ssm get-parameter \
+            --name "${{ env.SSM_EC2_CREDENTIALS }}" \
+            --region ${{ env.AWS_REGION }} \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to retrieve SSM parameter: ${{ env.SSM_EC2_CREDENTIALS }}"
+            echo "Error: $CREDENTIALS"
+            exit 1
+          fi
+          
+          # Verify JSON validity
+          echo "$CREDENTIALS" | jq . > /dev/null 2>&1
+          if [ $? -ne 0 ]; then
+            echo "❌ Invalid JSON returned from SSM parameter"
+            exit 1
+          fi
+          
+          PUBLIC_IP=$(echo "$CREDENTIALS" | jq -r '.public_ip')
+          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+          echo "$CREDENTIALS" | jq -r '.pem' > ssh_key.pem
+          chmod 600 ssh_key.pem
+          
+          # Extract ECR repository URLs - handling both array and object formats
+          FRONTEND_IMAGE_URL=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_urls.frontend // .ecr_registry_repository_urls[0]')
+          BACKEND_IMAGE_URL=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_urls.backend // .ecr_registry_repository_urls[1]')
+          ECR_REGISTRY=$(echo "$FRONTEND_IMAGE_URL" | cut -d '/' -f 1)
+          
+          if [ -z "$PUBLIC_IP" ] || [ "$PUBLIC_IP" = "null" ]; then
+            echo "❌ Failed to extract public IP from credentials"
+            exit 1
+          fi
+          
+          if [ -z "$FRONTEND_IMAGE_URL" ] || [ "$FRONTEND_IMAGE_URL" = "null" ]; then
+            echo "❌ Failed to extract frontend image URL"
+            exit 1
+          fi
+          
+          if [ -z "$BACKEND_IMAGE_URL" ] || [ "$BACKEND_IMAGE_URL" = "null" ]; then
+            echo "❌ Failed to extract backend image URL"
+            exit 1
+          fi
+          
+          echo "FRONTEND_IMAGE_URL=$FRONTEND_IMAGE_URL" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE_URL=$BACKEND_IMAGE_URL" >> $GITHUB_ENV
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
+          
+          echo "✅ EC2 credentials retrieved successfully"
+          echo "   Public IP: $PUBLIC_IP"
+          echo "   ECR Registry: $ECR_REGISTRY"
+
+      - name: Get Application Credentials from SSM
+        run: |
+          echo "🔍 Fetching application credentials from SSM: ${{ env.SSM_CREDS }}"
+          
+          CREDS=$(aws ssm get-parameter \
+            --name "${{ env.SSM_CREDS }}" \
+            --region ${{ env.AWS_REGION }} \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to retrieve SSM parameter: ${{ env.SSM_CREDS }}"
+            echo "Error: $CREDS"
+            exit 1
+          fi
+          
+          # Initialize or clear .env file
+          > .env
+          
+          # If CREDS is JSON, parse it; otherwise assume it's already in KEY=VALUE format
+          if echo "$CREDS" | jq . > /dev/null 2>&1; then
+            echo "📝 Parsing JSON credentials"
+            echo "$CREDS" | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> .env
+          else
+            echo "📝 Using credentials as-is (not JSON)"
+            echo "$CREDS" >> .env
+          fi
+          
+          echo "✅ Application credentials retrieved"
+
+      - name: Get Latest Image Tag from ECR
+        run: |
+          echo "🔍 Fetching latest image tags from ECR"
+          
+          FRONTEND_TAG=$(aws ecr describe-images \
+            --repository-name riskgps-frontend \
+            --region ${{ env.AWS_REGION }} \
+            --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ] || [ -z "$FRONTEND_TAG" ] || [ "$FRONTEND_TAG" = "None" ]; then
+            echo "❌ Failed to retrieve frontend image tag"
+            exit 1
+          fi
+          
+          BACKEND_TAG=$(aws ecr describe-images \
+            --repository-name riskgps-backend \
+            --region ${{ env.AWS_REGION }} \
+            --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
+            --output text 2>&1)
+          
+          if [ $? -ne 0 ] || [ -z "$BACKEND_TAG" ] || [ "$BACKEND_TAG" = "None" ]; then
+            echo "❌ Failed to retrieve backend image tag"
+            exit 1
+          fi
+          
+          echo "Frontend Tag: $FRONTEND_TAG"
+          echo "Backend Tag: $BACKEND_TAG"
+          
+          # Use latest tag found (prefer frontend, fallback to backend)
+          if [ "$FRONTEND_TAG" != "None" ]; then
+            IMAGE_TAG="$FRONTEND_TAG"
+          elif [ "$BACKEND_TAG" != "None" ]; then
+            IMAGE_TAG="$BACKEND_TAG"
+          else
+            echo "❌ No valid image tags found"
+            exit 1
+          fi
+          
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "✅ Latest image tag: $IMAGE_TAG"
+
+      - name: Create .env file with deployment configuration
+        run: |
+          echo "📝 Creating .env file with deployment configuration"
+          
+          cat << EOF >> .env
+          
+          # Deployment Configuration
+          FRONTEND_IMAGE_URL=${{ env.FRONTEND_IMAGE_URL }}
+          BACKEND_IMAGE_URL=${{ env.BACKEND_IMAGE_URL }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          ENVIRONMENT=${{ env.ENVIRONMENT }}
+          NEXT_PUBLIC_API_URL=https://${{ env.ENVIRONMENT }}.riskgps.ai/api
+          EOF
+          
+          echo "✅ .env file created"
+
+      - name: Create destination directory on EC2
+        run: |
+          echo "📁 Creating destination directory on EC2: ${{ env.EC2_DEST_DIR }}"
+          
+          ssh -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "mkdir -p ${{ env.EC2_DEST_DIR }}" 2>&1
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Destination directory created/verified"
+          else
+            echo "❌ Failed to create destination directory"
+            exit 1
+          fi
+
+      - name: Copy configuration files to EC2
+        run: |
+          echo "📤 Copying nginx.conf, docker-compose.yml, and .env to EC2"
+          
+          scp -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            nginx.conf \
+            docker-compose.yml \
+            .env \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }}:${{ env.EC2_DEST_DIR }}/ 2>&1
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Configuration files copied successfully"
+          else
+            echo "❌ Failed to copy configuration files"
+            exit 1
+          fi
+
+      - name: Authenticate Docker with ECR on EC2
+        run: |
+          echo "🔐 Authenticating Docker with ECR on EC2"
+          
+          ssh -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}" 2>&1
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker authenticated with ECR"
+          else
+            echo "❌ Failed to authenticate Docker with ECR"
+            exit 1
+          fi
+
+      - name: Stop and remove existing docker-compose services
+        run: |
+          echo "🛑 Stopping existing docker-compose services on EC2"
+          
+          ssh -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "cd ${{ env.EC2_DEST_DIR }} && (docker-compose down || true)" 2>&1
+          
+          echo "✅ Docker-compose services stopped (or already stopped)"
+
+      - name: Run docker-compose on EC2
+        run: |
+          echo "🚀 Starting docker-compose services on EC2"
+          
+          ssh -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "cd ${{ env.EC2_DEST_DIR }} && docker-compose up -d" 2>&1
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker-compose services started successfully"
+          else
+            echo "❌ Failed to start docker-compose services"
+            exit 1
+          fi
+
+      - name: Wait for services to be healthy
+        run: |
+          echo "⏳ Waiting for services to be healthy"
+          
+          ssh -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "for i in {1..30}; do docker-compose ps --all 2>/dev/null && break || (echo 'Waiting for Docker...' && sleep 2); done" 2>&1
+
+      - name: Run Sequelize Seeders
+        run: |
+          echo "🌱 Running Sequelize seeders"
+          
+          ssh -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "cd ${{ env.EC2_DEST_DIR }} && docker-compose exec -T backend npm run db:seed" 2>&1
+          
+          echo "✅ Sequelize seeders executed"
+
+      - name: Verify Deployment
+        run: |
+          echo "✅ Verifying deployment"
+          
+          ssh -i ssh_key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
+            "cd ${{ env.EC2_DEST_DIR }} && docker-compose ps" 2>&1
+
+      - name: Clean up SSH key
+        if: always()
+        run: |
+          echo "🧹 Cleaning up SSH key"
+          rm -f ssh_key.pem
+          echo "✅ SSH key removed"
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy, determine-environment]
+    if: always()
+    steps:
+      - name: Generate Success Summary
+        if: needs.deploy.result == 'success'
+        run: |
+          ENV_UPPER=$(echo "${{ needs.determine-environment.outputs.environment }}" | tr '[:lower:]' '[:upper:]')
+          echo "## 🎉 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Key | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | $ENV_UPPER |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ✅ SUCCESS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit SHA** | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run Number** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 What was deployed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Frontend container updated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Backend container updated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Database seeders executed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Nginx configuration deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor application health and logs" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify connectivity at https://${{ needs.determine-environment.outputs.environment }}.riskgps.ai" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate Failure Summary
+        if: needs.deploy.result != 'success'
+        run: |
+          ENV_UPPER=$(echo "${{ needs.determine-environment.outputs.environment }}" | tr '[:lower:]' '[:upper:]')
+          echo "## ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Key | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | $ENV_UPPER |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ❌ FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Troubleshooting Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the deployment logs above for specific error messages" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify EC2 instance is running and accessible" >> $GITHUB_STEP_SUMMARY
+          echo "3. Verify SSH key and EC2 credentials in SSM Parameter Store" >> $GITHUB_STEP_SUMMARY
+          echo "4. Check AWS IAM permissions for the GithubActionRole" >> $GITHUB_STEP_SUMMARY
+          echo "5. Verify docker-compose.yml syntax on EC2" >> $GITHUB_STEP_SUMMARY
+          echo "6. Check EC2 security groups allow SSH (port 22)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          exit 1
+
+      - name: Generate Skipped Summary
+        if: needs.deploy.result == 'skipped'
+        run: |
+          ENV_UPPER=$(echo "${{ needs.determine-environment.outputs.environment }}" | tr '[:lower:]' '[:upper:]')
+          echo "## ⏭️ Deployment Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Key | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | $ENV_UPPER |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Status** | ⏭️ SKIPPED |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ℹ️ Reason:" >> $GITHUB_STEP_SUMMARY
+          echo "- This deployment was skipped because the 'Docker Build, Scan, and Push to AWS ECR' workflow did not complete successfully" >> $GITHUB_STEP_SUMMARY
