@@ -158,13 +158,18 @@ jobs:
             exit 1
           fi
           
+          # Extract environment domain
+          ENVIRONMENT_DOMAIN=$(echo "$CREDENTIALS" | jq -r '.environment_domain')
+          
           echo "FRONTEND_IMAGE_URL=$FRONTEND_IMAGE_URL" >> $GITHUB_ENV
           echo "BACKEND_IMAGE_URL=$BACKEND_IMAGE_URL" >> $GITHUB_ENV
           echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
+          echo "ENVIRONMENT_DOMAIN=$ENVIRONMENT_DOMAIN" >> $GITHUB_ENV
           
           echo "✅ EC2 credentials retrieved successfully"
           echo "   Public IP: $PUBLIC_IP"
           echo "   ECR Registry: $ECR_REGISTRY"
+          echo "   Environment Domain: $ENVIRONMENT_DOMAIN"
 
       - name: Get Application Credentials from SSM
         run: |
@@ -259,7 +264,13 @@ jobs:
           BACKEND_IMAGE_URL=${{ env.BACKEND_IMAGE_URL }}
           IMAGE_TAG=${{ env.IMAGE_TAG }}
           ENVIRONMENT=${{ env.ENVIRONMENT }}
-          NEXT_PUBLIC_API_URL=https://${{ env.ENVIRONMENT }}.riskgps.ai/api
+          ENVIRONMENT_DOMAIN=${{ env.ENVIRONMENT_DOMAIN }}
+          NEXT_PUBLIC_API_URL=https://${{ env.ENVIRONMENT_DOMAIN }}/api
+          
+          # SSL Certificate Configuration
+          SSL_CERT_DIR=/home/ubuntu/ssl-certificates/${{ env.ENVIRONMENT }}
+          SSL_CERT_FILE=/home/ubuntu/ssl-certificates/${{ env.ENVIRONMENT }}/fullchain.pem
+          SSL_KEY_FILE=/home/ubuntu/ssl-certificates/${{ env.ENVIRONMENT }}/privkey.pem
           EOF
           
           echo "✅ .env file created"

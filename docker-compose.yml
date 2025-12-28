@@ -43,15 +43,20 @@ services:
     image: nginx:latest
     ports:
       - "80:80"
-      - "443:443"  # Add this line
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${SSL_CERT_DIR}:/etc/nginx/ssl:ro
+    environment:
+      - ENVIRONMENT_DOMAIN=${ENVIRONMENT_DOMAIN}
     depends_on:
       - frontend
       - backend
     networks:
       - webnet
     restart: unless-stopped
+    entrypoint: /bin/sh
+    command: -c "envsubst '$$ENVIRONMENT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
 
 volumes:
   pgdata:
