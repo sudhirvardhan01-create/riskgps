@@ -126,8 +126,16 @@ jobs:
           
           PUBLIC_IP=$(echo "$CREDENTIALS" | jq -r '.public_ip')
           echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-          echo "$CREDENTIALS" | jq -r '.pem' > ssh_key.pem
+          
+          # Extract PEM key and properly handle escaped newlines
+          echo "$CREDENTIALS" | jq -r '.pem' | sed 's/\\n/\n/g' > ssh_key.pem
           chmod 600 ssh_key.pem
+          
+          # Verify the SSH key is valid
+          if ! ssh-keygen -l -f ssh_key.pem > /dev/null 2>&1; then
+            echo "❌ SSH key format is invalid"
+            exit 1
+          fi
           
           # Extract ECR repository URLs - handling both array and object formats
           FRONTEND_IMAGE_URL=$(echo "$CREDENTIALS" | jq -r '.ecr_registry_repository_urls.frontend // .ecr_registry_repository_urls[0]')
