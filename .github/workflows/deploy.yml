@@ -326,11 +326,13 @@ jobs:
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
             "cd ${{ env.EC2_DEST_DIR }} && \
-            (docker-compose down || true) && \
-            (docker container prune -f || true) && \
+            (docker-compose down -v || true) && \
+            (docker stop \$(docker ps -a -q) 2>/dev/null || true) && \
+            (docker rm -f \$(docker ps -a -q) 2>/dev/null || true) && \
             (docker network prune -f || true) && \
-            sleep 3 && \
-            echo 'Cleanup completed'" 2>&1
+            (sudo lsof -ti:80 | xargs -r sudo kill -9 2>/dev/null || true) && \
+            sleep 5 && \
+            echo 'Aggressive cleanup completed'" 2>&1
           
           echo "✅ Docker-compose services stopped and cleaned up"
 
