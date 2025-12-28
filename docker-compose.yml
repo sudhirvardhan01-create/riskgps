@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   frontend:
-    image: ${FRONTEND_IMAGE_url}:${IMAGE_TAG}
+    image: ${FRONTEND_IMAGE_URL}:${IMAGE_TAG}
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     expose:
@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ${BACKEND_IMAGE_url}:${IMAGE_TAG}
+    image: ${BACKEND_IMAGE_URL}:${IMAGE_TAG}
     expose:
       - "8000" # Internal communication only
     depends_on:
