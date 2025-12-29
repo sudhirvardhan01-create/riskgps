@@ -271,6 +271,7 @@ jobs:
           IMAGE_TAG=${{ env.IMAGE_TAG }}
           ENVIRONMENT=${{ env.ENVIRONMENT }}
           ENVIRONMENT_DOMAIN=${{ env.ENVIRONMENT_DOMAIN }}
+          SSL_CERT_DIR=/home/ubuntu/ssl-certificates/${{ env.ENVIRONMENT }}
           NEXT_PUBLIC_API_URL=https://${{ env.ENVIRONMENT_DOMAIN }}/api
           EOF
           
