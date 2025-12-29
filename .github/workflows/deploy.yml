@@ -352,11 +352,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "cd ${{ env.EC2_DEST_DIR }} && \
-            export FRONTEND_IMAGE_URL=${{ env.FRONTEND_IMAGE_URL }} && \
-            export BACKEND_IMAGE_URL=${{ env.BACKEND_IMAGE_URL }} && \
-            export IMAGE_TAG=${{ env.IMAGE_TAG }} && \
-            docker compose up -d" 2>&1
+            "cd ${{ env.EC2_DEST_DIR }} && docker compose up -d" 2>&1
           
           if [ $? -eq 0 ]; then
             echo "✅ Docker-compose services started successfully"
