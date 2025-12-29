@@ -338,7 +338,7 @@ jobs:
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
             "cd ${{ env.EC2_DEST_DIR }} && \
-            (docker compose down -v || true) && \
+            (docker-compose down -v || true) && \
             sleep 5 && \
             echo 'Cleanup completed'" 2>&1
           
@@ -352,7 +352,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "cd ${{ env.EC2_DEST_DIR }} && docker compose up -d" 2>&1
+            "cd ${{ env.EC2_DEST_DIR }} && docker-compose up -d" 2>&1
           
           if [ $? -eq 0 ]; then
             echo "✅ Docker-compose services started successfully"
@@ -369,7 +369,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "for i in {1..30}; do docker compose ps --all 2>/dev/null && break || (echo 'Waiting for Docker...' && sleep 2); done" 2>&1
+            "for i in {1..30}; do docker-compose ps --all 2>/dev/null && break || (echo 'Waiting for Docker...' && sleep 2); done" 2>&1
 
       - name: Run Sequelize Seeders (dev environment only)
         if: needs.determine-environment.outputs.environment == 'dev'
@@ -380,7 +380,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "cd ${{ env.EC2_DEST_DIR }} && docker compose exec -T backend npm run db:seed" 2>&1
+            "cd ${{ env.EC2_DEST_DIR }} && docker-compose exec -T backend npm run db:seed" 2>&1
           
           echo "✅ Sequelize seeders executed"
 
@@ -392,7 +392,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "cd ${{ env.EC2_DEST_DIR }} && docker compose ps" 2>&1
+            "cd ${{ env.EC2_DEST_DIR }} && docker-compose ps" 2>&1
 
       - name: Clean up SSH key
         if: always()
