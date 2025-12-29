@@ -39,24 +39,25 @@ jobs:
         id: set-env
         run: |
           EVENT_NAME="${{ github.event_name }}"
-          BRANCH="${{ github.ref_name }}"
-          
+          BRANCH=""
+          ENVIRONMENT=""
           SHOULD_DEPLOY="false"
           
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             ENVIRONMENT="${{ github.event.inputs.environment }}"
+            BRANCH="${{ github.ref_name }}"
             SHOULD_DEPLOY="true"
           elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
-            # Determine environment from branch that triggered the release workflow
+            # Use correct branch for workflow_run (not github.ref_name)
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            
             if [[ "$BRANCH" == "dev" ]]; then
               ENVIRONMENT="dev"
-              # Only deploy if the release workflow succeeded
               if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
                 SHOULD_DEPLOY="true"
               fi
             elif [[ "$BRANCH" == "prod" ]]; then
               ENVIRONMENT="prod"
-              # Only deploy if the release workflow succeeded
               if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
                 SHOULD_DEPLOY="true"
               fi
@@ -67,6 +68,12 @@ jobs:
           else
             echo "❌ Error: Unsupported event type: $EVENT_NAME"
             SHOULD_DEPLOY="false"
+          fi
+          
+          # Validate ENVIRONMENT is set
+          if [[ -z "$ENVIRONMENT" ]]; then
+            echo "❌ ENVIRONMENT not determined - this is a critical error"
+            exit 1
           fi
           
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
@@ -134,7 +141,6 @@ jobs:
           # Verify the SSH key is valid
           if ! ssh-keygen -l -f ssh_key.pem > /dev/null 2>&1; then
             echo "❌ SSH key format is invalid"
-            cat ssh_key.pem
             exit 1
           fi
           
@@ -266,11 +272,6 @@ jobs:
           ENVIRONMENT=${{ env.ENVIRONMENT }}
           ENVIRONMENT_DOMAIN=${{ env.ENVIRONMENT_DOMAIN }}
           NEXT_PUBLIC_API_URL=https://${{ env.ENVIRONMENT_DOMAIN }}/api
-          
-          # SSL Certificate Configuration
-          SSL_CERT_DIR=/home/ubuntu/ssl-certificates/${{ env.ENVIRONMENT }}
-          SSL_CERT_FILE=/home/ubuntu/ssl-certificates/${{ env.ENVIRONMENT }}/fullchain.pem
-          SSL_KEY_FILE=/home/ubuntu/ssl-certificates/${{ env.ENVIRONMENT }}/privkey.pem
           EOF
           
           echo "✅ .env file created"
@@ -337,13 +338,9 @@ jobs:
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
             "cd ${{ env.EC2_DEST_DIR }} && \
-            (docker-compose down -v || true) && \
-            (docker stop \$(docker ps -a -q) 2>/dev/null || true) && \
-            (docker rm -f \$(docker ps -a -q) 2>/dev/null || true) && \
-            (docker network prune -f || true) && \
-            (sudo lsof -ti:80 | xargs -r sudo kill -9 2>/dev/null || true) && \
+            (docker compose down -v || true) && \
             sleep 5 && \
-            echo 'Aggressive cleanup completed'" 2>&1
+            echo 'Cleanup completed'" 2>&1
           
           echo "✅ Docker-compose services stopped and cleaned up"
 
@@ -356,10 +353,10 @@ jobs:
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
             "cd ${{ env.EC2_DEST_DIR }} && \
-            export FRONTEND_IMAGE_url=${{ env.FRONTEND_IMAGE_URL }} && \
-            export BACKEND_IMAGE_url=${{ env.BACKEND_IMAGE_URL }} && \
+            export FRONTEND_IMAGE_URL=${{ env.FRONTEND_IMAGE_URL }} && \
+            export BACKEND_IMAGE_URL=${{ env.BACKEND_IMAGE_URL }} && \
             export IMAGE_TAG=${{ env.IMAGE_TAG }} && \
-            docker-compose up -d" 2>&1
+            docker compose up -d" 2>&1
           
           if [ $? -eq 0 ]; then
             echo "✅ Docker-compose services started successfully"
@@ -376,17 +373,18 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "for i in {1..30}; do docker-compose ps --all 2>/dev/null && break || (echo 'Waiting for Docker...' && sleep 2); done" 2>&1
+            "for i in {1..30}; do docker compose ps --all 2>/dev/null && break || (echo 'Waiting for Docker...' && sleep 2); done" 2>&1
 
-      - name: Run Sequelize Seeders
+      - name: Run Sequelize Seeders (dev environment only)
+        if: needs.determine-environment.outputs.environment == 'dev'
         run: |
-          echo "🌱 Running Sequelize seeders"
+          echo "🌱 Running Sequelize seeders (dev only)"
           
           ssh -i ssh_key.pem \
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "cd ${{ env.EC2_DEST_DIR }} && docker-compose exec -T backend npm run db:seed" 2>&1
+            "cd ${{ env.EC2_DEST_DIR }} && docker compose exec -T backend npm run db:seed" 2>&1
           
           echo "✅ Sequelize seeders executed"
 
@@ -398,7 +396,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=10 \
             ${{ env.EC2_SSH_USER }}@${{ env.PUBLIC_IP }} \
-            "cd ${{ env.EC2_DEST_DIR }} && docker-compose ps" 2>&1
+            "cd ${{ env.EC2_DEST_DIR }} && docker compose ps" 2>&1
 
       - name: Clean up SSH key
         if: always()
