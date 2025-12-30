@@ -1,12 +1,6 @@
 name: Deploy to EC2
 
 on:
-  workflow_run:
-    workflows: ["Docker Build, Scan, and Push to AWS ECR"]
-    branches:
-      - dev
-      - prod
-    types: [completed]
   workflow_dispatch:
     inputs:
       environment:
@@ -44,42 +38,17 @@ jobs:
           BRANCH=""
           ENVIRONMENT=""
           SHOULD_DEPLOY="false"
-          DEPLOY_BRANCHES='${{ env.DEPLOY_BRANCHES }}'
           
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             ENVIRONMENT="${{ github.event.inputs.environment }}"
             BRANCH="${{ github.ref_name }}"
             SHOULD_DEPLOY="true"
-            echo "📋 Manual deployment triggered"
-          elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
-            # Use correct branch for workflow_run (not github.ref_name)
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
-            WORKFLOW_CONCLUSION="${{ github.event.workflow_run.conclusion }}"
-            
-            echo "📋 Deployment trigger from workflow_run:"
+            echo "📋 Manual deployment triggered via workflow_dispatch"
+            echo "   Environment: $ENVIRONMENT"
             echo "   Branch: $BRANCH"
-            echo "   Conclusion: $WORKFLOW_CONCLUSION"
-            echo "   Deploy Branches: $DEPLOY_BRANCHES"
-            
-            # Check if the branch is a deployment branch
-            IS_DEPLOY_BRANCH=$(echo "$DEPLOY_BRANCHES" | grep -q "\"$BRANCH\"" && echo "true" || echo "false")
-            
-            if [[ "$IS_DEPLOY_BRANCH" == "true" && "$WORKFLOW_CONCLUSION" == "success" ]]; then
-              ENVIRONMENT="$BRANCH"
-              SHOULD_DEPLOY="true"
-              echo "✅ Deployment conditions met"
-            else
-              echo "ℹ️  Deployment skipped:"
-              if [[ "$IS_DEPLOY_BRANCH" != "true" ]]; then
-                echo "   - Branch '$BRANCH' is not in deployment list"
-              fi
-              if [[ "$WORKFLOW_CONCLUSION" != "success" ]]; then
-                echo "   - Workflow did not complete successfully (conclusion: $WORKFLOW_CONCLUSION)"
-              fi
-              SHOULD_DEPLOY="false"
-            fi
           else
             echo "❌ Error: Unsupported event type: $EVENT_NAME"
+            echo "   Only 'workflow_dispatch' is supported for manual deployments"
             SHOULD_DEPLOY="false"
           fi
           
