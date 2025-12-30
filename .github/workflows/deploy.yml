@@ -26,6 +26,7 @@ env:
   AWS_REGION: us-east-1
   EC2_SSH_USER: ubuntu
   EC2_DEST_DIR: /home/ubuntu/riskgps
+  DEPLOY_BRANCHES: '["dev", "prod"]'
 
 jobs:
   determine-environment:
@@ -33,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
+      branch: ${{ steps.set-env.outputs.branch }}
       should-deploy: ${{ steps.set-env.outputs.should-deploy }}
     steps:
       - name: Determine environment based on event
@@ -42,27 +44,38 @@ jobs:
           BRANCH=""
           ENVIRONMENT=""
           SHOULD_DEPLOY="false"
+          DEPLOY_BRANCHES='${{ env.DEPLOY_BRANCHES }}'
           
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             ENVIRONMENT="${{ github.event.inputs.environment }}"
             BRANCH="${{ github.ref_name }}"
             SHOULD_DEPLOY="true"
+            echo "📋 Manual deployment triggered"
           elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
             # Use correct branch for workflow_run (not github.ref_name)
             BRANCH="${{ github.event.workflow_run.head_branch }}"
+            WORKFLOW_CONCLUSION="${{ github.event.workflow_run.conclusion }}"
             
-            if [[ "$BRANCH" == "dev" ]]; then
-              ENVIRONMENT="dev"
-              if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
-                SHOULD_DEPLOY="true"
-              fi
-            elif [[ "$BRANCH" == "prod" ]]; then
-              ENVIRONMENT="prod"
-              if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
-                SHOULD_DEPLOY="true"
-              fi
+            echo "📋 Deployment trigger from workflow_run:"
+            echo "   Branch: $BRANCH"
+            echo "   Conclusion: $WORKFLOW_CONCLUSION"
+            echo "   Deploy Branches: $DEPLOY_BRANCHES"
+            
+            # Check if the branch is a deployment branch
+            IS_DEPLOY_BRANCH=$(echo "$DEPLOY_BRANCHES" | grep -q "\"$BRANCH\"" && echo "true" || echo "false")
+            
+            if [[ "$IS_DEPLOY_BRANCH" == "true" && "$WORKFLOW_CONCLUSION" == "success" ]]; then
+              ENVIRONMENT="$BRANCH"
+              SHOULD_DEPLOY="true"
+              echo "✅ Deployment conditions met"
             else
-              echo "❌ Error: Branch '$BRANCH' is not supported. Only 'dev' and 'prod' are allowed."
+              echo "ℹ️  Deployment skipped:"
+              if [[ "$IS_DEPLOY_BRANCH" != "true" ]]; then
+                echo "   - Branch '$BRANCH' is not in deployment list"
+              fi
+              if [[ "$WORKFLOW_CONCLUSION" != "success" ]]; then
+                echo "   - Workflow did not complete successfully (conclusion: $WORKFLOW_CONCLUSION)"
+              fi
               SHOULD_DEPLOY="false"
             fi
           else
@@ -70,19 +83,22 @@ jobs:
             SHOULD_DEPLOY="false"
           fi
           
-          # Validate ENVIRONMENT is set
-          if [[ -z "$ENVIRONMENT" ]]; then
-            echo "❌ ENVIRONMENT not determined - this is a critical error"
+          # Validate ENVIRONMENT is set when deploying
+          if [[ "$SHOULD_DEPLOY" == "true" && -z "$ENVIRONMENT" ]]; then
+            echo "❌ ENVIRONMENT not determined but deployment was requested"
             exit 1
           fi
           
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "should-deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
           
-          echo "✅ Environment: $ENVIRONMENT"
-          echo "✅ Event: $EVENT_NAME"
-          echo "✅ Branch: $BRANCH"
-          echo "✅ Should Deploy: $SHOULD_DEPLOY"
+          echo ""
+          echo "✅ Deployment Decision:"
+          echo "   Event: $EVENT_NAME"
+          echo "   Branch: $BRANCH"
+          echo "   Environment: ${ENVIRONMENT:-'N/A'}"
+          echo "   Should Deploy: $SHOULD_DEPLOY"
 
   deploy:
     name: Deploy to ${{ needs.determine-environment.outputs.environment }} EC2

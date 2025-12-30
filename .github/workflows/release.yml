@@ -2,31 +2,16 @@ name: Docker Build, Scan, and Push to AWS ECR
 
 on:
   push:
-    branches:
-      - dev
-      - prod
     paths:
       - "frontend/**"
       - "backend/**"
       - ".github/workflows/release.yml"
   pull_request:
-    branches:
-      - dev
-      - prod
     paths:
       - "frontend/**"
       - "backend/**"
       - ".github/workflows/release.yml"
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Select environment to build and push'
-        required: true
-        type: choice
-        default: 'dev'
-        options:
-          - dev
-          - prod
 
 permissions:
   id-token: write
@@ -34,21 +19,30 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
+  DEPLOY_BRANCHES: '["dev", "prod"]'
 
 jobs:
   determine-environment:
     runs-on: ubuntu-latest
     outputs:
+      branch: ${{ steps.set-env.outputs.branch }}
       environment: ${{ steps.set-env.outputs.environment }}
       run-tests: ${{ steps.set-env.outputs.run-tests }}
       is-push-event: ${{ steps.set-env.outputs.is-push-event }}
       should-build: ${{ steps.set-env.outputs.should-build }}
+      should-push: ${{ steps.set-env.outputs.should-push }}
     steps:
-      - name: Determine environment based on branch and event
+      - name: Determine environment and actions based on branch
         id: set-env
         run: |
           BRANCH="${{ github.ref_name }}"
           EVENT_NAME="${{ github.event_name }}"
+          DEPLOY_BRANCHES='${{ env.DEPLOY_BRANCHES }}'
+          
+          echo "🔍 Workflow Trigger Info:"
+          echo "  Branch: $BRANCH"
+          echo "  Event: $EVENT_NAME"
+          echo "  Deploy Branches: $DEPLOY_BRANCHES"
           
           # Determine if this is a push event (not a PR)
           if [[ "$EVENT_NAME" == "push" ]]; then
@@ -57,24 +51,44 @@ jobs:
             IS_PUSH="false"
           fi
           
-          # Determine environment and whether to run tests
-          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            ENVIRONMENT="${{ github.event.inputs.environment }}"
-            RUN_TESTS="true"
-            SHOULD_BUILD="true"
-          elif [[ "$BRANCH" == "dev" ]]; then
-            ENVIRONMENT="dev"
-            RUN_TESTS="true"
-            SHOULD_BUILD="true"
-          elif [[ "$BRANCH" == "prod" ]]; then
-            ENVIRONMENT="prod"
-            RUN_TESTS="false"
-            SHOULD_BUILD="true"
-          else
-            echo "❌ Error: Branch '$BRANCH' is not supported. Only 'dev' and 'prod' branches are allowed."
-            exit 1
-          fi
+          # Check if branch is in deploy branches list
+          IS_DEPLOY_BRANCH=$(echo "$DEPLOY_BRANCHES" | grep -q "\"$BRANCH\"" && echo "true" || echo "false")
           
+          # Determine environment based on branch
+          case "$BRANCH" in
+            dev)
+              ENVIRONMENT="dev"
+              RUN_TESTS="true"
+              SHOULD_BUILD="true"
+              # Push to ECR only on push event to dev branch
+              if [[ "$IS_PUSH" == "true" ]]; then
+                SHOULD_PUSH="true"
+              else
+                SHOULD_PUSH="false"
+              fi
+              ;;
+            prod)
+              ENVIRONMENT="prod"
+              RUN_TESTS="false"
+              SHOULD_BUILD="true"
+              # Push to ECR only on push event to prod branch
+              if [[ "$IS_PUSH" == "true" ]]; then
+                SHOULD_PUSH="true"
+              else
+                SHOULD_PUSH="false"
+              fi
+              ;;
+            *)
+              # For any other branch: build and test, but do NOT push to ECR
+              ENVIRONMENT=""
+              RUN_TESTS="true"
+              SHOULD_BUILD="true"
+              SHOULD_PUSH="false"
+              echo "ℹ️  Branch '$BRANCH' is not a deployment branch. Tests and build will run, but ECR push will be skipped."
+              ;;
+          esac
+          
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "run-tests=$RUN_TESTS" >> $GITHUB_OUTPUT
           echo "is-push-event=$IS_PUSH" >> $GITHUB_OUTPUT
@@ -90,9 +104,12 @@ jobs:
     name: Get Services from SSM
     runs-on: ubuntu-latest
     needs: determine-environment
+    if: needs.determine-environment.outputs.should-push == 'true'
     outputs:
       services: ${{ steps.set-services.outputs.services }}
       aws_region: ${{ steps.set-services.outputs.aws_region }}
+      branch: ${{ needs.determine-environment.outputs.branch }}
+      environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -101,20 +118,26 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Get ECR Repository URLs from SSM
         id: set-services
         run: |
           ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
+          BRANCH="${{ needs.determine-environment.outputs.branch }}"
+          AWS_REGION="${{ env.AWS_REGION }}"
           SSM_PARAMETER="/bluocean/riskgps/${ENVIRONMENT}/ec2/credentials"
           
-          echo "📋 Fetching credentials from SSM parameter: $SSM_PARAMETER"
+          echo "🔍 Fetching Services Configuration:"
+          echo "  Branch: $BRANCH"
+          echo "  Environment: $ENVIRONMENT"
+          echo "  AWS Region: $AWS_REGION"
+          echo "  SSM Parameter: $SSM_PARAMETER"
           
           # Fetch SSM parameter with error handling
           CREDENTIALS=$(aws ssm get-parameter \
             --name "$SSM_PARAMETER" \
-            --region us-east-1 \
+            --region "$AWS_REGION" \
             --with-decryption \
             --query Parameter.Value \
             --output text 2>&1)
@@ -218,6 +241,11 @@ jobs:
       needs.determine-environment.outputs.should-build == 'true' &&
       (needs.scan-files.result == 'success' || needs.scan-files.result == 'skipped') &&
       (needs.run-tests.result == 'success' || needs.run-tests.result == 'skipped')
+    env:
+      BRANCH: ${{ needs.get-services.outputs.branch }}
+      ENVIRONMENT: ${{ needs.get-services.outputs.environment }}
+      AWS_REGION: ${{ needs.get-services.outputs.aws_region }}
+      SHOULD_PUSH: ${{ needs.determine-environment.outputs.should-push }}
     strategy:
       matrix:
         service: ${{ fromJson(needs.get-services.outputs.services) }}
@@ -232,21 +260,23 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::739962689681:role/GithubActionRole
-          aws-region: ${{ needs.get-services.outputs.aws_region }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Get ECR Repository URLs and Versioning from SSM
         shell: bash
         run: |
-          ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
+          ENVIRONMENT="${{ env.ENVIRONMENT }}"
           SERVICE="${{ matrix.service }}"
-          AWS_REGION="${{ needs.get-services.outputs.aws_region }}"
-          
-          # Hardcoded SSM parameter path: /bluocean/riskgps/{environment}/ec2/credentials
+          AWS_REGION="${{ env.AWS_REGION }}"
+          BRANCH="${{ env.BRANCH }}"
           SSM_PARAMETER="/bluocean/riskgps/${ENVIRONMENT}/ec2/credentials"
           
-          echo "🔍 Fetching configuration from SSM Parameter Store..."
-          echo "📍 Parameter: $SSM_PARAMETER"
-          echo "📍 AWS Region: $AWS_REGION"
+          echo "🔍 Fetching Build Configuration:"
+          echo "  Branch: $BRANCH"
+          echo "  Environment: $ENVIRONMENT"
+          echo "  Service: $SERVICE"
+          echo "  AWS Region: $AWS_REGION"
+          echo "  SSM Parameter: $SSM_PARAMETER"
           
           # Fetch EC2 credentials from SSM (with decryption)
           CREDENTIALS=$(aws ssm get-parameter \
@@ -281,16 +311,16 @@ jobs:
           # Extract ECR registry (everything before the last /)
           ECR_REGISTRY=$(echo "$ECR_IMAGE" | sed 's|/[^/]*$||')
           
-          # Generate tag and image name (using a default version)
+          # Generate tag and image name
           MAJOR_VERSION="1"
           MINOR_VERSION="0"
           TAG="v${MAJOR_VERSION}.${MINOR_VERSION}.${{ github.run_number }}"
           IMAGE_NAME="${SERVICE}:${TAG}"
           ECR_IMAGE_WITH_TAG="${ECR_IMAGE}:${TAG}"
           
-          # Log the configuration
           echo ""
-          echo "✅ Configuration loaded from SSM:"
+          echo "✅ Build Configuration Loaded:"
+          echo "   Branch: $BRANCH"
           echo "   Environment: $ENVIRONMENT"
           echo "   Service: $SERVICE"
           echo "   AWS Region: $AWS_REGION"
@@ -302,6 +332,7 @@ jobs:
           
           # Export as environment variables
           {
+            echo "BRANCH=$BRANCH"
             echo "ENVIRONMENT=$ENVIRONMENT"
             echo "SERVICE=$SERVICE"
             echo "AWS_REGION=$AWS_REGION"
@@ -345,20 +376,24 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Tag Docker image
+        if: env.SHOULD_PUSH == 'true'
         run: |
           echo "🏷️  Tagging image as: ${{ env.ECR_IMAGE_WITH_TAG }}"
           docker tag ${{ env.IMAGE_NAME }} ${{ env.ECR_IMAGE_WITH_TAG }} || { echo "❌ Failed to tag image"; exit 1; }
           echo "✅ Image tagged successfully"
 
       - name: Push Docker image to ECR
+        if: env.SHOULD_PUSH == 'true'
         run: |
           echo "📤 Pushing image to ECR: ${{ env.ECR_IMAGE_WITH_TAG }}"
           docker push ${{ env.ECR_IMAGE_WITH_TAG }} || { echo "❌ Failed to push image to ECR"; exit 1; }
           echo "✅ Image pushed to ECR successfully"
 
       - name: Image Summary
+        if: env.SHOULD_PUSH == 'true'
         run: |
-          echo "📊 Build Summary"
+          echo "📊 Build & Push Summary"
+          echo "  Branch: ${{ env.BRANCH }}"
           echo "  Environment: ${{ env.ENVIRONMENT }}"
           echo "  Service: ${{ env.SERVICE }}"
           echo "  AWS Region: ${{ env.AWS_REGION }}"
@@ -366,65 +401,91 @@ jobs:
           echo "  Image with Tag: ${{ env.ECR_IMAGE_WITH_TAG }}"
           echo "  Tag: ${{ env.TAG }}"
 
+      - name: Build Only Summary
+        if: env.SHOULD_PUSH != 'true'
+        run: |
+          echo "📊 Build Only Summary (No ECR Push)"
+          echo "  Branch: ${{ env.BRANCH }}"
+          echo "  Service: ${{ env.SERVICE }}"
+          echo "  Image: ${{ env.IMAGE_NAME }}"
+          echo "  Note: ECR push skipped for non-deployment branches"
+
   workflow-summary:
     name: Workflow Summary
     runs-on: ubuntu-latest
-    needs: [build-scan-push, determine-environment]
+    needs: [determine-environment]
     if: always()
     steps:
-      - name: Check Job Status
+      - name: Determine Summary Details
+        id: summary-info
         run: |
-          if [[ "${{ needs.build-scan-push.result }}" == "failure" ]]; then
-            echo "❌ Workflow failed: Build, Scan, or Push step failed"
-            exit 1
+          BRANCH="${{ needs.determine-environment.outputs.branch }}"
+          ENVIRONMENT="${{ needs.determine-environment.outputs.environment }}"
+          SHOULD_PUSH="${{ needs.determine-environment.outputs.should-push }}"
+          RUN_TESTS="${{ needs.determine-environment.outputs.run-tests }}"
+          EVENT="${{ github.event_name }}"
+          
+          # Determine push outcome
+          PUSH_STATUS="Skipped (Feature Branch)"
+          if [[ "$SHOULD_PUSH" == "true" ]]; then
+            PUSH_STATUS="Pushed to ECR"
           fi
+          
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "push_status=$PUSH_STATUS" >> $GITHUB_OUTPUT
+          echo "run_tests=$RUN_TESTS" >> $GITHUB_OUTPUT
 
       - name: Generate Success Summary
-        if: needs.build-scan-push.result == 'success'
         run: |
-          ENV_UPPER=$(echo "${{ needs.determine-environment.outputs.environment }}" | tr '[:lower:]' '[:upper:]')
-          echo "## 🎉 Docker Build and Push Summary" >> $GITHUB_STEP_SUMMARY
+          BRANCH="${{ steps.summary-info.outputs.branch }}"
+          ENVIRONMENT="${{ steps.summary-info.outputs.environment }}"
+          PUSH_STATUS="${{ steps.summary-info.outputs.push_status }}"
+          RUN_TESTS="${{ steps.summary-info.outputs.run_tests }}"
+          
+          ENV_DISPLAY="${ENVIRONMENT:-'Feature Branch'}"
+          ENV_UPPER=$(echo "$ENV_DISPLAY" | tr '[:lower:]' '[:upper:]')
+          
+          echo "## 🎉 Docker Build and Push Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Key | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | $BRANCH |" >> $GITHUB_STEP_SUMMARY
           echo "| **Environment** | $ENV_UPPER |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Event** | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Tests Run** | ${{ needs.determine-environment.outputs.run-tests }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Status** | ✅ SUCCESS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Event Type** | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tests Run** | $RUN_TESTS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **ECR Push** | $PUSH_STATUS |" >> $GITHUB_STEP_SUMMARY
           echo "| **Commit SHA** | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Run Number** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📝 Workflow Details:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ needs.determine-environment.outputs.environment }}" == "dev" ]]; then
-            echo "✅ **Dev Environment**: Ran tests, built, scanned, and pushed to DEV ECR repository" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "$ENVIRONMENT" == "dev" ]]; then
+            echo "✅ **Dev Environment**: Tests, Build, Scan, and ECR Push Completed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$ENVIRONMENT" == "prod" ]]; then
+            echo "✅ **Prod Environment**: Build, Scan, and ECR Push Completed (Tests Skipped)" >> $GITHUB_STEP_SUMMARY
           else
-            echo "✅ **Prod Environment**: Built, scanned, and pushed to PROD ECR repository (tests skipped)" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Feature Branch**: Tests and Build Completed (ECR Push Skipped)" >> $GITHUB_STEP_SUMMARY
           fi
+          
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🚀 Next Steps:" >> $GITHUB_STEP_SUMMARY
-          echo "- Monitor the deployment pipeline" >> $GITHUB_STEP_SUMMARY
-          echo "- Check ECR for the newly pushed images" >> $GITHUB_STEP_SUMMARY
-          echo "- Verify image tags: v*.*.* format" >> $GITHUB_STEP_SUMMARY
-
-      - name: Generate Failure Summary
-        if: needs.build-scan-push.result != 'success'
-        run: |
-          ENV_UPPER=$(echo "${{ needs.determine-environment.outputs.environment }}" | tr '[:lower:]' '[:upper:]')
-          echo "## ❌ Workflow Failed" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Branch Configuration:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment Branches**: dev, prod" >> $GITHUB_STEP_SUMMARY
+          echo "- **Current Branch**: $BRANCH" >> $GITHUB_STEP_SUMMARY
+          echo "- **Is Deployment Branch**: $([ '$ENVIRONMENT' != '' ] && echo 'Yes' || echo 'No')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Will Push to ECR**: $([ '$PUSH_STATUS' == 'Pushed to ECR' ] && echo 'Yes' || echo 'No')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Key | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Environment** | $ENV_UPPER |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Branch** | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Status** | ❌ FAILED |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Reason** | Build, Scan, or Push stage failed |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔍 Troubleshooting:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Check the logs for specific error messages" >> $GITHUB_STEP_SUMMARY
-          echo "2. Verify SSM parameters exist and are accessible" >> $GITHUB_STEP_SUMMARY
-          echo "3. Check AWS credentials and IAM permissions" >> $GITHUB_STEP_SUMMARY
-          echo "4. Verify Docker image builds without errors" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          exit 1
+          
+          if [[ "$PUSH_STATUS" == "Pushed to ECR" ]]; then
+            echo "### 🚀 Next Steps:" >> $GITHUB_STEP_SUMMARY
+            echo "- Monitor the deployment pipeline" >> $GITHUB_STEP_SUMMARY
+            echo "- Deploy will be automatically triggered" >> $GITHUB_STEP_SUMMARY
+            echo "- Check ECR for the newly pushed images" >> $GITHUB_STEP_SUMMARY
+            echo "- Verify image tags: v*.*.* format" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ℹ️ Note:" >> $GITHUB_STEP_SUMMARY
+            echo "- This is a feature branch build" >> $GITHUB_STEP_SUMMARY
+            echo "- Image was built successfully but not pushed to ECR" >> $GITHUB_STEP_SUMMARY
+            echo "- Merge to 'dev' or 'prod' branch to trigger ECR push and deployment" >> $GITHUB_STEP_SUMMARY
+          fi
