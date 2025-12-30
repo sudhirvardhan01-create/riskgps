@@ -93,12 +93,14 @@ jobs:
           echo "run-tests=$RUN_TESTS" >> $GITHUB_OUTPUT
           echo "is-push-event=$IS_PUSH" >> $GITHUB_OUTPUT
           echo "should-build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+          echo "should-push=$SHOULD_PUSH" >> $GITHUB_OUTPUT
           
           echo "✅ Environment: $ENVIRONMENT"
           echo "✅ Event: $EVENT_NAME"
           echo "✅ Branch: $BRANCH"
           echo "✅ Run Tests: $RUN_TESTS"
           echo "✅ Push Event: $IS_PUSH"
+          echo "✅ Should Push: $SHOULD_PUSH"
 
   get-services:
     name: Get Services from SSM
